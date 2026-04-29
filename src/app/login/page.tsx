@@ -98,13 +98,14 @@ export default function LoginPage() {
                         <img 
                             src="/images/logo-bogor.png" 
                             alt="Logo Kabupaten Bogor" 
-                            className="w-20 h-20 object-contain mb-6 drop-shadow-lg"
+                            className="w-20 h-20 object-contain mb-6 drop-shadow-2xl"
                         />
-                        <h2 className="text-white text-2xl md:text-3xl font-black uppercase tracking-tight leading-tight max-w-xs drop-shadow-lg">
-                            Dinas Pemberdayaan Masyarakat dan Desa
+                        <h2 className="text-white text-2xl md:text-3xl font-black uppercase tracking-tight leading-tight max-w-xs drop-shadow-2xl">
+                            Desa Cimanggu I
+                            <span className="block text-lg md:text-xl mt-1 opacity-90 font-bold">Kecamatan Cibungbulang</span>
                         </h2>
-                        <div className="w-16 h-1.5 bg-yellow-400 my-4 rounded-full" />
-                        <p className="text-white font-bold tracking-[0.2em] uppercase text-sm drop-shadow-md">
+                        <div className="w-16 h-1 bg-yellow-400 my-4 rounded-full" />
+                        <p className="text-white font-bold tracking-[0.3em] uppercase text-xs drop-shadow-md">
                             Kabupaten Bogor
                         </p>
                     </div>

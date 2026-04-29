@@ -6,10 +6,10 @@ import api from '../services/api';
 import ScrollReveal from '../components/ScrollReveal';
 
 interface OrgCardProps {
-  role: string;
-  name: string;
-  foto?: string;
-  isMain?: boolean;
+    role: string;
+    name: string;
+    foto?: string;
+    isMain?: boolean;
 }
 
 const OrgCard = ({ role, name, foto, isMain = false }: OrgCardProps) => (
@@ -226,7 +226,7 @@ const LandingPage = () => {
     useEffect(() => {
         const timer = setInterval(() => {
             setCurrentSlide((prev) => (prev === heroImages.length - 1 ? 0 : prev + 1));
-        }, 8000); 
+        }, 8000);
 
         return () => clearInterval(timer);
     }, [heroImages.length]);
@@ -276,7 +276,7 @@ const LandingPage = () => {
 
                     {/* === BAGIAN KIRI: Logo & Branding (Terpisah dari Kapsul Menu) === */}
                     <div className="flex items-center gap-3">
-                        <img src={siteData?.logo || "/images/logo-bogor.webp"} alt="Logo Desa" className="w-10 h-10 object-contain drop-shadow-md" />
+                        <img src={siteData?.logo || "/images/logo-bogor.png"} alt="Logo Desa" className="w-10 h-10 object-contain drop-shadow-md" />
                         <div className="flex flex-col justify-center">
                             <span className="text-white font-bold text-[16px] tracking-wide leading-none mb-1 uppercase">
                                 {siteData?.title || "DESA CIMANGGU I"}
@@ -858,7 +858,7 @@ const LandingPage = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
                                             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Nama Lengkap</label>
-                                            <input 
+                                            <input
                                                 type="text" name="nama_warga" required
                                                 className="w-full bg-slate-900/50 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:border-emerald-500 transition-colors"
                                                 placeholder="Sesuai KTP"
@@ -868,7 +868,7 @@ const LandingPage = () => {
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Wilayah RT/RW</label>
-                                            <input 
+                                            <input
                                                 type="text" name="rt_rw" required
                                                 className="w-full bg-slate-900/50 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:border-emerald-500 transition-colors"
                                                 placeholder="Cth: 001/005"
@@ -877,11 +877,11 @@ const LandingPage = () => {
                                             />
                                         </div>
                                     </div>
-                                    
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
                                             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Kategori Pesan</label>
-                                            <select 
+                                            <select
                                                 name="kategori"
                                                 className="w-full bg-slate-900/50 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:border-emerald-500 transition-colors appearance-none"
                                                 value={aspirationForm.kategori}
@@ -896,7 +896,7 @@ const LandingPage = () => {
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Dusun Tujuan</label>
-                                            <select 
+                                            <select
                                                 name="wilayah_tujuan"
                                                 className="w-full bg-slate-900/50 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:border-emerald-500 transition-colors appearance-none"
                                                 value={aspirationForm.wilayah_tujuan}
@@ -912,7 +912,7 @@ const LandingPage = () => {
 
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Isi Pesan / Aspirasi</label>
-                                        <textarea 
+                                        <textarea
                                             name="isi_pesan" required rows={4}
                                             className="w-full bg-slate-900/50 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:border-emerald-500 transition-colors resize-none"
                                             placeholder="Tuliskan aspirasi Anda secara detail..."
@@ -921,7 +921,7 @@ const LandingPage = () => {
                                         ></textarea>
                                     </div>
 
-                                    <button 
+                                    <button
                                         type="submit" disabled={isSubmittingAspiration}
                                         className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-4 rounded-2xl transition-all shadow-lg hover:shadow-emerald-500/30 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
                                     >
@@ -952,7 +952,7 @@ const LandingPage = () => {
                                         ))}
                                     </div>
                                 </div>
-                                
+
                                 <div className="bg-gradient-to-r from-emerald-900/40 to-blue-900/40 border border-emerald-500/20 rounded-3xl p-8 flex items-center justify-between group">
                                     <div>
                                         <h4 className="text-lg font-bold text-white mb-1">Butuh Bantuan Mendesak?</h4>
@@ -1014,7 +1014,7 @@ const LandingPage = () => {
                         {/* Column 1: Brand */}
                         <div className="space-y-6">
                             <div className="flex items-center gap-3">
-                                <img src={siteData?.logo || "/images/logo-bogor.webp"} alt="Logo" className="w-12 h-12" />
+                                <img src={siteData?.logo || "/images/logo-bogor.png"} alt="Logo" className="w-12 h-12" />
                                 <div className="font-black text-xl tracking-tight text-white uppercase leading-tight">
                                     {siteData?.title || "DESA CIMANGGU I"}
                                 </div>
