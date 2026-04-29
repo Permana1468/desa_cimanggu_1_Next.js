@@ -5,7 +5,14 @@ import { FileText, Map as MapIcon, HeartPulse, Activity, ShieldCheck, Users, Sea
 import api from '../services/api';
 import ScrollReveal from '../components/ScrollReveal';
 
-const OrgCard = ({ role, name, foto, isMain = false }) => (
+interface OrgCardProps {
+  role: string;
+  name: string;
+  foto?: string;
+  isMain?: boolean;
+}
+
+const OrgCard = ({ role, name, foto, isMain = false }: OrgCardProps) => (
     <div className={`group relative overflow-hidden flex flex-col items-center justify-center p-5 rounded-2xl border transition-all duration-500 ${isMain ? 'bg-gradient-to-b from-yellow-500/10 to-[#0f172a] border-yellow-500/30 shadow-[0_0_20px_rgba(234,179,8,0.1)]' : 'bg-[#1e293b]/60 border-white/10 backdrop-blur-md'} w-44 md:w-52 text-center z-10 hover:-translate-y-3 hover:scale-[1.03] hover:shadow-2xl hover:border-blue-400/30 hover:bg-[#1e293b]/80`}>
         {/* Background Glow Effect */}
         <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-0 ${isMain ? 'bg-yellow-500/5 blur-xl' : 'bg-blue-500/5 blur-xl'}`}></div>

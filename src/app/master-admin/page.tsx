@@ -137,8 +137,17 @@ export default function MasterDashboardPage() {
   );
 }
 
-function StatCard({ title, value, change, isPositive, icon: Icon, color }: any) {
-  const colorMap: any = {
+interface StatCardProps {
+  title: string;
+  value: string;
+  change: string;
+  isPositive: boolean;
+  icon: React.ElementType;
+  color: string;
+}
+
+function StatCard({ title, value, change, isPositive, icon: Icon, color }: StatCardProps) {
+  const colorMap: Record<string, string> = {
     blue: "bg-blue-500/10 text-blue-500 border-blue-500/20",
     amber: "bg-amber-500/10 text-amber-500 border-amber-500/20",
     purple: "bg-purple-500/10 text-purple-500 border-purple-500/20",
@@ -162,7 +171,14 @@ function StatCard({ title, value, change, isPositive, icon: Icon, color }: any) 
   );
 }
 
-function ActivityItem({ user, action, target, time }: any) {
+interface ActivityItemProps {
+  user: string;
+  action: string;
+  target: string;
+  time: string;
+}
+
+function ActivityItem({ user, action, target, time }: ActivityItemProps) {
   return (
     <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all border border-transparent hover:border-white/5">
       <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center shrink-0 border border-white/10">

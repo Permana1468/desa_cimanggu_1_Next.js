@@ -158,8 +158,16 @@ export default function VillageDashboardPage() {
   );
 }
 
-function LocalStatCard({ title, value, label, icon: Icon, color }: any) {
-  const colorMap: any = {
+interface LocalStatCardProps {
+  title: string;
+  value: string;
+  label: string;
+  icon: React.ElementType;
+  color: string;
+}
+
+function LocalStatCard({ title, value, label, icon: Icon, color }: LocalStatCardProps) {
+  const colorMap: Record<string, string> = {
     blue: "text-blue-500 bg-blue-500/10",
     amber: "text-amber-500 bg-amber-500/10",
     green: "text-green-500 bg-green-500/10",
@@ -181,7 +189,14 @@ function LocalStatCard({ title, value, label, icon: Icon, color }: any) {
   );
 }
 
-function AgendaItem({ date, title, loc, time }: any) {
+interface AgendaItemProps {
+  date: string;
+  title: string;
+  loc: string;
+  time: string;
+}
+
+function AgendaItem({ date, title, loc, time }: AgendaItemProps) {
   return (
     <div className="flex items-center gap-5 p-4 rounded-2xl hover:bg-white/5 transition-all group">
       <div className="w-16 h-16 bg-blue-600 rounded-2xl flex flex-col items-center justify-center shrink-0 shadow-lg shadow-blue-600/10 group-hover:scale-105 transition-transform">
@@ -199,7 +214,13 @@ function AgendaItem({ date, title, loc, time }: any) {
   );
 }
 
-function ShortcutCard({ title, desc, icon: Icon }: any) {
+interface ShortcutCardProps {
+  title: string;
+  desc: string;
+  icon: React.ElementType;
+}
+
+function ShortcutCard({ title, desc, icon: Icon }: ShortcutCardProps) {
   return (
     <button className="bg-white/5 border border-white/10 p-6 rounded-3xl text-left hover:bg-white/10 hover:border-blue-500/30 transition-all group">
       <div className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center mb-4 border border-white/10 group-hover:scale-110 transition-transform">
