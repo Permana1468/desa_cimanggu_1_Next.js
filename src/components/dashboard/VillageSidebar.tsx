@@ -36,12 +36,12 @@ export const VillageSidebar = () => {
     >
       {/* Logo Area */}
       <div className="p-6 flex items-center gap-4">
-        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
-          <Home className="text-white" size={24} />
+        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shrink-0 shadow-lg border border-white/10 p-1.5">
+          <img src="/images/logo-bogor.png" alt="Logo" className="w-full h-full object-contain" />
         </div>
         {!isCollapsed && (
           <div className="flex flex-col">
-            <span className="text-white font-bold tracking-tight text-lg leading-tight">ADMIN DESA</span>
+            <span className="text-white font-bold tracking-tight text-lg leading-tight uppercase">Admin Desa</span>
             <span className="text-blue-400 text-[10px] font-bold tracking-[0.2em] uppercase">Cimanggu I Portal</span>
           </div>
         )}
