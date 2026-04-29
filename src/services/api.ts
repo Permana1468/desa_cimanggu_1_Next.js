@@ -1,10 +1,10 @@
 // Dummy API service since the backend is being migrated
 const api = {
-    get: async (url) => {
+    get: async (url: string) => {
         console.log(`Dummy GET to ${url}`);
-        return { data: null };
+        return { data: null as any };
     },
-    post: async (url, data) => {
+    post: async (url: string, data: any) => {
         console.log(`Dummy POST to ${url}`, data);
         return { data: { success: true } };
     }

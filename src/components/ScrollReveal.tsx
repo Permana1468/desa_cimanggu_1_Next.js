@@ -1,8 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-const ScrollReveal = ({ children, delay = 0, className = "" }) => {
+interface ScrollRevealProps {
+    children: React.ReactNode;
+    delay?: number;
+    className?: string;
+}
+
+const ScrollReveal = ({ children, delay = 0, className = "" }: ScrollRevealProps) => {
     const [isVisible, setIsVisible] = useState(false);
-    const domRef = useRef();
+    const domRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const observer = new IntersectionObserver((entries) => {

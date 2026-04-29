@@ -82,7 +82,7 @@ const LandingPage = () => {
     const [isSubmittingAspiration, setIsSubmittingAspiration] = useState(false);
     const [gotongRoyongData, setGotongRoyongData] = useState([]);
 
-    const handleAspirationChange = (e) => {
+    const handleAspirationChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setAspirationForm(prev => ({ ...prev, [name]: value }));
     };
@@ -137,7 +137,7 @@ const LandingPage = () => {
             const resPejabat = await api.get('/users/api/pejabat-desa/');
             if (resPejabat.data) {
                 const p = resPejabat.data;
-                const mapPejabat = (obj) => ({ name: obj.nama, role: obj.jabatan, foto: obj.foto });
+                const mapPejabat = (obj: any) => ({ name: obj.nama, role: obj.jabatan, foto: obj.foto });
 
                 const kadesData = p.find(x => x.level === 1);
                 const sekdesData = p.find(x => x.level === 2);
@@ -189,7 +189,7 @@ const LandingPage = () => {
         }
     }, [activeIndex]);
 
-    const handleMouseEnter = (index) => {
+    const handleMouseEnter = (index: number) => {
         const el = itemRefs.current[index];
         if (el) {
             setPillStyle({
