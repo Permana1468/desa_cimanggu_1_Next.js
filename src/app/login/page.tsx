@@ -71,7 +71,7 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-[#d1d5db] flex items-center justify-center p-4 font-sans">
-            <div className="bg-white rounded-[2rem] shadow-2xl flex flex-col md:flex-row w-full max-w-5xl overflow-hidden min-h-[600px]">
+            <div className="bg-white rounded-[2rem] shadow-2xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden min-h-[500px]">
                 
                 {/* LEFT SIDE: CAROUSEL & BRANDING */}
                 <div className="md:w-1/2 relative min-h-[300px] md:min-h-full">

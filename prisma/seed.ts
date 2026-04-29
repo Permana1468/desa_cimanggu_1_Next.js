@@ -37,7 +37,22 @@ async function main() {
     },
   });
 
-  console.log("Admin Master created:", adminMaster.email);
+  // 3. Create Admin Desa
+  const hashedDesaPassword = await bcrypt.hash("AdminDesa123!", 10);
+  const adminDesa = await prisma.user.upsert({
+    where: { email: "desa@cimanggu1.desa.id" },
+    update: {},
+    create: {
+      email: "desa@cimanggu1.desa.id",
+      fullName: "Admin Desa Cimanggu",
+      passwordHash: hashedDesaPassword,
+      role: "ADMIN_DESA",
+      tenantId: tenant.id,
+      isActive: true,
+    },
+  });
+
+  console.log("Admin Desa created:", adminDesa.email);
 }
 
 main()

@@ -333,14 +333,14 @@ const LandingPage = () => {
                     </nav>
 
                     <div className="hidden md:flex items-center gap-4">
-                        <a
+                        {/* <a
                             href="/absensi"
                             target="_blank" rel="noopener noreferrer"
                             className="flex items-center gap-2 bg-[#0f172a]/80 border border-green-500/30 text-green-400 hover:bg-green-500/10 px-4 py-1.5 rounded-full text-[13px] font-bold transition-all shadow-[0_0_10px_rgba(34,197,94,0.2)]"
                         >
                             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                             E-Absensi
-                        </a>
+                        </a> */}
                         <Link href="/login" className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white px-5 py-2 rounded-full text-[13px] font-medium transition-all shadow-lg hover:shadow-blue-500/40">
                             Masuk
                         </Link>
@@ -383,7 +383,7 @@ const LandingPage = () => {
                                 </a>
                             );
                         })}
-                        <a
+                        {/* <a
                             href="/absensi"
                             target="_blank" rel="noopener noreferrer"
                             onClick={() => setIsMobileMenuOpen(false)}
@@ -391,7 +391,7 @@ const LandingPage = () => {
                         >
                             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                             Layar E-Absensi
-                        </a>
+                        </a> */}
                         <Link
                             href="/login"
                             onClick={() => setIsMobileMenuOpen(false)}
@@ -1040,7 +1040,7 @@ const LandingPage = () => {
                             <h5 className="text-white font-bold mb-6 uppercase tracking-widest text-xs">E-Government</h5>
                             <ul className="space-y-4 text-sm text-slate-400 font-medium">
                                 <li><a href="/login" className="hover:text-yellow-400 transition-colors">Portal Pegawai</a></li>
-                                <li><a href="/absensi" target="_blank" className="hover:text-yellow-400 transition-colors">Sistem Absensi</a></li>
+                                {/* <li><a href="/absensi" target="_blank" className="hover:text-yellow-400 transition-colors">Sistem Absensi</a></li> */}
                                 <li><a href="#aspirasi" className="hover:text-yellow-400 transition-colors">Kotak Aspirasi</a></li>
                                 <li><a href="/profil" className="hover:text-yellow-400 transition-colors">Transparansi Dana</a></li>
                             </ul>
