@@ -1,0 +1,32 @@
+# Ignore virtual environments
+venv/
+env/
+ENV/
+.env
+
+# Ignore node modules
+node_modules/
+frontend/node_modules/
+
+# Ignore local databases and media
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Ignore Docker files
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+
+# Ignore other non-essential files
+.git/
+.gitignore
+.vercel/
+.cursorignore
+.cursorrules
+frontend/dist/
+package-lock.json
+*.log
+__pycache__/
+*.pyc

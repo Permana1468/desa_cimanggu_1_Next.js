@@ -1,0 +1,11 @@
+# Ignore heavy directories for better performance
+exclude:
+  - frontend/node_modules/**
+  - venv/**
+  - backend/__pycache__/**
+  - .git/**
+  - media/**
+
+# Project Context
+This is a Django (Backend) and React/Vite (Frontend) project for Desa Cimanggu 1.
+Always prioritize clean code and Glassmorphism UI for the frontend.

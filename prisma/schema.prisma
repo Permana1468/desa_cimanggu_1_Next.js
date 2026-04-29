@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==============================
+// 1. TENANT (Multi-Tenant System)
+// ==============================
+model Tenant {
+  id          String   @id @default(uuid())
+  name        String
+  domain      String?  @unique
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  auditLogs   AuditLog[]
+}
+
+// ==============================
+// 2. USER & ROLE MANAGEMENT
+// ==============================
+enum RoleType {
+  ADMIN_MASTER
+  ADMIN_DESA
+}
+
+model User {
+  id                    String    @id @default(uuid())
+  email                 String    @unique
+  passwordHash          String
+  fullName              String
+  role                  RoleType  @default(ADMIN_DESA)
+  isActive              Boolean   @default(true)
+  
+  // 2FA Fields
+  twoFactorSecret       String?
+  isTwoFactorEnabled    Boolean   @default(false)
+
+  // Multi-Tenant
+  tenantId              String
+  tenant                Tenant    @relation(fields: [tenantId], references: [id])
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  auditLogs             AuditLog[]
+}
+
+// ==============================
+// 3. AUDIT LOG (Sistem Log)
+// ==============================
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String   // e.g., "CREATE_USER", "DELETE_DATA"
+  entity      String   // e.g., "User", "DataKependudukan"
+  entityId    String?
+  details     Json?    // Optional JSON payload describing the change
+  ipAddress   String?
+  userAgent   String?
+
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+}
+
+// ==============================
+// 4. DATA KEPENDUDUKAN
+// ==============================
+model DataKependudukan {
+  id          String   @id @default(uuid())
+  nik         String   @unique
+  namaLengkap String
+  tempatLahir String
+  tanggalLahir DateTime
+  jenisKelamin String
+  alamat      String
+  rt          String
+  rw          String
+  dusun       String
+  agama       String
+  statusKawin String
+  pekerjaan   String
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
