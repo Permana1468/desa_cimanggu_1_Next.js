@@ -44,7 +44,7 @@ const OrgCard = ({ role, name, foto, isMain = false }: OrgCardProps) => (
 );
 
 const LandingPage = () => {
-    const [siteData, setSiteData] = useState(null);
+    const [siteData, setSiteData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [heroImages, setHeroImages] = useState(['/images/slide_1.webp']); // Fallback Default
@@ -52,8 +52,8 @@ const LandingPage = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [newsData, setNewsData] = useState([]);
-    const [orgData, setOrgData] = useState({
+    const [newsData, setNewsData] = useState<any[]>([]);
+    const [orgData, setOrgData] = useState<any>({
         kades: { name: 'Hernawan M. Sodik', role: 'Kepala Desa' },
         sekdes: { name: 'Fajar Tri Apriana', role: 'Sekretaris Desa' },
         staff: [
@@ -80,14 +80,14 @@ const LandingPage = () => {
         isi_pesan: ''
     });
     const [isSubmittingAspiration, setIsSubmittingAspiration] = useState(false);
-    const [gotongRoyongData, setGotongRoyongData] = useState([]);
+    const [gotongRoyongData, setGotongRoyongData] = useState<any[]>([]);
 
-    const handleAspirationChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleAspirationChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setAspirationForm(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleAspirationSubmit = async (e) => {
+    const handleAspirationSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
             setIsSubmittingAspiration(true);
@@ -124,7 +124,7 @@ const LandingPage = () => {
             // Fetch Berita
             const resBerita = await api.get('/users/api/berita/');
             if (resBerita.data) {
-                const mappedNews = resBerita.data.map(item => ({
+                const mappedNews = resBerita.data.map((item: any) => ({
                     id: item.id,
                     title: item.judul,
                     date: new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -139,14 +139,14 @@ const LandingPage = () => {
                 const p = resPejabat.data;
                 const mapPejabat = (obj: any) => ({ name: obj.nama, role: obj.jabatan, foto: obj.foto });
 
-                const kadesData = p.find(x => x.level === 1);
-                const sekdesData = p.find(x => x.level === 2);
+                const kadesData = p.find((x: any) => x.level === 1);
+                const sekdesData = p.find((x: any) => x.level === 2);
 
                 setOrgData({
                     kades: kadesData ? mapPejabat(kadesData) : { name: "Belum Diisi", role: "Kepala Desa" },
                     sekdes: sekdesData ? mapPejabat(sekdesData) : { name: "Belum Diisi", role: "Sekretaris Desa" },
-                    staff: p.filter(x => x.level === 3).map(mapPejabat),
-                    kadus: p.filter(x => x.level === 4).map(mapPejabat)
+                    staff: p.filter((x: any) => x.level === 3).map(mapPejabat),
+                    kadus: p.filter((x: any) => x.level === 4).map(mapPejabat)
                 });
             }
 
@@ -172,17 +172,17 @@ const LandingPage = () => {
     // Navbar Animation States
     const [pillStyle, setPillStyle] = useState({ left: 0, width: 0, opacity: 0 });
     const [activeIndex, setActiveIndex] = useState(0);
-    const itemRefs = useRef([]);
+    const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
 
     // Set initial position of the sliding pill
     useEffect(() => {
         const activeEl = itemRefs.current[activeIndex];
         if (activeEl) {
             setPillStyle((prev) => {
-                if (prev.left === activeEl.offsetLeft && prev.width === activeEl.offsetWidth) return prev;
+                if (prev.left === (activeEl as HTMLElement).offsetLeft && prev.width === (activeEl as HTMLElement).offsetWidth) return prev;
                 return {
-                    left: activeEl.offsetLeft,
-                    width: activeEl.offsetWidth,
+                    left: (activeEl as HTMLElement).offsetLeft,
+                    width: (activeEl as HTMLElement).offsetWidth,
                     opacity: 1
                 };
             });
@@ -193,8 +193,8 @@ const LandingPage = () => {
         const el = itemRefs.current[index];
         if (el) {
             setPillStyle({
-                left: el.offsetLeft,
-                width: el.offsetWidth,
+                left: (el as HTMLElement).offsetLeft,
+                width: (el as HTMLElement).offsetWidth,
                 opacity: 1
             });
         }
@@ -314,7 +314,7 @@ const LandingPage = () => {
                                 <Link
                                     key={idx}
                                     href={menu.path}
-                                    ref={(el) => (itemRefs.current[idx] = el)}
+                                    ref={(el) => { itemRefs.current[idx] = el; }}
                                     {...commonProps}
                                 >
                                     {menu.name}
@@ -323,7 +323,7 @@ const LandingPage = () => {
                                 <a
                                     key={idx}
                                     href={`#${menu.id}`}
-                                    ref={(el) => (itemRefs.current[idx] = el)}
+                                    ref={(el) => { itemRefs.current[idx] = el; }}
                                     {...commonProps}
                                 >
                                     {menu.name}
@@ -393,7 +393,7 @@ const LandingPage = () => {
                             Layar E-Absensi
                         </a>
                         <Link
-                            to="/login"
+                            href="/login"
                             onClick={() => setIsMobileMenuOpen(false)}
                             className="bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-900 text-center py-2.5 rounded-lg font-bold mt-2 shadow-lg"
                         >
@@ -734,7 +734,7 @@ const LandingPage = () => {
                             {/* TINGKAT 3: KAUR & KASI */}
                             <ScrollReveal delay={200}>
                                 <div className="flex justify-center gap-6 relative">
-                                    {orgData.staff?.map((item, index) => (
+                                    {orgData.staff?.map((item: any, index: number) => (
                                         <div key={index} className="flex flex-col items-center relative">
                                             {/* LOGIKA GARIS HORIZONTAL PRESISI MATEMATIS */}
                                             <div className="absolute top-0 left-0 w-full flex h-px">
@@ -763,7 +763,7 @@ const LandingPage = () => {
                             {/* TINGKAT 4: KEPALA DUSUN */}
                             <ScrollReveal delay={400}>
                                 <div className="flex justify-center gap-8 relative mt-6">
-                                    {orgData.kadus?.map((item, index) => (
+                                    {orgData.kadus?.map((item: any, index: number) => (
                                         <div key={index} className="flex flex-col items-center relative">
                                             {/* Garis Horizontal Penghubung Kadus */}
                                             <div className="absolute top-0 left-0 w-full flex h-px">
@@ -825,7 +825,7 @@ const LandingPage = () => {
                                                 <div className="absolute bottom-6 left-6 right-6">
                                                     <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2 block">{news.date}</span>
                                                     <h4 className="text-lg font-bold text-white leading-tight line-clamp-3">{news.title}</h4>
-                                                    <Link to={`/berita/${news.id}`} className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-yellow-400 group">
+                                                    <Link href={`/berita/${news.id}`} className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-blue-400 group/link hover:text-blue-300 transition-colors">
                                                         Baca Artikel <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
                                                     </Link>
                                                 </div>
@@ -913,7 +913,7 @@ const LandingPage = () => {
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">Isi Pesan / Aspirasi</label>
                                         <textarea 
-                                            name="isi_pesan" required rows="4"
+                                            name="isi_pesan" required rows={4}
                                             className="w-full bg-slate-900/50 border border-white/10 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:border-emerald-500 transition-colors resize-none"
                                             placeholder="Tuliskan aspirasi Anda secara detail..."
                                             value={aspirationForm.isi_pesan}
