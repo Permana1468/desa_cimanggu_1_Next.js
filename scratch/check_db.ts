@@ -1,28 +1,39 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import * as dotenv from "dotenv";
 
-const connectionString = process.env.DATABASE_URL;
-console.log("Checking DB connection...");
+dotenv.config();
 
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+async function main() {
+    const connectionString = process.env.DATABASE_URL;
+    const pool = new Pool({ connectionString });
+    const adapter = new PrismaPg(pool);
+    const prisma = new PrismaClient({ adapter });
 
-async function check() {
-  try {
-    const userCount = await prisma.user.count();
-    console.log("Total users in DB:", userCount);
-    
-    const users = await prisma.user.findMany({
-      select: { email: true, role: true }
-    });
-    console.log("User list:", users);
-  } catch (err) {
-    console.error("DB Error:", err);
-  } finally {
-    await prisma.$disconnect();
-  }
+    try {
+        console.log("Checking columns for DataKependudukan...");
+        const columns = await prisma.$queryRawUnsafe(`
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'DataKependudukan'
+        `);
+        console.log("Columns in DataKependudukan:", columns);
+        
+        console.log("\nChecking columns for User...");
+        const userColumns = await prisma.$queryRawUnsafe(`
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'User'
+        `);
+        console.log("Columns in User:", userColumns);
+
+    } catch (error) {
+        console.error("Check failed:", error);
+    } finally {
+        await pool.end();
+        await prisma.$disconnect();
+    }
 }
 
-check();
+main();

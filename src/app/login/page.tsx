@@ -123,10 +123,10 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-[#d1d5db] flex items-center justify-center p-4 font-sans">
-            <div className="bg-white rounded-[2rem] shadow-2xl flex flex-col md:flex-row w-full max-w-5xl overflow-hidden min-h-[600px] transition-all duration-500">
+            <div className="bg-white rounded-[1.5rem] shadow-2xl flex flex-col md:flex-row w-full max-w-4xl overflow-hidden min-h-[500px] transition-all duration-500">
                 
                 {/* LEFT SIDE: CAROUSEL & BRANDING */}
-                <div className="md:w-1/2 relative min-h-[300px] md:min-h-full">
+                <div className="md:w-[45%] relative min-h-[250px] md:min-h-full">
                     {heroImages.map((img, idx) => (
                         <div
                             key={idx}
@@ -139,23 +139,23 @@ export default function LoginPage() {
                         </div>
                     ))}
 
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 z-10">
-                        <img src="/images/logo-bogor.png" alt="Logo" className="w-20 h-20 object-contain mb-6 drop-shadow-2xl" />
-                        <h2 className="text-white text-2xl md:text-3xl font-black uppercase tracking-tight leading-tight max-w-xs drop-shadow-2xl">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 z-10">
+                        <img src="/images/logo-bogor.png" alt="Logo" className="w-16 h-16 object-contain mb-4 drop-shadow-2xl" />
+                        <h2 className="text-white text-xl md:text-2xl font-black uppercase tracking-tight leading-tight max-w-xs drop-shadow-2xl">
                             Desa Cimanggu I
-                            <span className="block text-lg md:text-xl mt-1 opacity-90 font-bold">Kecamatan Cibungbulang</span>
+                            <span className="block text-base md:text-lg mt-1 opacity-90 font-bold">Kecamatan Cibungbulang</span>
                         </h2>
-                        <div className="w-16 h-1 bg-yellow-400 my-4 rounded-full" />
-                        <p className="text-white font-bold tracking-[0.3em] uppercase text-xs drop-shadow-md">Kabupaten Bogor</p>
+                        <div className="w-12 h-1 bg-yellow-400 my-3 rounded-full" />
+                        <p className="text-white font-bold tracking-[0.2em] uppercase text-[10px] drop-shadow-md">Kabupaten Bogor</p>
                     </div>
 
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
                         {heroImages.map((_, idx) => (
                             <button
                                 key={idx}
                                 onClick={() => setCurrentSlide(idx)}
-                                className={`h-1.5 rounded-full transition-all duration-300 ${
-                                    idx === currentSlide ? "w-8 bg-yellow-400" : "w-2 bg-white/50"
+                                className={`h-1 rounded-full transition-all duration-300 ${
+                                    idx === currentSlide ? "w-6 bg-yellow-400" : "w-1.5 bg-white/50"
                                 }`}
                             />
                         ))}
@@ -163,82 +163,82 @@ export default function LoginPage() {
                 </div>
 
                 {/* RIGHT SIDE: AUTH FORM */}
-                <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-[#f8fafc]">
+                <div className="md:w-[55%] p-6 md:p-8 flex flex-col justify-center bg-[#f8fafc]">
                     <div className="max-w-sm mx-auto w-full">
                         
                         {/* Tab Switcher */}
-                        <div className="flex bg-slate-100 p-1 rounded-2xl mb-8">
+                        <div className="flex bg-slate-100 p-1 rounded-xl mb-6">
                             <button 
                                 onClick={() => { setIsLogin(true); setError(""); setSuccess(""); }}
-                                className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${isLogin ? "bg-white shadow-sm text-slate-800" : "text-slate-400 hover:text-slate-600"}`}
+                                className={`flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${isLogin ? "bg-white shadow-sm text-slate-800" : "text-slate-400 hover:text-slate-600"}`}
                             >
                                 Masuk
                             </button>
                             <button 
                                 onClick={() => { setIsLogin(false); setError(""); setSuccess(""); }}
-                                className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${!isLogin ? "bg-white shadow-sm text-slate-800" : "text-slate-400 hover:text-slate-600"}`}
+                                className={`flex-1 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${!isLogin ? "bg-white shadow-sm text-slate-800" : "text-slate-400 hover:text-slate-600"}`}
                             >
                                 Daftar Warga
                             </button>
                         </div>
 
-                        <div className="mb-8">
-                            <h3 className="text-3xl font-black text-slate-800 mb-2">
+                        <div className="mb-6">
+                            <h3 className="text-2xl font-black text-slate-800 mb-1">
                                 {isLogin ? "Selamat Datang!" : "Registrasi Mandiri"}
                             </h3>
-                            <p className="text-slate-500 font-medium text-sm">
+                            <p className="text-slate-500 font-medium text-xs">
                                 {isLogin ? "Silakan masuk untuk mengakses layanan desa." : "Khusus warga Desa Cimanggu I menggunakan NIK."}
                             </p>
                         </div>
 
                         {error && (
-                            <div className="bg-red-50 text-red-600 text-xs font-bold p-4 rounded-xl border border-red-100 mb-6 animate-pulse">
+                            <div className="bg-red-50 text-red-600 text-[10px] font-bold p-3 rounded-xl border border-red-100 mb-4 animate-pulse">
                                 {error}
                             </div>
                         )}
 
                         {success && (
-                            <div className="bg-emerald-50 text-emerald-600 text-xs font-bold p-4 rounded-xl border border-emerald-100 mb-6">
+                            <div className="bg-emerald-50 text-emerald-600 text-[10px] font-bold p-3 rounded-xl border border-emerald-100 mb-4">
                                 {success}
                             </div>
                         )}
 
                         {isLogin ? (
                             /* LOGIN FORM */
-                            <form onSubmit={handleLogin} className="space-y-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email atau NIK</label>
+                            <form onSubmit={handleLogin} className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Email atau NIK</label>
                                     <div className="relative">
-                                        <Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <Fingerprint className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                         <input
                                             type="text"
                                             value={identifier}
                                             onChange={(e) => setIdentifier(e.target.value)}
                                             placeholder="Masukkan Email/NIK"
-                                            className="w-full bg-white border-2 border-slate-100 rounded-2xl py-4 pl-12 pr-4 text-slate-700 focus:outline-none focus:border-blue-600 transition-all font-medium"
+                                            className="w-full bg-white border-2 border-slate-100 rounded-xl py-3 pl-10 pr-4 text-sm text-slate-700 focus:outline-none focus:border-blue-600 transition-all font-medium"
                                             required
                                         />
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
                                     <div className="relative">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                         <input
                                             type={showPassword ? "text" : "password"}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             placeholder="Password"
-                                            className="w-full bg-white border-2 border-slate-100 rounded-2xl py-4 pl-12 pr-12 text-slate-700 focus:outline-none focus:border-blue-600 transition-all font-medium"
+                                            className="w-full bg-white border-2 border-slate-100 rounded-xl py-3 pl-10 pr-10 text-sm text-slate-700 focus:outline-none focus:border-blue-600 transition-all font-medium"
                                             required
                                         />
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                                         >
-                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                         </button>
                                     </div>
                                 </div>
@@ -246,80 +246,79 @@ export default function LoginPage() {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-[#1e293b] hover:bg-[#0f172a] text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl shadow-slate-200 active:scale-95 disabled:opacity-50 mt-8"
+                                    className="w-full bg-[#1e293b] hover:bg-[#0f172a] text-white font-black py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-slate-200 active:scale-95 disabled:opacity-50 mt-4 text-xs"
                                 >
-                                    {loading ? <Loader2 className="animate-spin" size={20} /> : "SIGN IN"}
+                                    {loading ? <Loader2 className="animate-spin" size={18} /> : "SIGN IN"}
                                 </button>
                             </form>
                         ) : (
                             /* REGISTER FORM */
-                            <form onSubmit={handleRegister} className="space-y-4">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nomor Induk Kependudukan (NIK)</label>
+                            <form onSubmit={handleRegister} className="space-y-3">
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">NIK (KTP)</label>
                                     <div className="relative">
-                                        <Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <Fingerprint className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                         <input
                                             type="text"
                                             value={regNik}
                                             onChange={(e) => setRegNik(e.target.value)}
-                                            placeholder="16 Digit NIK KTP"
-                                            className="w-full bg-white border-2 border-slate-100 rounded-2xl py-4 pl-12 pr-4 text-slate-700 focus:outline-none focus:border-emerald-600 transition-all font-medium"
+                                            placeholder="16 Digit NIK"
+                                            className="w-full bg-white border-2 border-slate-100 rounded-xl py-3 pl-10 pr-4 text-sm text-slate-700 focus:outline-none focus:border-emerald-600 transition-all font-medium"
                                             required
                                         />
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nomor WhatsApp</label>
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">WhatsApp</label>
                                     <div className="relative">
-                                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                         <input
                                             type="text"
                                             value={regPhone}
                                             onChange={(e) => setRegPhone(e.target.value)}
-                                            placeholder="Contoh: 08123456789"
-                                            className="w-full bg-white border-2 border-slate-100 rounded-2xl py-4 pl-12 pr-4 text-slate-700 focus:outline-none focus:border-emerald-600 transition-all font-medium"
+                                            placeholder="Contoh: 0812..."
+                                            className="w-full bg-white border-2 border-slate-100 rounded-xl py-3 pl-10 pr-4 text-sm text-slate-700 focus:outline-none focus:border-emerald-600 transition-all font-medium"
                                             required
                                         />
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Buat Password</label>
-                                    <div className="relative">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                        <input
-                                            type="password"
-                                            value={regPass}
-                                            onChange={(e) => setRegPass(e.target.value)}
-                                            placeholder="Minimal 6 karakter"
-                                            className="w-full bg-white border-2 border-slate-100 rounded-2xl py-4 pl-12 pr-4 text-slate-700 focus:outline-none focus:border-emerald-600 transition-all font-medium"
-                                            required
-                                        />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
+                                        <div className="relative">
+                                            <input
+                                                type="password"
+                                                value={regPass}
+                                                onChange={(e) => setRegPass(e.target.value)}
+                                                placeholder="Min 6"
+                                                className="w-full bg-white border-2 border-slate-100 rounded-xl py-3 px-3 text-sm text-slate-700 focus:outline-none focus:border-emerald-600 transition-all font-medium"
+                                                required
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Konfirmasi Password</label>
-                                    <div className="relative">
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                                        <input
-                                            type="password"
-                                            value={regConfirmPass}
-                                            onChange={(e) => setRegConfirmPass(e.target.value)}
-                                            placeholder="Ulangi password"
-                                            className="w-full bg-white border-2 border-slate-100 rounded-2xl py-4 pl-12 pr-4 text-slate-700 focus:outline-none focus:border-emerald-600 transition-all font-medium"
-                                            required
-                                        />
+                                    <div className="space-y-1.5">
+                                        <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Konfirmasi</label>
+                                        <div className="relative">
+                                            <input
+                                                type="password"
+                                                value={regConfirmPass}
+                                                onChange={(e) => setRegConfirmPass(e.target.value)}
+                                                placeholder="Ulangi"
+                                                className="w-full bg-white border-2 border-slate-100 rounded-xl py-3 px-3 text-sm text-slate-700 focus:outline-none focus:border-emerald-600 transition-all font-medium"
+                                                required
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl shadow-emerald-200 active:scale-95 disabled:opacity-50 mt-6"
+                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-200 active:scale-95 disabled:opacity-50 mt-4 text-xs"
                                 >
-                                    {loading ? <Loader2 className="animate-spin" size={20} /> : "DAFTAR SEKARANG"}
+                                    {loading ? <Loader2 className="animate-spin" size={18} /> : "DAFTAR SEKARANG"}
                                 </button>
                             </form>
                         )}

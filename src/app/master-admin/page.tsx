@@ -6,6 +6,7 @@ import {
   Server,
   Zap
 } from "lucide-react";
+import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { formatRelativeTime } from "@/lib/utils";
 import { getServerSession } from "next-auth";
@@ -83,7 +84,7 @@ export default async function MasterDashboardPage() {
                         <h2 className="text-xl font-black text-slate-800">Audit Log Terbaru</h2>
                         <p className="text-slate-500 text-sm">Pemantauan aktivitas user dan perubahan data sistem.</p>
                     </div>
-                    <button className="text-sm text-amber-600 font-bold hover:text-amber-700 transition-colors">Lihat Semua</button>
+                    <Link href="/master-admin/logs" className="text-sm text-amber-600 font-bold hover:text-amber-700 transition-colors">Lihat Semua</Link>
                 </div>
 
                 <div className="space-y-4">
