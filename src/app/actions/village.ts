@@ -1,4 +1,6 @@
-import { prisma } from "@/lib/prisma";
+"use server";
+
+import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { StatusSurat } from "@prisma/client";
@@ -32,11 +34,26 @@ export async function getSuratList() {
             where: { tenantId },
             orderBy: { createdAt: 'desc' },
             include: { warga: true },
-            take: 10
+            take: 20
         });
     } catch (error) {
         console.error("Surat List Error:", error);
         return [];
+    }
+}
+
+export async function updateSuratStatus(id: string, status: StatusSurat) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        return await prisma.surat.update({
+            where: { id },
+            data: { status }
+        });
+    } catch (error) {
+        console.error("Update Surat Error:", error);
+        throw error;
     }
 }
 
@@ -62,18 +79,21 @@ export async function getWargaList(query?: string) {
     }
 }
 
+export async function searchWarga(query: string) {
+    return await getWargaList(query);
+}
+
 export async function createVillageAccount(data: { email: string; fullName: string; role: any; password: string }) {
     const session = await getServerSession(authOptions);
     if (!session?.user) throw new Error("Unauthorized");
     const tenantId = (session.user as { tenantId: string }).tenantId;
 
-    // In a real app, use bcrypt here too
     return await prisma.user.create({
         data: {
             email: data.email,
             fullName: data.fullName,
             role: data.role,
-            passwordHash: data.password, // IMPORTANT: Hash this in production!
+            passwordHash: data.password, 
             tenantId
         }
     });
