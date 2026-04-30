@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 import { 
   LayoutDashboard, 
   Users, 
@@ -10,7 +11,7 @@ import {
   Settings, 
   PieChart, 
   Building2,
-  ShieldAlert,
+  LogOut,
   ChevronLeft,
   ChevronRight
 } from "lucide-react";
@@ -28,59 +29,69 @@ const menuItems = [
 
 export const Sidebar = () => {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
     <aside 
-      className={`relative h-screen bg-[#0b1120] border-r border-white/5 transition-all duration-300 flex flex-col z-50 ${isCollapsed ? 'w-20' : 'w-72'}`}
+      className={`relative h-screen bg-white border-r border-slate-200 transition-all duration-300 flex flex-col z-50 ${isCollapsed ? 'w-20' : 'w-64'}`}
     >
       {/* Logo Area */}
-      <div className="p-6 flex items-center gap-4">
-        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center shrink-0 shadow-lg border border-white/10 p-1.5">
-          <img src="/images/logo-bogor.png" alt="Logo" className="w-full h-full object-contain" />
-        </div>
-        {!isCollapsed && (
-          <div className="flex flex-col">
-            <span className="text-white font-bold tracking-tight text-lg leading-tight uppercase">Master Admin</span>
-            <span className="text-amber-500 text-[10px] font-bold tracking-[0.2em] uppercase">Control Panel</span>
+      <div className="p-6 flex items-center justify-between">
+        <div className="flex items-center gap-3 overflow-hidden">
+          <div className="w-10 h-10 shrink-0 flex items-center justify-center">
+            <img src="/images/logo-bogor.png" alt="Logo" className="w-full h-full object-contain" />
           </div>
-        )}
+        </div>
+        <button 
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors"
+        >
+          {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 space-y-2 mt-4">
+      <nav className="flex-1 px-3 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
         {menuItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all group ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
                 isActive 
-                  ? "bg-amber-500 text-slate-900 font-bold shadow-lg shadow-amber-500/10" 
-                  : "text-slate-400 hover:bg-white/5 hover:text-white"
+                  ? "bg-amber-500 text-slate-900 font-bold shadow-lg shadow-amber-500/20" 
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
-              <item.icon size={22} className={isActive ? "" : "group-hover:scale-110 transition-transform"} />
+              <item.icon size={20} className={isActive ? "" : "group-hover:scale-110 transition-transform"} />
               {!isCollapsed && <span className="text-sm">{item.name}</span>}
-              {isActive && !isCollapsed && <div className="ml-auto w-1.5 h-1.5 bg-slate-900 rounded-full" />}
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer / Toggle */}
-      <div className="p-4 border-t border-white/5">
+      {/* User Area & Logout */}
+      <div className="p-4 border-t border-slate-100">
+        {!isCollapsed && (
+          <div className="flex items-center gap-3 px-2 mb-4">
+            <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-slate-900 font-bold shadow-sm">
+                {session?.user?.name?.charAt(0) || 'M'}
+            </div>
+            <div className="flex flex-col min-w-0">
+                <span className="text-xs font-bold text-slate-800 truncate">{session?.user?.name || "Master Admin"}</span>
+                <span className="text-[10px] text-amber-600 font-medium truncate tracking-tight">Super Control Panel</span>
+            </div>
+          </div>
+        )}
+        
         <button 
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+          onClick={() => signOut()}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all font-bold ${isCollapsed ? 'justify-center' : ''}`}
         >
-          {isCollapsed ? <ChevronRight size={22} /> : (
-            <>
-              <ChevronLeft size={22} />
-              <span className="text-sm font-medium">Sembunyikan Sidebar</span>
-            </>
-          )}
+          <LogOut size={20} />
+          {!isCollapsed && <span className="text-sm">Keluar</span>}
         </button>
       </div>
     </aside>

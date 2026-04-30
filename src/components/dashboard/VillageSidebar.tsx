@@ -46,11 +46,6 @@ export const VillageSidebar = () => {
           <div className="w-10 h-10 shrink-0 flex items-center justify-center">
             <img src="/images/logo-bogor.png" alt="Logo" className="w-full h-full object-contain" />
           </div>
-          {!isCollapsed && (
-            <div className="flex flex-col whitespace-nowrap">
-              <span className="text-slate-800 font-black text-xl tracking-tighter">DPMD</span>
-            </div>
-          )}
         </div>
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
