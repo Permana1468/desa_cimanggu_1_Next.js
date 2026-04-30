@@ -16,6 +16,11 @@ export default async function proxy(req: NextRequest) {
     if (!isAuth) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
+
+    // Redirect to setup-account if first login (for institutional roles)
+    if ((token as any).isFirstLogin && pathname !== "/dashboard/setup-account") {
+      return NextResponse.redirect(new URL("/dashboard/setup-account", req.url));
+    }
   }
 
   // 2. Protection for /master-admin (Admin Master only)

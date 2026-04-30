@@ -16,30 +16,36 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        identifier: { label: "Email atau NIK", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email and password are required");
+        if (!credentials?.identifier || !credentials?.password) {
+          throw new Error("Email/NIK dan password wajib diisi");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+        // Cari user berdasarkan email ATAU NIK
+        const user = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email: credentials.identifier },
+              { nik: credentials.identifier }
+            ]
+          },
         });
 
         if (!user || !user.passwordHash) {
-          throw new Error("No user found with this email");
+          throw new Error("Akun tidak ditemukan atau belum terdaftar");
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
 
         if (!isValid) {
-          throw new Error("Invalid password");
+          throw new Error("Kata sandi salah");
         }
 
         if (!user.isActive) {
-          throw new Error("Your account is inactive");
+          throw new Error("Akun Anda dinonaktifkan. Hubungi admin.");
         }
 
         return {
@@ -57,6 +63,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = (user as any).role;
         token.tenantId = (user as any).tenantId;
+        token.isFirstLogin = (user as any).isFirstLogin;
       }
       return token;
     },
@@ -64,6 +71,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).role = token.role;
         (session.user as any).tenantId = token.tenantId;
+        (session.user as any).isFirstLogin = token.isFirstLogin;
       }
       return session;
     },

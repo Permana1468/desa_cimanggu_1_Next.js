@@ -38,16 +38,27 @@ enum RoleType {
   RW
   SEKDES
   KADES
+  WARGA
+  PKK
+  POSYANDU
+  LPM
+  BPD
 }
 
 model User {
   id                    String    @id @default(uuid())
-  email                 String    @unique
+  email                 String?   @unique
+  nik                   String?   @unique
   passwordHash          String
   fullName              String
-  role                  RoleType  @default(ADMIN_DESA)
+  role                  RoleType  @default(WARGA)
   isActive              Boolean   @default(true)
   
+  // New Fields for Registration & Verification
+  phoneNumber           String?   // WhatsApp
+  whatsappVerified      Boolean   @default(false)
+  isFirstLogin          Boolean   @default(true)
+
   // 2FA Fields
   twoFactorSecret       String?
   isTwoFactorEnabled    Boolean   @default(false)

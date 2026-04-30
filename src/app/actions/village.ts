@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { StatusSurat } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 export async function getVillageDashboardStats() {
     try {
@@ -88,13 +89,18 @@ export async function createVillageAccount(data: { email: string; fullName: stri
     if (!session?.user) throw new Error("Unauthorized");
     const tenantId = (session.user as { tenantId: string }).tenantId;
 
+    // Hash the temporary password
+    const passwordHash = await bcrypt.hash(data.password, 10);
+
     return await prisma.user.create({
         data: {
             email: data.email,
             fullName: data.fullName,
             role: data.role,
-            passwordHash: data.password, 
-            tenantId
+            passwordHash: passwordHash, 
+            tenantId,
+            isFirstLogin: true, // Mandatory setup on first login
+            isActive: true
         }
     });
 }
