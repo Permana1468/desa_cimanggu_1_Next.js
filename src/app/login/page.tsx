@@ -60,7 +60,15 @@ export default function LoginPage() {
             if (res?.error) {
                 setError("Email atau kata sandi salah");
             } else {
-                router.push("/dashboard");
+                // Get session again to check role
+                const sessionResponse = await fetch('/api/auth/session');
+                const session = await sessionResponse.json();
+                
+                if (session?.user?.role === "ADMIN_MASTER") {
+                    router.push("/master-admin");
+                } else {
+                    router.push("/dashboard");
+                }
             }
         } catch (err) {
             setError("Terjadi kesalahan sistem");
