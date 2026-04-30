@@ -22,6 +22,9 @@ model Tenant {
 
   users       User[]
   auditLogs   AuditLog[]
+  dataKependudukan DataKependudukan[]
+  surat       Surat[]
+  berita      Berita[]
 }
 
 // ==============================
@@ -30,6 +33,10 @@ model Tenant {
 enum RoleType {
   ADMIN_MASTER
   ADMIN_DESA
+  RT
+  RW
+  SEKDES
+  KADES
 }
 
 model User {
@@ -52,6 +59,7 @@ model User {
   updatedAt             DateTime  @updatedAt
 
   auditLogs             AuditLog[]
+  suratDibuat           Surat[]   @relation("Pencatat")
 }
 
 // ==============================
@@ -93,6 +101,60 @@ model DataKependudukan {
   statusKawin String
   pekerjaan   String
   
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  surat       Surat[]
+}
+
+// ==============================
+// 5. PERSURATAN (Document Management)
+// ==============================
+enum StatusSurat {
+  TERTUNDA
+  TERVERIFIKASI
+  DISETUJUI
+  DITOLAK
+}
+
+model Surat {
+  id              String      @id @default(uuid())
+  nomorSurat      String?     @unique
+  jenisSurat      String      // e.g., "SKU", "SKTM", "Domisili"
+  status          StatusSurat @default(TERTUNDA)
+  keperluan       String?
+  
+  wargaId         String
+  warga           DataKependudukan @relation(fields: [wargaId], references: [id])
+  
+  adminId         String      // Admin yang menginput
+  admin           User        @relation("Pencatat", fields: [adminId], references: [id])
+  
+  tenantId        String
+  tenant          Tenant      @relation(fields: [tenantId], references: [id])
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+// ==============================
+// 6. BERITA & ARTIKEL (CMS)
+// ==============================
+model Berita {
+  id          String   @id @default(uuid())
+  judul       String
+  slug        String   @unique
+  konten      String   @db.Text
+  gambar      String?  // URL gambar
+  kategori    String   @default("Umum")
+  views       Int      @default(0)
+  isPublished Boolean  @default(false)
+  
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

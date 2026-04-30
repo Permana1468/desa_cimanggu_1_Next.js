@@ -1,21 +1,38 @@
-"use client";
-
 import { 
   Users, 
-  Building2, 
-  Activity, 
   Database, 
-  ArrowUpRight, 
-  ArrowDownRight,
   Clock,
-  History,
-  LayoutGrid,
   ShieldCheck,
   Server,
   Zap
 } from "lucide-react";
+import prisma from "@/lib/prisma";
+import { formatRelativeTime } from "@/lib/utils";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { getLatestLogs } from "@/app/actions/audit";
+import { InfrastructureStatus } from "@/components/dashboard/InfrastructureStatus";
 
-export default function MasterDashboardPage() {
+export default async function MasterDashboardPage() {
+  const session = await getServerSession(authOptions);
+
+  // 1. Live Data Integration
+  const totalPenduduk = await prisma.dataKependudukan.count();
+  const adminAktif = await prisma.user.count({
+    where: { isActive: true }
+  });
+  const totalTenant = await prisma.tenant.count();
+  const dailyLogs = await prisma.auditLog.count({
+    where: {
+      createdAt: {
+        gte: new Date(new Date().setHours(0, 0, 0, 0))
+      }
+    }
+  });
+
+  // 2. Real-time Audit Log using Server Action
+  const latestLogs = await getLatestLogs();
+
   return (
     <div className="space-y-6">
       {/* HEADER CARD - DARK */}
@@ -32,7 +49,7 @@ export default function MasterDashboardPage() {
                     Master Administration
                 </h1>
                 <p className="text-slate-400 max-w-xl leading-relaxed">
-                    Kelola infrastruktur desa, pantau aktivitas tenant, dan pastikan integritas data seluruh sistem tetap terjaga secara real-time.
+                    Selamat datang kembali, <span className="text-white font-bold">{session?.user?.name}</span>. Kelola infrastruktur desa, pantau aktivitas tenant, dan pastikan integritas data seluruh sistem tetap terjaga secara real-time.
                 </p>
                 
                 <div className="flex flex-wrap gap-4 pt-4">
@@ -49,10 +66,10 @@ export default function MasterDashboardPage() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:flex gap-4">
-                <QuickStat label="TOTAL PENDUDUK" value="4.821" />
-                <QuickStat label="ADMIN AKTIF" value="12" />
-                <QuickStat label="TENANT DESA" value="1" />
-                <QuickStat label="LOG HARIAN" value="892" />
+                <QuickStat label="TOTAL PENDUDUK" value={totalPenduduk.toLocaleString('id-ID')} />
+                <QuickStat label="ADMIN AKTIF" value={adminAktif.toString()} />
+                <QuickStat label="TENANT DESA" value={totalTenant.toString()} />
+                <QuickStat label="LOG HARIAN" value={dailyLogs.toString()} />
             </div>
         </div>
       </div>
@@ -70,58 +87,26 @@ export default function MasterDashboardPage() {
                 </div>
 
                 <div className="space-y-4">
-                    <ActivityItem 
-                        user="Admin Master" 
-                        action="Menambah User Baru" 
-                        target="Operator Dusun III" 
-                        time="2 menit yang lalu" 
-                    />
-                    <ActivityItem 
-                        user="Sistem" 
-                        action="Backup Otomatis Selesai" 
-                        target="Database Utama" 
-                        time="1 jam yang lalu" 
-                    />
-                    <ActivityItem 
-                        user="Admin Desa" 
-                        action="Update Data Kependudukan" 
-                        target="RW 04 / RT 02" 
-                        time="3 jam yang lalu" 
-                    />
-                    <ActivityItem 
-                        user="Admin Master" 
-                        action="Konfigurasi 2FA" 
-                        target="Keamanan Global" 
-                        time="5 jam yang lalu" 
-                    />
+                    {latestLogs.length > 0 ? latestLogs.map((log: { id: string; user: { fullName: string } | null; action: string; entity: string; createdAt: Date }) => (
+                        <ActivityItem 
+                            key={log.id}
+                            user={log.user?.fullName || "Sistem"} 
+                            action={log.action.replace(/_/g, ' ')} 
+                            target={log.entity} 
+                            time={formatRelativeTime(log.createdAt)} 
+                        />
+                    )) : (
+                        <div className="py-12 text-center text-slate-400 italic text-sm">
+                            Belum ada aktivitas log yang tercatat.
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
 
-        {/* RIGHT COLUMN: SYSTEM STATUS */}
+        {/* RIGHT COLUMN: REAL-TIME SYSTEM STATUS */}
         <div className="space-y-6">
-            <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200/60 h-full flex flex-col justify-between">
-                <div>
-                    <h2 className="text-xl font-black text-slate-800 mb-2">Status Infrastruktur</h2>
-                    <p className="text-slate-500 text-xs leading-relaxed mb-8">Kesehatan server dan penggunaan resource global.</p>
-                    
-                    <div className="space-y-6">
-                        <StatusProgress label="Server Load" value="12%" percentage={12} color="bg-amber-500" />
-                        <StatusProgress label="Database Usage" value="4.2GB" percentage={35} color="bg-blue-500" />
-                        <StatusProgress label="API Traffic" value="High" percentage={85} color="bg-emerald-500" />
-                    </div>
-                </div>
-
-                <div className="mt-12 bg-slate-50 rounded-3xl p-6 border border-slate-100 flex items-center gap-4">
-                    <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center">
-                        <div className="w-3 h-3 bg-emerald-500 rounded-full animate-ping" />
-                    </div>
-                    <div>
-                        <span className="text-slate-800 text-sm font-black block">Sistem Terpantau</span>
-                        <span className="text-slate-500 text-[10px] uppercase font-bold tracking-widest">Uptime: 14 hari, 2 jam</span>
-                    </div>
-                </div>
-            </div>
+            <InfrastructureStatus />
         </div>
       </div>
     </div>
@@ -137,34 +122,23 @@ function QuickStat({ label, value }: { label: string, value: string }) {
     )
 }
 
-function StatusProgress({ label, value, percentage, color }: any) {
-    return (
-        <div className="space-y-2">
-            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
-                <span>{label}</span>
-                <span className="text-slate-800">{value}</span>
-            </div>
-            <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div className={`h-full ${color} rounded-full transition-all duration-1000`} style={{ width: `${percentage}%` }} />
-            </div>
-        </div>
-    )
-}
+function ActivityItem({ user, action, target, time }: { user: string; action: string; target: string; time: string }) {
+  // Indikator Critical: Berikan warna teks merah jika action mengandung kata "Delete" atau "Hapus"
+  const isCritical = /delete|hapus/i.test(action);
 
-function ActivityItem({ user, action, target, time }: any) {
   return (
     <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 group">
-      <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center shrink-0 border border-slate-200 group-hover:scale-110 transition-transform">
-        <Clock className="text-slate-400" size={20} />
+      <div className={`w-10 h-10 ${isCritical ? 'bg-red-50 border-red-100' : 'bg-slate-100 border-slate-200'} rounded-xl flex items-center justify-center shrink-0 border group-hover:scale-110 transition-transform`}>
+        <Clock className={isCritical ? 'text-red-500' : 'text-slate-400'} size={20} />
       </div>
       <div className="flex-1">
         <div className="flex justify-between items-start mb-1">
           <p className="text-sm text-slate-700">
-            <span className="font-bold text-amber-600">{user}</span> {action}
+            <span className="font-bold text-amber-600">{user}</span> <span className={isCritical ? "text-red-600 font-bold" : ""}>{action}</span>
           </p>
           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{time}</span>
         </div>
-        <p className="text-xs text-slate-400 font-medium italic">Target: {target}</p>
+        <p className="text-xs text-slate-500 font-medium italic">Target: {target}</p>
       </div>
     </div>
   );

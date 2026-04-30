@@ -15,19 +15,20 @@ import {
   Settings,
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  FileText,
+  Database
 } from "lucide-react";
 import { useState } from "react";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { name: "Pusat Persuratan", icon: FileText, href: "/dashboard/surat" },
+  { name: "Data Kependudukan", icon: Database, href: "/dashboard/warga" },
   { name: "Profil Desa", icon: UserCircle, href: "/dashboard/profil" },
-  { name: "Produk Hukum", icon: Gavel, href: "/dashboard/hukum" },
-  { name: "BUMDES", icon: Store, href: "/dashboard/bumdes" },
-  { name: "Kelembagaan", icon: Building2, href: "/dashboard/kelembagaan" },
   { name: "Aparatur Desa", icon: Users, href: "/dashboard/aparatur" },
-  { name: "Bantuan Keuangan", icon: Wallet, href: "/dashboard/bantuan" },
-  { name: "Pesan", icon: MessageSquare, href: "/dashboard/pesan" },
+  { name: "Kelembagaan", icon: Building2, href: "/dashboard/kelembagaan" },
+  { name: "BUMDES", icon: Store, href: "/dashboard/bumdes" },
   { name: "Pengaturan", icon: Settings, href: "/dashboard/settings" },
 ];
 
