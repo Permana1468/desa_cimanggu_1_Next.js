@@ -5,14 +5,19 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 export async function getBeritaList() {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) throw new Error("Unauthorized");
-    const tenantId = (session.user as { tenantId: string }).tenantId;
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
 
-    return await prisma.berita.findMany({
-        where: { tenantId },
-        orderBy: { createdAt: 'desc' }
-    });
+        return await prisma.berita.findMany({
+            where: { tenantId },
+            orderBy: { createdAt: 'desc' }
+        });
+    } catch (error) {
+        console.error("Berita List Error:", error);
+        return [];
+    }
 }
 
 export async function upsertBerita(data: {
