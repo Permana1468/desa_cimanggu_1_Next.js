@@ -26,6 +26,9 @@ model Tenant {
   dataKependudukan DataKependudukan[]
   surat       Surat[]
   berita      Berita[]
+  profile     VillageProfile?
+  bumdesStats BumdesFinancial[]
+  lembagas    Lembaga[]
 }
 
 // ==============================
@@ -58,6 +61,8 @@ model User {
   phoneNumber           String?   // WhatsApp
   whatsappVerified      Boolean   @default(false)
   isFirstLogin          Boolean   @default(true)
+  position              String?   // e.g., "Kepala Desa", "Bendahara"
+
 
   // 2FA Fields
   twoFactorSecret       String?
@@ -170,3 +175,48 @@ model Berita {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model VillageProfile {
+  id          String   @id @default(uuid())
+  tenantId    String   @unique
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  visi        String?  @db.Text
+  misi        Json?    // Array of strings
+  sejarah     String?  @db.Text
+  luasWilayah String?
+  batasUtara  String?
+  batasSelatan String?
+  batasTimur  String?
+  batasBarat  String?
+  gallery     Json?    // Array of URLs
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model BumdesFinancial {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  title       String
+  amount      Float
+  type        String   // INCOME, EXPENSE
+  date        DateTime @default(now())
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Lembaga {
+  id          String   @id @default(uuid())
+  name        String   // e.g., "LPM", "PKK"
+  fullName    String
+  description String?  @db.Text
+  memberCount Int      @default(0)
+  
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+

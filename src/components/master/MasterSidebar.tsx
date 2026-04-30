@@ -5,34 +5,29 @@ import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { 
   LayoutDashboard, 
-  UserCircle, 
-  Gavel, 
-  Store, 
-  Building2, 
   Users, 
-  Wallet, 
-  MessageSquare, 
-  Settings,
+  History, 
+  Database, 
+  Settings, 
+  PieChart, 
+  Building2,
   LogOut,
   ChevronLeft,
-  ChevronRight,
-  FileText,
-  Database
+  ChevronRight
 } from "lucide-react";
 import { useState } from "react";
 
 const menuItems = [
-  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
-  { name: "Pusat Persuratan", icon: FileText, href: "/dashboard/surat" },
-  { name: "Data Kependudukan", icon: Database, href: "/dashboard/warga" },
-  { name: "Profil Desa", icon: UserCircle, href: "/dashboard/profil" },
-  { name: "Aparatur Desa", icon: Users, href: "/dashboard/aparatur" },
-  { name: "Kelembagaan", icon: Building2, href: "/dashboard/kelembagaan" },
-  { name: "BUMDES", icon: Store, href: "/dashboard/bumdes" },
-  { name: "Pengaturan", icon: Settings, href: "/dashboard/settings" },
+  { name: "Overview", icon: LayoutDashboard, href: "/master-admin" },
+  { name: "User Management", icon: Users, href: "/master-admin/users" },
+  { name: "Audit Logs", icon: History, href: "/master-admin/logs" },
+  { name: "Data Kependudukan", icon: Database, href: "/master-admin/data" },
+  { name: "Multi-Tenant", icon: Building2, href: "/master-admin/tenants" },
+  { name: "Statistik", icon: PieChart, href: "/master-admin/stats" },
+  { name: "Konfigurasi", icon: Settings, href: "/master-admin/config" },
 ];
 
-export const VillageSidebar = () => {
+export const MasterSidebar = () => {
   const pathname = usePathname();
   const { data: session } = useSession();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -49,14 +44,14 @@ export const VillageSidebar = () => {
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
-              <span className="text-sm font-black text-slate-800 leading-tight uppercase">{(session?.user as any)?.role || "ADMIN"}</span>
-              <span className="text-[10px] font-bold text-blue-600 tracking-widest uppercase">{(session?.user as any)?.role === "ADMIN_DESA" ? "DESA" : "WILAYAH"}</span>
+              <span className="text-sm font-black text-slate-800 leading-tight">MASTER</span>
+              <span className="text-[10px] font-bold text-amber-600 tracking-widest">CONTROL</span>
             </div>
           )}
         </div>
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
+          className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors"
         >
           {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
@@ -64,15 +59,7 @@ export const VillageSidebar = () => {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
-        {menuItems.filter(item => {
-          const role = (session?.user as any)?.role;
-          if (role === "ADMIN_DESA" || role === "SEKDES") return true;
-          if (["RT", "RW", "PKK", "POSYANDU", "LPM", "BPD"].includes(role as string)) {
-             // Institutional roles see limited items
-             return ["Dashboard", "Pusat Persuratan", "Data Kependudukan"].includes(item.name);
-          }
-          return false;
-        }).map((item) => {
+        {menuItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
@@ -80,7 +67,7 @@ export const VillageSidebar = () => {
               href={item.href}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
                 isActive 
-                  ? "bg-blue-600 text-white font-bold shadow-lg shadow-blue-500/20" 
+                  ? "bg-amber-500 text-slate-900 font-bold shadow-lg shadow-amber-500/20" 
                   : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
@@ -95,12 +82,12 @@ export const VillageSidebar = () => {
       <div className="p-4 border-t border-slate-100">
         {!isCollapsed && (
           <div className="flex items-center gap-3 px-2 mb-4">
-            <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold shadow-sm">
-                {session?.user?.name?.charAt(0) || 'A'}
+            <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-slate-900 font-bold shadow-sm">
+                {session?.user?.name?.charAt(0) || 'M'}
             </div>
             <div className="flex flex-col min-w-0">
-                <span className="text-xs font-bold text-slate-800 truncate">{session?.user?.name || "Admin Desa"}</span>
-                <span className="text-[10px] text-emerald-600 font-medium truncate">Desa Cimanggu I</span>
+                <span className="text-xs font-bold text-slate-800 truncate">{session?.user?.name || "Master Admin"}</span>
+                <span className="text-[10px] text-amber-600 font-medium truncate tracking-tight">Super Control Panel</span>
             </div>
           </div>
         )}

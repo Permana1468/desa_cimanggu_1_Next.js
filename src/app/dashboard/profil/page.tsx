@@ -1,6 +1,75 @@
-import { MapPin, History, Target, ShieldCheck, Image as ImageIcon } from "lucide-react";
+"use client";
+
+import { useState, useEffect } from "react";
+import { getVillageProfile, updateVillageProfile } from "@/app/actions/village";
+import { MapPin, History, Target, ShieldCheck, Image as ImageIcon, Edit2, X, Loader2, Save } from "lucide-react";
 
 export default function VillageProfilePage() {
+    const [profile, setProfile] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [saving, setSaving] = useState(false);
+    
+    const [formData, setFormData] = useState({
+        visi: "",
+        misi: "", // will be split by newline
+        sejarah: "",
+        luasWilayah: "",
+        batasUtara: "",
+        batasSelatan: "",
+        batasTimur: "",
+        batasBarat: ""
+    });
+
+    useEffect(() => {
+        fetchProfile();
+    }, []);
+
+    const fetchProfile = async () => {
+        setLoading(true);
+        const data = await getVillageProfile();
+        if (data) {
+            setProfile(data);
+            setFormData({
+                visi: data.visi || "",
+                misi: Array.isArray(data.misi) ? data.misi.join("\n") : "",
+                sejarah: data.sejarah || "",
+                luasWilayah: data.luasWilayah || "",
+                batasUtara: data.batasUtara || "",
+                batasSelatan: data.batasSelatan || "",
+                batasTimur: data.batasTimur || "",
+                batasBarat: data.batasBarat || ""
+            });
+        }
+        setLoading(false);
+    };
+
+    const handleUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+            await updateVillageProfile({
+                ...formData,
+                misi: formData.misi.split("\n").filter(m => m.trim() !== "")
+            });
+            setShowEditModal(false);
+            fetchProfile();
+        } catch (error) {
+            console.error(error);
+            alert("Gagal memperbarui profil.");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="animate-spin text-blue-600" size={40} />
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -8,8 +77,11 @@ export default function VillageProfilePage() {
                     <h1 className="text-3xl font-black text-slate-800 tracking-tight">Profil Desa</h1>
                     <p className="text-slate-500 text-sm">Informasi dasar, sejarah, visi, dan misi Desa Cimanggu I.</p>
                 </div>
-                <button className="bg-blue-600 text-white px-6 py-3 rounded-2xl text-xs font-bold shadow-xl hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2">
-                    Edit Profil
+                <button 
+                    onClick={() => setShowEditModal(true)}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-2xl text-xs font-bold shadow-xl hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2"
+                >
+                    <Edit2 size={16} /> Edit Profil
                 </button>
             </div>
 
@@ -27,18 +99,13 @@ export default function VillageProfilePage() {
                             <div>
                                 <h4 className="text-xs font-black text-amber-600 uppercase tracking-widest mb-2">Visi</h4>
                                 <p className="text-slate-700 font-bold text-lg leading-relaxed italic">
-                                    "Terwujudnya Desa Cimanggu I yang Mandiri, Sejahtera, dan Berbudaya melalui Tata Kelola Pemerintahan yang Transparan dan Inovatif."
+                                    "{profile?.visi || "Visi belum diisi."}"
                                 </p>
                             </div>
                             <div>
                                 <h4 className="text-xs font-black text-blue-600 uppercase tracking-widest mb-2">Misi</h4>
                                 <ul className="space-y-3">
-                                    {[
-                                        "Meningkatkan kualitas pelayanan publik berbasis teknologi.",
-                                        "Mengoptimalkan potensi ekonomi lokal melalui BUMDes.",
-                                        "Membangun infrastruktur desa yang merata dan berkelanjutan.",
-                                        "Memperkuat nilai-nilai religius dan kebudayaan masyarakat."
-                                    ].map((misi, i) => (
+                                    {(Array.isArray(profile?.misi) ? profile.misi : []).map((misi: string, i: number) => (
                                         <li key={i} className="flex items-start gap-3 text-slate-600 text-sm font-medium">
                                             <div className="w-5 h-5 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 text-[10px] font-black">{i+1}</div>
                                             {misi}
@@ -56,8 +123,8 @@ export default function VillageProfilePage() {
                             </div>
                             <h2 className="text-xl font-black text-slate-800">Sejarah Singkat</h2>
                         </div>
-                        <p className="text-slate-600 text-sm font-medium leading-relaxed">
-                            Desa Cimanggu I memiliki sejarah panjang yang berakar dari semangat gotong royong masyarakat agraris. Sejak berdirinya, desa ini telah mengalami berbagai fase transformasi dari desa tradisional menjadi desa yang mulai mengadopsi sistem digitalisasi untuk melayani ribuan warga yang tersebar di wilayah Kecamatan Cibungbulang.
+                        <p className="text-slate-600 text-sm font-medium leading-relaxed whitespace-pre-wrap">
+                            {profile?.sejarah || "Sejarah belum diisi."}
                         </p>
                     </div>
                 </div>
@@ -70,11 +137,11 @@ export default function VillageProfilePage() {
                             <MapPin size={20} className="text-blue-400" /> Geografi
                         </h3>
                         <div className="space-y-4">
-                            <GeoRow label="Luas Wilayah" value="245.5 Ha" />
-                            <GeoRow label="Batas Utara" value="Desa Cimanggu II" />
-                            <GeoRow label="Batas Selatan" value="Desa Dukuh" />
-                            <GeoRow label="Batas Timur" value="Desa Galuga" />
-                            <GeoRow label="Batas Barat" value="Desa Situ" />
+                            <GeoRow label="Luas Wilayah" value={profile?.luasWilayah || "-"} />
+                            <GeoRow label="Batas Utara" value={profile?.batasUtara || "-"} />
+                            <GeoRow label="Batas Selatan" value={profile?.batasSelatan || "-"} />
+                            <GeoRow label="Batas Timur" value={profile?.batasTimur || "-"} />
+                            <GeoRow label="Batas Barat" value={profile?.batasBarat || "-"} />
                         </div>
                     </div>
 
@@ -91,6 +158,84 @@ export default function VillageProfilePage() {
                     </div>
                 </div>
             </div>
+
+            {/* EDIT MODAL */}
+            {showEditModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowEditModal(false)} />
+                    <div className="bg-white rounded-[2.5rem] w-full max-w-2xl relative z-10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                            <div>
+                                <h2 className="text-2xl font-black text-slate-800">Edit Profil Desa</h2>
+                                <p className="text-slate-500 text-xs font-medium">Perbarui informasi dasar desa Anda.</p>
+                            </div>
+                            <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-slate-200 rounded-xl transition-all">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        
+                        <form onSubmit={handleUpdate} className="p-8 overflow-y-auto space-y-6 custom-scrollbar">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Visi Desa</label>
+                                <textarea 
+                                    required 
+                                    value={formData.visi} 
+                                    onChange={e => setFormData({...formData, visi: e.target.value})} 
+                                    className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 min-h-[60px]" 
+                                />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Misi Desa (Satu per baris)</label>
+                                <textarea 
+                                    required 
+                                    value={formData.misi} 
+                                    onChange={e => setFormData({...formData, misi: e.target.value})} 
+                                    placeholder="Misi 1&#10;Misi 2&#10;Misi 3"
+                                    className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 min-h-[100px]" 
+                                />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sejarah Singkat</label>
+                                <textarea 
+                                    required 
+                                    value={formData.sejarah} 
+                                    onChange={e => setFormData({...formData, sejarah: e.target.value})} 
+                                    className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 min-h-[150px]" 
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Luas Wilayah</label>
+                                    <input value={formData.luasWilayah} onChange={e => setFormData({...formData, luasWilayah: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Batas Utara</label>
+                                    <input value={formData.batasUtara} onChange={e => setFormData({...formData, batasUtara: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Batas Selatan</label>
+                                    <input value={formData.batasSelatan} onChange={e => setFormData({...formData, batasSelatan: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Batas Timur</label>
+                                    <input value={formData.batasTimur} onChange={e => setFormData({...formData, batasTimur: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Batas Barat</label>
+                                    <input value={formData.batasBarat} onChange={e => setFormData({...formData, batasBarat: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20" />
+                                </div>
+                            </div>
+
+                            <button type="submit" disabled={saving} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                                {saving ? <Loader2 className="animate-spin" size={18} /> : <><Save size={18} /> Simpan Perubahan</>}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

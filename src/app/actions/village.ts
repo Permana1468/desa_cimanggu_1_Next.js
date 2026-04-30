@@ -121,3 +121,170 @@ export async function addWarga(data: any) {
         throw error;
     }
 }
+export async function getVillageProfile() {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        let profile = await prisma.villageProfile.findUnique({
+            where: { tenantId }
+        });
+
+        if (!profile) {
+            // Create default profile if not exists
+            profile = await prisma.villageProfile.create({
+                data: {
+                    tenantId,
+                    visi: "Terwujudnya Desa yang Mandiri dan Sejahtera",
+                    misi: ["Meningkatkan pelayanan publik", "Mengoptimalkan ekonomi desa"],
+                    sejarah: "Sejarah desa belum diisi.",
+                    luasWilayah: "0 Ha",
+                    batasUtara: "-",
+                    batasSelatan: "-",
+                    batasTimur: "-",
+                    batasBarat: "-"
+                }
+            });
+        }
+
+        return profile;
+    } catch (error) {
+        console.error("Get Profile Error:", error);
+        return null;
+    }
+}
+
+export async function updateVillageProfile(data: any) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.villageProfile.update({
+            where: { tenantId },
+            data: {
+                ...data,
+                updatedAt: new Date()
+            }
+        });
+    } catch (error) {
+        console.error("Update Profile Error:", error);
+        throw error;
+    }
+}
+
+export async function getAparatur() {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.user.findMany({
+            where: { 
+                tenantId,
+                role: { not: "WARGA" }
+            },
+            orderBy: { role: 'asc' }
+        });
+    } catch (error) {
+        console.error("Get Aparatur Error:", error);
+        return [];
+    }
+}
+
+export async function addAparatur(data: any) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        const passwordHash = await bcrypt.hash(data.password || "desa123", 10);
+
+        return await prisma.user.create({
+            data: {
+                fullName: data.fullName,
+                email: data.email,
+                role: data.role,
+                position: data.position,
+                phoneNumber: data.phoneNumber,
+                passwordHash,
+                tenantId,
+                isActive: true,
+                isFirstLogin: true
+            }
+        });
+    } catch (error) {
+        console.error("Add Aparatur Error:", error);
+        throw error;
+    }
+}
+
+export async function getLembagas() {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.lembaga.findMany({
+            where: { tenantId },
+            orderBy: { name: 'asc' }
+        });
+    } catch (error) {
+        console.error("Get Lembagas Error:", error);
+        return [];
+    }
+}
+
+export async function addLembaga(data: any) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.lembaga.create({
+            data: {
+                ...data,
+                tenantId
+            }
+        });
+    } catch (error) {
+        console.error("Add Lembaga Error:", error);
+        throw error;
+    }
+}
+
+export async function getBumdesFinances() {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.bumdesFinancial.findMany({
+            where: { tenantId },
+            orderBy: { date: 'desc' }
+        });
+    } catch (error) {
+        console.error("Get BUMDes Finances Error:", error);
+        return [];
+    }
+}
+
+export async function addBumdesTransaction(data: any) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.bumdesFinancial.create({
+            data: {
+                ...data,
+                amount: Number(data.amount),
+                tenantId
+            }
+        });
+    } catch (error) {
+        console.error("Add BUMDes Transaction Error:", error);
+        throw error;
+    }
+}

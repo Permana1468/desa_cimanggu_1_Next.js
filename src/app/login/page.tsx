@@ -74,9 +74,16 @@ export default function LoginPage() {
                 const sessionResponse = await fetch('/api/auth/session');
                 const session = await sessionResponse.json();
                 
-                if (session?.user?.role === "ADMIN_MASTER") {
+                const userRole = session?.user?.role;
+                
+                if (userRole === "ADMIN_MASTER") {
                     router.push("/master-admin");
+                } else if (userRole === "WARGA") {
+                    router.push("/resident");
+                } else if (["RT", "RW", "PKK", "POSYANDU", "LPM", "BPD"].includes(userRole)) {
+                    router.push("/kelembagaan");
                 } else {
+                    // ADMIN_DESA, SEKDES, etc.
                     router.push("/dashboard");
                 }
             }
