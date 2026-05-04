@@ -53,6 +53,28 @@ async function main() {
   });
 
   console.log("Admin Desa created:", adminDesa.email);
+
+  // 4. Seed Default Permissions
+  const modules = ["SURAT", "WARGA", "PROFIL", "APARATUR", "KEUANGAN", "BUMDES"];
+  const roles = ["ADMIN_DESA", "KADES", "SEKDES", "RT", "RW", "KASI", "KAUR", "KADUS"];
+
+  for (const role of roles) {
+    for (const module of modules) {
+      await prisma.rolePermission.upsert({
+        where: { role_module: { role: role as any, module } },
+        update: {},
+        create: {
+          role: role as any,
+          module,
+          canView: true,
+          canCreate: ["ADMIN_DESA", "SEKDES", "KASI", "KAUR"].includes(role),
+          canUpdate: ["ADMIN_DESA", "SEKDES"].includes(role),
+          canDelete: role === "ADMIN_DESA",
+        },
+      });
+    }
+  }
+  console.log("Default permissions seeded.");
 }
 
 main()

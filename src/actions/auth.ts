@@ -4,13 +4,17 @@ import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { z } from "zod";
 
-export async function registerWarga(data: {
-    nik: string;
-    phoneNumber: string;
-    password: string;
-}) {
+const registerSchema = z.object({
+    nik: z.string().length(16, "NIK harus 16 digit"),
+    phoneNumber: z.string().min(10, "Nomor telepon minimal 10 digit"),
+    password: z.string().min(6, "Password minimal 6 karakter")
+});
+
+export async function registerWarga(rawData: any) {
     try {
+        const data = registerSchema.parse(rawData);
         console.log(`Attempting registration for NIK: ${data.nik}`);
 
         // 1. Validasi NIK di DataKependudukan
@@ -48,6 +52,7 @@ export async function registerWarga(data: {
                 passwordHash: passwordHash,
                 role: "WARGA",
                 tenantId: wargaData.tenantId,
+                residentId: wargaData.id, // Automatic Linkage to DataKependudukan
                 isActive: true,
                 isFirstLogin: false
             }
@@ -74,11 +79,14 @@ export async function registerWarga(data: {
     }
 }
 
-export async function setupInstitutionalAccount(data: {
-    phoneNumber: string;
-    newPassword: string;
-}) {
+const setupSchema = z.object({
+    phoneNumber: z.string().min(10),
+    newPassword: z.string().min(8, "Password baru minimal 8 karakter untuk akun institusi")
+});
+
+export async function setupInstitutionalAccount(rawData: any) {
     try {
+        const data = setupSchema.parse(rawData);
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
 

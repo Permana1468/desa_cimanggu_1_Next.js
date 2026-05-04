@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getVillageProfile, updateVillageProfile } from "@/app/actions/village";
-import { MapPin, History, Target, ShieldCheck, Image as ImageIcon, Edit2, X, Loader2, Save } from "lucide-react";
+import { getVillageProfile, updateVillageProfile } from "@/actions/village";
+import { smartImportProfile } from "@/actions/cms";
+import { MapPin, History, Target, ShieldCheck, Image as ImageIcon, Edit2, X, Loader2, Save, FileType } from "lucide-react";
 
 export default function VillageProfilePage() {
     const [profile, setProfile] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [importing, setImporting] = useState(false);
     
     const [formData, setFormData] = useState({
         visi: "",
@@ -62,6 +64,39 @@ export default function VillageProfilePage() {
         }
     };
 
+    const handleSmartImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setImporting(true);
+        try {
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const base64 = (event.target?.result as string).split(",")[1];
+                const res = await smartImportProfile(base64);
+                
+                if (res.success && res.html) {
+                    // Extract text from HTML (strip tags) or use as is for sejarah
+                    const cleanText = res.html.replace(/<[^>]*>?/gm, '\n').trim();
+                    setFormData(prev => ({
+                        ...prev,
+                        sejarah: cleanText
+                    }));
+                    setShowEditModal(true);
+                    alert("Konten berhasil diekstrak ke bagian Sejarah. Silakan tinjau dan simpan.");
+                } else {
+                    alert(res.error);
+                }
+            };
+            reader.readAsDataURL(file);
+        } catch (error) {
+            alert("Gagal mengimpor file.");
+        } finally {
+            setImporting(false);
+            e.target.value = "";
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -74,15 +109,22 @@ export default function VillageProfilePage() {
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-800 tracking-tight">Profil Desa</h1>
-                    <p className="text-slate-500 text-sm">Informasi dasar, sejarah, visi, dan misi Desa Cimanggu I.</p>
+                    <h1 className="text-4xl font-black text-slate-800 tracking-tight">Profil Desa</h1>
+                    <p className="text-slate-500 font-medium mt-1">Informasi dasar, sejarah, visi, dan misi Desa Cimanggu I.</p>
                 </div>
-                <button 
-                    onClick={() => setShowEditModal(true)}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-2xl text-xs font-bold shadow-xl hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2"
-                >
-                    <Edit2 size={16} /> Edit Profil
-                </button>
+                <div className="flex gap-3">
+                    <label className="cursor-pointer bg-white border border-slate-200 text-slate-700 px-6 py-3.5 rounded-2xl text-xs font-black flex items-center gap-2 hover:bg-slate-50 shadow-sm transition-all active:scale-95">
+                        {importing ? <Loader2 size={18} className="animate-spin" /> : <FileType size={18} className="text-blue-600" />}
+                        Smart Word Import
+                        <input type="file" accept=".docx" className="hidden" onChange={handleSmartImport} disabled={importing} />
+                    </label>
+                    <button 
+                        onClick={() => setShowEditModal(true)}
+                        className="bg-slate-900 text-white px-8 py-3.5 rounded-2xl text-xs font-black shadow-xl shadow-slate-900/10 hover:bg-blue-600 transition-all active:scale-95 flex items-center gap-2"
+                    >
+                        <Edit2 size={16} /> Edit Profil
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -181,7 +223,7 @@ export default function VillageProfilePage() {
                                     required 
                                     value={formData.visi} 
                                     onChange={e => setFormData({...formData, visi: e.target.value})} 
-                                    className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 min-h-[60px]" 
+                                    className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20 min-h-[60px]" 
                                 />
                             </div>
 
@@ -192,7 +234,7 @@ export default function VillageProfilePage() {
                                     value={formData.misi} 
                                     onChange={e => setFormData({...formData, misi: e.target.value})} 
                                     placeholder="Misi 1&#10;Misi 2&#10;Misi 3"
-                                    className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 min-h-[100px]" 
+                                    className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20 min-h-[100px]" 
                                 />
                             </div>
 
@@ -202,30 +244,30 @@ export default function VillageProfilePage() {
                                     required 
                                     value={formData.sejarah} 
                                     onChange={e => setFormData({...formData, sejarah: e.target.value})} 
-                                    className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 min-h-[150px]" 
+                                    className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20 min-h-[150px]" 
                                 />
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Luas Wilayah</label>
-                                    <input value={formData.luasWilayah} onChange={e => setFormData({...formData, luasWilayah: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20" />
+                                    <input value={formData.luasWilayah} onChange={e => setFormData({...formData, luasWilayah: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Batas Utara</label>
-                                    <input value={formData.batasUtara} onChange={e => setFormData({...formData, batasUtara: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20" />
+                                    <input value={formData.batasUtara} onChange={e => setFormData({...formData, batasUtara: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Batas Selatan</label>
-                                    <input value={formData.batasSelatan} onChange={e => setFormData({...formData, batasSelatan: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20" />
+                                    <input value={formData.batasSelatan} onChange={e => setFormData({...formData, batasSelatan: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Batas Timur</label>
-                                    <input value={formData.batasTimur} onChange={e => setFormData({...formData, batasTimur: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20" />
+                                    <input value={formData.batasTimur} onChange={e => setFormData({...formData, batasTimur: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Batas Barat</label>
-                                    <input value={formData.batasBarat} onChange={e => setFormData({...formData, batasBarat: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20" />
+                                    <input value={formData.batasBarat} onChange={e => setFormData({...formData, batasBarat: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20" />
                                 </div>
                             </div>
 

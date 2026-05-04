@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
+import Image from "next/image";
 import { 
     Home, 
     FileText, 
@@ -30,7 +31,9 @@ export const ResidentSidebar = () => {
         <aside className="w-64 h-screen bg-white border-r border-slate-200 hidden lg:flex flex-col shrink-0">
             <div className="p-8">
                 <div className="flex items-center gap-3 mb-8">
-                    <img src="/images/logo-bogor.png" alt="Logo" className="w-10 h-10 object-contain" />
+                    <div className="relative w-10 h-10">
+                        <Image src="/images/logo-bogor.png" alt="Logo" fill className="object-contain" />
+                    </div>
                     <div>
                         <h2 className="text-sm font-black text-slate-800 leading-tight">WARGA</h2>
                         <p className="text-[10px] text-blue-600 font-bold tracking-widest uppercase">Cimanggu I</p>

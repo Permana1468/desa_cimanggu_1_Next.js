@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { getBeritaList, deleteBerita } from "@/app/actions/cms";
-import { createVillageAccount } from "@/app/actions/village";
+import { getBeritaList, deleteBerita } from "@/actions/cms";
+import { createVillageAccount } from "@/actions/village";
 import { RoleType } from "@prisma/client";
 import { 
     Newspaper, 
@@ -152,7 +152,7 @@ function AccountManager() {
                                 value={formData.fullName}
                                 onChange={e => setFormData({...formData, fullName: e.target.value})}
                                 type="text" placeholder="Contoh: Bpk. Mulyadi" 
-                                className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 transition-all" 
+                                className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-400" 
                             />
                         </div>
                     </div>
@@ -165,7 +165,7 @@ function AccountManager() {
                                 value={formData.email}
                                 onChange={e => setFormData({...formData, email: e.target.value})}
                                 type="email" placeholder="rt01@cimanggu1.desa.id" 
-                                className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 transition-all" 
+                                className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-400" 
                             />
                         </div>
                     </div>
@@ -175,11 +175,20 @@ function AccountManager() {
                             <select 
                                 value={formData.role}
                                 onChange={e => setFormData({...formData, role: e.target.value as RoleType})}
-                                className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 transition-all"
+                                className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20 transition-all"
                             >
                                 <option value={RoleType.RT}>Ketua RT</option>
                                 <option value={RoleType.RW}>Ketua RW</option>
+                                <option value={RoleType.KADES}>Kepala Desa</option>
                                 <option value={RoleType.SEKDES}>Sekretaris Desa</option>
+                                <option value={RoleType.KAUR}>KAUR</option>
+                                <option value={RoleType.KASI}>KASI</option>
+                                <option value={RoleType.KADUS}>Kepala Dusun</option>
+                                <option value={RoleType.BPD}>BPD</option>
+                                <option value={RoleType.LPM}>LPM</option>
+                                <option value={RoleType.PKK}>PKK</option>
+                                <option value={RoleType.POSYANDU}>POSYANDU</option>
+                                <option value={RoleType.KARANG_TARUNA}>Karang Taruna</option>
                             </select>
                         </div>
                         <div className="space-y-2">
@@ -191,7 +200,7 @@ function AccountManager() {
                                     value={formData.password}
                                     onChange={e => setFormData({...formData, password: e.target.value})}
                                     type="password" placeholder="••••••••" 
-                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm focus:ring-2 focus:ring-blue-500/20 transition-all" 
+                                    className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-2xl text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-400" 
                                 />
                             </div>
                         </div>

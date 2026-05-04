@@ -1,84 +1,63 @@
-import prisma from "@/lib/prisma";
-import { Database, Search, Filter, Download, UserCheck } from "lucide-react";
+import { getGlobalResidents, getAllTenantsMinimal, getVillageStructure } from "@/actions/master";
+import { ResidentManagementGlobal } from "@/components/master/ResidentManagementGlobal";
+import { Users, Database, FileSpreadsheet, Activity } from "lucide-react";
 
 export default async function GlobalDataPage() {
-    const data = await prisma.dataKependudukan.findMany({
-        take: 50,
-        include: { tenant: true },
-        orderBy: { createdAt: 'desc' }
-    });
+    const [residents, tenants, structure] = await Promise.all([
+        getGlobalResidents(),
+        getAllTenantsMinimal(),
+        getVillageStructure()
+    ]);
+
+    const stats = {
+        total: residents.length,
+        laki: residents.filter(r => r.jenisKelamin === 'LAKI_LAKI').length,
+        perempuan: residents.filter(r => r.jenisKelamin === 'PEREMPUAN').length,
+    };
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-black text-slate-800">Data Kependudukan Global</h1>
-                    <p className="text-slate-500 text-sm">Pusat data agregat seluruh warga dari seluruh tenant desa.</p>
-                </div>
-                <div className="flex gap-3">
-                    <button className="bg-white text-slate-700 px-4 py-3 rounded-2xl text-xs font-bold shadow-sm border border-slate-200 flex items-center gap-2">
-                        <Download size={16} /> Export Data
-                    </button>
-                </div>
-            </div>
-
-            <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200/60">
-                <div className="flex items-center gap-4 mb-8">
-                    <div className="flex-1 relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                        <input 
-                            type="text" 
-                            placeholder="Cari NIK atau Nama Warga..." 
-                            className="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:border-amber-500 transition-all font-medium"
-                        />
+        <div className="space-y-10 pb-20 px-4 md:px-0">
+            {/* HEADER & STATS */}
+            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-8">
+                <div className="space-y-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-widest">
+                        <Database size={12} /> Master Data Control
                     </div>
-                    <button className="bg-slate-100 p-4 rounded-2xl text-slate-600 hover:bg-slate-200 transition-all">
-                        <Filter size={18} />
-                    </button>
+                    <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-none">
+                        Data <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Kependudukan</span>
+                    </h1>
+                    <p className="text-slate-500 font-medium text-sm md:text-base max-w-xl leading-relaxed">
+                        Manajemen data warga terpusat lintas desa dengan sistem integrasi data otomatis dan pemantauan demografi real-time.
+                    </p>
                 </div>
-
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-50">
-                                <th className="pb-4 pl-4">NIK</th>
-                                <th className="pb-4">Nama Lengkap</th>
-                                <th className="pb-4">Jenis Kelamin</th>
-                                <th className="pb-4">Desa (Tenant)</th>
-                                <th className="pb-4">Status Akun</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-50">
-                            {data.map((warga) => (
-                                <tr key={warga.id} className="group hover:bg-slate-50/50 transition-all">
-                                    <td className="py-4 pl-4">
-                                        <span className="text-xs font-black text-slate-800 font-mono tracking-tighter">{warga.nik}</span>
-                                    </td>
-                                    <td className="py-4">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-slate-700">{warga.namaLengkap}</span>
-                                            <span className="text-[10px] text-slate-400">{warga.tempatLahir}, {new Date(warga.tanggalLahir).toLocaleDateString('id-ID')}</span>
-                                        </div>
-                                    </td>
-                                    <td className="py-4">
-                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{warga.jenisKelamin}</span>
-                                    </td>
-                                    <td className="py-4">
-                                        <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full w-fit border border-amber-100">
-                                            {warga.tenant.name}
-                                        </div>
-                                    </td>
-                                    <td className="py-4">
-                                        <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                                            <UserCheck size={14} className="text-emerald-500" /> Terverifikasi
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full xl:w-auto">
+                    <StatCard label="Total Populasi" value={stats.total.toLocaleString()} icon={Users} gradient="from-blue-600 to-indigo-700" />
+                    <StatCard label="Laki-Laki" value={stats.laki.toLocaleString()} icon={Activity} gradient="from-emerald-500 to-teal-600" />
+                    <StatCard label="Perempuan" value={stats.perempuan.toLocaleString()} icon={Activity} gradient="from-rose-500 to-pink-600" />
                 </div>
             </div>
+
+            {/* MAIN INTERFACE */}
+            <ResidentManagementGlobal 
+                initialResidents={residents as any} 
+                tenants={tenants} 
+                villageStructure={structure}
+            />
         </div>
     );
 }
+
+function StatCard({ label, value, icon: Icon, gradient }: { label: string; value: string; icon: any; gradient: string }) {
+    return (
+        <div className="bg-white group p-6 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center gap-5 transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-95">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br ${gradient} text-white shadow-lg shadow-current/20 group-hover:rotate-6 transition-transform`}>
+                <Icon size={24} />
+            </div>
+            <div>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-0.5">{label}</p>
+                <p className="text-2xl font-black text-slate-900 tabular-nums">{value}</p>
+            </div>
+        </div>
+    )
+}
+

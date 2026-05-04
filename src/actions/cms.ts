@@ -62,3 +62,27 @@ export async function deleteBerita(id: string) {
         where: { id }
     });
 }
+import mammoth from "mammoth";
+
+export async function smartImportProfile(base64File: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        const buffer = Buffer.from(base64File, "base64");
+        
+        // Convert .docx to HTML
+        const result = await mammoth.convertToHtml({ buffer });
+        const html = result.value; // The generated HTML
+        const messages = result.messages; // Any warnings
+
+        return { 
+            success: true, 
+            html, 
+            warnings: messages.map(m => m.message)
+        };
+    } catch (error: any) {
+        console.error("Smart Import Error:", error);
+        return { success: false, error: error.message || "Gagal mengimpor file." };
+    }
+}

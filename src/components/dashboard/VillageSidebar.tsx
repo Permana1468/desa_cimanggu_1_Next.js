@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import { 
   LayoutDashboard, 
   UserCircle, 
@@ -44,8 +45,8 @@ export const VillageSidebar = () => {
       {/* Logo Area */}
       <div className="p-6 flex items-center justify-between">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-10 h-10 shrink-0 flex items-center justify-center">
-            <img src="/images/logo-bogor.png" alt="Logo" className="w-full h-full object-contain" />
+          <div className="relative w-10 h-10 shrink-0">
+            <Image src="/images/logo-bogor.png" alt="Logo" fill className="object-contain" />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
@@ -66,9 +67,11 @@ export const VillageSidebar = () => {
       <nav className="flex-1 px-3 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
         {menuItems.filter(item => {
           const role = (session?.user as any)?.role;
-          if (role === "ADMIN_DESA" || role === "SEKDES") return true;
-          if (["RT", "RW", "PKK", "POSYANDU", "LPM", "BPD"].includes(role as string)) {
-             // Institutional roles see limited items
+          // Roles with full access
+          if (["ADMIN_DESA", "KADES", "SEKDES", "KASI", "KAUR"].includes(role as string)) return true;
+          
+          // Institutional roles with limited access
+          if (["RT", "RW", "PKK", "POSYANDU", "LPM", "BPD", "KADUS", "KARANG_TARUNA"].includes(role as string)) {
              return ["Dashboard", "Pusat Persuratan", "Data Kependudukan"].includes(item.name);
           }
           return false;

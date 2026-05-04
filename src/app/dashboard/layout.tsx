@@ -13,7 +13,7 @@ export default async function VillageAdminLayout({
   if (!session?.user) redirect("/login");
   
   // Guard: Only Admin Desa and Officials can access /dashboard
-  const allowedRoles = ["ADMIN_DESA", "SEKDES", "RT", "RW", "PKK", "POSYANDU", "LPM", "BPD"];
+  const allowedRoles = ["ADMIN_DESA", "KADES", "SEKDES", "RT", "RW", "PKK", "POSYANDU", "KARANG_TARUNA", "LPM", "BPD", "KASI", "KAUR", "KADUS"];
   const userRole = (session.user as any).role;
 
   if (!allowedRoles.includes(userRole)) {
@@ -24,7 +24,7 @@ export default async function VillageAdminLayout({
   }
 
   return (
-    <div className="flex h-screen bg-[#f1f5f9] overflow-hidden">
+    <div className="flex h-screen bg-slate-50 overflow-hidden text-slate-950 light-mode">
       {/* Village Sidebar */}
       <VillageSidebar />
 

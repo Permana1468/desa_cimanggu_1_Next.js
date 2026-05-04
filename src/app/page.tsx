@@ -1,9 +1,17 @@
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FileText, Map as MapIcon, HeartPulse, Activity, ShieldCheck, Users, Search, ChevronLeft, ChevronRight, Calendar, Loader, Download, Clock } from 'lucide-react';
 import api from '../services/api';
 import ScrollReveal from '../components/ScrollReveal';
+import { 
+  getVillageStats, 
+  getLatestNews, 
+  getOrganizationalStructure, 
+  getVillageProfile,
+  getLembagaList
+} from '@/actions/landing';
 
 interface OrgCardProps {
     role: string;
@@ -22,12 +30,14 @@ const OrgCard = ({ role, name, foto, isMain = false }: OrgCardProps) => (
 
         <div className="relative z-10 flex flex-col items-center">
             {foto ? (
-                <img
-                    src={foto}
-                    alt={name}
-                    loading="lazy"
-                    className={`w-14 h-14 rounded-full mb-3 object-cover border-2 transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1 ${isMain ? 'border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.3)]' : 'border-slate-700 group-hover:border-blue-500/50 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]'}`}
-                />
+                <div className={`relative w-14 h-14 rounded-full mb-3 overflow-hidden border-2 transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1 ${isMain ? 'border-yellow-500/50 shadow-[0_0_20px_rgba(234,179,8,0.3)]' : 'border-slate-700 group-hover:border-blue-500/50 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]'}`}>
+                    <Image
+                        src={foto}
+                        alt={name}
+                        fill
+                        className="object-cover"
+                    />
+                </div>
             ) : (
                 <div className={`w-14 h-14 rounded-full mb-3 flex items-center justify-center text-xl transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1 shadow-inner ${isMain ? 'bg-yellow-500/20 text-yellow-400 shadow-[0_0_20px_rgba(234,179,8,0.4)]' : 'bg-blue-500/20 text-blue-400 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.4)]'} `}>
                     👤
@@ -108,53 +118,64 @@ const LandingPage = () => {
         }
     };
 
+    const [statsData, setStatsData] = useState<any>(null);
+    const [lembagaData, setLembagaData] = useState<any[]>([]);
+
     const fetchAllData = useCallback(async () => {
         try {
-            // Fetch Settings
-            const resSettings = await api.get('/users/api/landing-page/');
-            if (resSettings.data && resSettings.data.length > 0) {
-                const data = resSettings.data[0];
-                setSiteData(data);
-                const fetchedImages = [data.carousel_image_1, data.carousel_image_2, data.carousel_image_3].filter(img => img);
-                if (fetchedImages.length > 0) {
-                    setHeroImages(fetchedImages);
+            const [statsRes, newsRes, profileRes, aparaturRes, lembagaRes] = await Promise.all([
+                getVillageStats(),
+                getLatestNews(),
+                getVillageProfile(),
+                getOrganizationalStructure(),
+                getLembagaList()
+            ]);
+
+            if (profileRes) {
+                setSiteData(profileRes);
+                const gallery = profileRes.gallery as string[];
+                
+                if (Array.isArray(gallery) && gallery.length > 0) {
+                    setHeroImages(gallery);
                 }
             }
 
-            // Fetch Berita
-            const resBerita = await api.get('/users/api/berita/');
-            if (resBerita.data) {
-                const mappedNews = resBerita.data.map((item: any) => ({
+            if (newsRes) {
+                const mappedNews = newsRes.map((item: any) => ({
                     id: item.id,
                     title: item.judul,
-                    date: new Date(item.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
+                    date: new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
                     image: item.gambar_cover || "https://images.unsplash.com/photo-1593113544338-9cb52bce56bc?q=80&w=800&auto=format&fit=crop"
                 }));
                 setNewsData(mappedNews);
             }
 
-            // Fetch Pejabat
-            const resPejabat = await api.get('/users/api/pejabat-desa/');
-            if (resPejabat.data) {
-                const p = resPejabat.data;
-                const mapPejabat = (obj: any) => ({ name: obj.nama, role: obj.jabatan, foto: obj.foto });
+            if (aparaturRes) {
+                const mapPejabat = (obj: any) => ({ 
+                    name: obj.name, 
+                    role: obj.position, 
+                    foto: obj.photo 
+                });
 
-                const kadesData = p.find((x: any) => x.level === 1);
-                const sekdesData = p.find((x: any) => x.level === 2);
+                const kadesData = aparaturRes.find((x: any) => x.level === 0);
+                const sekdesData = aparaturRes.find((x: any) => x.level === 1);
 
                 setOrgData({
                     kades: kadesData ? mapPejabat(kadesData) : { name: "Belum Diisi", role: "Kepala Desa" },
                     sekdes: sekdesData ? mapPejabat(sekdesData) : { name: "Belum Diisi", role: "Sekretaris Desa" },
-                    staff: p.filter((x: any) => x.level === 3).map(mapPejabat),
-                    kadus: p.filter((x: any) => x.level === 4).map(mapPejabat)
+                    staff: aparaturRes.filter((x: any) => x.level === 2).map(mapPejabat),
+                    kadus: aparaturRes.filter((x: any) => x.level === 3).map(mapPejabat)
                 });
             }
 
-            // Fetch Gotong Royong Publik
-            const resGR = await api.get('/users/api/gotong-royong/publik/');
-            if (resGR.data) {
-                setGotongRoyongData(resGR.data);
+            if (statsRes) {
+                setStatsData(statsRes);
             }
+
+            if (lembagaRes) {
+                setLembagaData(lembagaRes);
+            }
+
         } catch (error) {
             console.error("Gagal mendapatkan data Landing Page:", error);
         } finally {
@@ -215,8 +236,10 @@ const LandingPage = () => {
         { name: 'Beranda', id: 'beranda' },
         { name: 'Profil', id: 'profil' },
         { name: 'Wilayah', id: 'wilayah' },
+        { name: 'Statistik', id: 'statistik' },
         { name: 'Layanan', id: 'layanan' },
         { name: 'Peta', id: 'peta-interaktif' },
+        { name: 'Lembaga', id: 'lembaga' },
         { name: 'Berita', id: 'berita' },
         { name: 'UMKM', id: 'umkm', isRoute: true, path: '/umkm' },
         { name: 'Organisasi', id: 'organisasi' },
@@ -276,7 +299,14 @@ const LandingPage = () => {
 
                     {/* === BAGIAN KIRI: Logo & Branding (Terpisah dari Kapsul Menu) === */}
                     <div className="flex items-center gap-3">
-                        <img src={siteData?.logo || "/images/logo-bogor.png"} alt="Logo Desa" className="w-10 h-10 object-contain drop-shadow-md" />
+                        <div className="relative w-10 h-10">
+                            <Image 
+                                src={siteData?.logo || "/images/logo-bogor.png"} 
+                                alt="Logo Desa" 
+                                fill
+                                className="object-contain drop-shadow-md" 
+                            />
+                        </div>
                         <div className="flex flex-col justify-center">
                             <span className="text-white font-bold text-[16px] tracking-wide leading-none mb-1 uppercase">
                                 {siteData?.title || "DESA CIMANGGU I"}
@@ -414,11 +444,13 @@ const LandingPage = () => {
                             className={`absolute inset-0 transition-opacity duration-[2000ms] ease-in-out ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
                                 } `}
                         >
-                            <div
-                                className={`w-full h-full bg-cover bg-center transition-transform duration-[15000ms] ease-out ${index === currentSlide ? 'scale-105' : 'scale-100'
-                                    } `}
-                                style={{ backgroundImage: `url('${src}')`, willChange: 'transform' }}
-                            ></div>
+                            <Image
+                                src={src}
+                                alt={`Hero Slide ${index + 1}`}
+                                fill
+                                priority={index === 0}
+                                className={`object-cover transition-transform duration-[15000ms] ease-out ${index === currentSlide ? 'scale-105' : 'scale-100'}`}
+                            />
                         </div>
                     ))}
                     {/* Overlay Gelap Gradasi agar teks tetap terbaca */}
@@ -504,11 +536,11 @@ const LandingPage = () => {
                         </div>
                         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl flex flex-col lg:flex-row gap-12 items-center">
                             <div className="w-full lg:w-2/5 aspect-video lg:aspect-square bg-slate-900/40 backdrop-blur-sm rounded-3xl overflow-hidden border border-white/10 relative group">
-                                <img
+                                <Image
                                     src={siteData?.about_image || "https://images.unsplash.com/photo-1590088925586-7a8df0bbee59?q=80&w=1200&auto=format&fit=crop"}
                                     alt="Kantor Desa"
-                                    loading="lazy"
-                                    className="object-cover w-full h-full opacity-80 group-hover:scale-110 transition-transform duration-1000"
+                                    fill
+                                    className="object-cover opacity-80 group-hover:scale-110 transition-transform duration-1000"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-blue-900/80 to-transparent mix-blend-multiply"></div>
                                 <div className="absolute bottom-6 left-6 right-6">
@@ -575,6 +607,40 @@ const LandingPage = () => {
                         </ScrollReveal>
                     </div>
                 </section>
+
+                {/* 3. Statistik Penduduk Section */}
+                {statsData && (
+                    <section id="statistik" className="scroll-mt-32">
+                        <ScrollReveal>
+                            <div className="text-center mb-16">
+                                <h3 className="text-blue-400 font-bold tracking-widest uppercase text-sm mb-3">Data Penduduk</h3>
+                                <h2 className="text-3xl md:text-5xl font-extrabold text-white">Statistik Kependudukan</h2>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
+                                <div className="bg-slate-800/40 backdrop-blur-md border border-white/10 rounded-3xl p-8 text-center shadow-xl hover:border-blue-500/30 transition-all group">
+                                    <h4 className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-4 group-hover:text-blue-400 transition-colors">Total Penduduk</h4>
+                                    <p className="text-4xl font-black text-white">{statsData.totalWarga.toLocaleString()}</p>
+                                    <div className="w-12 h-1 bg-blue-500/20 mx-auto mt-4 rounded-full"></div>
+                                </div>
+                                <div className="bg-slate-800/40 backdrop-blur-md border border-white/10 rounded-3xl p-8 text-center shadow-xl hover:border-indigo-500/30 transition-all group">
+                                    <h4 className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-4 group-hover:text-indigo-400 transition-colors">Total Keluarga (KK)</h4>
+                                    <p className="text-4xl font-black text-white">{statsData.totalKK.toLocaleString()}</p>
+                                    <div className="w-12 h-1 bg-indigo-500/20 mx-auto mt-4 rounded-full"></div>
+                                </div>
+                                <div className="bg-slate-800/40 backdrop-blur-md border border-white/10 rounded-3xl p-8 text-center shadow-xl hover:border-blue-500/30 transition-all group">
+                                    <h4 className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-4 group-hover:text-blue-400 transition-colors">Laki-laki</h4>
+                                    <p className="text-4xl font-black text-blue-400">{statsData.totalLaki.toLocaleString()}</p>
+                                    <div className="w-12 h-1 bg-blue-500/20 mx-auto mt-4 rounded-full"></div>
+                                </div>
+                                <div className="bg-slate-800/40 backdrop-blur-md border border-white/10 rounded-3xl p-8 text-center shadow-xl hover:border-pink-500/30 transition-all group">
+                                    <h4 className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-4 group-hover:text-pink-400 transition-colors">Perempuan</h4>
+                                    <p className="text-4xl font-black text-pink-400">{statsData.totalPerempuan.toLocaleString()}</p>
+                                    <div className="w-12 h-1 bg-pink-500/20 mx-auto mt-4 rounded-full"></div>
+                                </div>
+                            </div>
+                        </ScrollReveal>
+                    </section>
+                )}
 
                 {/* 3. Layanan Section (Existing) */}
                 <section id="layanan" className="scroll-mt-32">
@@ -670,10 +736,11 @@ const LandingPage = () => {
 
                             {/* Map View Placeholder */}
                             <div className="w-full md:w-2/3 bg-slate-800 relative group overflow-hidden">
-                                <img
+                                <Image
                                     src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1600&auto=format&fit=crop"
                                     alt="Map Background"
-                                    className="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-1000"
+                                    fill
+                                    className="object-cover opacity-30 group-hover:scale-105 transition-transform duration-1000"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-tr from-slate-900 via-transparent to-slate-900/50"></div>
 
@@ -780,6 +847,31 @@ const LandingPage = () => {
                         </div>
                     </div>
                 </section>
+
+                {/* 5.5 Lembaga Section */}
+                {lembagaData.length > 0 && (
+                    <section id="lembaga" className="py-24 scroll-mt-32">
+                        <ScrollReveal>
+                            <div className="text-center mb-16">
+                                <h3 className="text-indigo-400 font-bold tracking-widest uppercase text-sm mb-3">Kelembagaan</h3>
+                                <h2 className="text-3xl md:text-5xl font-extrabold text-white">Lembaga Desa</h2>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4 md:px-0">
+                                {lembagaData.map((item, i) => (
+                                    <div key={i} className="bg-slate-800/40 backdrop-blur-md border border-white/5 rounded-3xl p-8 hover:bg-slate-700/60 transition-all group text-center transform hover:-translate-y-2 shadow-lg">
+                                        <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-6 transition-transform">
+                                            <ShieldCheck className="text-indigo-400" size={32} />
+                                        </div>
+                                        <h4 className="text-lg font-bold text-white mb-2 uppercase tracking-tight">{item.name}</h4>
+                                        <div className="inline-block px-3 py-1 bg-indigo-500/10 rounded-full text-[10px] font-bold text-indigo-300 uppercase tracking-widest">
+                                            {item.type}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </ScrollReveal>
+                    </section>
+                )}
 
                 {/* 6. Berita Section - Coverflow Carousel */}
                 <section id="berita" className="scroll-mt-32">

@@ -184,3 +184,30 @@ body { margin: 0; transition: background-color 0.5s ease, color 0.5s ease; }
   background: linear-gradient(90deg, transparent, var(--accent-border), transparent);
   opacity: 0.4;
 }
+
+/* ── HIERARCHY CHART STYLES ─────────────────────────── */
+.hierarchy-connector-v {
+  width: 2px;
+  background: linear-gradient(to bottom, var(--border-color), var(--accent-border), var(--border-color));
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.hierarchy-connector-h {
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--accent-border), transparent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.chart-node-glow {
+  position: relative;
+}
+.chart-node-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, var(--accent-primary), transparent);
+  border-radius: 2.5rem;
+  z-index: -1;
+  opacity: 0.15;
+  filter: blur(8px);
+}

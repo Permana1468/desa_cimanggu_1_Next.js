@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, Phone, ShieldCheck, Loader2, LogOut } from "lucide-react";
-import { setupInstitutionalAccount } from "@/app/actions/auth";
+import { setupInstitutionalAccount } from "@/actions/auth";
 import { signOut } from "next-auth/react";
 
 export default function SetupAccountPage() {

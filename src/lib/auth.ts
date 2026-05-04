@@ -35,12 +35,36 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user || !user.passwordHash) {
+          // Log failed attempt - User not found
+          const systemTenant = await prisma.tenant.findFirst();
+          if (systemTenant) {
+            await prisma.auditLog.create({
+              data: {
+                action: "LOGIN_FAILED",
+                entity: "Security",
+                details: { identifier: credentials.identifier, reason: "User not found" },
+                category: "SECURITY",
+                tenantId: systemTenant.id
+              }
+            });
+          }
           throw new Error("Akun tidak ditemukan atau belum terdaftar");
         }
 
         const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
 
         if (!isValid) {
+          // Log failed attempt - Wrong password
+          await prisma.auditLog.create({
+            data: {
+              action: "LOGIN_FAILED",
+              entity: "Security",
+              userId: user.id,
+              details: { identifier: credentials.identifier, reason: "Wrong password" },
+              category: "SECURITY",
+              tenantId: user.tenantId
+            }
+          });
           throw new Error("Kata sandi salah");
         }
 

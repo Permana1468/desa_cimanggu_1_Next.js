@@ -29,6 +29,8 @@ model Tenant {
   profile     VillageProfile?
   bumdesStats BumdesFinancial[]
   lembagas    Lembaga[]
+  aparatur    AparaturDesa[]
+  letterTemplates LetterTemplate[]
 }
 
 // ==============================
@@ -46,6 +48,10 @@ enum RoleType {
   POSYANDU
   LPM
   BPD
+  KASI
+  KAUR
+  KADUS
+  KARANG_TARUNA
 }
 
 model User {
@@ -72,6 +78,10 @@ model User {
   tenantId              String
   tenant                Tenant    @relation(fields: [tenantId], references: [id])
 
+  // Relation to Official Citizen Data
+  residentId            String?   @unique
+  resident              DataKependudukan? @relation(fields: [residentId], references: [id])
+
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
@@ -97,34 +107,72 @@ model AuditLog {
   tenantId    String
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
+  category    String   @default("SYSTEM") // SYSTEM, SECURITY, USER_ACTION
   createdAt   DateTime @default(now())
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, category])
+}
+
+// ==============================
+// 3.1 ROLE PERMISSIONS (RBAC)
+// ==============================
+model RolePermission {
+  id          String   @id @default(uuid())
+  role        RoleType
+  module      String   // e.g., "SURAT", "WARGA", "KEUANGAN"
+  canView     Boolean  @default(false)
+  canCreate   Boolean  @default(false)
+  canUpdate   Boolean  @default(false)
+  canDelete   Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([role, module])
 }
 
 // ==============================
 // 4. DATA KEPENDUDUKAN
 // ==============================
 model DataKependudukan {
-  id          String   @id @default(uuid())
-  nik         String   @unique
-  namaLengkap String
-  tempatLahir String
-  tanggalLahir DateTime
-  jenisKelamin String
-  alamat      String
-  rt          String
-  rw          String
-  dusun       String
-  agama       String
-  statusKawin String
-  pekerjaan   String
+  id                String   @id @default(uuid())
+  nik               String   @unique
+  noKK              String
+  namaLengkap       String
+  tempatLahir       String
+  tanggalLahir      DateTime
+  jenisKelamin      String   // LAKI_LAKI, PEREMPUAN
+  agama             String
+  pendidikan        String?
+  pekerjaan         String?
+  golonganDarah     String?
+  statusKawin       String   // BELUM_KAWIN, KAWIN, CERAI_HIDUP, CERAI_MATI
+  hubunganKeluarga  String   // KEPALA_KELUARGA, ISTRI, ANAK, dll
+  kewarganegaraan   String   @default("WNI")
+  namaAyah          String?
+  namaIbu           String?
   
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  alamat            String
+  rt                String
+  rw                String
+  dusun             String
+  
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id])
 
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  surat       Surat[]
+  // Link to User account (if they register)
+  user              User?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  surat             Surat[]
+
+  @@index([tenantId, noKK])
+  @@index([tenantId, rt, rw])
+  @@index([tenantId, jenisKelamin])
 }
+
 
 // ==============================
 // 5. PERSURATAN (Document Management)
@@ -154,6 +202,27 @@ model Surat {
 
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+
+  @@index([tenantId, status])
+  @@index([tenantId, jenisSurat])
+}
+
+// ==============================
+// 5.1 TEMPLATE PERSURATAN
+// ==============================
+model LetterTemplate {
+  id              String   @id @default(uuid())
+  name            String   // e.g., "Surat Keterangan Usaha"
+  code            String   @unique // e.g., "SKU"
+  fileUrl         String   // URL to the .docx template
+  version         Int      @default(1)
+  isActive        Boolean  @default(true)
+  
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id])
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 // ==============================
@@ -174,12 +243,29 @@ model Berita {
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, isPublished, createdAt])
 }
 
 model VillageProfile {
   id          String   @id @default(uuid())
   tenantId    String   @unique
   tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  
+  // Branding
+  logo        String?
+  title       String?
+  address     String?
+  
+  // Hero Section
+  hero_title    String?
+  hero_subtitle String?
+  
+  // About Section
+  about_title   String?
+  about_text    String? @db.Text
+  about_image   String?
+
   visi        String?  @db.Text
   misi        Json?    // Array of strings
   sejarah     String?  @db.Text
@@ -219,4 +305,40 @@ model Lembaga {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model AparaturDesa {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  
+  name        String
+  nik         String?
+  role        RoleType
+  position    String   // Custom title e.g. "Kepala Desa Cimanggu"
+  photo       String?
+  
+  // SK Details
+  skNumber    String?
+  skUrl       String?  // PDF or Doc link
+  
+  level       Int      @default(0) // 0: Top (Kades), 1: Sekdes, 2: Kasi/Kaur, 3: Kadus
+  order       Int      @default(0) // Order in the same level
+  parentId    String?
+  parent      AparaturDesa? @relation("Hierarchy", fields: [parentId], references: [id])
+  children    AparaturDesa[] @relation("Hierarchy")
+
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, isActive, level])
+}
+
+model SystemSetting {
+  id          String   @id @default("global_config")
+  settings    Json     // Store all JSONB data for PPOB, Payment Gateway, etc.
+  
+  updatedAt   DateTime @updatedAt
+}
+
 

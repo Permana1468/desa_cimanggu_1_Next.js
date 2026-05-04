@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getVillageDashboardStats, getSuratList } from "@/app/actions/village";
+import { getVillageDashboardStats, getSuratList } from "@/actions/village";
 import { StatusSurat } from "@prisma/client";
 
 export default async function VillageDashboardPage() {

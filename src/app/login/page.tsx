@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Mail, Lock, Eye, EyeOff, Loader2, Bell, ChevronRight, UserPlus, Fingerprint, Phone } from "lucide-react";
 import api from "@/services/api";
-import { registerWarga } from "@/app/actions/auth";
+import { registerWarga } from "@/actions/auth";
 
 export default function LoginPage() {
     const [isLogin, setIsLogin] = useState(true);
@@ -141,13 +142,15 @@ export default function LoginPage() {
                                 idx === currentSlide ? "opacity-100" : "opacity-0"
                             }`}
                         >
-                            <img src={img} alt={`Slide ${idx + 1}`} className="w-full h-full object-cover" />
+                            <Image src={img} alt={`Slide ${idx + 1}`} fill className="object-cover" priority={idx === 0} />
                             <div className="absolute inset-0 bg-black/40" />
                         </div>
                     ))}
 
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 z-10">
-                        <img src="/images/logo-bogor.png" alt="Logo" className="w-16 h-16 object-contain mb-4 drop-shadow-2xl" />
+                        <div className="relative w-16 h-16 mb-4">
+                            <Image src="/images/logo-bogor.png" alt="Logo" fill className="object-contain drop-shadow-2xl" />
+                        </div>
                         <h2 className="text-white text-xl md:text-2xl font-black uppercase tracking-tight leading-tight max-w-xs drop-shadow-2xl">
                             Desa Cimanggu I
                             <span className="block text-base md:text-lg mt-1 opacity-90 font-bold">Kecamatan Cibungbulang</span>

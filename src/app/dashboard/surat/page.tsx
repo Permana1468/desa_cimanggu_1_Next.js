@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getSuratList, updateSuratStatus } from "@/app/actions/village";
+import { getSuratList, updateSuratStatus } from "@/actions/village";
 import { StatusSurat } from "@prisma/client";
 import { 
     FileText, 

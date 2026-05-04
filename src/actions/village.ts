@@ -121,6 +121,38 @@ export async function addWarga(data: any) {
         throw error;
     }
 }
+
+export async function updateWarga(id: string, data: any) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        return await prisma.dataKependudukan.update({
+            where: { id },
+            data: {
+                ...data,
+                updatedAt: new Date()
+            }
+        });
+    } catch (error) {
+        console.error("Update Warga Error:", error);
+        throw error;
+    }
+}
+
+export async function deleteWarga(id: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        return await prisma.dataKependudukan.delete({
+            where: { id }
+        });
+    } catch (error) {
+        console.error("Delete Warga Error:", error);
+        throw error;
+    }
+}
 export async function getVillageProfile() {
     try {
         const session = await getServerSession(authOptions);
@@ -288,3 +320,36 @@ export async function addBumdesTransaction(data: any) {
         throw error;
     }
 }
+
+export async function getAparaturHierarchy() {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.aparaturDesa.findMany({
+            where: { tenantId, isActive: true },
+            orderBy: [{ level: 'asc' }, { order: 'asc' }],
+            include: { children: true }
+        });
+    } catch (error) {
+        console.error("Get Hierarchy Error:", error);
+        return [];
+    }
+}
+
+export async function updateAparaturSK(id: string, data: { skNumber?: string, skUrl?: string }) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        return await prisma.aparaturDesa.update({
+            where: { id },
+            data: { ...data, updatedAt: new Date() }
+        });
+    } catch (error) {
+        console.error("Update SK Error:", error);
+        throw error;
+    }
+}
+

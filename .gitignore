@@ -1,29 +1,13 @@
-# Django
-*.log
-*.pot
-*.pyc
-__pycache__/
-local_settings.py
-# Django
-*.log
-*.pot
-*.pyc
-__pycache__/
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
-media/
-staticfiles/
-.env
-
 # Next.js
 .next/
 out/
 build/
 
 # Production
+.env
 .env.production
 .env.local
+.env.*.local
 
 # Node
 node_modules/
@@ -34,11 +18,14 @@ dist-ssr/
 # OS
 .DS_Store
 Thumbs.db
+*.swp
 
 # Virtual Environment
 venv/
 ENV/
 env/
+__pycache__/
+*.pyc
 
 # Docker
 .dockerignore
@@ -48,5 +35,10 @@ docker-compose.override.yml
 /src/generated/prisma
 .prisma
 
-# Backup
-_backup/
+# Project Specific
+.backup/
+.scratch/
+.logs/
+public/assets/media/
+build_output.txt
+env.tmp

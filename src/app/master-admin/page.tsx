@@ -4,143 +4,210 @@ import {
   Clock,
   ShieldCheck,
   Server,
-  Zap
+  Zap,
+  TrendingUp,
+  Activity,
+  ArrowRight,
+  Shield,
+  Key,
+  Globe
 } from "lucide-react";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
 import { formatRelativeTime } from "@/lib/utils";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getLatestLogs } from "@/app/actions/audit";
 import { InfrastructureStatus } from "@/components/dashboard/InfrastructureStatus";
+import { OverviewCharts } from "@/components/master/OverviewChartsWrapper";
 
-export default async function MasterDashboardPage() {
+export default async function MasterDashboardPage({ 
+  searchParams 
+}: { 
+  searchParams: Promise<{ tenantId?: string }> 
+}) {
+  const { tenantId } = await searchParams;
   const session = await getServerSession(authOptions);
 
-  // 1. Live Data Integration
-  const totalPenduduk = await prisma.dataKependudukan.count();
+  const filter = tenantId ? { tenantId } : {};
+
+  // Live Data Integration
+  const totalPenduduk = await prisma.dataKependudukan.count({ where: filter });
   const adminAktif = await prisma.user.count({
-    where: { isActive: true }
+    where: { ...filter, isActive: true }
   });
-  const totalTenant = await prisma.tenant.count();
+  const totalTenant = tenantId ? 1 : await prisma.tenant.count();
   const dailyLogs = await prisma.auditLog.count({
     where: {
+      ...filter,
       createdAt: {
         gte: new Date(new Date().setHours(0, 0, 0, 0))
       }
     }
   });
 
-  // 2. Real-time Audit Log using Server Action
-  const latestLogs = await getLatestLogs();
+  const latestLogs = await prisma.auditLog.findMany({
+    where: filter,
+    take: 8,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      user: { select: { fullName: true } }
+    }
+  });
 
   return (
-    <div className="space-y-6">
-      {/* HEADER CARD - DARK */}
-      <div className="bg-[#0f172a] rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden shadow-2xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-amber-600/10 rounded-full blur-[100px] -mr-48 -mt-48" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px] -ml-32 -mb-32" />
-        
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+    <div className="space-y-12 pb-20">
+      {/* HERO SECTION - Premium Dark Design */}
+      <div className="relative group overflow-hidden bg-slate-950 rounded-[3rem] md:rounded-[4rem] p-8 md:p-16 text-white shadow-2xl shadow-blue-500/10">
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] -mr-64 -mt-64 animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-600/10 rounded-full blur-[100px] -ml-48 -mb-48" />
+          
+          <div className="relative z-10 space-y-10">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                  <div className="space-y-6">
+                      <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-blue-400 text-[10px] font-black uppercase tracking-[0.25em]">
+                          <ShieldCheck size={16} /> Enterprise Control Center
+                      </div>
+                      <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-none">
+                          Integritas <br />
+                          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400">
+                            Tanpa Batas.
+                          </span>
+                      </h1>
+                      <p className="text-slate-400 max-w-xl text-lg font-medium leading-relaxed">
+                          Sistem manajemen multi-tenant tercanggih untuk koordinasi administrasi desa yang presisi, aman, dan transparan.
+                      </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 w-full md:w-auto">
+                    <HeroStat label="Total Warga" value={totalPenduduk.toLocaleString()} icon={Users} color="blue" />
+                    <HeroStat label="Active Admin" value={adminAktif.toString()} icon={Shield} color="emerald" />
+                    <HeroStat label="Total Tenant" value={totalTenant.toString()} icon={Globe} color="amber" />
+                    <HeroStat label="Daily Logs" value={dailyLogs.toString()} icon={Activity} color="rose" />
+                  </div>
+              </div>
+
+              <div className="flex flex-wrap gap-4 pt-4 border-t border-white/5">
+                <StatusPill icon={Server} label="System Uptime" value="99.99%" color="text-blue-400" />
+                <StatusPill icon={Database} label="Sync Rate" value="Real-time" color="text-emerald-400" />
+                <StatusPill icon={Zap} label="Performance" value="Stable" color="text-amber-400" />
+              </div>
+          </div>
+      </div>
+
+      {/* QUICK ACTIONS GRID */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <ActionCard icon={Users} label="Manajemen Pengguna" href="/master-admin/pengguna-sistem" color="bg-blue-500" />
+          <ActionCard icon={Database} label="Data Kependudukan" href="/master-admin/data" color="bg-indigo-500" />
+          <ActionCard icon={History} label="Audit Logs" href="/master-admin/logs" color="bg-slate-900" />
+          <ActionCard icon={Settings} label="Konfigurasi" href="/master-admin/config" color="bg-amber-500" />
+      </div>
+
+      {/* CHARTS SECTION */}
+      <OverviewCharts />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        {/* LOGS SECTION */}
+        <div className="lg:col-span-2 space-y-8 bg-white p-8 md:p-12 rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-200/40">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">Audit Log Transaksional</h2>
+                    <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mt-1">Aktivitas Terakhir Sistem</p>
+                </div>
+                <Link href="/master-admin/logs" className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all">
+                    <ArrowRight size={20} />
+                </Link>
+            </div>
+
             <div className="space-y-4">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                    <ShieldCheck size={14} className="text-amber-500" /> Pusat Kendali Sistem Utama
-                </div>
-                <h1 className="text-4xl md:text-5xl font-black text-white tracking-tight">
-                    Master Administration
-                </h1>
-                <p className="text-slate-400 max-w-xl leading-relaxed">
-                    Selamat datang kembali, <span className="text-white font-bold">{session?.user?.name}</span>. Kelola infrastruktur desa, pantau aktivitas tenant, dan pastikan integritas data seluruh sistem tetap terjaga secara real-time.
-                </p>
-                
-                <div className="flex flex-wrap gap-4 pt-4">
-                    <div className="flex items-center gap-2 text-slate-300 bg-white/5 px-4 py-2 rounded-xl border border-white/5 text-xs font-medium">
-                        <Server size={14} className="text-blue-400" /> System Uptime: 99.9%
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-300 bg-white/5 px-4 py-2 rounded-xl border border-white/5 text-xs font-medium">
-                        <Database size={14} className="text-emerald-400" /> Database Healthy
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-300 bg-white/5 px-4 py-2 rounded-xl border border-white/5 text-xs font-medium">
-                        <Zap size={14} className="text-amber-400" /> High Performance Mode
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:flex gap-4">
-                <QuickStat label="TOTAL PENDUDUK" value={totalPenduduk.toLocaleString('id-ID')} />
-                <QuickStat label="ADMIN AKTIF" value={adminAktif.toString()} />
-                <QuickStat label="TENANT DESA" value={totalTenant.toString()} />
-                <QuickStat label="LOG HARIAN" value={dailyLogs.toString()} />
-            </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* CENTER COLUMN: AUDIT LOGS */}
-        <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200/60">
-                <div className="flex items-center justify-between mb-8">
-                    <div>
-                        <h2 className="text-xl font-black text-slate-800">Audit Log Terbaru</h2>
-                        <p className="text-slate-500 text-sm">Pemantauan aktivitas user dan perubahan data sistem.</p>
-                    </div>
-                    <Link href="/master-admin/logs" className="text-sm text-amber-600 font-bold hover:text-amber-700 transition-colors">Lihat Semua</Link>
-                </div>
-
-                <div className="space-y-4">
-                    {latestLogs.length > 0 ? latestLogs.map((log: { id: string; user: { fullName: string } | null; action: string; entity: string; createdAt: Date }) => (
-                        <ActivityItem 
-                            key={log.id}
-                            user={log.user?.fullName || "Sistem"} 
-                            action={log.action.replace(/_/g, ' ')} 
-                            target={log.entity} 
-                            time={formatRelativeTime(log.createdAt)} 
-                        />
-                    )) : (
-                        <div className="py-12 text-center text-slate-400 italic text-sm">
-                            Belum ada aktivitas log yang tercatat.
-                        </div>
-                    )}
-                </div>
+                {latestLogs.map((log) => (
+                    <LogItem 
+                      key={log.id} 
+                      user={log.user?.fullName || "Sistem"} 
+                      action={log.action} 
+                      time={formatRelativeTime(log.createdAt)} 
+                      category={log.category || "SYSTEM"}
+                    />
+                ))}
             </div>
         </div>
 
-        {/* RIGHT COLUMN: REAL-TIME SYSTEM STATUS */}
-        <div className="space-y-6">
+        {/* SIDEBAR STATUS */}
+        <div className="space-y-8">
             <InfrastructureStatus />
+            <div className="bg-gradient-to-br from-indigo-600 to-blue-700 p-10 rounded-[3rem] text-white shadow-2xl shadow-blue-500/20 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+                <h3 className="text-xl font-black mb-4 relative z-10">Keamanan Enkripsi</h3>
+                <p className="text-blue-100 text-sm font-medium leading-relaxed relative z-10">Seluruh data kependudukan dan transaksi dilindungi oleh enkripsi AES-256 tingkat militer untuk menjamin privasi warga.</p>
+                <div className="mt-8 flex items-center gap-2 bg-white/10 w-fit px-4 py-2 rounded-xl border border-white/10">
+                    <Key size={16} className="text-amber-300" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Secure Handshake</span>
+                </div>
+            </div>
         </div>
       </div>
     </div>
   );
 }
 
-function QuickStat({ label, value }: { label: string, value: string }) {
-    return (
-        <div className="bg-white/5 border border-white/5 rounded-2xl p-4 min-w-[120px] text-center backdrop-blur-sm">
-            <span className="block text-[8px] font-black text-slate-400 tracking-[0.2em] mb-2 uppercase">{label}</span>
-            <span className="block text-2xl font-black text-white">{value}</span>
-        </div>
-    )
-}
-
-function ActivityItem({ user, action, target, time }: { user: string; action: string; target: string; time: string }) {
-  // Indikator Critical: Berikan warna teks merah jika action mengandung kata "Delete" atau "Hapus"
-  const isCritical = /delete|hapus/i.test(action);
-
+function HeroStat({ label, value, icon: Icon, color }: any) {
+  const colors: any = {
+    blue: "bg-blue-500/10 text-blue-400",
+    emerald: "bg-emerald-500/10 text-emerald-400",
+    amber: "bg-amber-500/10 text-amber-400",
+    rose: "bg-rose-500/10 text-rose-400"
+  };
   return (
-    <div className="flex items-start gap-4 p-4 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 group">
-      <div className={`w-10 h-10 ${isCritical ? 'bg-red-50 border-red-100' : 'bg-slate-100 border-slate-200'} rounded-xl flex items-center justify-center shrink-0 border group-hover:scale-110 transition-transform`}>
-        <Clock className={isCritical ? 'text-red-500' : 'text-slate-400'} size={20} />
-      </div>
-      <div className="flex-1">
-        <div className="flex justify-between items-start mb-1">
-          <p className="text-sm text-slate-700">
-            <span className="font-bold text-amber-600">{user}</span> <span className={isCritical ? "text-red-600 font-bold" : ""}>{action}</span>
-          </p>
-          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{time}</span>
-        </div>
-        <p className="text-xs text-slate-500 font-medium italic">Target: {target}</p>
-      </div>
+    <div className="bg-white/5 border border-white/5 p-4 md:p-6 rounded-3xl backdrop-blur-md group hover:bg-white/10 transition-all cursor-default">
+        <Icon size={20} className={`${color === 'blue' ? 'text-blue-400' : color === 'emerald' ? 'text-emerald-400' : 'text-amber-400'} mb-3 opacity-60 group-hover:opacity-100 transition-opacity`} />
+        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</p>
+        <p className="text-xl md:text-2xl font-black tabular-nums">{value}</p>
     </div>
-  );
+  )
 }
+
+function StatusPill({ icon: Icon, label, value, color }: any) {
+  return (
+    <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+        <Icon size={14} className={color} />
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}:</span>
+        <span className="text-[10px] font-black text-white">{value}</span>
+    </div>
+  )
+}
+
+function ActionCard({ icon: Icon, label, href, color }: any) {
+  return (
+    <Link href={href} className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 hover:scale-[1.03] active:scale-95 transition-all">
+        <div className={`w-12 h-12 rounded-2xl ${color} text-white flex items-center justify-center mb-6 shadow-lg shadow-current/20 group-hover:rotate-12 transition-transform`}>
+            <Icon size={24} />
+        </div>
+        <p className="text-sm font-black text-slate-800 leading-tight">{label}</p>
+        <div className="mt-4 flex items-center gap-2 text-blue-600 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
+            <span className="text-[10px] font-black uppercase tracking-widest">Buka Menu</span>
+            <ArrowRight size={14} />
+        </div>
+    </Link>
+  )
+}
+
+function LogItem({ user, action, time, category }: any) {
+  return (
+    <div className="flex items-center gap-6 p-4 rounded-3xl hover:bg-slate-50 transition-all group border border-transparent hover:border-slate-100">
+        <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center text-slate-400 group-hover:text-blue-600 transition-colors shrink-0">
+            <Activity size={20} />
+        </div>
+        <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-0.5">
+                <p className="text-sm font-black text-slate-800 truncate">{user}</p>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{time}</span>
+            </div>
+            <p className="text-xs text-slate-500 font-medium truncate">
+                <span className="inline-block px-1.5 py-0.5 rounded-md bg-slate-100 text-[9px] font-black mr-2 uppercase">{category}</span>
+                {action.replace(/_/g, ' ')}
+            </p>
+        </div>
+    </div>
+  )
+}
+
+import { History, Settings } from "lucide-react";

@@ -1,80 +1,117 @@
-import { getSystemStats } from "@/app/actions/master";
-import { PieChart, TrendingUp, Users, Database, FileText, Zap, Activity, Shield } from "lucide-react";
+import { getSystemStats } from "@/actions/master";
+import { 
+    Users, Database, FileText, Activity, Shield, 
+    TrendingUp, Server, Cpu, Globe, Zap, ArrowUpRight,
+    Layout
+} from "lucide-react";
+import { VisualStats } from "@/components/master/VisualStatsWrapper";
 
-export default async function StatisticsPage() {
-    const stats = await getSystemStats();
+export default async function StatisticsPage({
+    searchParams
+}: {
+    searchParams: Promise<{ tenantId?: string }>
+}) {
+    const { tenantId } = await searchParams;
+    const stats = await getSystemStats(tenantId);
 
     return (
-        <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-black text-slate-800">System Analytics & Stats</h1>
-                <p className="text-slate-500 text-sm">Wawasan mendalam mengenai pertumbuhan platform dan distribusi data.</p>
-            </div>
-
-            {/* KPI CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard icon={Users} label="Total Users" value={stats.totalUsers} color="bg-blue-500" />
-                <StatCard icon={Shield} label="Tenant Desa" value={stats.totalTenants} color="bg-amber-500" />
-                <StatCard icon={Database} label="Total Warga" value={stats.totalWarga} color="bg-emerald-500" />
-                <StatCard icon={FileText} label="Surat Diterbitkan" value={stats.totalSurat} color="bg-purple-500" />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* GROWTH CHART MOCK */}
-                <div className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200/60">
-                    <div className="flex items-center justify-between mb-8">
-                        <h3 className="text-lg font-black text-slate-800">Platform Growth (30 Days)</h3>
-                        <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-                            <TrendingUp size={14} /> +12.5%
-                        </div>
+        <div className="space-y-16 pb-20 px-4 md:px-0 animate-in fade-in duration-1000">
+            {/* EPIC HEADER */}
+            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-10">
+                <div className="space-y-5">
+                    <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 text-[10px] font-black uppercase tracking-[0.25em]">
+                        <Activity size={14} /> Real-time Analytics Engine
                     </div>
+                    <h1 className="text-5xl md:text-7xl font-black text-slate-900 tracking-tighter leading-none">
+                        System <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 via-teal-600 to-blue-600">Intelligence</span>
+                    </h1>
+                    <p className="text-slate-500 font-medium text-lg md:text-xl max-w-2xl leading-relaxed">
+                        Visualisasi mendalam mengenai kesehatan infrastruktur, pertumbuhan ekosistem desa, dan distribusi aset digital secara global.
+                    </p>
+                </div>
+                
+                <div className="flex items-center gap-4 bg-white p-2 rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100">
+                    <div className="px-6 py-3">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Last Update</p>
+                        <p className="text-xs font-black text-slate-900 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Just Now
+                        </p>
+                    </div>
+                    <button className="bg-slate-950 text-white px-8 py-4 rounded-[1.5rem] text-xs font-black uppercase tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl active:scale-95">
+                        Refresh Node
+                    </button>
+                </div>
+            </div>
+
+            {/* HIGH-END KPI CARDS */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <PremiumStatCard icon={Users} label="Total Authorized Users" value={stats.totalUsers} trend="+12%" color="blue" />
+                <PremiumStatCard icon={Layout} label="Active Desa Nodes" value={stats.totalTenants} trend="Stable" color="amber" />
+                <PremiumStatCard icon={Database} label="Global Population" value={stats.totalWarga} trend="+240" color="emerald" />
+                <PremiumStatCard icon={FileText} label="Digital Documents" value={stats.totalSurat} trend="+1.2k" color="purple" />
+            </div>
+
+            {/* ADVANCED CHARTS SECTION */}
+            <VisualStats 
+                growthData={stats.growth} 
+                demographicData={stats.demographics} 
+            />
+
+            {/* INFRASTRUCTURE SECTION */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                <div className="lg:col-span-1 bg-[#0f172a] rounded-[3.5rem] p-10 md:p-12 text-white shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] -mr-32 -mt-32 group-hover:bg-blue-500/20 transition-all" />
                     
-                    <div className="h-[300px] flex items-end gap-2 px-2">
-                        {[40, 65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 100].map((h, i) => (
-                            <div key={i} className="flex-1 bg-slate-100 rounded-t-xl relative group hover:bg-amber-400 transition-all cursor-pointer" style={{ height: `${h}%` }}>
-                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] font-bold py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                    Day {i+1}: {h*10}
-                                </div>
-                            </div>
-                        ))}
+                    <h3 className="text-xl font-black mb-10 flex items-center gap-3 relative z-10">
+                        <Server size={24} className="text-blue-400" /> System Vitality
+                    </h3>
+                    
+                    <div className="space-y-10 relative z-10">
+                        <HealthMetric label="API Response Latency" value="38ms" progress={98} color="bg-blue-500" />
+                        <HealthMetric label="Cluster Uptime (L30D)" value="99.99%" progress={100} color="bg-emerald-500" />
+                        <HealthMetric label="Database IOPS Health" value="Optimal" progress={95} color="bg-amber-500" />
                     </div>
-                    <div className="flex justify-between mt-4 px-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        <span>Minggu 1</span>
-                        <span>Minggu 2</span>
-                        <span>Minggu 3</span>
-                        <span>Minggu 4</span>
+
+                    <div className="mt-12 pt-10 border-t border-white/5 flex items-center justify-between relative z-10">
+                        <div className="flex items-center gap-3">
+                            <Cpu size={20} className="text-slate-500" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Load Avg: 0.24</span>
+                        </div>
+                        <div className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[8px] font-black uppercase tracking-widest">
+                            All Systems Clear
+                        </div>
                     </div>
                 </div>
 
-                {/* DISTRIBUTION / HEALTH */}
-                <div className="space-y-6">
-                    <div className="bg-[#0f172a] rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full blur-2xl" />
-                        <h3 className="text-lg font-black mb-6 flex items-center gap-2">
-                            <Zap size={20} className="text-amber-400" /> System Health
-                        </h3>
-                        <div className="space-y-6">
-                            <HealthMetric label="API Response" value="45ms" progress={95} />
-                            <HealthMetric label="Uptime" value="99.99%" progress={99} />
-                            <HealthMetric label="Database Load" value="12%" progress={12} />
+                <div className="lg:col-span-2 bg-white rounded-[3.5rem] p-10 md:p-12 shadow-2xl shadow-slate-200/40 border border-slate-100 group">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
+                        <div>
+                            <h3 className="text-2xl font-black text-slate-950 tracking-tighter">Distributed Node Network</h3>
+                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-2">Active Infrastructure Clusters</p>
                         </div>
+                        <button className="flex items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-widest group-hover:translate-x-2 transition-transform">
+                            View Network Map <ArrowUpRight size={16} />
+                        </button>
                     </div>
 
-                    <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200/60">
-                        <h3 className="text-lg font-black text-slate-800 mb-6 flex items-center gap-2">
-                            <Activity size={20} className="text-blue-500" /> Aktifitas Server
-                        </h3>
-                        <div className="space-y-4">
-                            {[1, 2, 3].map((i) => (
-                                <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                        <span className="text-xs font-bold text-slate-700">Cluster NODE-{i}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="flex items-center justify-between p-6 rounded-[2rem] bg-slate-50 border border-slate-100 hover:bg-white hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all group/item">
+                                <div className="flex items-center gap-5">
+                                    <div className="w-12 h-12 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover/item:text-blue-600 transition-colors shadow-sm">
+                                        <Zap size={20} />
                                     </div>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Healthy</span>
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-black text-slate-900">NODE_CLUSTER_00{i}</span>
+                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Asia-Southeast-1</span>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
+                                <div className="flex flex-col items-end">
+                                    <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full uppercase tracking-widest mb-1">Operational</span>
+                                    <span className="text-[10px] font-mono font-black text-slate-300">10.0.0.{i * 24}</span>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -82,29 +119,45 @@ export default async function StatisticsPage() {
     );
 }
 
-function StatCard({ icon: Icon, label, value, color }: { icon: any; label: string; value: number; color: string }) {
+function PremiumStatCard({ icon: Icon, label, value, trend, color }: any) {
+    const colors: any = {
+        blue: "bg-blue-600 text-white shadow-blue-500/30",
+        amber: "bg-slate-950 text-white shadow-slate-950/20",
+        emerald: "bg-emerald-600 text-white shadow-emerald-500/30",
+        purple: "bg-indigo-600 text-white shadow-indigo-500/30"
+    };
+
     return (
-        <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-200/60 flex flex-col gap-4">
-            <div className={`w-12 h-12 ${color} rounded-2xl flex items-center justify-center text-white shadow-lg`}>
-                <Icon size={24} />
+        <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-slate-200/40 border border-slate-100 group hover:scale-[1.05] transition-all cursor-default">
+            <div className={`w-16 h-16 ${colors[color]} rounded-[1.5rem] flex items-center justify-center mb-8 group-hover:rotate-12 transition-transform`}>
+                <Icon size={28} />
             </div>
             <div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</span>
-                <p className="text-3xl font-black text-slate-800 mt-1">{value.toLocaleString('id-ID')}</p>
+                <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{label}</span>
+                    <span className={`text-[10px] font-black ${color === 'emerald' ? 'text-emerald-500' : 'text-blue-500'} bg-slate-50 px-2 py-0.5 rounded-md`}>{trend}</span>
+                </div>
+                <p className="text-4xl font-black text-slate-950 tabular-nums">{value.toLocaleString('id-ID')}</p>
             </div>
         </div>
     )
 }
 
-function HealthMetric({ label, value, progress }: { label: string; value: string; progress: number }) {
+function HealthMetric({ label, value, progress, color }: any) {
     return (
-        <div className="space-y-2">
-            <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                <span>{label}</span>
-                <span className="text-white">{value}</span>
+        <div className="space-y-4">
+            <div className="flex justify-between items-end">
+                <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">{label}</p>
+                    <p className="text-lg font-black text-white leading-none">{value}</p>
+                </div>
+                <span className="text-xs font-black text-blue-400">{progress}%</span>
             </div>
-            <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${progress}%` }} />
+            <div className="h-2.5 bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
+                <div 
+                    className={`h-full ${color} rounded-full transition-all duration-2000 ease-out shadow-[0_0_15px_rgba(59,130,246,0.5)]`} 
+                    style={{ width: `${progress}%` }} 
+                />
             </div>
         </div>
     )

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import Image from "next/image";
 import { 
   LayoutDashboard, 
   Users, 
@@ -19,7 +20,7 @@ import { useState } from "react";
 
 const menuItems = [
   { name: "Overview", icon: LayoutDashboard, href: "/master-admin" },
-  { name: "User Management", icon: Users, href: "/master-admin/users" },
+  { name: "User Management", icon: Users, href: "/master-admin/pengguna-sistem" },
   { name: "Audit Logs", icon: History, href: "/master-admin/logs" },
   { name: "Data Kependudukan", icon: Database, href: "/master-admin/data" },
   { name: "Multi-Tenant", icon: Building2, href: "/master-admin/tenants" },
@@ -39,8 +40,8 @@ export const Sidebar = () => {
       {/* Logo Area */}
       <div className="p-6 flex items-center justify-between">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-10 h-10 shrink-0 flex items-center justify-center">
-            <img src="/images/logo-bogor.png" alt="Logo" className="w-full h-full object-contain" />
+          <div className="relative w-10 h-10 shrink-0">
+            <Image src="/images/logo-bogor.png" alt="Logo" fill className="object-contain" />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">

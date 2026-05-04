@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getLembagas, addLembaga } from "@/app/actions/village";
+import { getLembagas, addLembaga } from "@/actions/village";
 import { Building2, Users, Target, Shield, Plus, X, Loader2, Save } from "lucide-react";
 
 export default function KelembagaanPage() {
@@ -123,22 +123,22 @@ export default function KelembagaanPage() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Singkatan</label>
-                                    <input required placeholder="Contoh: LPM" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20" />
+                                    <input required placeholder="Contoh: LPM" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Jumlah Anggota</label>
-                                    <input type="number" required value={formData.memberCount} onChange={e => setFormData({...formData, memberCount: Number(e.target.value)})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20" />
+                                    <input type="number" required value={formData.memberCount} onChange={e => setFormData({...formData, memberCount: Number(e.target.value)})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20" />
                                 </div>
                             </div>
 
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Lengkap Lembaga</label>
-                                <input required placeholder="Contoh: Lembaga Pemberdayaan Masyarakat" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20" />
+                                <input required placeholder="Contoh: Lembaga Pemberdayaan Masyarakat" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20" />
                             </div>
 
                             <div className="space-y-1.5">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Deskripsi / Tugas</label>
-                                <textarea required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 focus:ring-2 focus:ring-blue-500/20 min-h-[100px]" />
+                                <textarea required value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20 min-h-[100px]" />
                             </div>
 
                             <button type="submit" disabled={saving} className="w-full bg-[#0f172a] hover:bg-slate-800 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
