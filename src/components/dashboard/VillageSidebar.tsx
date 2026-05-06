@@ -17,7 +17,9 @@ import {
   FileText,
   Database,
   Menu,
-  Bell
+  Bell,
+  Banknote,
+  Clock
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,6 +32,8 @@ const menuItems = [
   { name: "Aparatur Desa", icon: Users, href: "/dashboard/aparatur" },
   { name: "Kelembagaan", icon: Building2, href: "/dashboard/kelembagaan" },
   { name: "BUMDES", icon: Store, href: "/dashboard/bumdes" },
+  { name: "Usulan Dana", icon: Banknote, href: "/dashboard/finance" },
+  { name: "Tracking Layanan", icon: Clock, href: "/dashboard/tracking" },
   { name: "Pengaturan", icon: Settings, href: "/dashboard/settings" },
 ];
 
@@ -89,7 +93,10 @@ export const VillageSidebar = () => {
             const role = (session?.user as any)?.role;
             if (["ADMIN_DESA", "KADES", "SEKDES", "KASI", "KAUR", "PERANGKAT_DESA"].includes(role as string)) return true;
             if (["RT", "RW", "PKK", "TP_PKK", "POSYANDU", "LPM", "BPD", "KADUS", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
-               return ["Dashboard", "Pusat Persuratan", "Data Kependudukan"].includes(item.name);
+               return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Dana", "Tracking Layanan"].includes(item.name);
+            }
+            if (["KAUR_KEUANGAN", "KAUR_PERENCANAAN", "KADES", "SEKDES", "ADMIN_DESA"].includes(role as string)) {
+               return true; // See everything
             }
             return false;
           }).map((item) => {

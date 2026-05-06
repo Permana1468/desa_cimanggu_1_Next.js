@@ -5,12 +5,12 @@ import Image from 'next/image';
 import { FileText, Map as MapIcon, HeartPulse, Activity, ShieldCheck, Users, Search, ChevronLeft, ChevronRight, Calendar, Loader, Download, Clock } from 'lucide-react';
 import api from '../services/api';
 import ScrollReveal from '../components/ScrollReveal';
-import { 
-  getVillageStats, 
-  getLatestNews, 
-  getOrganizationalStructure, 
-  getVillageProfile,
-  getLembagaList
+import {
+    getVillageStats,
+    getLatestNews,
+    getOrganizationalStructure,
+    getVillageProfile,
+    getLembagaList
 } from '@/actions/landing';
 
 interface OrgCardProps {
@@ -57,7 +57,11 @@ const LandingPage = () => {
     const [siteData, setSiteData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [currentSlide, setCurrentSlide] = useState(0);
-    const [heroImages, setHeroImages] = useState(['/images/slide_1.webp']); // Fallback Default
+    const [heroImages, setHeroImages] = useState([
+        '/images/slide_1.webp',
+        '/images/slide_6_.png',
+        '/images/sawah.png'
+    ]); // Fallback Default
 
     const [isScrolled, setIsScrolled] = useState(false);
     const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
@@ -134,7 +138,7 @@ const LandingPage = () => {
             if (profileRes) {
                 setSiteData(profileRes);
                 const gallery = profileRes.gallery as string[];
-                
+
                 if (Array.isArray(gallery) && gallery.length > 0) {
                     setHeroImages(gallery);
                 }
@@ -151,10 +155,10 @@ const LandingPage = () => {
             }
 
             if (aparaturRes) {
-                const mapPejabat = (obj: any) => ({ 
-                    name: obj.name, 
-                    role: obj.position, 
-                    foto: obj.photo 
+                const mapPejabat = (obj: any) => ({
+                    name: obj.name,
+                    role: obj.position,
+                    foto: obj.photo
                 });
 
                 const kadesData = aparaturRes.find((x: any) => x.level === 0);
@@ -300,11 +304,11 @@ const LandingPage = () => {
                     {/* === BAGIAN KIRI: Logo & Branding (Terpisah dari Kapsul Menu) === */}
                     <div className="flex items-center gap-3">
                         <div className="relative w-10 h-10">
-                            <Image 
-                                src={siteData?.logo || "/images/logo-bogor.png"} 
-                                alt="Logo Desa" 
+                            <Image
+                                src={siteData?.logo || "/images/logo-bogor.png"}
+                                alt="Logo Desa"
                                 fill
-                                className="object-contain drop-shadow-md" 
+                                className="object-contain drop-shadow-md"
                             />
                         </div>
                         <div className="flex flex-col justify-center">

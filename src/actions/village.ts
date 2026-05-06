@@ -12,13 +12,14 @@ export async function getVillageDashboardStats() {
         if (!session?.user) throw new Error("Unauthorized");
         const tenantId = (session.user as { tenantId: string }).tenantId;
 
-        const [suratPending, laporanVerified, totalAparatur] = await Promise.all([
+        const [suratPending, laporanVerified, totalAparatur, totalProposals] = await Promise.all([
             prisma.surat.count({ where: { tenantId, status: StatusSurat.TERTUNDA } }),
             prisma.surat.count({ where: { tenantId, status: StatusSurat.TERVERIFIKASI } }),
-            prisma.user.count({ where: { tenantId, isActive: true } })
+            prisma.user.count({ where: { tenantId, isActive: true } }),
+            prisma.financeProposal.count({ where: { tenantId, status: "PENDING" } })
         ]);
 
-        return { suratPending, laporanVerified, totalAparatur };
+        return { suratPending, laporanVerified, totalAparatur, totalProposals };
     } catch (error) {
         console.error("Dashboard Stats Error:", error);
         return { suratPending: 0, laporanVerified: 0, totalAparatur: 0 };

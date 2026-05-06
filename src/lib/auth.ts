@@ -5,10 +5,10 @@ import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma) as any,
   session: {
     strategy: "jwt",
   },
+  secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/login",
   },
@@ -87,21 +87,27 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as any).role;
-        token.tenantId = (user as any).tenantId;
-        token.isFirstLogin = (user as any).isFirstLogin;
-        token.rt = (user as any).rt;
-        token.rw = (user as any).rw;
+        const u = user as any;
+        console.log("[Auth] JWT Callback - User detected:", u.email, "Role:", u.role);
+        token.id = u.id;
+        token.role = u.role;
+        token.tenantId = u.tenantId;
+        token.isFirstLogin = u.isFirstLogin;
+        token.rt = u.rt;
+        token.rw = u.rw;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).role = token.role;
-        (session.user as any).tenantId = token.tenantId;
-        (session.user as any).isFirstLogin = token.isFirstLogin;
-        (session.user as any).rt = token.rt;
-        (session.user as any).rw = token.rw;
+        const t = token as any;
+        console.log("[Auth] Session Callback - Token Role:", t.role);
+        (session.user as any).id = t.id;
+        (session.user as any).role = t.role;
+        (session.user as any).tenantId = t.tenantId;
+        (session.user as any).isFirstLogin = t.isFirstLogin;
+        (session.user as any).rt = t.rt;
+        (session.user as any).rw = t.rw;
       }
       return session;
     },

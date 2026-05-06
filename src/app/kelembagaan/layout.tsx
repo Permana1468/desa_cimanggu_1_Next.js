@@ -15,7 +15,7 @@ export default async function KelembagaanLayout({
   const userRole = (session.user as any).role;
 
   // Guard: Only Institutional roles can access /kelembagaan
-  const allowedRoles = ["RT", "RW", "PKK", "POSYANDU", "LPM", "BPD"];
+  const allowedRoles = ["RT", "RW", "PKK", "POSYANDU", "LPM", "BPD", "PETUGAS_SENSUS", "PUSKESOS", "KARANG_TARUNA"];
   if (!allowedRoles.includes(userRole)) {
     if (userRole === "ADMIN_MASTER") redirect("/master-admin");
     if (userRole === "ADMIN_DESA" || userRole === "SEKDES") redirect("/dashboard");

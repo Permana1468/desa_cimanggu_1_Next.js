@@ -49,7 +49,7 @@ export function ExecutiveDashboard({ session, stats, latestSurat }: { session: a
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex gap-4">
                 <QuickStat label="SURAT PENDING" value={stats.suratPending.toString()} />
-                <QuickStat label="LAPORAN VERIFIKASI" value={stats.laporanVerified.toString()} />
+                <QuickStat label="USULAN DANA" value={stats.totalProposals?.toString() || "0"} />
                 <QuickStat label="TOTAL APARATUR" value={stats.totalAparatur.toString()} />
             </div>
         </div>

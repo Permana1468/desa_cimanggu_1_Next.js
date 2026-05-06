@@ -9,17 +9,34 @@ export default async function VillageAdminLayout({
   children: React.ReactNode;
 }) {
   const session = await getServerSession(authOptions);
+  console.log("[Dashboard Layout] Session:", session);
 
-  if (!session?.user) redirect("/login");
+  if (!session?.user) {
+    console.log("[Dashboard Layout] No session user, redirecting to login");
+    redirect("/login");
+  }
   
   // Guard: All Village Roles can access the Unified /dashboard
   const userRole = (session.user as any).role;
+  console.log("[Dashboard Layout] User Role:", userRole);
 
-  if (!userRole) redirect("/login");
+  if (!userRole) {
+    console.log("[Dashboard Layout] No user role, redirecting to login");
+    redirect("/login");
+  }
 
-  // Only Master Admin goes to a different physical dashboard
+  // Role-Based Landing Page Routing
   if (userRole === "ADMIN_MASTER") {
     redirect("/master-admin");
+  }
+  
+  // 2. KELEMBAGAAN (RT, RW, PKK, POSYANDU, SENSUS, PUSKESOS, KARANG TARUNA, LPM, BPD)
+  if (["RT", "RW", "PKK", "POSYANDU", "LPM", "BPD", "PETUGAS_SENSUS", "PUSKESOS", "KARANG_TARUNA"].includes(userRole)) {
+    redirect("/kelembagaan");
+  }
+
+  if (userRole === "WARGA") {
+    redirect("/resident");
   }
 
   return (

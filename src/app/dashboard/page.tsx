@@ -26,8 +26,8 @@ export default async function VillageDashboardPage() {
     return <ExecutiveDashboard session={session} stats={stats} latestSurat={latestSurat} />;
   }
 
-  // 2. PELAYANAN & TATA USAHA (Administrasi Pemerintahan & Sensus)
-  if (["KAUR_TU", "KASI_PEMERINTAHAN", "KASI_PELAYANAN", "PETUGAS_SENSUS", "PERANGKAT_DESA"].includes(role)) {
+  // 2. PELAYANAN & TATA USAHA (Administrasi Pemerintahan & Petugas)
+  if (["KAUR_TU", "KASI_PEMERINTAHAN", "KASI_PELAYANAN", "PERANGKAT_DESA", "PETUGAS_SENSUS"].includes(role)) {
     return <PelayananDashboard session={session} stats={stats} />;
   }
 
@@ -51,7 +51,7 @@ export default async function VillageDashboardPage() {
     return <WilayahDashboard session={session} stats={stats} />;
   }
 
-  // 7. EKONOMI & BISNIS
+  // 7. EKONOMI & BISNIS (BUMDES & UMKM)
   if (["BUMDES", "PEMILIK_TOKO_UMKM"].includes(role)) {
     return <EkonomiDashboard session={session} stats={stats} />;
   }

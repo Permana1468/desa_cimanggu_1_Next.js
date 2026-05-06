@@ -76,19 +76,14 @@ export default function LoginPage() {
 
             if (res?.error) {
                 setError(res.error === "CredentialsSignin" ? "Email/NIK atau kata sandi salah" : res.error);
-            } else {
-                const sessionResponse = await fetch('/api/auth/session');
-                const session = await sessionResponse.json();
-                console.log("Session fetched from /api/auth/session:", session);
-                const userRole = session?.user?.role;
-                console.log("User role is:", userRole);
-                
-                if (userRole === "ADMIN_MASTER") window.location.href = "/master-admin";
-                else if (userRole === "WARGA") window.location.href = "/resident";
-                else if (["RT", "RW", "PKK", "POSYANDU", "LPM", "BPD"].includes(userRole)) window.location.href = "/kelembagaan";
-                else window.location.href = "/dashboard";
+            } else if (res?.ok) {
+                setSuccess("Masuk berhasil! Mengalihkan...");
+                // Force a hard navigation to the unified dashboard
+                // The dashboard layout/page will handle role-specific routing
+                window.location.href = "/dashboard";
             }
         } catch (err) {
+            console.error("Login Error:", err);
             setError("Terjadi kesalahan sistem");
         } finally {
             setLoading(false);
