@@ -27,18 +27,18 @@ export const TenantSwitcher = ({ tenants }: TenantSwitcherProps) => {
   const selectedTenant = tenants.find(t => t.id === currentTenantId);
 
   return (
-    <div className="relative group">
-      <button className="flex items-center gap-3 px-4 py-2.5 bg-white border border-slate-200 rounded-2xl shadow-sm hover:border-blue-500 transition-all">
-        <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+    <div className="relative group w-full">
+      <button className="w-full flex items-center gap-3 px-4 py-2.5 bg-transparent rounded-2xl transition-all hover:bg-white/5">
+        <div className="w-8 h-8 shrink-0 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400">
           <Building2 size={18} />
         </div>
-        <div className="flex flex-col items-start min-w-[120px]">
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Filter Wilayah</span>
-          <span className="text-sm font-bold text-slate-700 truncate max-w-[150px]">
+        <div className="flex flex-col items-start min-w-0 flex-1">
+          <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Wilayah</span>
+          <span className="text-xs font-bold text-white truncate w-full text-left">
             {currentTenantId === "all" ? "Semua Wilayah" : selectedTenant?.name}
           </span>
         </div>
-        <ChevronDown size={16} className="text-slate-400 group-hover:rotate-180 transition-transform duration-300" />
+        <ChevronDown size={14} className="text-slate-500 group-hover:rotate-180 transition-transform duration-300" />
       </button>
 
       {/* Dropdown Menu */}

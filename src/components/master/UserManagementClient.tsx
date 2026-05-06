@@ -10,6 +10,7 @@ import {
 import { RoleType } from "@prisma/client";
 import { upsertMasterUser, deleteMasterUser, toggleUserStatus, toggleUserSecurity } from "@/actions/master";
 import { formatRelativeTime } from "@/lib/utils";
+import Image from "next/image";
 
 interface UserManagementClientProps {
     initialUsers: any[];
@@ -31,13 +32,17 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
         tenantId: string;
         password?: string;
         isActive: boolean;
+        rt?: string;
+        rw?: string;
     }>({
         email: "",
         fullName: "",
         role: RoleType.ADMIN_DESA,
         tenantId: "",
         password: "",
-        isActive: true
+        isActive: true,
+        rt: "",
+        rw: ""
     });
 
 
@@ -58,7 +63,9 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                 role: user.role,
                 tenantId: user.tenantId,
                 password: "", 
-                isActive: user.isActive
+                isActive: user.isActive,
+                rt: user.rt || "",
+                rw: user.rw || ""
             });
         } else {
             setEditingUser(null);
@@ -68,7 +75,9 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                 role: RoleType.ADMIN_DESA,
                 tenantId: tenants[0]?.id || "",
                 password: "",
-                isActive: true
+                isActive: true,
+                rt: "",
+                rw: ""
             });
         }
         setIsModalOpen(true);
@@ -161,7 +170,7 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                     </div>
                     <button 
                         onClick={() => handleOpenModal()}
-                        className="bg-slate-950 text-white px-10 py-5 rounded-[2rem] text-sm font-black shadow-2xl shadow-slate-950/20 hover:bg-blue-600 transition-all active:scale-95 flex items-center justify-center gap-3 shrink-0 uppercase tracking-widest"
+                        className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-10 py-5 rounded-[2rem] text-sm font-black shadow-2xl shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.02] transition-all active:scale-95 flex items-center justify-center gap-3 shrink-0 uppercase tracking-widest border border-blue-400/20"
                     >
                         <Plus size={20} /> Tambah Admin
                     </button>
@@ -187,22 +196,31 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                                 <tr key={user.id} className="group hover:bg-blue-50/30 transition-all duration-300">
                                     <td className="px-10 py-8">
                                         <div className="flex items-center gap-5">
-                                            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-600 font-black text-lg shadow-sm group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
-                                                {user.fullName.charAt(0)}
+                                            <div className={`relative w-14 h-14 rounded-2xl overflow-hidden shrink-0 group-hover:scale-110 transition-transform duration-500 ${user.role === 'ADMIN_MASTER' ? 'animate-ring-master' : 'animate-ring-desa'}`}>
+                                                <Image src={`https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop&ixlib=rb-4.0.3`} alt="Avatar" fill className="object-cover" />
+                                                <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-transparent transition-colors" />
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-none mb-1">{user.fullName}</span>
-                                                <span className="text-xs text-slate-400 font-bold">{user.email || user.nik}</span>
+                                                <span className="text-xs text-slate-400 font-bold" style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>{user.email || user.nik}</span>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-8">
-                                        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl border text-[9px] font-black tracking-[0.1em] uppercase shadow-sm ${
-                                            user.role === 'ADMIN_MASTER' 
-                                            ? 'bg-amber-950 text-amber-400 border-amber-900' 
-                                            : 'bg-blue-50 text-blue-600 border-blue-100'
-                                        }`}>
-                                            <ShieldCheck size={14} /> {user.role.replace('_', ' ')}
+                                        <div className="flex flex-col gap-2">
+                                            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl border text-[9px] font-black tracking-[0.1em] uppercase shadow-sm w-fit ${
+                                                user.role === 'ADMIN_MASTER' 
+                                                ? 'bg-amber-950 text-amber-400 border-amber-900' 
+                                                : 'bg-blue-50 text-blue-600 border-blue-100'
+                                            }`}>
+                                                <ShieldCheck size={14} /> {user.role.replace('_', ' ')}
+                                            </div>
+                                            {(user.rt || user.rw) && (
+                                                <span className="inline-flex items-center w-fit px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest bg-teal-50 text-teal-700 border border-teal-100 mt-1">
+                                                    <MapPin size={10} className="mr-1" />
+                                                    {user.role === 'RT' ? `RT ${user.rt} / RW ${user.rw}` : `RW ${user.rw}`}
+                                                </span>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="px-6 py-8">
@@ -211,10 +229,10 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                                         </div>
                                     </td>
                                     <td className="px-6 py-8">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full animate-pulse ${user.isActive ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300'}`} />
+                                        <div className="flex items-center gap-2.5">
+                                            <div className={`w-3 h-3 rounded-full ${user.isActive ? 'bg-emerald-500 animate-pulse-indicator' : 'bg-slate-300'}`} />
                                             <span className={`text-[10px] font-black uppercase tracking-widest ${user.isActive ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                                {user.isActive ? 'Active Node' : 'Suspended'}
+                                                {user.isActive ? 'System Online' : 'Suspended'}
                                             </span>
                                         </div>
                                     </td>
@@ -265,8 +283,8 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                         <div key={user.id} className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/30 border border-slate-100 space-y-6 active:scale-95 transition-all">
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-5">
-                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center text-slate-600 font-black text-lg">
-                                        {user.fullName.charAt(0)}
+                                    <div className={`relative w-14 h-14 rounded-2xl overflow-hidden shrink-0 ${user.role === 'ADMIN_MASTER' ? 'animate-ring-master' : 'animate-ring-desa'}`}>
+                                        <Image src={`https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop&ixlib=rb-4.0.3`} alt="Avatar" fill className="object-cover" />
                                     </div>
                                     <div>
                                         <p className="text-base font-black text-slate-900 leading-none mb-1">{user.fullName}</p>
@@ -352,6 +370,14 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                                         <option value={RoleType.ADMIN_MASTER}>Master Administrator</option>
                                         <option value={RoleType.KADES}>Kepala Desa</option>
                                         <option value={RoleType.SEKDES}>Sekretaris Desa</option>
+                                        <option value={RoleType.PERANGKAT_DESA}>Perangkat Desa Lainnya</option>
+                                        <option value={RoleType.KARANG_TARUNA}>Karang Taruna</option>
+                                        <option value={RoleType.RT}>Ketua RT</option>
+                                        <option value={RoleType.RW}>Ketua RW</option>
+                                        <option value={RoleType.LPM}>LPM</option>
+                                        <option value={RoleType.TP_PKK}>Tim Penggerak PKK</option>
+                                        <option value={RoleType.PUSKESOS}>Puskesos</option>
+                                        <option value={RoleType.PETUGAS_SENSUS}>Petugas Sensus</option>
                                     </select>
                                 </FormGroup>
 
@@ -366,6 +392,38 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                                         ))}
                                     </select>
                                 </FormGroup>
+
+                                {(formData.role === "RT" || formData.role === "RW") && (
+                                    <>
+                                        <FormGroup label="Wilayah RW" icon={MapPin}>
+                                            <select 
+                                                value={formData.rw}
+                                                onChange={e => setFormData({...formData, rw: e.target.value})}
+                                                className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-5 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/5 transition-all appearance-none shadow-sm"
+                                            >
+                                                <option value="">Pilih RW</option>
+                                                {Array.from({length: 9}, (_, i) => String(i + 1).padStart(3, '0')).map(rw => (
+                                                    <option key={rw} value={rw}>RW {rw}</option>
+                                                ))}
+                                            </select>
+                                        </FormGroup>
+
+                                        {formData.role === "RT" && (
+                                            <FormGroup label="Wilayah RT" icon={MapPin}>
+                                                <select 
+                                                    value={formData.rt}
+                                                    onChange={e => setFormData({...formData, rt: e.target.value})}
+                                                    className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-5 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/5 transition-all appearance-none shadow-sm"
+                                                >
+                                                    <option value="">Pilih RT</option>
+                                                    {Array.from({length: 5}, (_, i) => String(i + 1).padStart(3, '0')).map(rt => (
+                                                        <option key={rt} value={rt}>RT {rt}</option>
+                                                    ))}
+                                                </select>
+                                            </FormGroup>
+                                        )}
+                                    </>
+                                )}
 
                                 <FormGroup label={editingUser ? "Ganti Password (Opsional)" : "Sandi Akses"} icon={Lock}>
                                     <input 

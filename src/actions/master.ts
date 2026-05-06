@@ -65,6 +65,8 @@ export async function upsertMasterUser(data: {
     tenantId: string;
     password?: string;
     isActive?: boolean;
+    rt?: string;
+    rw?: string;
 }) {
     const session = await checkMaster();
     try {
@@ -77,6 +79,8 @@ export async function upsertMasterUser(data: {
 
         const userData = {
             ...rest,
+            rt: rest.rt === "" ? undefined : rest.rt,
+            rw: rest.rw === "" ? undefined : rest.rw,
             ...(passwordHash && { passwordHash }),
         };
 

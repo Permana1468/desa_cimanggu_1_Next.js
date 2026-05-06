@@ -9,6 +9,7 @@ export default async function proxy(req: NextRequest) {
     req, 
     secret: process.env.NEXTAUTH_SECRET 
   });
+  
   const isAuth = !!token;
   const role = (token as any)?.role;
 
@@ -20,13 +21,10 @@ export default async function proxy(req: NextRequest) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
     
-    // Check if the role is allowed for dashboard
     if (!officialRoles.includes(role)) {
-      // Redirect to their respective dashboards
       if (role === "ADMIN_MASTER") return NextResponse.redirect(new URL("/master-admin", req.url));
       if (role === "WARGA") return NextResponse.redirect(new URL("/resident", req.url));
-      // Default fallback
-      return NextResponse.redirect(new URL("/", req.url));
+      return NextResponse.redirect(new URL("/login", req.url));
     }
 
     // Redirect to setup-account if first login
@@ -57,49 +55,25 @@ export default async function proxy(req: NextRequest) {
     }
   }
 
-  const response = NextResponse.next();
+  // 5. API Protection (Except for auth)
+  if (pathname.startsWith("/api") && !pathname.startsWith("/api/auth")) {
+    if (!isAuth) {
+      return new NextResponse(
+        JSON.stringify({ error: "Unauthorized access" }),
+        { status: 401, headers: { "content-type": "application/json" } }
+      );
+    }
+  }
 
-  // SECURITY HEADERS
-  // ---------------------------------------------------------
-  // 1. Content Security Policy (Anti-XSS & Injection)
-  const csp = `
-    default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval';
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' blob: data: https://images.unsplash.com;
-    font-src 'self' https://fonts.gstatic.com;
-    connect-src 'self';
-    frame-ancestors 'none';
-  `.replace(/\s{2,}/g, " ").trim();
-  response.headers.set("Content-Security-Policy", csp);
-
-  // 2. Anti-Clickjacking
-  response.headers.set("X-Frame-Options", "DENY");
-
-  // 3. Anti-MIME Sniffing
-  response.headers.set("X-Content-Type-Options", "nosniff");
-
-  // 4. Privacy & Tracking Protection
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-
-  // 5. Secure Transport (HSTS)
-  response.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
-
-  // 6. Feature Control
-  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), interest-cohort=()");
-
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
   matcher: [
-    "/dashboard",
     "/dashboard/:path*", 
-    "/master-admin",
     "/master-admin/:path*", 
-    "/resident",
     "/resident/:path*", 
-    "/kelembagaan",
-    "/kelembagaan/:path*"
+    "/kelembagaan/:path*",
+    "/api/:path*"
   ],
 };

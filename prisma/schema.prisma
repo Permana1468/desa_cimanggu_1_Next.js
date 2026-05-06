@@ -52,6 +52,10 @@ enum RoleType {
   KAUR
   KADUS
   KARANG_TARUNA
+  PERANGKAT_DESA
+  TP_PKK
+  PUSKESOS
+  PETUGAS_SENSUS
 }
 
 model User {
@@ -61,6 +65,8 @@ model User {
   passwordHash          String
   fullName              String
   role                  RoleType  @default(WARGA)
+  rt                    String?   // Wilayah RT (e.g., "001")
+  rw                    String?   // Wilayah RW (e.g., "005")
   isActive              Boolean   @default(true)
   
   // New Fields for Registration & Verification
@@ -87,6 +93,9 @@ model User {
 
   auditLogs             AuditLog[]
   suratDibuat           Surat[]   @relation("Pencatat")
+
+  @@index([tenantId, role])
+  @@index([tenantId, isActive])
 }
 
 // ==============================
@@ -205,6 +214,8 @@ model Surat {
 
   @@index([tenantId, status])
   @@index([tenantId, jenisSurat])
+  @@index([wargaId])
+  @@index([adminId])
 }
 
 // ==============================

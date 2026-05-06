@@ -12,15 +12,14 @@ export default async function VillageAdminLayout({
 
   if (!session?.user) redirect("/login");
   
-  // Guard: Only Admin Desa and Officials can access /dashboard
-  const allowedRoles = ["ADMIN_DESA", "KADES", "SEKDES", "RT", "RW", "PKK", "POSYANDU", "KARANG_TARUNA", "LPM", "BPD", "KASI", "KAUR", "KADUS"];
+  // Guard: All Village Roles can access the Unified /dashboard
   const userRole = (session.user as any).role;
 
-  if (!allowedRoles.includes(userRole)) {
-    // If Admin Master or Warga tries to enter, redirect to their proper place
-    if (userRole === "ADMIN_MASTER") redirect("/master-admin");
-    if (userRole === "WARGA") redirect("/resident");
-    redirect("/login");
+  if (!userRole) redirect("/login");
+
+  // Only Master Admin goes to a different physical dashboard
+  if (userRole === "ADMIN_MASTER") {
+    redirect("/master-admin");
   }
 
   return (
