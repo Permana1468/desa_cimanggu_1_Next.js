@@ -90,11 +90,12 @@ export const authOptions: NextAuthOptions = {
         const u = user as any;
         console.log("[Auth] JWT Callback - User detected:", u.email, "Role:", u.role);
         token.id = u.id;
-        token.role = u.role;
+        token.role = String(u.role); // Force string
         token.tenantId = u.tenantId;
         token.isFirstLogin = u.isFirstLogin;
         token.rt = u.rt;
         token.rw = u.rw;
+        console.log("[Auth] JWT Role assigned to token:", token.role);
       }
       return token;
     },
@@ -103,7 +104,7 @@ export const authOptions: NextAuthOptions = {
         const t = token as any;
         console.log("[Auth] Session Callback - Token Role:", t.role);
         (session.user as any).id = t.id;
-        (session.user as any).role = t.role;
+        (session.user as any).role = String(t.role); // Force string
         (session.user as any).tenantId = t.tenantId;
         (session.user as any).isFirstLogin = t.isFirstLogin;
         (session.user as any).rt = t.rt;

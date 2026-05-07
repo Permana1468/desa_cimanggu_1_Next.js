@@ -59,6 +59,7 @@ enum RoleType {
   PETUGAS_SENSUS
   BUMDES
   PEMILIK_TOKO_UMKM
+  OPERATOR_DESA
 }
 
 model User {

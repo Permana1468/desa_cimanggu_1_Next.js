@@ -109,3 +109,82 @@ export async function getLembagaList() {
     return [];
   }
 }
+
+export async function updateVillageProfile(data: any) {
+  try {
+    return await prisma.villageProfile.upsert({
+      where: { tenantId: TENANT_ID },
+      update: {
+        title: data.title,
+        hero_title: data.hero_title,
+        hero_subtitle: data.hero_subtitle,
+        about_title: data.about_title,
+        about_text: data.about_text,
+        about_image: data.about_image,
+        logo: data.logo,
+        gallery: data.gallery,
+      },
+      create: {
+        tenantId: TENANT_ID,
+        title: data.title,
+        hero_title: data.hero_title,
+        hero_subtitle: data.hero_subtitle,
+        about_title: data.about_title,
+        about_text: data.about_text,
+        about_image: data.about_image,
+        logo: data.logo,
+        gallery: data.gallery,
+      }
+    });
+  } catch (error) {
+    console.error("Error updating village profile:", error);
+    throw error;
+  }
+}
+
+export async function updateAparatur(id: string, data: any) {
+  try {
+    return await prisma.aparaturDesa.upsert({
+      where: { id: id || "new-temp-id" },
+      update: {
+        name: data.name,
+        position: data.position,
+        level: data.level,
+        photo: data.photo,
+        isActive: data.isActive,
+      },
+      create: {
+        tenantId: TENANT_ID,
+        name: data.name,
+        position: data.position,
+        level: data.level,
+        photo: data.photo,
+        isActive: true,
+      }
+    });
+  } catch (error) {
+    console.error("Error updating aparatur:", error);
+    throw error;
+  }
+}
+
+export async function createBerita(data: any) {
+  try {
+    return await prisma.berita.create({
+      data: {
+        tenantId: TENANT_ID,
+        judul: data.judul,
+        slug: data.judul.toLowerCase().replace(/ /g, '-'),
+        konten: data.konten,
+        gambar: data.gambar,
+        kategori: data.kategori || "Umum",
+        isPublished: true,
+      }
+    });
+  } catch (error) {
+    console.error("Error creating berita:", error);
+    throw error;
+  }
+}
+
+

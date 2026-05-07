@@ -13,8 +13,10 @@ import {
     ShieldCheck,
     Mail,
     UserCircle,
-    Lock
+    Lock,
+    Layout
 } from "lucide-react";
+import Link from "next/link";
 
 interface BeritaItem {
     id: string;
@@ -82,11 +84,20 @@ function CMSManager() {
                     <Globe className="text-blue-500" size={24} />
                     Konten Halaman Depan
                 </h2>
-                <button 
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
-                >
-                    <Plus size={16} /> Tambah Berita Baru
-                </button>
+                <div className="flex gap-3">
+                    <Link 
+                        href="/dashboard/settings/landing"
+                        className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
+                    >
+                        <Layout size={16} /> Kelola Tampilan Utama
+                    </Link>
+                    <Link 
+                        href="/dashboard/settings/landing?tab=berita"
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
+                    >
+                        <Plus size={16} /> Tambah Berita Baru
+                    </Link>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -179,16 +190,6 @@ function AccountManager() {
                             >
                                 <option value={RoleType.RT}>Ketua RT</option>
                                 <option value={RoleType.RW}>Ketua RW</option>
-                                <option value={RoleType.KADES}>Kepala Desa</option>
-                                <option value={RoleType.SEKDES}>Sekretaris Desa</option>
-                                <option value={RoleType.KAUR}>KAUR</option>
-                                <option value={RoleType.KASI}>KASI</option>
-                                <option value={RoleType.KADUS}>Kepala Dusun</option>
-                                <option value={RoleType.BPD}>BPD</option>
-                                <option value={RoleType.LPM}>LPM</option>
-                                <option value={RoleType.PKK}>PKK</option>
-                                <option value={RoleType.POSYANDU}>POSYANDU</option>
-                                <option value={RoleType.KARANG_TARUNA}>Karang Taruna</option>
                             </select>
                         </div>
                         <div className="space-y-2">

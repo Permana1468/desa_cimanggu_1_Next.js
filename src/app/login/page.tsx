@@ -10,7 +10,6 @@ import {
   Youtube, Globe, ArrowRight, UserPlus, LogIn 
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import api from "@/services/api";
 import { registerWarga } from "@/actions/auth";
 
 export default function LoginPage() {
@@ -31,19 +30,23 @@ export default function LoginPage() {
     const [heroImages, setHeroImages] = useState(['/images/slide_1.webp']);
     const [currentSlide, setCurrentSlide] = useState(0);
     const router = useRouter();
+    const [villageLogo, setVillageLogo] = useState("/images/logo-bogor.png");
 
     // Fetch settings for hero images
     useEffect(() => {
-        const fetchSettings = async () => {
+        async function fetchSettings() {
             try {
-                const res = await api.get('/users/api/setting/');
-                if (res.data && res.data.length > 0) {
-                    const settings = res.data[0];
-                    const images = [];
-                    if (settings.slide_1) images.push(settings.slide_1);
-                    if (settings.slide_2) images.push(settings.slide_2);
-                    if (settings.slide_3) images.push(settings.slide_3);
-                    if (images.length > 0) setHeroImages(images);
+                // Use a more direct way to fetch profile for client components
+                const response = await fetch('/api/village-profile');
+                if (response.ok) {
+                    const profile = await response.json();
+                    if (profile && profile.gallery && Array.isArray(profile.gallery) && profile.gallery.length > 0) {
+                        console.log("[Login] Setting hero images from CMS:", profile.gallery);
+                        setHeroImages(profile.gallery);
+                    }
+                    if (profile && profile.logo) {
+                        setVillageLogo(profile.logo);
+                    }
                 }
             } catch (err) {
                 console.error("Failed to fetch settings:", err);
@@ -162,7 +165,7 @@ export default function LoginPage() {
                     {/* Branding Content */}
                     <div className="relative h-full flex flex-col items-center justify-center p-6 md:p-12 text-center z-10">
                         <div className="w-12 h-12 md:w-16 md:h-16 mb-4 md:mb-6 relative">
-                            <Image src="/images/logo-bogor.png" alt="Logo" fill className="object-contain" />
+                            <Image src={villageLogo} alt="Logo" fill className="object-contain" />
                         </div>
 
                         <h2 className="text-xl md:text-3xl font-black uppercase tracking-tight leading-tight mb-1">

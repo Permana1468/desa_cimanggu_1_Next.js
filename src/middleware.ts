@@ -2,7 +2,7 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-export default async function proxy(req: NextRequest) {
+export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   
   const token = await getToken({ 
@@ -27,27 +27,26 @@ export default async function proxy(req: NextRequest) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
 
-    // Redirect to setup-account if first login
     if ((token as any).isFirstLogin && pathname !== "/dashboard/setup-account") {
       return NextResponse.redirect(new URL("/dashboard/setup-account", req.url));
     }
   }
 
-  // 2. Protection for /master-admin (Admin Master only)
+  // 2. Protection for /master-admin
   if (pathname.startsWith("/master-admin")) {
     if (!isAuth || role !== "ADMIN_MASTER") {
       return NextResponse.redirect(new URL("/login", req.url));
     }
   }
 
-  // 3. Protection for /resident (Warga)
+  // 3. Protection for /resident
   if (pathname.startsWith("/resident")) {
     if (!isAuth || role !== "WARGA") {
       return NextResponse.redirect(new URL("/login", req.url));
     }
   }
 
-  // 4. Protection for /kelembagaan (Specific institutional roles)
+  // 4. Protection for /kelembagaan
   const institutionalRoles = ["RT", "RW", "PKK", "POSYANDU", "KARANG_TARUNA", "LPM", "BPD"];
   if (pathname.startsWith("/kelembagaan")) {
     if (!isAuth || !institutionalRoles.includes(role)) {
@@ -55,8 +54,9 @@ export default async function proxy(req: NextRequest) {
     }
   }
 
-  // 5. API Protection (Except for auth)
-  if (pathname.startsWith("/api") && !pathname.startsWith("/api/auth")) {
+  // 5. API Protection — public routes exempt from auth
+  const publicApiRoutes = ["/api/auth", "/api/village-profile"];
+  if (pathname.startsWith("/api") && !publicApiRoutes.some(r => pathname.startsWith(r))) {
     if (!isAuth) {
       return new NextResponse(
         JSON.stringify({ error: "Unauthorized access" }),

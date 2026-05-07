@@ -18,10 +18,11 @@ export default async function VillageAdminLayout({
   
   // Guard: All Village Roles can access the Unified /dashboard
   const userRole = (session.user as any).role;
-  console.log("[Dashboard Layout] User Role:", userRole);
+  console.log("[Dashboard Layout] Role detected:", userRole);
 
+  // If no role, or if role is unknown and not in exclusion list
   if (!userRole) {
-    console.log("[Dashboard Layout] No user role, redirecting to login");
+    console.log("[Dashboard Layout] NO ROLE - REDIRECTING");
     redirect("/login");
   }
 

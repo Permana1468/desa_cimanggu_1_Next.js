@@ -11,6 +11,7 @@ import { KeuanganDashboard } from "@/components/dashboard/roles/KeuanganDashboar
 import { KesejahteraanDashboard } from "@/components/dashboard/roles/KesejahteraanDashboard";
 import { KelembagaanDashboard } from "@/components/dashboard/roles/KelembagaanDashboard";
 import { EkonomiDashboard } from "@/components/dashboard/roles/EkonomiDashboard";
+import { OperatorDashboard } from "@/components/dashboard/roles/OperatorDashboard";
 
 export default async function VillageDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -19,10 +20,15 @@ export default async function VillageDashboardPage() {
   const stats = await getVillageDashboardStats();
   const latestSurat = await getSuratList();
 
+  const email = session?.user?.email || "";
   const role = (session?.user as any)?.role || "WARGA";
 
   // 1. EXECUTIVE ROLES (Pimpinan & Manajemen Umum)
-  if (["ADMIN_DESA", "KADES", "SEKDES"].includes(role)) {
+  if (["ADMIN_DESA", "KADES", "SEKDES", "ADMIN_MASTER"].includes(role)) {
+    // Independent Dashboard for Operator
+    if (email.includes("operator")) {
+      return <OperatorDashboard session={session} stats={stats} />;
+    }
     return <ExecutiveDashboard session={session} stats={stats} latestSurat={latestSurat} />;
   }
 
@@ -56,6 +62,11 @@ export default async function VillageDashboardPage() {
     return <EkonomiDashboard session={session} stats={stats} />;
   }
 
-  // 8. WARGA (Default Fallback)
+  // 8. TEKNIS & OPERATOR
+  if (role === "OPERATOR_DESA") {
+    return <OperatorDashboard session={session} stats={stats} />;
+  }
+
+  // 9. WARGA (Default Fallback)
   return <WargaDashboard session={session} stats={stats} latestSurat={latestSurat} />;
 }

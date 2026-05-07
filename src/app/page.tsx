@@ -53,6 +53,48 @@ const OrgCard = ({ role, name, foto, isMain = false }: OrgCardProps) => (
     </div>
 );
 
+const CountUp = ({ end, duration = 2000 }: { end: number, duration?: number }) => {
+    const [count, setCount] = useState(0);
+    const countRef = useRef(0);
+    const [isVisible, setIsVisible] = useState(false);
+    const elementRef = useRef(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) setIsVisible(true);
+            },
+            { threshold: 0.1 }
+        );
+        if (elementRef.current) observer.observe(elementRef.current);
+        return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        if (!isVisible) return;
+        
+        let startTime: number | null = null;
+        const animate = (timestamp: number) => {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+            const currentCount = Math.floor(progress * end);
+            
+            if (currentCount !== countRef.current) {
+                setCount(currentCount);
+                countRef.current = currentCount;
+            }
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            }
+        };
+        requestAnimationFrame(animate);
+    }, [isVisible, end, duration]);
+
+    return <span ref={elementRef}>{count.toLocaleString()}</span>;
+};
+
+
 const LandingPage = () => {
     const [siteData, setSiteData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -531,43 +573,7 @@ const LandingPage = () => {
             {/* Main Content Sections */}
             <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 space-y-32">
 
-                {/* 1. Profil Section */}
-                <section id="profil" className="scroll-mt-32">
-                    <ScrollReveal>
-                        <div className="text-center mb-16">
-                            <h3 className="text-yellow-400 font-bold tracking-widest uppercase text-sm mb-3">Tentang Desa</h3>
-                            <h2 className="text-3xl md:text-5xl font-extrabold text-white">Profil {siteData?.title || "Cimanggu I"}</h2>
-                        </div>
-                        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl flex flex-col lg:flex-row gap-12 items-center">
-                            <div className="w-full lg:w-2/5 aspect-video lg:aspect-square bg-slate-900/40 backdrop-blur-sm rounded-3xl overflow-hidden border border-white/10 relative group">
-                                <Image
-                                    src={siteData?.about_image || "https://images.unsplash.com/photo-1590088925586-7a8df0bbee59?q=80&w=1200&auto=format&fit=crop"}
-                                    alt="Kantor Desa"
-                                    fill
-                                    className="object-cover opacity-80 group-hover:scale-110 transition-transform duration-1000"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-blue-900/80 to-transparent mix-blend-multiply"></div>
-                                <div className="absolute bottom-6 left-6 right-6">
-                                    <h4 className="text-2xl font-bold text-white mb-1 shadow-black drop-shadow-lg">Kantor Kepala Desa</h4>
-                                    <p className="text-slate-300 text-sm drop-shadow-md">Pusat Pelayanan Masyarakat</p>
-                                </div>
-                            </div>
-                            <div className="w-full lg:w-3/5 text-slate-300 space-y-8">
-                                <h4 className="text-3xl font-bold text-white text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
-                                    {siteData?.about_title || "Sekilas Pandang"}
-                                </h4>
-                                <p className="leading-relaxed text-lg font-light text-slate-400 whitespace-pre-wrap">
-                                    {siteData?.about_text || "Desa Cimanggu I merupakan salah satu desa unggulan bagian dari program digitalisasi..."}
-                                </p>
-                                <Link href="/profil" className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300 font-semibold transition-colors">
-                                    Baca Selengkapnya <ChevronRight size={18} />
-                                </Link>
-                            </div>
-                        </div>
-                    </ScrollReveal>
-                </section>
-
-                {/* 2. Wilayah Administratif Section (NEW) */}
+                {/* 1. Wilayah Administratif Section */}
                 <section id="wilayah" className="scroll-mt-32">
                     <ScrollReveal>
                         <div className="text-center mb-16">
@@ -575,7 +581,7 @@ const LandingPage = () => {
                             <h2 className="text-3xl md:text-5xl font-extrabold text-white">Wilayah Administratif</h2>
                         </div>
                     </ScrollReveal>
-
+ 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
                         {/* Card Kadus */}
                         <ScrollReveal delay={0}>
@@ -583,36 +589,42 @@ const LandingPage = () => {
                                 <div className="mx-auto w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                     <MapIcon className="text-blue-400" size={36} />
                                 </div>
-                                <h2 className="text-6xl font-black text-white mb-2 group-hover:text-blue-400 transition-colors">4</h2>
+                                <h2 className="text-6xl font-black text-white mb-2 group-hover:text-blue-400 transition-colors">
+                                    <CountUp end={4} />
+                                </h2>
                                 <p className="text-lg text-slate-400 font-medium uppercase tracking-widest">Kepala Dusun</p>
                             </div>
                         </ScrollReveal>
-
+ 
                         {/* Card RW */}
                         <ScrollReveal delay={200}>
                             <div className="bg-gradient-to-br from-purple-900/40 to-slate-900/80 border border-purple-500/20 rounded-3xl p-8 text-center hover:border-purple-500/50 transition-colors group h-full flex flex-col justify-center">
                                 <div className="mx-auto w-20 h-20 bg-purple-500/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                     <Users className="text-purple-400" size={36} />
                                 </div>
-                                <h2 className="text-6xl font-black text-white mb-2 group-hover:text-purple-400 transition-colors">9</h2>
+                                <h2 className="text-6xl font-black text-white mb-2 group-hover:text-purple-400 transition-colors">
+                                    <CountUp end={9} />
+                                </h2>
                                 <p className="text-lg text-slate-400 font-medium uppercase tracking-widest">Rukun Warga (RW)</p>
                             </div>
                         </ScrollReveal>
-
+ 
                         {/* Card RT */}
                         <ScrollReveal delay={400}>
                             <div className="bg-gradient-to-br from-green-900/40 to-slate-900/80 border border-green-500/20 rounded-3xl p-8 text-center hover:border-green-500/50 transition-colors group h-full flex flex-col justify-center">
                                 <div className="mx-auto w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                                     <HeartPulse className="text-green-400" size={36} />
                                 </div>
-                                <h2 className="text-6xl font-black text-white mb-2 group-hover:text-green-400 transition-colors">32</h2>
+                                <h2 className="text-6xl font-black text-white mb-2 group-hover:text-green-400 transition-colors">
+                                    <CountUp end={32} />
+                                </h2>
                                 <p className="text-lg text-slate-400 font-medium uppercase tracking-widest">Rukun Tetangga (RT)</p>
                             </div>
                         </ScrollReveal>
                     </div>
                 </section>
-
-                {/* 3. Statistik Penduduk Section */}
+ 
+                {/* 2. Statistik Penduduk Section */}
                 {statsData && (
                     <section id="statistik" className="scroll-mt-32">
                         <ScrollReveal>
@@ -623,28 +635,29 @@ const LandingPage = () => {
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
                                 <div className="bg-slate-800/40 backdrop-blur-md border border-white/10 rounded-3xl p-8 text-center shadow-xl hover:border-blue-500/30 transition-all group">
                                     <h4 className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-4 group-hover:text-blue-400 transition-colors">Total Penduduk</h4>
-                                    <p className="text-4xl font-black text-white">{statsData.totalWarga.toLocaleString()}</p>
+                                    <p className="text-4xl font-black text-white"><CountUp end={statsData.totalWarga} /></p>
                                     <div className="w-12 h-1 bg-blue-500/20 mx-auto mt-4 rounded-full"></div>
                                 </div>
                                 <div className="bg-slate-800/40 backdrop-blur-md border border-white/10 rounded-3xl p-8 text-center shadow-xl hover:border-indigo-500/30 transition-all group">
                                     <h4 className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-4 group-hover:text-indigo-400 transition-colors">Total Keluarga (KK)</h4>
-                                    <p className="text-4xl font-black text-white">{statsData.totalKK.toLocaleString()}</p>
+                                    <p className="text-4xl font-black text-white"><CountUp end={statsData.totalKK} /></p>
                                     <div className="w-12 h-1 bg-indigo-500/20 mx-auto mt-4 rounded-full"></div>
                                 </div>
                                 <div className="bg-slate-800/40 backdrop-blur-md border border-white/10 rounded-3xl p-8 text-center shadow-xl hover:border-blue-500/30 transition-all group">
                                     <h4 className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-4 group-hover:text-blue-400 transition-colors">Laki-laki</h4>
-                                    <p className="text-4xl font-black text-blue-400">{statsData.totalLaki.toLocaleString()}</p>
+                                    <p className="text-4xl font-black text-blue-400"><CountUp end={statsData.totalLaki} /></p>
                                     <div className="w-12 h-1 bg-blue-500/20 mx-auto mt-4 rounded-full"></div>
                                 </div>
                                 <div className="bg-slate-800/40 backdrop-blur-md border border-white/10 rounded-3xl p-8 text-center shadow-xl hover:border-pink-500/30 transition-all group">
                                     <h4 className="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-4 group-hover:text-pink-400 transition-colors">Perempuan</h4>
-                                    <p className="text-4xl font-black text-pink-400">{statsData.totalPerempuan.toLocaleString()}</p>
+                                    <p className="text-4xl font-black text-pink-400"><CountUp end={statsData.totalPerempuan} /></p>
                                     <div className="w-12 h-1 bg-pink-500/20 mx-auto mt-4 rounded-full"></div>
                                 </div>
                             </div>
                         </ScrollReveal>
                     </section>
                 )}
+
 
                 {/* 3. Layanan Section (Existing) */}
                 <section id="layanan" className="scroll-mt-32">
@@ -693,6 +706,43 @@ const LandingPage = () => {
                         </ScrollReveal>
                     </div>
                 </section>
+
+                {/* 5. Profil Section (Moved to bottom) */}
+                <section id="profil" className="scroll-mt-32">
+                    <ScrollReveal>
+                        <div className="text-center mb-16">
+                            <h3 className="text-yellow-400 font-bold tracking-widest uppercase text-sm mb-3">Tentang Desa</h3>
+                            <h2 className="text-3xl md:text-5xl font-extrabold text-white">Profil {siteData?.title || "Cimanggu I"}</h2>
+                        </div>
+                        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl flex flex-col lg:flex-row gap-12 items-center">
+                            <div className="w-full lg:w-2/5 aspect-video lg:aspect-square bg-slate-900/40 backdrop-blur-sm rounded-3xl overflow-hidden border border-white/10 relative group border-2 border-white/5">
+                                <Image
+                                    src={siteData?.about_image || "https://images.unsplash.com/photo-1590088925586-7a8df0bbee59?q=80&w=1200&auto=format&fit=crop"}
+                                    alt="Kantor Desa"
+                                    fill
+                                    className="object-cover opacity-80 group-hover:scale-110 transition-transform duration-1000"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-blue-900/80 to-transparent mix-blend-multiply"></div>
+                                <div className="absolute bottom-6 left-6 right-6">
+                                    <h4 className="text-2xl font-bold text-white mb-1 shadow-black drop-shadow-lg">Kantor Kepala Desa</h4>
+                                    <p className="text-slate-300 text-sm drop-shadow-md">Pusat Pelayanan Masyarakat</p>
+                                </div>
+                            </div>
+                            <div className="w-full lg:w-3/5 text-slate-300 space-y-8">
+                                <h4 className="text-3xl font-bold text-white text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">
+                                    {siteData?.about_title || "Sekilas Pandang"}
+                                </h4>
+                                <p className="leading-relaxed text-lg font-light text-slate-400 whitespace-pre-wrap">
+                                    {siteData?.about_text || "Desa Cimanggu I merupakan salah satu desa unggulan bagian dari program digitalisasi..."}
+                                </p>
+                                <Link href="/profil" className="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300 font-semibold transition-colors">
+                                    Baca Selengkapnya <ChevronRight size={18} />
+                                </Link>
+                            </div>
+                        </div>
+                    </ScrollReveal>
+                </section>
+
 
                 {/* 4. Peta Interaktif Section (NEW) */}
                 <section id="peta-interaktif" className="scroll-mt-32">
