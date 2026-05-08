@@ -21,7 +21,8 @@ import {
     Users,
     Newspaper,
     UserPlus,
-    AlertCircle
+    AlertCircle,
+    ShieldCheck
 } from "lucide-react";
 import Link from "next/link";
 import { ImageUpload } from "@/components/dashboard/ImageUpload";

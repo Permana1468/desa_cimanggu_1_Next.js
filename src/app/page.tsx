@@ -55,9 +55,9 @@ export default async function LandingPage() {
         gallery: ['/images/slide_1.webp', '/images/slide_6_.png', '/images/sawah.png']
     };
 
-    const heroImages = Array.isArray(siteData.gallery) && siteData.gallery.length > 0 
+    const heroImages = (Array.isArray(siteData.gallery) && siteData.gallery.length > 0 
         ? siteData.gallery 
-        : ['/images/slide_1.webp', '/images/slide_6_.png', '/images/sawah.png'];
+        : ['/images/slide_1.webp', '/images/slide_6_.png', '/images/sawah.png']) as string[];
 
     const newsData = newsRes ? newsRes.map((item: any) => ({
         id: item.id,
@@ -113,7 +113,7 @@ export default async function LandingPage() {
                         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl flex flex-col lg:flex-row gap-12 items-center">
                             <div className="w-full lg:w-2/5 aspect-video lg:aspect-square bg-slate-900/40 backdrop-blur-sm rounded-3xl overflow-hidden border border-white/10 relative group border-2 border-white/5">
                                 <Image
-                                    src={siteData.about_image}
+                                    src={siteData.about_image || "https://images.unsplash.com/photo-1590088925586-7a8df0bbee59?q=80&w=1200&auto=format&fit=crop"}
                                     alt="Kantor Desa"
                                     fill
                                     className="object-cover opacity-80 group-hover:scale-110 transition-transform duration-1000"
@@ -209,7 +209,7 @@ export default async function LandingPage() {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                         <div className="col-span-1 md:col-span-2">
                             <div className="flex items-center gap-3 mb-6">
-                                <Image src={siteData.logo} alt="Logo" width={40} height={40} />
+                                <Image src={siteData.logo || "/images/logo-bogor.png"} alt="Logo" width={40} height={40} />
                                 <span className="text-xl font-black text-white tracking-widest">{siteData.title}</span>
                             </div>
                             <p className="max-w-md text-sm leading-relaxed mb-8">Pusat digitalisasi layanan dan informasi Pemerintah Desa Cimanggu I, Kecamatan Cibungbulang, Kabupaten Bogor.</p>
