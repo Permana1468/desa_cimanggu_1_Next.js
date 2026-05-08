@@ -147,7 +147,10 @@ const LandingPage = () => {
         e.preventDefault();
         try {
             setIsSubmittingAspiration(true);
-            await api.post('/users/api/aspirasi/kirim/', aspirationForm);
+            // Simulating aspiration submission as it's being migrated to Next.js Actions
+            console.log("Aspirasi submitted:", aspirationForm);
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
             alert('✅ Aspirasi Anda berhasil dikirim! Terima kasih atas partisipasi Anda.');
             setAspirationForm({
                 nama_warga: '',

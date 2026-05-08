@@ -73,7 +73,7 @@ export const VillageSidebar = () => {
             </div>
             {(!isCollapsed || isOpen) && (
               <div className="flex flex-col">
-                <span className="text-sm font-black text-slate-800 leading-tight uppercase">{(session?.user as any)?.role?.replace('_', ' ') || "ADMIN"}</span>
+                <span className="text-sm font-black text-slate-800 leading-tight uppercase">{session?.user?.role?.replace('_', ' ') || "ADMIN"}</span>
                 <span className="text-[10px] font-bold text-emerald-600 tracking-widest uppercase">Desa Cimanggu I</span>
               </div>
             )}
@@ -90,21 +90,28 @@ export const VillageSidebar = () => {
         {/* Navigation */}
         <nav className="flex-1 px-3 space-y-1.5 mt-2 overflow-y-auto custom-scrollbar">
           {menuItems.filter(item => {
-            const role = (session?.user as any)?.role;
-            if (["ADMIN_DESA", "KADES", "SEKDES", "KASI", "KAUR", "PERANGKAT_DESA", "OPERATOR_DESA"].includes(role as string)) return true;
+            const role = session?.user?.role;
+            if (["ADMIN_DESA", "KADES", "SEKDES", "KASI", "KAUR", "PERANGKAT_DESA", "OPERATOR_DESA", "ADMIN_MASTER"].includes(role as string)) return true;
             if (["RT", "RW", "PKK", "TP_PKK", "POSYANDU", "LPM", "BPD", "KADUS", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
                return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Dana", "Tracking Layanan"].includes(item.name);
             }
-            if (["KAUR_KEUANGAN", "KAUR_PERENCANAAN", "KADES", "SEKDES", "ADMIN_DESA"].includes(role as string)) {
-               return true; // See everything
-            }
             return false;
           }).map((item) => {
-            const isActive = pathname === item.href;
+            const role = session?.user?.role;
+            const isInstitutional = ["RT", "RW", "PKK", "TP_PKK", "POSYANDU", "LPM", "BPD", "KADUS", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string);
+            
+            // Map dashboard links to kelembagaan links for institutional roles
+            let href = item.href;
+            if (isInstitutional) {
+                if (href === "/dashboard") href = "/kelembagaan";
+                else href = href.replace("/dashboard/", "/kelembagaan/");
+            }
+
+            const isActive = pathname === href;
             return (
               <Link
                 key={item.name}
-                href={item.href}
+                href={href}
                 onClick={() => setIsOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
                   isActive 

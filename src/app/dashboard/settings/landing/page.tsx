@@ -25,8 +25,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { ImageUpload } from "@/components/dashboard/ImageUpload";
+import { useSession } from "next-auth/react";
 
 export default function LandingCMSPage() {
+    const { data: session } = useSession();
     const searchParams = useSearchParams();
     const tabParam = searchParams.get("tab");
     
@@ -34,6 +36,23 @@ export default function LandingCMSPage() {
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState("");
     const [activeTab, setActiveTab] = useState(tabParam || "landing");
+
+    const isAdmin = ["ADMIN_DESA", "KADES", "SEKDES", "OPERATOR_DESA", "ADMIN_MASTER"].includes(session?.user?.role as string);
+
+    if (session && !isAdmin) {
+        return (
+            <div className="flex flex-col items-center justify-center h-96 gap-4">
+                <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center">
+                    <ShieldCheck size={32} />
+                </div>
+                <h1 className="text-2xl font-black text-slate-800">Akses Dibatasi</h1>
+                <p className="text-slate-500 max-w-md text-center">Anda tidak memiliki izin untuk mengakses pengaturan website desa. Silakan hubungi Admin Desa jika ini adalah kesalahan.</p>
+                <Link href="/dashboard" className="mt-4 px-6 py-2 bg-slate-900 text-white rounded-xl font-bold text-sm">
+                    Kembali ke Dashboard
+                </Link>
+            </div>
+        );
+    }
     
     // Landing State
     const [formData, setFormData] = useState({
@@ -53,7 +72,8 @@ export default function LandingCMSPage() {
     const [newAparatur, setNewAparatur] = useState({
         name: "",
         position: "",
-        level: 2,
+        role: "KADES",
+        level: 0,
         photo: ""
     });
 
@@ -115,7 +135,7 @@ export default function LandingCMSPage() {
             const updated = await getOrganizationalStructure();
             setAparatur(updated);
             setShowAparaturForm(false);
-            setNewAparatur({ name: "", position: "", level: 2, photo: "" });
+            setNewAparatur({ name: "", position: "", role: "KADES", level: 0, photo: "" });
             setMessage("Aparatur berhasil ditambahkan!");
             setTimeout(() => setMessage(""), 3000);
         } catch (err) {
@@ -290,10 +310,23 @@ export default function LandingCMSPage() {
                                     <div className="space-y-2">
                                         <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1">Level Struktur</label>
                                         <select value={newAparatur.level} onChange={e => setNewAparatur({...newAparatur, level: parseInt(e.target.value)})} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold">
-                                            <option value={0}>Kepala Desa</option>
-                                            <option value={1}>Sekretaris Desa</option>
-                                            <option value={2}>Kasi/Kaur</option>
-                                            <option value={3}>Kepala Dusun</option>
+                                            <option value={0}>Pimpinan (Kades)</option>
+                                            <option value={1}>Sekretariat (Sekdes)</option>
+                                            <option value={2}>Pelaksana Teknis (Kasi/Kaur)</option>
+                                            <option value={3}>Pelaksana Kewilayahan (Kadus)</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest pl-1">Role Sistem</label>
+                                        <select value={newAparatur.role} onChange={e => setNewAparatur({...newAparatur, role: e.target.value})} className="w-full px-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold">
+                                            <option value="KADES">Kepala Desa</option>
+                                            <option value="SEKDES">Sekretaris Desa</option>
+                                            <option value="KASI">Kepala Seksi (KASI)</option>
+                                            <option value="KAUR">Kepala Urusan (KAUR)</option>
+                                            <option value="KADUS">Kepala Dusun (KADUS)</option>
+                                            <option value="PERANGKAT_DESA">Perangkat Desa</option>
+                                            <option value="BPD">BPD</option>
+                                            <option value="LPM">LPM</option>
                                         </select>
                                     </div>
                                     <button onClick={handleAddAparatur} disabled={saving} className="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold">Simpan Aparatur</button>

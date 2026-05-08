@@ -2,6 +2,12 @@ import { getToken } from "next-auth/jwt";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+// Roles classification
+const CORE_ADMIN_ROLES = ["ADMIN_DESA", "KADES", "SEKDES", "KASI", "KAUR", "OPERATOR_DESA"];
+const INSTITUTIONAL_ROLES = ["RT", "RW", "PKK", "POSYANDU", "LPM", "BPD", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS", "KADUS", "TP_PKK"];
+const MASTER_ROLES = ["ADMIN_MASTER"];
+const RESIDENT_ROLES = ["WARGA"];
+
 export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   
@@ -13,56 +19,61 @@ export default async function middleware(req: NextRequest) {
   const isAuth = !!token;
   const role = (token as any)?.role;
 
-  // 1. Protection for /dashboard (Village Admin & Officials)
-  const officialRoles = ["ADMIN_DESA", "KADES", "SEKDES", "RT", "RW", "PKK", "POSYANDU", "LPM", "BPD", "KASI", "KAUR", "KADUS", "KARANG_TARUNA"];
-  
+  // 1. Public routes & API auth
+  if (pathname === "/login" || pathname === "/" || pathname.startsWith("/api/auth")) {
+    if (isAuth && (pathname === "/login" || pathname === "/")) {
+      if (CORE_ADMIN_ROLES.includes(role)) return NextResponse.redirect(new URL("/dashboard", req.url));
+      if (INSTITUTIONAL_ROLES.includes(role)) return NextResponse.redirect(new URL("/kelembagaan", req.url));
+      if (MASTER_ROLES.includes(role)) return NextResponse.redirect(new URL("/master-admin", req.url));
+      if (RESIDENT_ROLES.includes(role)) return NextResponse.redirect(new URL("/resident", req.url));
+    }
+    return NextResponse.next();
+  }
+
+  // Auth Guard
+  if (!isAuth) {
+    if (pathname.startsWith("/api") && !pathname.startsWith("/api/auth")) {
+      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  // 1. Core Dashboard Guard
   if (pathname.startsWith("/dashboard")) {
-    if (!isAuth) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-    
-    if (!officialRoles.includes(role)) {
-      if (role === "ADMIN_MASTER") return NextResponse.redirect(new URL("/master-admin", req.url));
-      if (role === "WARGA") return NextResponse.redirect(new URL("/resident", req.url));
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-
-    if ((token as any).isFirstLogin && pathname !== "/dashboard/setup-account") {
-      return NextResponse.redirect(new URL("/dashboard/setup-account", req.url));
-    }
-  }
-
-  // 2. Protection for /master-admin
-  if (pathname.startsWith("/master-admin")) {
-    if (!isAuth || role !== "ADMIN_MASTER") {
+    if (!CORE_ADMIN_ROLES.includes(role)) {
+      if (INSTITUTIONAL_ROLES.includes(role)) return NextResponse.redirect(new URL("/kelembagaan", req.url));
+      if (MASTER_ROLES.includes(role)) return NextResponse.redirect(new URL("/master-admin", req.url));
+      if (RESIDENT_ROLES.includes(role)) return NextResponse.redirect(new URL("/resident", req.url));
       return NextResponse.redirect(new URL("/login", req.url));
     }
   }
 
-  // 3. Protection for /resident
-  if (pathname.startsWith("/resident")) {
-    if (!isAuth || role !== "WARGA") {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-  }
-
-  // 4. Protection for /kelembagaan
-  const institutionalRoles = ["RT", "RW", "PKK", "POSYANDU", "KARANG_TARUNA", "LPM", "BPD"];
+  // 2. Kelembagaan Guard
   if (pathname.startsWith("/kelembagaan")) {
-    if (!isAuth || !institutionalRoles.includes(role)) {
+    if (!INSTITUTIONAL_ROLES.includes(role)) {
+      if (CORE_ADMIN_ROLES.includes(role)) return NextResponse.redirect(new URL("/dashboard", req.url));
       return NextResponse.redirect(new URL("/login", req.url));
     }
   }
 
-  // 5. API Protection — public routes exempt from auth
-  const publicApiRoutes = ["/api/auth", "/api/village-profile"];
-  if (pathname.startsWith("/api") && !publicApiRoutes.some(r => pathname.startsWith(r))) {
-    if (!isAuth) {
-      return new NextResponse(
-        JSON.stringify({ error: "Unauthorized access" }),
-        { status: 401, headers: { "content-type": "application/json" } }
-      );
+  // 3. Master Admin Guard
+  if (pathname.startsWith("/master-admin")) {
+    if (!MASTER_ROLES.includes(role)) {
+      return NextResponse.redirect(new URL("/login", req.url));
     }
+  }
+
+  // 4. Resident Guard
+  if (pathname.startsWith("/resident")) {
+    if (!RESIDENT_ROLES.includes(role)) {
+      return NextResponse.redirect(new URL("/login", req.url));
+    }
+  }
+
+  // First Login Check
+  if ((token as any).isFirstLogin && !pathname.includes("/setup-account") && !pathname.startsWith("/api")) {
+    const setupPath = INSTITUTIONAL_ROLES.includes(role) ? "/kelembagaan/setup-account" : "/dashboard/setup-account";
+    return NextResponse.redirect(new URL(setupPath, req.url));
   }
 
   return NextResponse.next();
@@ -74,6 +85,7 @@ export const config = {
     "/master-admin/:path*", 
     "/resident/:path*", 
     "/kelembagaan/:path*",
+    "/login",
     "/api/:path*"
   ],
 };

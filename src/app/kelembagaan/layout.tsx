@@ -12,17 +12,6 @@ export default async function KelembagaanLayout({
 
   if (!session?.user) redirect("/login");
 
-  const userRole = (session.user as any).role;
-
-  // Guard: Only Institutional roles can access /kelembagaan
-  const allowedRoles = ["RT", "RW", "PKK", "POSYANDU", "LPM", "BPD", "PETUGAS_SENSUS", "PUSKESOS", "KARANG_TARUNA"];
-  if (!allowedRoles.includes(userRole)) {
-    if (userRole === "ADMIN_MASTER") redirect("/master-admin");
-    if (userRole === "ADMIN_DESA" || userRole === "SEKDES") redirect("/dashboard");
-    if (userRole === "WARGA") redirect("/resident");
-    redirect("/login");
-  }
-
   return (
     <div className="flex h-screen bg-[#f1f5f9] overflow-hidden">
       <VillageSidebar />

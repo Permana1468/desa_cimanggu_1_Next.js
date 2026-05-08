@@ -1,17 +1,29 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { revalidatePath } from "next/cache";
 
-const TENANT_ID = "cimanggu1"; // Default tenant for this project
+async function getAdminSession() {
+  const session = await getServerSession(authOptions);
+  const adminRoles = ["ADMIN_DESA", "KADES", "SEKDES", "OPERATOR_DESA", "ADMIN_MASTER"];
+  if (!session?.user || !adminRoles.includes(session.user.role)) {
+    throw new Error("Unauthorized: Akses Admin Diperlukan");
+  }
+  return session;
+}
+
+const DEFAULT_TENANT_ID = "cimanggu1";
 
 export async function getVillageStats() {
   try {
     const totalWarga = await prisma.dataKependudukan.count({
-      where: { tenantId: TENANT_ID },
+      where: { tenantId: DEFAULT_TENANT_ID },
     });
     const totalLaki = await prisma.dataKependudukan.count({
       where: { 
-        tenantId: TENANT_ID, 
+        tenantId: DEFAULT_TENANT_ID, 
         OR: [
           { jenisKelamin: "Laki-laki" },
           { jenisKelamin: "L" }
@@ -20,7 +32,7 @@ export async function getVillageStats() {
     });
     const totalPerempuan = await prisma.dataKependudukan.count({
       where: { 
-        tenantId: TENANT_ID,
+        tenantId: DEFAULT_TENANT_ID,
         OR: [
           { jenisKelamin: "Perempuan" },
           { jenisKelamin: "P" }
@@ -28,10 +40,9 @@ export async function getVillageStats() {
       },
     });
     
-    // Using a more efficient way to count unique KK if supported or groupBy
     const resultKK = await prisma.dataKependudukan.groupBy({
       by: ['noKK'],
-      where: { tenantId: TENANT_ID },
+      where: { tenantId: DEFAULT_TENANT_ID },
     });
 
     return {
@@ -55,7 +66,7 @@ export async function getLatestNews() {
   try {
     return await prisma.berita.findMany({
       where: { 
-        tenantId: TENANT_ID,
+        tenantId: DEFAULT_TENANT_ID,
         isPublished: true,
       },
       orderBy: { createdAt: "desc" },
@@ -69,11 +80,9 @@ export async function getLatestNews() {
 
 export async function getOrganizationalStructure() {
   try {
-    // Fetch all active aparatur and we can build the tree on the client or server
-    // For now, return flat list ordered by level and order
     return await prisma.aparaturDesa.findMany({
       where: { 
-        tenantId: TENANT_ID,
+        tenantId: DEFAULT_TENANT_ID,
         isActive: true,
       },
       orderBy: [
@@ -90,7 +99,7 @@ export async function getOrganizationalStructure() {
 export async function getVillageProfile() {
   try {
     return await prisma.villageProfile.findUnique({
-      where: { tenantId: TENANT_ID },
+      where: { tenantId: DEFAULT_TENANT_ID },
     });
   } catch (error) {
     console.error("Error fetching village profile:", error);
@@ -101,7 +110,7 @@ export async function getVillageProfile() {
 export async function getLembagaList() {
   try {
     return await prisma.lembaga.findMany({
-      where: { tenantId: TENANT_ID },
+      where: { tenantId: DEFAULT_TENANT_ID },
       orderBy: { name: "asc" },
     });
   } catch (error) {
@@ -112,8 +121,11 @@ export async function getLembagaList() {
 
 export async function updateVillageProfile(data: any) {
   try {
-    return await prisma.villageProfile.upsert({
-      where: { tenantId: TENANT_ID },
+    const session = await getAdminSession();
+    const tenantId = (session.user as any).tenantId || DEFAULT_TENANT_ID;
+
+    const result = await prisma.villageProfile.upsert({
+      where: { tenantId },
       update: {
         title: data.title,
         hero_title: data.hero_title,
@@ -125,7 +137,7 @@ export async function updateVillageProfile(data: any) {
         gallery: data.gallery,
       },
       create: {
-        tenantId: TENANT_ID,
+        tenantId,
         title: data.title,
         hero_title: data.hero_title,
         hero_subtitle: data.hero_subtitle,
@@ -136,6 +148,10 @@ export async function updateVillageProfile(data: any) {
         gallery: data.gallery,
       }
     });
+
+    revalidatePath("/");
+    revalidatePath("/dashboard/settings/landing");
+    return result;
   } catch (error) {
     console.error("Error updating village profile:", error);
     throw error;
@@ -144,24 +160,33 @@ export async function updateVillageProfile(data: any) {
 
 export async function updateAparatur(id: string, data: any) {
   try {
-    return await prisma.aparaturDesa.upsert({
+    const session = await getAdminSession();
+    const tenantId = (session.user as any).tenantId || DEFAULT_TENANT_ID;
+
+    const result = await prisma.aparaturDesa.upsert({
       where: { id: id || "new-temp-id" },
       update: {
         name: data.name,
         position: data.position,
+        role: data.role,
         level: data.level,
         photo: data.photo,
         isActive: data.isActive,
       },
       create: {
-        tenantId: TENANT_ID,
+        tenantId,
         name: data.name,
         position: data.position,
+        role: data.role,
         level: data.level,
         photo: data.photo,
         isActive: true,
       }
     });
+
+    revalidatePath("/");
+    revalidatePath("/dashboard/settings/landing");
+    return result;
   } catch (error) {
     console.error("Error updating aparatur:", error);
     throw error;
@@ -170,9 +195,12 @@ export async function updateAparatur(id: string, data: any) {
 
 export async function createBerita(data: any) {
   try {
-    return await prisma.berita.create({
+    const session = await getAdminSession();
+    const tenantId = (session.user as any).tenantId || DEFAULT_TENANT_ID;
+
+    const result = await prisma.berita.create({
       data: {
-        tenantId: TENANT_ID,
+        tenantId,
         judul: data.judul,
         slug: data.judul.toLowerCase().replace(/ /g, '-'),
         konten: data.konten,
@@ -181,10 +209,12 @@ export async function createBerita(data: any) {
         isPublished: true,
       }
     });
+
+    revalidatePath("/");
+    revalidatePath("/dashboard/settings/landing");
+    return result;
   } catch (error) {
     console.error("Error creating berita:", error);
     throw error;
   }
 }
-
-

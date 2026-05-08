@@ -3,11 +3,20 @@
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { revalidatePath } from "next/cache";
+
+async function getAdminSession() {
+    const session = await getServerSession(authOptions);
+    const adminRoles = ["ADMIN_DESA", "KADES", "SEKDES", "OPERATOR_DESA", "ADMIN_MASTER"];
+    if (!session?.user || !adminRoles.includes(session.user.role)) {
+        throw new Error("Unauthorized: Akses Admin Diperlukan");
+    }
+    return session;
+}
 
 export async function getBeritaList() {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user) throw new Error("Unauthorized");
+        const session = await getSession();
         const tenantId = (session.user as { tenantId: string }).tenantId;
 
         return await prisma.berita.findMany({
@@ -29,45 +38,62 @@ export async function upsertBerita(data: {
     kategori?: string;
     isPublished?: boolean;
 }) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) throw new Error("Unauthorized");
-    const tenantId = (session.user as { tenantId: string }).tenantId;
+    try {
+        const session = await getAdminSession();
+        const tenantId = (session.user as { tenantId: string }).tenantId;
 
-    if (data.id) {
-        const { id, ...updateData } = data;
-        return await prisma.berita.update({
-            where: { id },
-            data: { ...updateData, tenantId }
-        });
-    }
-
-    return await prisma.berita.create({
-        data: {
-            judul: data.judul,
-            slug: data.slug,
-            konten: data.konten,
-            gambar: data.gambar,
-            kategori: data.kategori,
-            isPublished: data.isPublished,
-            tenantId: tenantId
+        let result;
+        if (data.id) {
+            const { id, ...updateData } = data;
+            result = await prisma.berita.update({
+                where: { id },
+                data: { ...updateData, tenantId }
+            });
+        } else {
+            result = await prisma.berita.create({
+                data: {
+                    judul: data.judul,
+                    slug: data.slug,
+                    konten: data.konten,
+                    gambar: data.gambar,
+                    kategori: data.kategori,
+                    isPublished: data.isPublished,
+                    tenantId: tenantId
+                }
+            });
         }
-    });
+
+        revalidatePath("/");
+        revalidatePath("/dashboard/settings/landing");
+        return result;
+    } catch (error) {
+        console.error("Upsert Berita Error:", error);
+        throw error;
+    }
 }
 
 export async function deleteBerita(id: string) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) throw new Error("Unauthorized");
+    try {
+        await getAdminSession();
 
-    return await prisma.berita.delete({
-        where: { id }
-    });
+        const result = await prisma.berita.delete({
+            where: { id }
+        });
+
+        revalidatePath("/");
+        revalidatePath("/dashboard/settings/landing");
+        return result;
+    } catch (error) {
+        console.error("Delete Berita Error:", error);
+        throw error;
+    }
 }
+
 import mammoth from "mammoth";
 
 export async function smartImportProfile(base64File: string) {
     try {
-        const session = await getServerSession(authOptions);
-        if (!session?.user) throw new Error("Unauthorized");
+        await getAdminSession();
 
         const buffer = Buffer.from(base64File, "base64");
         
