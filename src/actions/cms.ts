@@ -5,10 +5,16 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
-async function getAdminSession() {
+async function getSession() {
     const session = await getServerSession(authOptions);
+    if (!session?.user) throw new Error("Unauthorized");
+    return session;
+}
+
+async function getAdminSession() {
+    const session = await getSession();
     const adminRoles = ["ADMIN_DESA", "KADES", "SEKDES", "OPERATOR_DESA", "ADMIN_MASTER"];
-    if (!session?.user || !adminRoles.includes(session.user.role)) {
+    if (!adminRoles.includes(session.user.role)) {
         throw new Error("Unauthorized: Akses Admin Diperlukan");
     }
     return session;
