@@ -30,7 +30,6 @@ export async function getBeritaList() {
             orderBy: { createdAt: 'desc' }
         });
     } catch (error) {
-        console.error("Berita List Error:", error);
         return [];
     }
 }
@@ -73,7 +72,6 @@ export async function upsertBerita(data: {
         revalidatePath("/dashboard/settings/landing");
         return result;
     } catch (error) {
-        console.error("Upsert Berita Error:", error);
         throw error;
     }
 }
@@ -90,7 +88,6 @@ export async function deleteBerita(id: string) {
         revalidatePath("/dashboard/settings/landing");
         return result;
     } catch (error) {
-        console.error("Delete Berita Error:", error);
         throw error;
     }
 }
@@ -114,7 +111,6 @@ export async function smartImportProfile(base64File: string) {
             warnings: messages.map(m => m.message)
         };
     } catch (error: any) {
-        console.error("Smart Import Error:", error);
         return { success: false, error: error.message || "Gagal mengimpor file." };
     }
 }

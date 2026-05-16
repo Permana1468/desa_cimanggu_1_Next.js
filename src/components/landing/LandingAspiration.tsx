@@ -23,7 +23,6 @@ export const LandingAspiration = () => {
         try {
             setIsSubmittingAspiration(true);
             // Simulating aspiration submission
-            console.log("Aspirasi submitted:", aspirationForm);
             await new Promise(resolve => setTimeout(resolve, 1000));
             
             alert('✅ Aspirasi Anda berhasil dikirim! Terima kasih atas partisipasi Anda.');
@@ -35,7 +34,6 @@ export const LandingAspiration = () => {
                 isi_pesan: ''
             });
         } catch (error) {
-            console.error("Gagal mengirim aspirasi:", error);
             alert('❌ Gagal mengirim aspirasi. Silakan lengkapi formulir dan coba lagi.');
         } finally {
             setIsSubmittingAspiration(false);

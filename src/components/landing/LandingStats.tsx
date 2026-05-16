@@ -103,7 +103,11 @@ const StatCardIcon = ({ icon: Icon, value, label, color }: any) => {
 
     return (
         <div className={`bg-gradient-to-br to-slate-900/80 border rounded-3xl p-8 text-center transition-colors group h-full flex flex-col justify-center ${colors[color]}`}>
-            <div className={`mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${colors[color].split(' ')[4]}`}>
+            <div className={`mx-auto w-20 h-20 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${
+                color === 'blue' ? 'bg-blue-500/10' : 
+                color === 'purple' ? 'bg-purple-500/10' : 
+                'bg-green-500/10'
+            }`}>
                 <Icon size={36} />
             </div>
             <h2 className="text-6xl font-black text-white mb-2 group-hover:text-inherit transition-colors">
@@ -122,10 +126,22 @@ const StatCardSmall = ({ label, value, color }: any) => {
     };
 
     return (
-        <div className={`bg-slate-800/40 backdrop-blur-md border border-white/10 rounded-3xl p-8 text-center shadow-xl transition-all group ${borderColors[color].split(' ')[0]}`}>
-            <h4 className={`text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-4 group-hover:${borderColors[color].split(' ')[1]} transition-colors`}>{label}</h4>
+        <div className={`bg-slate-800/40 backdrop-blur-md border border-white/10 rounded-3xl p-8 text-center shadow-xl transition-all group ${
+            color === 'blue' ? 'hover:border-blue-500/30' :
+            color === 'indigo' ? 'hover:border-indigo-500/30' :
+            'hover:border-pink-500/30'
+        }`}>
+            <h4 className={`text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-4 transition-colors ${
+                color === 'blue' ? 'group-hover:text-blue-400' :
+                color === 'indigo' ? 'group-hover:text-indigo-400' :
+                'group-hover:text-pink-400'
+            }`}>{label}</h4>
             <p className={`text-4xl font-black text-white`}><CountUp end={value} /></p>
-            <div className={`w-12 h-1 mx-auto mt-4 rounded-full ${borderColors[color].split(' ')[2]}`}></div>
+            <div className={`w-12 h-1 mx-auto mt-4 rounded-full ${
+                color === 'blue' ? 'bg-blue-500/20' :
+                color === 'indigo' ? 'bg-indigo-500/20' :
+                'bg-pink-500/20'
+            }`}></div>
         </div>
     );
 }

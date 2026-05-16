@@ -50,7 +50,6 @@ export default function AparaturPage() {
             const data = await getAparatur();
             setAparatur(data);
         } catch (err) {
-            console.error(err);
         }
         setLoading(false);
     };
@@ -64,7 +63,6 @@ export default function AparaturPage() {
             fetchAparatur();
             setFormData({ fullName: "", email: "", phoneNumber: "", role: "ADMIN_DESA", position: "", password: "" });
         } catch (error) {
-            console.error(error);
             alert("Gagal menambahkan aparatur.");
         } finally {
             setSaving(false);

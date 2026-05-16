@@ -15,7 +15,6 @@ const registerSchema = z.object({
 export async function registerWarga(rawData: any) {
     try {
         const data = registerSchema.parse(rawData);
-        console.log(`Attempting registration for NIK: ${data.nik}`);
 
         // 1. Validasi NIK di DataKependudukan
         const wargaData = await prisma.dataKependudukan.findUnique({
@@ -24,7 +23,6 @@ export async function registerWarga(rawData: any) {
         });
 
         if (!wargaData) {
-            console.log(`Registration failed: NIK ${data.nik} not found in DataKependudukan`);
             return { error: "NIK tidak terdaftar sebagai warga Desa Cimanggu I. Hubungi Admin untuk verifikasi data." };
         }
 
@@ -34,16 +32,13 @@ export async function registerWarga(rawData: any) {
         });
 
         if (existingUser) {
-            console.log(`Registration failed: NIK ${data.nik} already registered`);
             return { error: "NIK ini sudah memiliki akun. Silakan gunakan menu 'Masuk'." };
         }
 
         // 3. Hash Password
-        console.log(`Hashing password for NIK: ${data.nik}`);
         const passwordHash = await bcrypt.hash(data.password, 10);
 
         // 4. Create User
-        console.log(`Creating user record for NIK: ${data.nik}`);
         const newUser = await prisma.user.create({
             data: {
                 nik: data.nik.trim(),
@@ -70,10 +65,8 @@ export async function registerWarga(rawData: any) {
             }
         });
 
-        console.log(`Registration successful for NIK: ${data.nik}`);
         return { success: true, name: wargaData.namaLengkap };
     } catch (error: any) {
-        console.error("Critical Registration Error:", error);
         // Return more specific error message to UI
         return { error: `Kesalahan Sistem: ${error.message || "Gagal menghubungkan ke database"}` };
     }
@@ -117,7 +110,6 @@ export async function setupInstitutionalAccount(rawData: any) {
 
         return { success: true };
     } catch (error: any) {
-        console.error("Setup Account Error:", error);
         return { error: `Gagal memperbarui akun: ${error.message}` };
     }
 }

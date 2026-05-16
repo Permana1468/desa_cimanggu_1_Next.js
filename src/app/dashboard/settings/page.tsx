@@ -141,7 +141,6 @@ function AccountManager() {
             alert("Akun berhasil dibuat!");
             setFormData({ email: "", fullName: "", role: RoleType.RT, password: "" });
         } catch (err: unknown) {
-            console.error(err);
             alert("Gagal membuat akun.");
         }
     };

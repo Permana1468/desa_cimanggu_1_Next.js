@@ -29,14 +29,16 @@ export const LandingNews = ({ newsData }: LandingNewsProps) => {
                         <h3 className="text-yellow-400 font-bold tracking-widest uppercase text-sm mb-3">Kabar Desa</h3>
                         <h2 className="text-3xl md:text-5xl font-extrabold text-white">Berita & Informasi Terbaru</h2>
                     </div>
-                    <div className="flex gap-3">
-                        <button onClick={prevNews} className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all">
-                            <ChevronLeft size={20} />
-                        </button>
-                        <button onClick={nextNews} className="w-12 h-12 rounded-full bg-yellow-500 text-slate-900 flex items-center justify-center hover:bg-yellow-400 transition-all shadow-lg shadow-yellow-500/20">
-                            <ChevronRight size={20} />
-                        </button>
-                    </div>
+                    {newsData.length > 3 && (
+                        <div className="flex gap-3">
+                            <button onClick={prevNews} className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all">
+                                <ChevronLeft size={20} />
+                            </button>
+                            <button onClick={nextNews} className="w-12 h-12 rounded-full bg-yellow-500 text-slate-900 flex items-center justify-center hover:bg-yellow-400 transition-all shadow-lg shadow-yellow-500/20">
+                                <ChevronRight size={20} />
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

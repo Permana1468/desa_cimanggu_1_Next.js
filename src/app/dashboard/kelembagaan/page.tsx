@@ -40,7 +40,6 @@ export default function KelembagaanPage() {
             fetchLembagas();
             setFormData({ name: "", fullName: "", memberCount: 0, description: "" });
         } catch (error) {
-            console.error(error);
             alert("Gagal menambahkan lembaga.");
         } finally {
             setSaving(false);

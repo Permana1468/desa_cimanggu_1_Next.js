@@ -58,7 +58,7 @@ export async function getVillageStats() {
       totalKK: resultKK.length,
     };
   } catch (error) {
-    console.error("Error fetching village stats:", error);
+    // Silently handle error
     return {
       totalWarga: 0,
       totalLaki: 0,
@@ -79,7 +79,7 @@ export async function getLatestNews() {
       take: 3,
     });
   } catch (error) {
-    console.error("Error fetching latest news:", error);
+    // Silently handle error
     return [];
   }
 }
@@ -97,7 +97,7 @@ export async function getOrganizationalStructure() {
       ],
     });
   } catch (error) {
-    console.error("Error fetching organizational structure:", error);
+    // Silently handle error
     return [];
   }
 }
@@ -108,7 +108,7 @@ export async function getVillageProfile() {
       where: { tenantId: DEFAULT_TENANT_ID },
     });
   } catch (error) {
-    console.error("Error fetching village profile:", error);
+    // Silently handle error
     return null;
   }
 }
@@ -120,7 +120,7 @@ export async function getLembagaList() {
       orderBy: { name: "asc" },
     });
   } catch (error) {
-    console.error("Error fetching lembaga list:", error);
+    // Silently handle error
     return [];
   }
 }
@@ -159,7 +159,6 @@ export async function updateVillageProfile(data: any) {
     revalidatePath("/dashboard/settings/landing");
     return result;
   } catch (error) {
-    console.error("Error updating village profile:", error);
     throw error;
   }
 }
@@ -194,7 +193,6 @@ export async function updateAparatur(id: string, data: any) {
     revalidatePath("/dashboard/settings/landing");
     return result;
   } catch (error) {
-    console.error("Error updating aparatur:", error);
     throw error;
   }
 }
@@ -220,7 +218,6 @@ export async function createBerita(data: any) {
     revalidatePath("/dashboard/settings/landing");
     return result;
   } catch (error) {
-    console.error("Error creating berita:", error);
     throw error;
   }
 }

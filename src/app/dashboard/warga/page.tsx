@@ -122,7 +122,6 @@ export default function WargaManagementPage() {
             setEditingId(null);
             handleSearch();
         } catch (error) {
-            console.error(error);
             alert("Terjadi kesalahan.");
         } finally {
             setSaving(false);

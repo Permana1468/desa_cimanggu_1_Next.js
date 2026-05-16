@@ -50,7 +50,6 @@ export default function BumdesPage() {
             const data = await getBumdesFinances();
             setFinances(data);
         } catch (err) {
-            console.error(err);
         }
         setLoading(false);
     };
@@ -64,7 +63,6 @@ export default function BumdesPage() {
             fetchFinances();
             setFormData({ title: "", amount: "", type: "INCOME", description: "" });
         } catch (error) {
-            console.error(error);
             alert("Gagal menambahkan transaksi.");
         } finally {
             setSaving(false);

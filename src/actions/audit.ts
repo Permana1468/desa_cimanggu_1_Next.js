@@ -17,7 +17,6 @@ export async function getLatestLogs() {
       }
     });
   } catch (error) {
-    console.error("Audit Logs Error:", error);
     return [];
   }
 }

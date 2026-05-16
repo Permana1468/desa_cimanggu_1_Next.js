@@ -57,7 +57,6 @@ export default function VillageProfilePage() {
             setShowEditModal(false);
             fetchProfile();
         } catch (error) {
-            console.error(error);
             alert("Gagal memperbarui profil.");
         } finally {
             setSaving(false);

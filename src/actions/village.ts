@@ -21,8 +21,7 @@ export async function getVillageDashboardStats() {
 
         return { suratPending, laporanVerified, totalAparatur, totalProposals };
     } catch (error) {
-        console.error("Dashboard Stats Error:", error);
-        return { suratPending: 0, laporanVerified: 0, totalAparatur: 0 };
+    return { suratPending: 0, laporanVerified: 0, totalAparatur: 0 };
     }
 }
 
@@ -39,7 +38,6 @@ export async function getSuratList() {
             take: 20
         });
     } catch (error) {
-        console.error("Surat List Error:", error);
         return [];
     }
 }
@@ -54,7 +52,6 @@ export async function updateSuratStatus(id: string, status: StatusSurat) {
             data: { status }
         });
     } catch (error) {
-        console.error("Update Surat Error:", error);
         throw error;
     }
 }
@@ -76,7 +73,6 @@ export async function getWargaList(query?: string) {
             take: 20
         });
     } catch (error) {
-        console.error("Warga List Error:", error);
         return [];
     }
 }
@@ -118,7 +114,6 @@ export async function addWarga(data: any) {
             }
         });
     } catch (error) {
-        console.error("Add Warga Error:", error);
         throw error;
     }
 }
@@ -136,7 +131,6 @@ export async function updateWarga(id: string, data: any) {
             }
         });
     } catch (error) {
-        console.error("Update Warga Error:", error);
         throw error;
     }
 }
@@ -150,7 +144,6 @@ export async function deleteWarga(id: string) {
             where: { id }
         });
     } catch (error) {
-        console.error("Delete Warga Error:", error);
         throw error;
     }
 }
@@ -183,7 +176,6 @@ export async function getVillageProfile() {
 
         return profile;
     } catch (error) {
-        console.error("Get Profile Error:", error);
         return null;
     }
 }
@@ -202,7 +194,6 @@ export async function updateVillageProfile(data: any) {
             }
         });
     } catch (error) {
-        console.error("Update Profile Error:", error);
         throw error;
     }
 }
@@ -221,7 +212,6 @@ export async function getAparatur() {
             orderBy: { role: 'asc' }
         });
     } catch (error) {
-        console.error("Get Aparatur Error:", error);
         return [];
     }
 }
@@ -248,7 +238,6 @@ export async function addAparatur(data: any) {
             }
         });
     } catch (error) {
-        console.error("Add Aparatur Error:", error);
         throw error;
     }
 }
@@ -264,7 +253,6 @@ export async function getLembagas() {
             orderBy: { name: 'asc' }
         });
     } catch (error) {
-        console.error("Get Lembagas Error:", error);
         return [];
     }
 }
@@ -282,7 +270,6 @@ export async function addLembaga(data: any) {
             }
         });
     } catch (error) {
-        console.error("Add Lembaga Error:", error);
         throw error;
     }
 }
@@ -298,7 +285,6 @@ export async function getBumdesFinances() {
             orderBy: { date: 'desc' }
         });
     } catch (error) {
-        console.error("Get BUMDes Finances Error:", error);
         return [];
     }
 }
@@ -317,7 +303,6 @@ export async function addBumdesTransaction(data: any) {
             }
         });
     } catch (error) {
-        console.error("Add BUMDes Transaction Error:", error);
         throw error;
     }
 }
@@ -334,7 +319,6 @@ export async function getAparaturHierarchy() {
             include: { children: true }
         });
     } catch (error) {
-        console.error("Get Hierarchy Error:", error);
         return [];
     }
 }
@@ -349,7 +333,6 @@ export async function updateAparaturSK(id: string, data: { skNumber?: string, sk
             data: { ...data, updatedAt: new Date() }
         });
     } catch (error) {
-        console.error("Update SK Error:", error);
         throw error;
     }
 }

@@ -41,7 +41,6 @@ export default function LoginPage() {
                 if (response.ok) {
                     const profile = await response.json();
                     if (profile && profile.gallery && Array.isArray(profile.gallery) && profile.gallery.length > 0) {
-                        console.log("[Login] Setting hero images from CMS:", profile.gallery);
                         setHeroImages(profile.gallery);
                     }
                     if (profile && profile.logo) {
@@ -49,7 +48,6 @@ export default function LoginPage() {
                     }
                 }
             } catch (err) {
-                console.error("Failed to fetch settings:", err);
             }
         };
         fetchSettings();
@@ -86,7 +84,6 @@ export default function LoginPage() {
                 window.location.href = "/dashboard";
             }
         } catch (err) {
-            console.error("Login Error:", err);
             setError("Terjadi kesalahan sistem");
         } finally {
             setLoading(false);

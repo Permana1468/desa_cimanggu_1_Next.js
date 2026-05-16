@@ -71,7 +71,6 @@ export async function exportWargaExcel(filter?: any) {
             data: Buffer.from(buffer).toString('base64')
         };
     } catch (error) {
-        console.error("Export Excel Error:", error);
         return { success: false, error: "Gagal mengekspor data" };
     }
 }
@@ -131,7 +130,6 @@ export async function generateSurat(templateCode: string, wargaId: string) {
             data: Buffer.from(buffer).toString('base64')
         };
     } catch (error: any) {
-        console.error("Generate Surat Error:", error);
         return { success: false, error: error.message || "Gagal membuat surat" };
     }
 }
@@ -147,7 +145,6 @@ export async function getLetterTemplates() {
             orderBy: { name: 'asc' }
         });
     } catch (error) {
-        console.error("Get Templates Error:", error);
         return [];
     }
 }
@@ -165,7 +162,6 @@ export async function createLetterTemplate(data: { name: string, code: string, f
             }
         });
     } catch (error) {
-        console.error("Create Template Error:", error);
         throw error;
     }
 }

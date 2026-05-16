@@ -45,7 +45,6 @@ export function ImageUpload({
                 onUploadSuccess(data.publicUrl);
             }
         } catch (error) {
-            console.error("Gagal upload:", error);
             alert("Gagal mengunggah gambar. Pastikan bucket 'village-assets' sudah ada di Supabase.");
         } finally {
             setUploading(false);

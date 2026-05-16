@@ -25,7 +25,6 @@ export async function getAllUsers() {
             orderBy: { createdAt: 'desc' }
         });
     } catch (error) {
-        console.error("Master: GetUsers Error:", error);
         return [];
     }
 }
@@ -52,7 +51,6 @@ export async function toggleUserStatus(userId: string, status: boolean) {
         revalidatePath("/master-admin/users");
         return user;
     } catch (error) {
-        console.error("Master: ToggleUser Error:", error);
         throw error;
     }
 }
@@ -114,7 +112,6 @@ export async function upsertMasterUser(data: {
         revalidatePath("/master-admin/users");
         return result;
     } catch (error) {
-        console.error("Master: UpsertUser Error:", error);
         throw error;
     }
 }
@@ -140,7 +137,6 @@ export async function deleteMasterUser(userId: string) {
         revalidatePath("/master-admin/users");
         return result;
     } catch (error) {
-        console.error("Master: DeleteUser Error:", error);
         throw error;
     }
 }
@@ -158,7 +154,6 @@ export async function getAllTenants() {
             orderBy: { createdAt: 'desc' }
         });
     } catch (error) {
-        console.error("Master: GetTenants Error:", error);
         return [];
     }
 }
@@ -188,7 +183,6 @@ export async function createTenant(data: { name: string; domain?: string; descri
         revalidatePath("/master-admin/tenants");
         return result;
     } catch (error) {
-        console.error("Master: CreateTenant Error:", error);
         throw error;
     }
 }
@@ -215,7 +209,6 @@ export async function updateTenant(id: string, data: any) {
         revalidatePath("/master-admin/tenants");
         return result;
     } catch (error) {
-        console.error("Master: UpdateTenant Error:", error);
         throw error;
     }
 }
@@ -242,7 +235,6 @@ export async function toggleTenantStatus(id: string, status: boolean) {
         revalidatePath("/master-admin/tenants");
         return result;
     } catch (error) {
-        console.error("Master: ToggleTenant Error:", error);
         throw error;
     }
 }
@@ -256,7 +248,6 @@ export async function getAllTenantsMinimal() {
             orderBy: { name: 'asc' }
         });
     } catch (error) {
-        console.error("Master: GetTenantsMinimal Error:", error);
         return [];
     }
 }
@@ -315,7 +306,6 @@ export async function getSystemStats(tenantId?: string) {
             growth: formattedGrowth
         };
     } catch (error) {
-        console.error("Master: Stats Error:", error);
         return { totalUsers: 0, totalTenants: 0, totalWarga: 0, totalSurat: 0, demographics: [], growth: [] };
     }
 }
@@ -339,7 +329,6 @@ export async function getAuditLogs(page: number = 1, limit: number = 20, categor
             }
         });
     } catch (error) {
-        console.error("Master: AuditLogs Error:", error);
         return [];
     }
 }
@@ -352,7 +341,6 @@ export async function getRolePermissions() {
             orderBy: [{ role: 'asc' }, { module: 'asc' }]
         });
     } catch (error) {
-        console.error("Master: GetPermissions Error:", error);
         return [];
     }
 }
@@ -368,7 +356,6 @@ export async function getGlobalResidents(tenantId?: string) {
             orderBy: { createdAt: 'desc' }
         });
     } catch (error) {
-        console.error("Master: GetGlobalResidents Error:", error);
         return [];
     }
 }
@@ -414,7 +401,6 @@ export async function upsertResident(data: any) {
         revalidatePath("/master-admin/data");
         return result;
     } catch (error) {
-        console.error("Master: UpsertResident Error:", error);
         throw error;
     }
 }
@@ -456,7 +442,6 @@ export async function bulkImportResidents(residents: any[], tenantId: string) {
         revalidatePath("/master-admin/data");
         return { count: result.length };
     } catch (error) {
-        console.error("Master: BulkImport Error:", error);
         throw error;
     }
 }
@@ -469,7 +454,6 @@ export async function deleteResident(id: string) {
         revalidatePath("/master-admin/data");
         return { success: true };
     } catch (error) {
-        console.error("Master: DeleteResident Error:", error);
         throw error;
     }
 }
@@ -502,7 +486,6 @@ export async function updateRolePermission(id: string, data: Partial<{
         revalidatePath("/master-admin/config");
         return result;
     } catch (error) {
-        console.error("Master: UpdatePermission Error:", error);
         throw error;
     }
 }
@@ -524,7 +507,6 @@ export async function logSecurityEvent(data: {
             }
         });
     } catch (error) {
-        console.error("Log Security Event Error:", error);
     }
 }
 
@@ -537,7 +519,6 @@ export async function getSystemSettings() {
         });
         return (config?.settings as any) || {};
     } catch (error) {
-        console.error("Master: GetSettings Error:", error);
         return {};
     }
 }
@@ -566,7 +547,6 @@ export async function updateSystemSettings(settings: any) {
         revalidatePath("/master-admin/config");
         return result;
     } catch (error) {
-        console.error("Master: UpdateSettings Error:", error);
         throw error;
     }
 }
@@ -574,14 +554,14 @@ export async function updateSystemSettings(settings: any) {
 export async function backupDatabase() {
     await checkMaster();
     // Implementation placeholder
-    console.log("Database Backup Triggered manually");
+    // Implementation placeholder
     return { success: true, timestamp: new Date().toISOString() };
 }
 
 export async function testWhatsAppConnection() {
     await checkMaster();
     // Implementation placeholder
-    console.log("WA Connection Test Triggered");
+    // Implementation placeholder
     return { success: true, status: "Connected" };
 }
 
@@ -594,7 +574,6 @@ export async function getVillageStructure() {
         });
         return (config?.settings as any) || { dusun: [] };
     } catch (error) {
-        console.error("Master: GetVillageStructure Error:", error);
         return { dusun: [] };
     }
 }
@@ -623,7 +602,6 @@ export async function updateVillageStructure(structure: any) {
         revalidatePath("/master-admin/wilayah");
         return result;
     } catch (error) {
-        console.error("Master: UpdateVillageStructure Error:", error);
         throw error;
     }
 }
@@ -654,7 +632,6 @@ export async function registerMasterDevice(deviceId: string) {
 
         return { success: true };
     } catch (error) {
-        console.error("Master: RegisterDevice Error:", error);
         throw error;
     }
 }
@@ -686,7 +663,6 @@ export async function toggleUserSecurity(userId: string, data: { force2FA?: bool
         revalidatePath("/master-admin/pengguna-sistem");
         return result;
     } catch (error) {
-        console.error("Master: ToggleUserSecurity Error:", error);
         throw error;
     }
 }

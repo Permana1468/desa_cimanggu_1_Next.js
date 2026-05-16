@@ -35,7 +35,6 @@ export async function createFinanceProposal(data: { title: string, description: 
         revalidatePath("/dashboard");
         return result;
     } catch (error) {
-        console.error("Create Proposal Error:", error);
         throw error;
     }
 }
@@ -52,7 +51,6 @@ export async function getFinanceProposals() {
             orderBy: { createdAt: 'desc' }
         });
     } catch (error) {
-        console.error("Get Proposals Error:", error);
         return [];
     }
 }
@@ -81,7 +79,6 @@ export async function updateProposalStatus(proposalId: string, status: string, n
         revalidatePath("/dashboard");
         return result;
     } catch (error) {
-        console.error("Update Proposal Error:", error);
         throw error;
     }
 }
@@ -103,7 +100,6 @@ export async function addSuratTracking(suratId: string, status: string, notes?: 
             }
         });
     } catch (error) {
-        console.error("Add Surat Tracking Error:", error);
         throw error;
     }
 }

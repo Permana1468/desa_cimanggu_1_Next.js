@@ -88,21 +88,19 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         const u = user as any;
-        console.log("[Auth] JWT Callback - User detected:", u.email, "Role:", u.role);
         token.id = u.id;
         token.role = String(u.role); // Force string
         token.tenantId = u.tenantId;
         token.isFirstLogin = u.isFirstLogin;
         token.rt = u.rt;
         token.rw = u.rw;
-        console.log("[Auth] JWT Role assigned to token:", token.role);
+        token.rw = u.rw;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         const t = token as any;
-        console.log("[Auth] Session Callback - Token Role:", t.role);
         (session.user as any).id = t.id;
         (session.user as any).role = String(t.role); // Force string
         (session.user as any).tenantId = t.tenantId;
