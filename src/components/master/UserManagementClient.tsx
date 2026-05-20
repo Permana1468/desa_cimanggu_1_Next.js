@@ -141,6 +141,21 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
         }
     };
 
+    const handleToggleStatus = async (userId: string, currentStatus: boolean) => {
+        const msg = currentStatus 
+            ? "Tangguhkan akun ini? Pengguna tidak akan bisa login."
+            : "Aktifkan kembali akun ini?";
+        
+        if (!confirm(msg)) return;
+
+        try {
+            const result = await toggleUserStatus(userId, !currentStatus);
+            setUsers(users.map(u => u.id === userId ? { ...u, ...result } : u));
+        } catch (err: any) {
+            alert(err.message || "Gagal mengubah status pengguna");
+        }
+    };
+
     return (
         <div className="space-y-10 pb-20 px-4 md:px-0 animate-in fade-in duration-700">
             {/* EPIC HEADER */}
@@ -256,6 +271,15 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                                                 </button>
                                             </div>
 
+                                            {/* STATUS TOGGLE */}
+                                            <button 
+                                                onClick={() => handleToggleStatus(user.id, user.isActive)}
+                                                title={user.isActive ? "Tangguhkan (Maintenance)" : "Aktifkan Akun"}
+                                                className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all shadow-xl shadow-slate-200/50 ${user.isActive ? 'bg-white text-slate-400 border border-slate-100 hover:text-rose-500' : 'bg-rose-500 text-white hover:bg-rose-600 border-transparent'}`}
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18.36 6.64A9 9 0 0 1 20.77 15"></path><path d="M6.16 6.16a9 9 0 1 0 12.68 12.68"></path><path d="M12 2v10"></path><path d="m2 2 20 20"></path></svg>
+                                            </button>
+
                                             <button 
                                                 onClick={() => handleOpenModal(user)}
                                                 className="w-12 h-12 flex items-center justify-center bg-white text-slate-400 hover:text-blue-600 border border-slate-100 rounded-2xl transition-all shadow-xl shadow-slate-200/50"
@@ -292,6 +316,7 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
+                                    <button onClick={() => handleToggleStatus(user.id, user.isActive)} className={`p-3 rounded-xl ${user.isActive ? 'bg-slate-50 text-slate-400 hover:text-rose-500' : 'bg-rose-500 text-white'}`}><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18.36 6.64A9 9 0 0 1 20.77 15"></path><path d="M6.16 6.16a9 9 0 1 0 12.68 12.68"></path><path d="M12 2v10"></path><path d="m2 2 20 20"></path></svg></button>
                                     <button onClick={() => handleOpenModal(user)} className="p-3 bg-slate-50 text-slate-400 rounded-xl"><Edit2 size={18} /></button>
                                     <button onClick={() => handleDelete(user.id)} className="p-3 bg-slate-50 text-slate-400 rounded-xl"><Trash2 size={18} /></button>
                                 </div>

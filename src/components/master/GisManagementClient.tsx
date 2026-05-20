@@ -21,9 +21,13 @@ import {
   Globe, 
   Check, 
   Loader2,
-  X
+  X,
+  Maximize,
+  Minimize
 } from "lucide-react";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "@geoman-io/leaflet-geoman-free";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 
 interface Boundary {
@@ -79,6 +83,7 @@ export default function GisManagementClient({
   // Drawing state
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawVertices, setDrawVertices] = useState<[number, number][]>([]);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Leaflet Map Refs
   const mapRef = useRef<any>(null);
@@ -118,9 +123,6 @@ export default function GisManagementClient({
     let mapInstance: any = null;
 
     async function initLeaflet() {
-      // Dynamic import to prevent Node SSR window error
-      const L = (await import("leaflet")).default;
-      LRef.current = L;
 
       // Fix icon issues in Next.js/Leaflet
       delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -136,10 +138,25 @@ export default function GisManagementClient({
         (container as any)._leaflet_id = null;
       }
 
-      // Default view center on Bogor region (Cibungbulang)
+      // Check if DESA boundary exists to set default view precisely
+      const desaBoundary = initialBoundaries.find(b => b.type === "DESA");
+      let defaultCenter: [number, number] = [-6.5971, 106.6786];
+      let defaultZoom = 13;
+
+      if (desaBoundary) {
+        try {
+          const coords = typeof desaBoundary.coordinates === "string" ? JSON.parse(desaBoundary.coordinates) : desaBoundary.coordinates;
+          if (coords && coords.length > 0) {
+            defaultCenter = coords[0];
+            defaultZoom = 15;
+          }
+        } catch (e) {}
+      }
+
+      // Default view center on Bogor region (Cibungbulang) or village center
       mapInstance = L.map(mapContainerId, {
         zoomControl: true,
-      }).setView([-6.5971, 106.6786], 13);
+      }).setView(defaultCenter, defaultZoom);
       
       mapRef.current = mapInstance;
 
@@ -152,11 +169,9 @@ export default function GisManagementClient({
 
       drawnLayersGroupRef.current = L.layerGroup().addTo(mapInstance);
       drawingLayerGroupRef.current = L.layerGroup().addTo(mapInstance);
+      LRef.current = L;
 
       // Initialize Geoman
-      (window as any).L = L;
-      await import("@geoman-io/leaflet-geoman-free");
-      
       mapInstance.pm.setGlobalOptions({
         snappable: true,
         snapDistance: 20,
@@ -199,6 +214,18 @@ export default function GisManagementClient({
     };
   }, []);
 
+  // Fullscreen Listener
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      if (mapRef.current) {
+        setTimeout(() => mapRef.current.invalidateSize(), 200);
+      }
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
   // Sync isDrawing with Map Interaction
   useEffect(() => {
     if (!mapRef.current) return;
@@ -231,6 +258,32 @@ export default function GisManagementClient({
     group.clearLayers();
 
     if (boundaries.length === 0) return;
+
+    // Draw Inverted Polygon (Masking) if DESA exists
+    const desaBoundary = boundaries.find(b => b.type === "DESA");
+    if (desaBoundary && editingId !== desaBoundary.id) { // Don't mask if we are editing the DESA itself!
+      let desaCoords: [number, number][] = [];
+      try {
+        desaCoords = typeof desaBoundary.coordinates === "string" ? JSON.parse(desaBoundary.coordinates) : desaBoundary.coordinates;
+      } catch (e) {}
+
+      if (desaCoords && desaCoords.length >= 3) {
+        // Outer Bounds covering entire map range
+        const outerBounds = [
+          [-90, -180],
+          [90, -180],
+          [90, 180],
+          [-90, 180]
+        ];
+
+        L.polygon([outerBounds, desaCoords], {
+          color: "transparent",
+          fillColor: "#0f172a", // Dark slate mask
+          fillOpacity: 0.65,
+          interactive: false // So it doesn't block clicks on the actual boundaries
+        }).addTo(group);
+      }
+    }
 
     const bounds: any[] = [];
 
@@ -579,10 +632,21 @@ export default function GisManagementClient({
     downloadAnchor.remove();
   };
 
+  const toggleFullscreen = () => {
+    const container = document.getElementById("gis-admin-fullscreen-wrapper");
+    if (!document.fullscreenElement) {
+      container?.requestFullscreen().catch(err => {
+        console.log(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
   return (
-    <div className="flex flex-col lg:flex-row gap-8">
+    <div className={`flex flex-col lg:flex-row gap-8 ${isFullscreen ? 'bg-slate-50 p-6 overflow-y-auto' : ''}`} id="gis-admin-fullscreen-wrapper">
       {/* 1. SIDEBAR CONFIGURATION (Width 1/3) */}
-      <div className="w-full lg:w-1/3 flex flex-col gap-6">
+      <div className={`${isFullscreen ? 'hidden' : 'w-full lg:w-1/3 flex flex-col gap-6'}`}>
         
         {/* Tenant Selector for Master Admin */}
         <div className="bg-slate-900 text-white p-6 rounded-[2.5rem] shadow-xl border border-slate-800 space-y-4">
@@ -790,6 +854,17 @@ export default function GisManagementClient({
         
         {/* Map Container */}
         <div className="relative bg-white p-4 rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
+          
+          {/* Fullscreen Button */}
+          <button 
+            type="button"
+            onClick={toggleFullscreen}
+            className="absolute top-8 right-8 z-[1000] bg-white p-3 rounded-2xl shadow-xl shadow-slate-200/50 hover:scale-105 transition-all text-slate-700 hover:text-blue-600 border border-slate-100"
+            title="Toggle Fullscreen"
+          >
+            {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+          </button>
+
           {isDrawing && (
             <div className="absolute top-8 left-1/2 -translate-x-1/2 bg-rose-600 text-white font-black text-[10px] uppercase tracking-[0.2em] px-6 py-2.5 rounded-full z-[1000] shadow-xl shadow-rose-600/30 flex items-center gap-2 animate-bounce">
               <MapPin size={12} /> Mode Menggambar Aktif
@@ -798,12 +873,12 @@ export default function GisManagementClient({
 
           <div 
             id={mapContainerId} 
-            className="w-full h-[600px] rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-inner z-10"
+            className={`w-full rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-inner z-10 ${isFullscreen ? 'h-[80vh]' : 'h-[600px]'}`}
           />
         </div>
 
         {/* Boundary Lists */}
-        <div className="bg-white p-8 rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 space-y-6">
+        <div className={`bg-white p-8 rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 space-y-6 ${isFullscreen ? 'hidden' : ''}`}>
           <div>
             <h3 className="text-xl font-black text-slate-900 tracking-tight">Daftar Batas Wilayah Terdaftar</h3>
             <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Total {boundaries.length} poligon aktif</p>

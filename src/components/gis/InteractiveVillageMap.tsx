@@ -13,7 +13,9 @@ import {
   X,
   UserCheck,
   Activity,
-  Hash
+  Hash,
+  Maximize,
+  Minimize
 } from "lucide-react";
 import { 
   PieChart, 
@@ -55,6 +57,7 @@ export default function InteractiveVillageMap({
     RW: true,
     RT: true
   });
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Selected region details
   const [selectedBoundary, setSelectedBoundary] = useState<Boundary | null>(null);
@@ -108,9 +111,24 @@ export default function InteractiveVillageMap({
         (container as any)._leaflet_id = null;
       }
 
+      // Check if DESA boundary exists to set default view precisely
+      const desaBoundary = initialBoundaries.find(b => b.type === "DESA");
+      let defaultCenter: [number, number] = [-6.5971, 106.6786];
+      let defaultZoom = 13;
+
+      if (desaBoundary) {
+        try {
+          const coords = typeof desaBoundary.coordinates === "string" ? JSON.parse(desaBoundary.coordinates) : desaBoundary.coordinates;
+          if (coords && coords.length > 0) {
+            defaultCenter = coords[0];
+            defaultZoom = 15;
+          }
+        } catch (e) {}
+      }
+
       mapInstance = L.map(mapContainerId, {
         zoomControl: true,
-      }).setView([-6.5971, 106.6786], 13);
+      }).setView(defaultCenter, defaultZoom);
 
       mapRef.current = mapInstance;
 
@@ -156,6 +174,18 @@ export default function InteractiveVillageMap({
     };
   }, []);
 
+  // Fullscreen Listener
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      if (mapRef.current) {
+        setTimeout(() => mapRef.current.invalidateSize(), 200);
+      }
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
   // Redraw when boundaries or layer toggles change
   useEffect(() => {
     if (mapRef.current) {
@@ -176,6 +206,34 @@ export default function InteractiveVillageMap({
 
     group.clearLayers();
 
+    // 1. Draw Inverted Polygon (Masking) if DESA exists
+    const desaBoundary = boundaries.find(b => b.type === "DESA");
+    if (desaBoundary) {
+      let desaCoords: [number, number][] = [];
+      try {
+        desaCoords = typeof desaBoundary.coordinates === "string" ? JSON.parse(desaBoundary.coordinates) : desaBoundary.coordinates;
+      } catch (e) {}
+
+      if (desaCoords && desaCoords.length >= 3) {
+        // Outer Bounds covering entire map range
+        const outerBounds = [
+          [-90, -180],
+          [90, -180],
+          [90, 180],
+          [-90, 180]
+        ];
+
+        // GeoJSON style for holes: [outerRing, innerRing]
+        L.polygon([outerBounds, desaCoords], {
+          color: "transparent",
+          fillColor: "#0f172a", // Dark slate mask
+          fillOpacity: 0.65,
+          interactive: false // So it doesn't block clicks on the actual boundaries
+        }).addTo(group);
+      }
+    }
+
+    // 2. Draw actual boundaries
     const filtered = boundaries.filter(b => visibleLayers[b.type]);
     if (filtered.length === 0) return;
 
@@ -284,10 +342,21 @@ export default function InteractiveVillageMap({
     }));
   };
 
+  const toggleFullscreen = () => {
+    const container = document.getElementById("gis-fullscreen-wrapper");
+    if (!document.fullscreenElement) {
+      container?.requestFullscreen().catch(err => {
+        console.log(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
+
   return (
-    <div className="flex flex-col xl:flex-row gap-8 relative">
+    <div className="flex flex-col xl:flex-row gap-8 relative" id="gis-fullscreen-wrapper">
       {/* 1. MAP & CONTROLS (Width 2/3 or full if no selection) */}
-      <div className="flex-1 flex flex-col gap-6">
+      <div className={`flex-1 flex flex-col gap-6 ${isFullscreen ? 'p-6 bg-slate-50 overflow-y-auto' : ''}`}>
         
         {/* Layer Toggles Banner */}
         <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-wrap items-center justify-between gap-4">
@@ -309,9 +378,19 @@ export default function InteractiveVillageMap({
 
         {/* Map View */}
         <div className="bg-white p-4 rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden relative">
+          
+          {/* Fullscreen Button */}
+          <button 
+            onClick={toggleFullscreen}
+            className="absolute top-8 right-8 z-[1000] bg-white p-3 rounded-2xl shadow-xl shadow-slate-200/50 hover:scale-105 transition-all text-slate-700 hover:text-blue-600 border border-slate-100"
+            title="Toggle Fullscreen"
+          >
+            {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+          </button>
+
           <div 
             id={mapContainerId} 
-            className="w-full h-[650px] rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-inner z-10"
+            className={`w-full rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-inner z-10 ${isFullscreen ? 'h-[80vh]' : 'h-[650px]'}`}
           />
         </div>
 

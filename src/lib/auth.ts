@@ -32,6 +32,9 @@ export const authOptions: NextAuthOptions = {
               { nik: credentials.identifier }
             ]
           },
+          include: {
+            tenant: true
+          }
         });
 
         if (!user || !user.passwordHash) {
@@ -69,7 +72,11 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (!user.isActive) {
-          throw new Error("Akun Anda dinonaktifkan. Hubungi admin.");
+          throw new Error("Akun Anda dinonaktifkan atau sedang dalam proses pengembangan.");
+        }
+
+        if (user.role !== "ADMIN_MASTER" && user.tenant && !user.tenant.isActive) {
+          throw new Error("Sistem sedang dalam proses pengembangan. Akses ditutup sementara.");
         }
 
         return {

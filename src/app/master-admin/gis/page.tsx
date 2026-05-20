@@ -3,7 +3,7 @@ import { getBoundaries } from "@/actions/gis";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import GisManagementClient from "@/components/master/GisManagementClient";
+import GisManagementWrapper from "@/components/master/GisManagementWrapper";
 
 export default async function GisManagementPage() {
   const session = await getServerSession(authOptions);
@@ -36,7 +36,7 @@ export default async function GisManagementPage() {
         </div>
       </div>
 
-      <GisManagementClient
+      <GisManagementWrapper
         initialBoundaries={initialBoundaries}
         tenants={tenants}
         currentTenantId={tenantId}

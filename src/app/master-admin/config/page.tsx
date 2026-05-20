@@ -1,16 +1,26 @@
-import { getRolePermissions, getSystemSettings } from "@/actions/master";
+import { getRolePermissions, getSystemSettings, getAllTenants, getAllUsers } from "@/actions/master";
 import { RbacManager } from "@/components/master/RbacManager";
 import { ConfigClient } from "@/components/master/ConfigClient";
+import { TenantManagementClient } from "@/components/master/TenantManagementClient";
+import { UserMaintenanceClient } from "@/components/master/UserMaintenanceClient";
 
 export default async function ConfigurationPage() {
-    const [permissions, settings] = await Promise.all([
+    const [permissions, settings, tenants, users] = await Promise.all([
         getRolePermissions(),
-        getSystemSettings()
+        getSystemSettings(),
+        getAllTenants(),
+        getAllUsers()
     ]);
 
     return (
-        <div className="space-y-16 animate-in fade-in duration-1000">
-            {/* 1. MASTER CONFIGURATION UI (New PPOB, Payment, Branding) */}
+        <div className="space-y-16 animate-in fade-in duration-1000 pb-20">
+            {/* 1. KONTROL AKSES (MAINTENANCE MODE) */}
+            <div className="space-y-8">
+                <TenantManagementClient initialTenants={tenants} />
+                <UserMaintenanceClient initialUsers={users} />
+            </div>
+
+            {/* 2. MASTER CONFIGURATION UI (New PPOB, Payment, Branding) */}
             <ConfigClient initialSettings={settings} />
 
             {/* 2. RBAC MANAGEMENT SECTION */}
