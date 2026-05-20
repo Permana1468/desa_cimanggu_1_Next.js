@@ -95,9 +95,10 @@ export default async function MasterDashboardPage({
       </div>
 
       {/* QUICK ACTIONS GRID */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
           <ActionCard icon={Users} label="Manajemen Pengguna" href="/master-admin/pengguna-sistem" color="bg-blue-500" />
           <ActionCard icon={Database} label="Data Kependudukan" href="/master-admin/data" color="bg-indigo-500" />
+          <ActionCard icon={Map} label="Pemetaan GIS" href="/master-admin/gis" color="bg-emerald-600" />
           <ActionCard icon={History} label="Audit Logs" href="/master-admin/logs" color="bg-slate-900" />
           <ActionCard icon={Settings} label="Konfigurasi" href="/master-admin/config" color="bg-amber-500" />
       </div>
@@ -210,4 +211,4 @@ function LogItem({ user, action, time, category }: any) {
   )
 }
 
-import { History, Settings } from "lucide-react";
+import { History, Settings, Map } from "lucide-react";

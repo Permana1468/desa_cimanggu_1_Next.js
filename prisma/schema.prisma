@@ -32,6 +32,7 @@ model Tenant {
   aparatur    AparaturDesa[]
   letterTemplates LetterTemplate[]
   financeProposals FinanceProposal[]
+  mapBoundaries   MapBoundary[]
 }
 
 // ==============================
@@ -384,5 +385,31 @@ model Tracking {
   financeProposal   FinanceProposal? @relation(fields: [entityId], references: [id], map: "Tracking_FinanceProposal_fkey")
   createdAt         DateTime @default(now())
 }
+
+enum BoundaryType {
+  DESA
+  DUSUN
+  RW
+  RT
+}
+
+model MapBoundary {
+  id          String       @id @default(uuid())
+  tenantId    String
+  name        String       // Nama wilayah (contoh: "Dusun III", "RW 05", "RT 02")
+  type        BoundaryType
+  parentName  String?      // Relasi hierarki (contoh: RT 02 memiliki parent "RW 05")
+  coordinates Json         // Koordinat GeoJSON Poligon
+  color       String       @default("#3b82f6") // Kode warna poligon (hex)
+  
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, type, name, parentName])
+  @@index([tenantId, type])
+}
+
 
 

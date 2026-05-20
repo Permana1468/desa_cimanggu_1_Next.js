@@ -19,7 +19,8 @@ import {
   Menu,
   Bell,
   Banknote,
-  Clock
+  Clock,
+  Map
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,6 +34,7 @@ const menuItems = [
   { name: "Kelembagaan", icon: Building2, href: "/dashboard/kelembagaan" },
   { name: "BUMDES", icon: Store, href: "/dashboard/bumdes" },
   { name: "Usulan Dana", icon: Banknote, href: "/dashboard/finance" },
+  { name: "Peta Interaktif", icon: Map, href: "/dashboard/map" },
   { name: "Tracking Layanan", icon: Clock, href: "/dashboard/tracking" },
   { name: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
 ];
@@ -61,7 +63,7 @@ export const VillageSidebar = () => {
       {/* SIDEBAR CONTAINER */}
       <aside 
         className={`bg-white transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col z-[70] shrink-0 border-r border-slate-200
-          fixed inset-y-0 left-0 h-full w-72 ${isOpen ? 'translate-x-0 shadow-[10px_0_40px_rgba(0,0,0,0.1)]' : '-translate-x-full'}
+          fixed inset-y-0 left-0 h-full w-72 ${isOpen ? 'translate-x-0 shadow-[10px_0_40px_rgba(0,0,0,0.15)]' : '-translate-x-full'}
           lg:relative lg:translate-x-0 lg:h-full ${isCollapsed && !isOpen ? 'lg:w-20' : 'lg:w-72'}
         `}
       >
@@ -93,7 +95,7 @@ export const VillageSidebar = () => {
             const role = session?.user?.role;
             if (["ADMIN_DESA", "KADES", "SEKDES", "KASI", "KAUR", "PERANGKAT_DESA", "OPERATOR_DESA", "ADMIN_MASTER"].includes(role as string)) return true;
             if (["RT", "RW", "PKK", "TP_PKK", "POSYANDU", "LPM", "BPD", "KADUS", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
-               return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Dana", "Tracking Layanan"].includes(item.name);
+               return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Dana", "Tracking Layanan", "Peta Interaktif"].includes(item.name);
             }
             return false;
           }).map((item) => {

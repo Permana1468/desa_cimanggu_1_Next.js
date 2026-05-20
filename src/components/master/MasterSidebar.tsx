@@ -28,6 +28,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const menuItems = [
   { name: "Overview", icon: LayoutDashboard, href: "/master-admin" },
   { name: "User Management", icon: Users, href: "/master-admin/pengguna-sistem" },
+  { name: "Pemetaan GIS", icon: MapIcon, href: "/master-admin/gis" },
   { name: "Audit Logs", icon: History, href: "/master-admin/logs" },
   { name: "Data Kependudukan", icon: Database, href: "/master-admin/data" },
   { name: "Wilayah & Lembaga", icon: Building2, href: "/master-admin/wilayah" },

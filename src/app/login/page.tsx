@@ -53,6 +53,19 @@ export default function LoginPage() {
         fetchSettings();
     }, []);
 
+    // Detect redirect reason from URL query parameter
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const reason = params.get("reason");
+            if (reason === "expired") {
+                setError("Sesi Anda telah berakhir demi keamanan. Silakan masuk kembali.");
+            } else if (reason === "inactive") {
+                setError("Sesi Anda telah berakhir karena tidak ada aktivitas. Silakan masuk kembali.");
+            }
+        }
+    }, []);
+
     // Carousel Auto-play
     useEffect(() => {
         if (heroImages.length <= 1) return;
@@ -79,6 +92,8 @@ export default function LoginPage() {
                 setError(res.error === "CredentialsSignin" ? "Email/NIK atau kata sandi salah" : res.error);
             } else if (res?.ok) {
                 setSuccess("Masuk berhasil! Mengalihkan...");
+                // Set the session active flag in sessionStorage
+                sessionStorage.setItem("tab_session_active", "true");
                 // Force a hard navigation to the unified dashboard
                 // The dashboard layout/page will handle role-specific routing
                 window.location.href = "/dashboard";

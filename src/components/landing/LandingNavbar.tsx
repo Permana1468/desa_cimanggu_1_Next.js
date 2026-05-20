@@ -80,6 +80,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                             alt="Logo Desa"
                             fill
                             sizes="40px"
+                            priority
                             className="object-contain drop-shadow-md"
                         />
                     </div>

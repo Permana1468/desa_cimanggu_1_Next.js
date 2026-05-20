@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/SessionProvider";
+import SessionTimeoutHandler from "@/components/providers/SessionTimeoutHandler";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,7 +36,10 @@ export default function RootLayout({
       className={`${inter.variable} ${jetBrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[#0b1120] font-sans">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <SessionTimeoutHandler />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

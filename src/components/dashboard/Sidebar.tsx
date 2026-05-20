@@ -14,13 +14,15 @@ import {
   Building2,
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Map
 } from "lucide-react";
 import { useState } from "react";
 
 const menuItems = [
   { name: "Overview", icon: LayoutDashboard, href: "/master-admin" },
   { name: "User Management", icon: Users, href: "/master-admin/pengguna-sistem" },
+  { name: "Pemetaan GIS", icon: Map, href: "/master-admin/gis" },
   { name: "Audit Logs", icon: History, href: "/master-admin/logs" },
   { name: "Data Kependudukan", icon: Database, href: "/master-admin/data" },
   { name: "Multi-Tenant", icon: Building2, href: "/master-admin/tenants" },
