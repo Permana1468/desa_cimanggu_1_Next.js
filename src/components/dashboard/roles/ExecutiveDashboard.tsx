@@ -14,7 +14,7 @@ import {
 import { StatusSurat } from "@prisma/client";
 import Link from "next/link";
 
-export function ExecutiveDashboard({ session, stats, latestSurat }: { session: any, stats: any, latestSurat: any[] }) {
+export function ExecutiveDashboard({ session, stats, latestSurat, realtimeStats }: { session: any, stats: any, latestSurat: any[], realtimeStats?: any }) {
   return (
     <div className="space-y-6">
       {/* HEADER CARD - DARK */}
@@ -47,9 +47,10 @@ export function ExecutiveDashboard({ session, stats, latestSurat }: { session: a
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex gap-4">
-                <QuickStat label="SURAT PENDING" value={stats.suratPending.toString()} />
-                <QuickStat label="USULAN DANA" value={stats.totalProposals?.toString() || "0"} />
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:flex gap-4">
+                <QuickStat label="SURAT HARI INI" value={realtimeStats?.suratHariIni?.toString() || "0"} />
+                <QuickStat label="ANTREAN SURAT" value={realtimeStats?.totalAntrean?.toString() || "0"} />
+                <QuickStat label="SELESAI HARI INI" value={realtimeStats?.suratSelesai?.toString() || "0"} />
                 <QuickStat label="TOTAL APARATUR" value={stats.totalAparatur.toString()} />
             </div>
         </div>

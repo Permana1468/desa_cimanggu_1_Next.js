@@ -35,6 +35,8 @@ export default function WargaManagementPage() {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [exporting, setExporting] = useState(false);
     const [printing, setPrinting] = useState<string | null>(null);
+    const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
+    const [customVariables, setCustomVariables] = useState<Record<string, string>>({});
 
     // Filters
     const [filters, setFilters] = useState({
@@ -157,16 +159,18 @@ export default function WargaManagementPage() {
         }
     };
 
-    const handleGenerateLetter = async (templateCode: string) => {
+    const handleGenerateLetter = async (templateCode: string, customData: Record<string, string> = {}) => {
         if (!selectedWarga) return;
         setPrinting(templateCode);
         try {
-            const res = await generateSurat(templateCode, selectedWarga.id);
+            const res = await generateSurat(templateCode, selectedWarga.id, customData);
             if (res.success && res.data) {
                 const link = document.createElement("a");
                 link.href = `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${res.data}`;
                 link.download = res.filename || "Surat.docx";
                 link.click();
+                setShowPrintModal(false);
+                setSelectedTemplate(null);
             } else {
                 alert(res.error);
             }
@@ -343,16 +347,51 @@ export default function WargaManagementPage() {
                                 <h3 className="text-2xl font-black text-slate-800 tracking-tight">Cetak Surat Resmi</h3>
                                 <p className="text-slate-500 font-medium text-sm mt-1">Pilih template untuk: <span className="text-blue-600 font-bold">{selectedWarga.namaLengkap}</span></p>
                             </div>
-                            <button onClick={() => setShowPrintModal(false)} className="p-3 hover:bg-slate-200 rounded-2xl transition-all">
+                            <button onClick={() => { setShowPrintModal(false); setSelectedTemplate(null); }} className="p-3 hover:bg-slate-200 rounded-2xl transition-all">
                                 <X size={24} />
                             </button>
                         </div>
 
                         <div className="p-10 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                            {templates.length > 0 ? templates.map((tpl) => (
+                            {selectedTemplate ? (
+                                <div className="space-y-6">
+                                    <button onClick={() => setSelectedTemplate(null)} className="text-xs font-bold text-slate-400 hover:text-slate-700 flex items-center gap-1 mb-4">
+                                        &larr; Kembali ke daftar template
+                                    </button>
+                                    <h4 className="text-lg font-black text-slate-800">Lengkapi Data: {selectedTemplate.name}</h4>
+                                    <div className="space-y-4">
+                                        {selectedTemplate.variables?.map((v: string) => (
+                                            <div key={v} className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{v.replace(/_/g, ' ')}</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={customVariables[v] || ""} 
+                                                    onChange={e => setCustomVariables({...customVariables, [v]: e.target.value})} 
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all text-slate-950" 
+                                                    placeholder={`Masukkan ${v.replace(/_/g, ' ')}...`}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button 
+                                        onClick={() => handleGenerateLetter(selectedTemplate.code, customVariables)}
+                                        disabled={!!printing}
+                                        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 mt-4 transition-all"
+                                    >
+                                        {printing === selectedTemplate.code ? <Loader2 className="animate-spin" size={20} /> : "Cetak Surat Sekarang"}
+                                    </button>
+                                </div>
+                            ) : templates.length > 0 ? templates.map((tpl) => (
                                 <button 
                                     key={tpl.id}
-                                    onClick={() => handleGenerateLetter(tpl.code)}
+                                    onClick={() => {
+                                        if (tpl.variables && tpl.variables.length > 0) {
+                                            setSelectedTemplate(tpl);
+                                            setCustomVariables({});
+                                        } else {
+                                            handleGenerateLetter(tpl.code);
+                                        }
+                                    }}
                                     disabled={!!printing}
                                     className="w-full p-6 rounded-[2rem] border border-slate-200 hover:border-blue-400 hover:bg-blue-50/50 transition-all flex items-center justify-between group"
                                 >

@@ -24,11 +24,11 @@ export default function TemplateRepositoryPage() {
     const [showModal, setShowModal] = useState(false);
     const [saving, setSaving] = useState(false);
     const [query, setQuery] = useState("");
-
     const [formData, setFormData] = useState({
         name: "",
         code: "",
-        fileUrl: ""
+        fileUrl: "",
+        variables: ""
     });
 
     useEffect(() => {
@@ -46,7 +46,8 @@ export default function TemplateRepositoryPage() {
         e.preventDefault();
         setSaving(true);
         try {
-            await createLetterTemplate(formData);
+            const variablesArray = formData.variables ? formData.variables.split(',').map(v => v.trim()) : [];
+            await createLetterTemplate({ ...formData, variables: variablesArray });
             setShowModal(false);
             loadTemplates();
             alert("Template berhasil ditambahkan ke repository.");
@@ -211,6 +212,15 @@ export default function TemplateRepositoryPage() {
                                     placeholder="Contoh: SKU"
                                     value={formData.code} 
                                     onChange={e => setFormData({...formData, code: e.target.value})} 
+                                    className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all text-slate-950" 
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Variabel Dinamis (Pisahkan dengan koma)</label>
+                                <input 
+                                    placeholder="Contoh: nama_usaha, keperluan, tujuan"
+                                    value={formData.variables} 
+                                    onChange={e => setFormData({...formData, variables: e.target.value})} 
                                     className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all text-slate-950" 
                                 />
                             </div>

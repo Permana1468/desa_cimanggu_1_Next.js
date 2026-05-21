@@ -49,51 +49,55 @@ export function WilayahManagementClient({ initialStructure }: WilayahManagementC
     };
 
     const addDusun = () => {
-        const newDusun: Dusun = { name: `Dusun Baru ${structure.dusun.length + 1}`, rw: [] };
-        setStructure({ ...structure, dusun: [...structure.dusun, newDusun] });
-        if (activeDusun === null) setActiveDusun(structure.dusun.length);
+        const newStructure = structuredClone(structure);
+        const newDusun: Dusun = { name: `Dusun Baru ${newStructure.dusun.length + 1}`, rw: [] };
+        newStructure.dusun.push(newDusun);
+        setStructure(newStructure);
+        if (activeDusun === null) setActiveDusun(newStructure.dusun.length - 1);
     };
 
     const addRW = (dusunIndex: number) => {
         if (!structure.dusun[dusunIndex]) return;
-        const newRW: RW = { name: `RW 0${structure.dusun[dusunIndex].rw.length + 1}`, rt: [] };
-        const newDusun = [...structure.dusun];
-        newDusun[dusunIndex].rw.push(newRW);
-        setStructure({ ...structure, dusun: newDusun });
+        const newStructure = structuredClone(structure);
+        const newRW: RW = { name: `RW 0${newStructure.dusun[dusunIndex].rw.length + 1}`, rt: [] };
+        newStructure.dusun[dusunIndex].rw.push(newRW);
+        setStructure(newStructure);
     };
 
     const addRT = (dusunIndex: number, rwIndex: number) => {
         if (!structure.dusun[dusunIndex] || !structure.dusun[dusunIndex].rw[rwIndex]) return;
-        const newRT = `RT 0${structure.dusun[dusunIndex].rw[rwIndex].rt.length + 1}`;
-        const newDusun = [...structure.dusun];
-        newDusun[dusunIndex].rw[rwIndex].rt.push(newRT);
-        setStructure({ ...structure, dusun: newDusun });
+        const newStructure = structuredClone(structure);
+        const newRT = `RT 0${newStructure.dusun[dusunIndex].rw[rwIndex].rt.length + 1}`;
+        newStructure.dusun[dusunIndex].rw[rwIndex].rt.push(newRT);
+        setStructure(newStructure);
     };
 
     const removeDusun = (index: number) => {
         if (!confirm("Hapus Dusun ini beserta seluruh RW dan RT di dalamnya?")) return;
-        const newDusun = structure.dusun.filter((_, i) => i !== index);
-        setStructure({ ...structure, dusun: newDusun });
+        const newStructure = structuredClone(structure);
+        newStructure.dusun = newStructure.dusun.filter((_, i) => i !== index);
+        setStructure(newStructure);
+        if (activeDusun === index) setActiveDusun(null);
     };
 
     const removeRW = (dusunIndex: number, rwIndex: number) => {
-        const newDusun = [...structure.dusun];
-        newDusun[dusunIndex].rw = newDusun[dusunIndex].rw.filter((_, i) => i !== rwIndex);
-        setStructure({ ...structure, dusun: newDusun });
+        const newStructure = structuredClone(structure);
+        newStructure.dusun[dusunIndex].rw = newStructure.dusun[dusunIndex].rw.filter((_, i) => i !== rwIndex);
+        setStructure(newStructure);
     };
 
     const removeRT = (dusunIndex: number, rwIndex: number, rtIndex: number) => {
-        const newDusun = [...structure.dusun];
-        newDusun[dusunIndex].rw[rwIndex].rt = newDusun[dusunIndex].rw[rwIndex].rt.filter((_, i) => i !== rtIndex);
-        setStructure({ ...structure, dusun: newDusun });
+        const newStructure = structuredClone(structure);
+        newStructure.dusun[dusunIndex].rw[rwIndex].rt = newStructure.dusun[dusunIndex].rw[rwIndex].rt.filter((_, i) => i !== rtIndex);
+        setStructure(newStructure);
     };
 
     const updateName = (type: 'dusun' | 'rw' | 'rt', value: string, dIdx: number, rIdx?: number, rtIdx?: number) => {
-        const newDusun = [...structure.dusun];
-        if (type === 'dusun') newDusun[dIdx].name = value;
-        if (type === 'rw' && rIdx !== undefined) newDusun[dIdx].rw[rIdx].name = value;
-        if (type === 'rt' && rIdx !== undefined && rtIdx !== undefined) newDusun[dIdx].rw[rIdx].rt[rtIdx] = value;
-        setStructure({ ...structure, dusun: newDusun });
+        const newStructure = structuredClone(structure);
+        if (type === 'dusun') newStructure.dusun[dIdx].name = value;
+        if (type === 'rw' && rIdx !== undefined) newStructure.dusun[dIdx].rw[rIdx].name = value;
+        if (type === 'rt' && rIdx !== undefined && rtIdx !== undefined) newStructure.dusun[dIdx].rw[rIdx].rt[rtIdx] = value;
+        setStructure(newStructure);
     };
 
     return (
@@ -144,10 +148,10 @@ export function WilayahManagementClient({ initialStructure }: WilayahManagementC
                     </div>
                     <div className="space-y-3">
                         {structure.dusun.map((dusun, idx) => (
-                            <button
+                            <div
                                 key={idx}
                                 onClick={() => { setActiveDusun(idx); setActiveRW(null); }}
-                                className={`w-full p-6 rounded-[2rem] flex items-center justify-between transition-all group ${
+                                className={`w-full p-6 rounded-[2rem] flex items-center justify-between transition-all group cursor-pointer ${
                                     activeDusun === idx 
                                     ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/20' 
                                     : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-100 shadow-sm'
@@ -167,7 +171,7 @@ export function WilayahManagementClient({ initialStructure }: WilayahManagementC
                                             className={`bg-transparent border-none p-0 focus:ring-0 text-sm font-black w-full ${activeDusun === idx ? 'text-white' : 'text-slate-900'}`}
                                         />
                                         <p className={`text-[9px] font-black uppercase tracking-widest mt-0.5 ${activeDusun === idx ? 'text-blue-300' : 'text-slate-400'}`}>
-                                            {dusun.rw.length} RW Terdaftar
+                                            {dusun.rw?.length || 0} RW Terdaftar
                                         </p>
                                     </div>
                                 </div>
@@ -179,7 +183,7 @@ export function WilayahManagementClient({ initialStructure }: WilayahManagementC
                                         <Trash2 size={14} />
                                     </button>
                                 </div>
-                            </button>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -204,7 +208,7 @@ export function WilayahManagementClient({ initialStructure }: WilayahManagementC
                                 </button>
                             </div>
 
-                            {structure.dusun[activeDusun]?.rw.length === 0 ? (
+                            {(!structure.dusun[activeDusun]?.rw || structure.dusun[activeDusun]?.rw.length === 0) ? (
                                 <div className="p-20 text-center bg-slate-50 rounded-[3rem] border-4 border-dashed border-slate-100">
                                     <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 text-slate-200 shadow-sm">
                                         <Layers size={40} />
@@ -237,7 +241,7 @@ export function WilayahManagementClient({ initialStructure }: WilayahManagementC
 
                                             <div className="space-y-4">
                                                 <div className="flex items-center justify-between px-2">
-                                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Daftar RT ({rw.rt.length})</h4>
+                                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Daftar RT ({rw.rt?.length || 0})</h4>
                                                     <button 
                                                         onClick={() => addRT(activeDusun, rIdx)}
                                                         className="text-[10px] font-black text-blue-600 hover:underline flex items-center gap-1"
@@ -246,7 +250,7 @@ export function WilayahManagementClient({ initialStructure }: WilayahManagementC
                                                     </button>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-3">
-                                                    {rw.rt.map((rt, rtIdx) => (
+                                                    {(rw.rt || []).map((rt, rtIdx) => (
                                                         <div key={rtIdx} className="flex items-center gap-2 bg-white p-3 rounded-2xl border border-slate-100 group/rt shadow-sm">
                                                             <input 
                                                                 value={rt}

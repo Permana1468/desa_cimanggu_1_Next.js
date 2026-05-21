@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getBumdesFinances, addBumdesTransaction } from "@/actions/village";
+import { useSession } from "next-auth/react";
 import { 
     ShoppingBag, 
     TrendingUp, 
@@ -22,6 +23,8 @@ import {
 } from "lucide-react";
 
 export default function BumdesPage() {
+    const { data: session } = useSession();
+    const canEdit = ["BUMDES", "ADMIN_MASTER"].includes((session?.user as any)?.role);
     const [finances, setFinances] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
@@ -90,12 +93,14 @@ export default function BumdesPage() {
                     <h1 className="text-4xl font-black text-slate-800 tracking-tight">BUMDesa Monitoring</h1>
                     <p className="text-slate-500 font-medium mt-1">Badan Usaha Milik Desa - Penggerak Ekonomi Desa Cimanggu I.</p>
                 </div>
-                <button 
-                    onClick={() => setShowAddModal(true)}
-                    className="bg-slate-900 text-white px-8 py-4 rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-2xl shadow-slate-900/10 hover:bg-black transition-all active:scale-95 flex items-center gap-2 group"
-                >
-                    <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Tambah Laporan
-                </button>
+                {canEdit && (
+                    <button 
+                        onClick={() => setShowAddModal(true)}
+                        className="bg-slate-900 text-white px-8 py-4 rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-2xl shadow-slate-900/10 hover:bg-black transition-all active:scale-95 flex items-center gap-2 group"
+                    >
+                        <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Tambah Laporan
+                    </button>
+                )}
             </div>
 
             {/* MONITORING PANEL */}

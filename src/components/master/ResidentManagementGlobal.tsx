@@ -52,6 +52,34 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
     const [isImporting, setIsImporting] = useState(false);
     const [editingResident, setEditingResident] = useState<any>(null);
 
+    // Dynamic Import States
+    const [importStep, setImportStep] = useState<"UPLOAD" | "MAPPING" | "PREVIEW">("UPLOAD");
+    const [excelData, setExcelData] = useState<any[]>([]);
+    const [excelHeaders, setExcelHeaders] = useState<string[]>([]);
+    const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
+
+    const DB_FIELDS = useMemo(() => [
+        { key: "nik", label: "NIK", required: true },
+        { key: "noKK", label: "No KK", required: true },
+        { key: "namaLengkap", label: "Nama Lengkap", required: true },
+        { key: "jenisKelamin", label: "Jenis Kelamin (L/P)", required: true },
+        { key: "tempatLahir", label: "Tempat Lahir", required: true },
+        { key: "tanggalLahir", label: "Tanggal Lahir", required: true },
+        { key: "agama", label: "Agama", required: false },
+        { key: "pendidikan", label: "Pendidikan", required: false },
+        { key: "pekerjaan", label: "Pekerjaan", required: false },
+        { key: "golonganDarah", label: "Golongan Darah", required: false },
+        { key: "statusKawin", label: "Status Perkawinan", required: false },
+        { key: "hubunganKeluarga", label: "Hubungan Keluarga", required: false },
+        { key: "kewarganegaraan", label: "Kewarganegaraan", required: false },
+        { key: "namaAyah", label: "Nama Ayah", required: false },
+        { key: "namaIbu", label: "Nama Ibu", required: false },
+        { key: "alamat", label: "Alamat Lengkap", required: true },
+        { key: "rt", label: "RT", required: true },
+        { key: "rw", label: "RW", required: true },
+        { key: "dusun", label: "Dusun", required: true },
+    ], []);
+
     const [formData, setFormData] = useState({
         nik: "",
         noKK: "",
@@ -183,43 +211,96 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
             const workbook = new ExcelJS.Workbook();
             await workbook.xlsx.load(buffer as any);
             const worksheet = workbook.worksheets[0];
-            const data: any[] = [];
+            
+            const headers: string[] = [];
+            worksheet.getRow(1).eachCell((cell, colNumber) => {
+                headers.push(cell.text || `Column ${colNumber}`);
+            });
 
+            const data: any[] = [];
             worksheet.eachRow((row, rowNumber) => {
                 if (rowNumber > 1) { // Skip header
-                    data.push({
-                        nik: row.getCell(1).text,
-                        noKK: row.getCell(2).text,
-                        namaLengkap: row.getCell(3).text,
-                        jenisKelamin: row.getCell(4).text === "L" ? "LAKI_LAKI" : "PEREMPUAN",
-                        tempatLahir: row.getCell(5).text,
-                        tanggalLahir: row.getCell(6).text,
-                        agama: row.getCell(7).text || "ISLAM",
-                        pendidikan: row.getCell(8).text,
-                        pekerjaan: row.getCell(9).text,
-                        golonganDarah: row.getCell(10).text || "-",
-                        statusKawin: row.getCell(11).text || "BELUM_KAWIN",
-                        hubunganKeluarga: row.getCell(12).text || "KEPALA_KELUARGA",
-                        kewarganegaraan: row.getCell(13).text || "WNI",
-                        namaAyah: row.getCell(14).text,
-                        namaIbu: row.getCell(15).text,
-                        alamat: row.getCell(16).text,
-                        rt: row.getCell(17).text,
-                        rw: row.getCell(18).text,
-                        dusun: row.getCell(19).text,
+                    const rowData: Record<string, string> = {};
+                    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+                        const header = headers[colNumber - 1];
+                        if (header) rowData[header] = cell.text;
                     });
+                    data.push(rowData);
                 }
             });
 
-            await bulkImportResidents(data, formData.tenantId);
-            alert(`Berhasil mengimpor ${data.length} data kependudukan!`);
-            window.location.reload(); 
+            setExcelHeaders(headers);
+            setExcelData(data);
+
+            // Auto-Match logic
+            const initialMapping: Record<string, string> = {};
+            DB_FIELDS.forEach(field => {
+                const match = headers.find(h => 
+                    h.toLowerCase().includes(field.label.toLowerCase()) || 
+                    field.label.toLowerCase().includes(h.toLowerCase()) || 
+                    h.toLowerCase() === field.key.toLowerCase()
+                );
+                if (match) initialMapping[field.key] = match;
+            });
+            setColumnMapping(initialMapping);
+            setImportStep("MAPPING");
+
         } catch (error) {
-            alert("Gagal mengimpor file Excel. Pastikan format kolom sesuai.");
+            alert("Gagal membaca file Excel. Pastikan format sesuai.");
         } finally {
             setIsImporting(false);
-            setIsImportOpen(false);
+            e.target.value = '';
         }
+    };
+
+    const executeImport = async () => {
+        setIsImporting(true);
+        try {
+            const formattedData = excelData.map(row => {
+                const jkRaw = String(row[columnMapping['jenisKelamin']] || "").toUpperCase();
+                const jk = jkRaw === "L" || jkRaw === "LAKI-LAKI" || jkRaw === "LAKI_LAKI" ? "LAKI_LAKI" : "PEREMPUAN";
+
+                return {
+                    nik: row[columnMapping['nik']] || "",
+                    noKK: row[columnMapping['noKK']] || "",
+                    namaLengkap: row[columnMapping['namaLengkap']] || "",
+                    jenisKelamin: jk,
+                    tempatLahir: row[columnMapping['tempatLahir']] || "",
+                    tanggalLahir: row[columnMapping['tanggalLahir']] || "",
+                    agama: row[columnMapping['agama']] || "ISLAM",
+                    pendidikan: row[columnMapping['pendidikan']] || "",
+                    pekerjaan: row[columnMapping['pekerjaan']] || "",
+                    golonganDarah: row[columnMapping['golonganDarah']] || "-",
+                    statusKawin: row[columnMapping['statusKawin']] || "BELUM_KAWIN",
+                    hubunganKeluarga: row[columnMapping['hubunganKeluarga']] || "KEPALA_KELUARGA",
+                    kewarganegaraan: row[columnMapping['kewarganegaraan']] || "WNI",
+                    namaAyah: row[columnMapping['namaAyah']] || "",
+                    namaIbu: row[columnMapping['namaIbu']] || "",
+                    alamat: row[columnMapping['alamat']] || "",
+                    rt: row[columnMapping['rt']] || "",
+                    rw: row[columnMapping['rw']] || "",
+                    dusun: row[columnMapping['dusun']] || "",
+                };
+            });
+
+            await bulkImportResidents(formattedData, formData.tenantId);
+            alert(`Berhasil mengimpor ${formattedData.length} data kependudukan!`);
+            window.location.reload(); 
+        } catch (error) {
+            alert("Gagal mengimpor data kependudukan.");
+            setIsImporting(false);
+        }
+    };
+
+    const closeImportModal = () => {
+        if (isImporting) return;
+        setIsImportOpen(false);
+        setTimeout(() => {
+            setImportStep("UPLOAD");
+            setExcelData([]);
+            setExcelHeaders([]);
+            setColumnMapping({});
+        }, 300);
     };
 
     return (
@@ -631,40 +712,118 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
             {/* IMPORT MODAL - Premium Layout */}
             {isImportOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
-                    <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-md" onClick={() => !isImporting && setIsImportOpen(false)} />
-                    <div className="bg-white w-full max-w-lg rounded-[3.5rem] shadow-2xl relative overflow-hidden animate-in zoom-in duration-500">
-                        <div className="p-10 bg-slate-950 text-white flex justify-between items-center">
+                    <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-md" onClick={closeImportModal} />
+                    <div className={`bg-white w-full rounded-[3.5rem] shadow-2xl relative overflow-hidden animate-in zoom-in duration-500 flex flex-col ${importStep === "UPLOAD" ? 'max-w-lg' : 'max-w-4xl h-[90vh]'}`}>
+                        <div className="p-10 bg-slate-950 text-white flex justify-between items-center shrink-0">
                             <div>
                                 <h3 className="text-2xl font-black tracking-tight">Import Ecosystem</h3>
                                 <p className="text-[10px] text-blue-400 font-black uppercase tracking-widest mt-1">Massive Population Sync</p>
                             </div>
-                            <button onClick={() => setIsImportOpen(false)} className="w-12 h-12 flex items-center justify-center hover:bg-white/10 rounded-full transition-all">
+                            <button onClick={closeImportModal} className="w-12 h-12 flex items-center justify-center hover:bg-white/10 rounded-full transition-all">
                                 <X size={24} />
                             </button>
                         </div>
-                        <div className="p-10 space-y-8">
-                            <FormGroup label="Target Desa Destinasi" icon={Building}>
-                                <select value={formData.tenantId} onChange={e => setFormData({...formData, tenantId: e.target.value})} className="form-input-premium appearance-none">
-                                    {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                                </select>
-                            </FormGroup>
+                        
+                        {importStep === "UPLOAD" && (
+                            <div className="p-10 space-y-8">
+                                <FormGroup label="Target Desa Destinasi" icon={Building}>
+                                    <select value={formData.tenantId} onChange={e => setFormData({...formData, tenantId: e.target.value})} className="form-input-premium appearance-none">
+                                        {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                    </select>
+                                </FormGroup>
 
-                            <div className="relative p-12 border-4 border-dashed border-slate-100 rounded-[3rem] flex flex-col items-center gap-6 text-center group hover:border-blue-500/30 transition-all bg-slate-50/50">
-                                <div className="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center text-slate-300 group-hover:text-blue-600 transition-all shadow-xl shadow-slate-200/50">
-                                    {isImporting ? <Loader2 className="animate-spin" size={32} /> : <Upload size={32} />}
+                                <div className="relative p-12 border-4 border-dashed border-slate-100 rounded-[3rem] flex flex-col items-center gap-6 text-center group hover:border-blue-500/30 transition-all bg-slate-50/50">
+                                    <div className="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center text-slate-300 group-hover:text-blue-600 transition-all shadow-xl shadow-slate-200/50">
+                                        {isImporting ? <Loader2 className="animate-spin" size={32} /> : <Upload size={32} />}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-black text-slate-800">Tarik File Excel ke Sini</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Format: .xlsx (Max 50MB)</p>
+                                    </div>
+                                    <input type="file" accept=".xlsx" onChange={handleImportExcel} className="absolute inset-0 opacity-0 cursor-pointer" disabled={isImporting} />
                                 </div>
-                                <div className="space-y-1">
-                                    <p className="text-sm font-black text-slate-800">Tarik File Excel ke Sini</p>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Format: .xlsx (Max 50MB)</p>
-                                </div>
-                                <input type="file" accept=".xlsx" onChange={handleImportExcel} className="absolute inset-0 opacity-0 cursor-pointer" disabled={isImporting} />
                             </div>
+                        )}
 
-                            <button className="w-full p-6 bg-blue-50 text-blue-600 rounded-[2rem] border border-blue-100 flex items-center justify-center gap-4 hover:bg-blue-100 transition-all group">
-                                <Download size={20} className="group-hover:translate-y-1 transition-transform" />
-                                <span className="text-[11px] font-black uppercase tracking-widest">Unduh Master Template</span>
-                            </button>
-                        </div>
+                        {importStep === "MAPPING" && (
+                            <div className="flex-1 flex flex-col min-h-0">
+                                <div className="p-8 border-b border-slate-100 bg-slate-50/50 shrink-0">
+                                    <h4 className="text-lg font-black text-slate-900">Pencocokan Kolom Data</h4>
+                                    <p className="text-xs text-slate-500 mt-1">Sistem mendeteksi kolom dari file Anda. Harap cocokkan dengan field database.</p>
+                                </div>
+                                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-slate-50/30">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        {DB_FIELDS.map(field => (
+                                            <div key={field.key} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-3">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-xs font-black text-slate-700 uppercase tracking-wide flex items-center gap-2">
+                                                        {field.label}
+                                                        {field.required && <span className="text-rose-500">*</span>}
+                                                    </span>
+                                                </div>
+                                                <select 
+                                                    value={columnMapping[field.key] || ""} 
+                                                    onChange={e => setColumnMapping({...columnMapping, [field.key]: e.target.value})}
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-sm font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all appearance-none"
+                                                >
+                                                    <option value="">-- Abaikan (Kosongkan) --</option>
+                                                    {excelHeaders.map(h => <option key={h} value={h}>{h}</option>)}
+                                                </select>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="p-8 border-t border-slate-100 flex justify-end gap-4 bg-white shrink-0">
+                                    <button onClick={() => setImportStep("UPLOAD")} className="px-8 py-4 rounded-3xl text-sm font-black text-slate-500 hover:bg-slate-100 transition-all">Kembali</button>
+                                    <button onClick={() => setImportStep("PREVIEW")} className="px-8 py-4 rounded-3xl text-sm font-black bg-blue-600 text-white shadow-xl shadow-blue-600/30 hover:bg-blue-700 transition-all">Lanjut Pratinjau</button>
+                                </div>
+                            </div>
+                        )}
+
+                        {importStep === "PREVIEW" && (
+                            <div className="flex-1 flex flex-col min-h-0">
+                                <div className="p-8 border-b border-slate-100 bg-slate-50/50 shrink-0">
+                                    <h4 className="text-lg font-black text-slate-900">Pratinjau Data Kependudukan</h4>
+                                    <p className="text-xs text-slate-500 mt-1">Tinjau ulang 5 data pertama sebelum menyimpan secara permanen.</p>
+                                </div>
+                                <div className="flex-1 overflow-auto p-8 custom-scrollbar">
+                                    <table className="w-full text-left border-collapse whitespace-nowrap">
+                                        <thead>
+                                            <tr className="bg-slate-100">
+                                                {DB_FIELDS.map(f => (
+                                                    <th key={f.key} className="px-4 py-3 text-[10px] font-black text-slate-500 uppercase tracking-wider border-b border-slate-200">{f.label}</th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {excelData.slice(0, 5).map((row, idx) => (
+                                                <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
+                                                    {DB_FIELDS.map(f => {
+                                                        const val = row[columnMapping[f.key]];
+                                                        const isMissing = f.required && !val;
+                                                        return (
+                                                            <td key={f.key} className="px-4 py-3 text-xs font-medium text-slate-700">
+                                                                {isMissing ? <span className="text-rose-500 text-[10px] font-black uppercase flex items-center gap-1"><AlertCircle size={10}/> Kosong</span> : val || "-"}
+                                                            </td>
+                                                        );
+                                                    })}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                    {excelData.length > 5 && (
+                                        <p className="text-center text-xs font-bold text-slate-400 mt-6">...dan {excelData.length - 5} baris lainnya.</p>
+                                    )}
+                                </div>
+                                <div className="p-8 border-t border-slate-100 flex justify-end gap-4 bg-white shrink-0">
+                                    <button disabled={isImporting} onClick={() => setImportStep("MAPPING")} className="px-8 py-4 rounded-3xl text-sm font-black text-slate-500 hover:bg-slate-100 transition-all disabled:opacity-50">Kembali</button>
+                                    <button disabled={isImporting} onClick={executeImport} className="px-8 py-4 rounded-3xl text-sm font-black bg-slate-950 text-white shadow-xl shadow-slate-900/30 hover:bg-blue-600 transition-all flex items-center gap-3 disabled:opacity-50">
+                                        {isImporting ? <Loader2 className="animate-spin" size={18} /> : <CheckCircle2 size={18} />}
+                                        Mulai Import Massal ({excelData.length} Baris)
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

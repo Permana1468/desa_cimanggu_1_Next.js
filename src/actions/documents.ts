@@ -75,7 +75,7 @@ export async function exportWargaExcel(filter?: any) {
     }
 }
 
-export async function generateSurat(templateCode: string, wargaId: string) {
+export async function generateSurat(templateCode: string, wargaId: string, customData: Record<string, any> = {}) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
@@ -116,7 +116,8 @@ export async function generateSurat(templateCode: string, wargaId: string) {
             rw: warga.rw,
             dusun: warga.dusun,
             tgl_surat: new Date().toLocaleDateString('id-ID'),
-            tahun: new Date().getFullYear()
+            tahun: new Date().getFullYear(),
+            ...customData
         });
 
         const buffer = doc.getZip().generate({
@@ -149,7 +150,7 @@ export async function getLetterTemplates() {
     }
 }
 
-export async function createLetterTemplate(data: { name: string, code: string, fileUrl: string }) {
+export async function createLetterTemplate(data: { name: string, code: string, fileUrl: string, variables?: any }) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");

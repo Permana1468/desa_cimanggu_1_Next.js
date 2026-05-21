@@ -20,7 +20,11 @@ import {
   Bell,
   Banknote,
   Clock,
-  Map
+  Map,
+  HardHat,
+  Activity,
+  PieChart,
+  Archive
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,8 +37,12 @@ const menuItems = [
   { name: "Aparatur Desa", icon: Users, href: "/dashboard/aparatur" },
   { name: "Kelembagaan", icon: Building2, href: "/dashboard/kelembagaan" },
   { name: "BUMDES", icon: Store, href: "/dashboard/bumdes" },
+  { name: "Infrastruktur", icon: HardHat, href: "/dashboard/infrastruktur" },
   { name: "Usulan Dana", icon: Banknote, href: "/dashboard/finance" },
+  { name: "APBDes", icon: PieChart, href: "/dashboard/apbdes" },
   { name: "Peta Interaktif", icon: Map, href: "/dashboard/map" },
+  { name: "Arsip Digital", icon: Archive, href: "/dashboard/arsip" },
+  { name: "Monitoring", icon: Activity, href: "/dashboard/monitoring" },
   { name: "Tracking Layanan", icon: Clock, href: "/dashboard/tracking" },
   { name: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
 ];

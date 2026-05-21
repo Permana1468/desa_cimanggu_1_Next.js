@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getVillageDashboardStats, getSuratList } from "@/actions/village";
+import { getDashboardRealtimeStats } from "@/actions/dashboard";
 
 // Role Components
 import { ExecutiveDashboard } from "@/components/dashboard/roles/ExecutiveDashboard";
@@ -16,20 +17,19 @@ import { OperatorDashboard } from "@/components/dashboard/roles/OperatorDashboar
 export default async function VillageDashboardPage() {
   const session = await getServerSession(authOptions);
   
-  // Universal Stats
   const stats = await getVillageDashboardStats();
   const latestSurat = await getSuratList();
+  const realtimeStats = await getDashboardRealtimeStats(session?.user?.tenantId || "");
 
   const email = session?.user?.email || "";
   const role = (session?.user as any)?.role || "WARGA";
 
   // 1. EXECUTIVE ROLES (Pimpinan & Manajemen Umum)
   if (["ADMIN_DESA", "KADES", "SEKDES", "ADMIN_MASTER"].includes(role)) {
-    // Independent Dashboard for Operator
     if (email.includes("operator")) {
       return <OperatorDashboard session={session} stats={stats} />;
     }
-    return <ExecutiveDashboard session={session} stats={stats} latestSurat={latestSurat} />;
+    return <ExecutiveDashboard session={session} stats={stats} latestSurat={latestSurat} realtimeStats={realtimeStats} />;
   }
 
   // 2. PELAYANAN & TATA USAHA (Administrasi Pemerintahan & Petugas)

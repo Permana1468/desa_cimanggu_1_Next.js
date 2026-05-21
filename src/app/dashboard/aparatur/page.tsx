@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getAparatur, addAparatur, updateAparaturSK } from "@/actions/village";
+import { useSession } from "next-auth/react";
 import { 
     Users, 
     Mail, 
@@ -19,6 +20,8 @@ import {
 } from "lucide-react";
 
 export default function AparaturPage() {
+    const { data: session } = useSession();
+    const isAdminMaster = (session?.user as any)?.role === "ADMIN_MASTER";
     const [aparatur, setAparatur] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
@@ -105,12 +108,14 @@ export default function AparaturPage() {
                     <h1 className="text-4xl font-black text-slate-800 tracking-tight">Struktur Organisasi</h1>
                     <p className="text-slate-500 text-sm font-medium">Manajemen aparatur dan tata kelola administrasi Desa Cimanggu I.</p>
                 </div>
-                <button 
-                    onClick={() => setShowAddModal(true)}
-                    className="bg-blue-600 text-white px-8 py-4 rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-2xl shadow-blue-600/20 hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2 group"
-                >
-                    <UserPlus size={18} className="group-hover:rotate-12 transition-transform" /> Tambah Aparatur
-                </button>
+                {isAdminMaster && (
+                    <button 
+                        onClick={() => setShowAddModal(true)}
+                        className="bg-blue-600 text-white px-8 py-4 rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-2xl shadow-blue-600/20 hover:bg-blue-700 transition-all active:scale-95 flex items-center gap-2 group"
+                    >
+                        <UserPlus size={18} className="group-hover:rotate-12 transition-transform" /> Tambah Aparatur
+                    </button>
+                )}
             </div>
 
             {/* HIERARCHY CHART */}
@@ -120,13 +125,13 @@ export default function AparaturPage() {
                 <div className="space-y-20">
                     <div className="flex flex-col items-center relative z-10">
                         <SectionTitle title="Pimpinan Tertinggi" />
-                        {kades ? <AparaturCard person={kades} variant="primary" onEditSK={() => { setSelectedAparatur(kades); setSkData({ skNumber: kades.skNumber || "", skUrl: kades.skUrl || "" }); setShowSKModal(true); }} /> : <EmptySlot label="Kepala Desa" />}
+                        {kades ? <AparaturCard person={kades} variant="primary" isAdminMaster={isAdminMaster} onEditSK={() => { setSelectedAparatur(kades); setSkData({ skNumber: kades.skNumber || "", skUrl: kades.skUrl || "" }); setShowSKModal(true); }} /> : <EmptySlot label="Kepala Desa" />}
                     </div>
 
                     <div className="flex flex-col items-center relative z-10">
                         <div className="w-0.5 h-16 bg-slate-200 mb-4" />
                         <SectionTitle title="Administrasi Pusat" />
-                        {sekdes ? <AparaturCard person={sekdes} variant="secondary" onEditSK={() => { setSelectedAparatur(sekdes); setSkData({ skNumber: sekdes.skNumber || "", skUrl: sekdes.skUrl || "" }); setShowSKModal(true); }} /> : <EmptySlot label="Sekretaris Desa" />}
+                        {sekdes ? <AparaturCard person={sekdes} variant="secondary" isAdminMaster={isAdminMaster} onEditSK={() => { setSelectedAparatur(sekdes); setSkData({ skNumber: sekdes.skNumber || "", skUrl: sekdes.skUrl || "" }); setShowSKModal(true); }} /> : <EmptySlot label="Sekretaris Desa" />}
                     </div>
 
                     <div className="relative z-10">
@@ -139,6 +144,7 @@ export default function AparaturPage() {
                                 <AparaturCard 
                                     key={person.id} 
                                     person={person} 
+                                    isAdminMaster={isAdminMaster}
                                     onEditSK={() => { 
                                         setSelectedAparatur(person); 
                                         setSkData({ skNumber: person.skNumber || "", skUrl: person.skUrl || "" }); 
@@ -185,7 +191,7 @@ export default function AparaturPage() {
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-black text-slate-800">{person.fullName}</p>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{person.position || person.role}</p>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{person.position}</p>
                                                 </div>
                                             </div>
                                         </td>
@@ -204,12 +210,14 @@ export default function AparaturPage() {
                                                         <ExternalLink size={18} />
                                                     </a>
                                                 )}
-                                                <button 
-                                                    onClick={() => { setSelectedAparatur(person); setSkData({ skNumber: person.skNumber || "", skUrl: person.skUrl || "" }); setShowSKModal(true); }}
-                                                    className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-900 hover:text-white transition-all shadow-sm"
-                                                >
-                                                    <FileText size={18} />
-                                                </button>
+                                                {isAdminMaster && (
+                                                    <button 
+                                                        onClick={() => { setSelectedAparatur(person); setSkData({ skNumber: person.skNumber || "", skUrl: person.skUrl || "" }); setShowSKModal(true); }}
+                                                        className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+                                                    >
+                                                        <FileText size={18} />
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -307,7 +315,7 @@ function EmptySlot({ label }: { label: string }) {
     )
 }
 
-function AparaturCard({ person, variant = "default", onEditSK }: { person: any, variant?: "primary" | "secondary" | "default", onEditSK: () => void }) {
+function AparaturCard({ person, variant = "default", isAdminMaster, onEditSK }: { person: any, variant?: "primary" | "secondary" | "default", isAdminMaster?: boolean, onEditSK: () => void }) {
     const isPrimary = variant === "primary";
     const isSecondary = variant === "secondary";
 
@@ -336,7 +344,7 @@ function AparaturCard({ person, variant = "default", onEditSK }: { person: any, 
                         inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest
                         ${isPrimary ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-600'}
                     `}>
-                        <ShieldCheck size={14} /> {person.position || person.role}
+                        <ShieldCheck size={14} /> {person.position}
                     </div>
                 </div>
                 <div className="w-full grid grid-cols-2 gap-4 pt-8 border-t border-slate-50">
@@ -350,11 +358,13 @@ function AparaturCard({ person, variant = "default", onEditSK }: { person: any, 
                     </div>
                 </div>
                 <div className="flex gap-3 w-full">
-                    <button onClick={onEditSK} className="flex-1 py-4 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-black hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
-                        <FileText size={14} /> Arsip SK
-                    </button>
-                    <button className="p-4 rounded-2xl bg-slate-100 text-slate-400 hover:bg-slate-200 transition-all active:scale-95">
-                        <Users size={16} />
+                    {isAdminMaster && (
+                        <button onClick={onEditSK} className="flex-1 py-4 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-black hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <FileText size={14} /> Arsip SK
+                        </button>
+                    )}
+                    <button className={`${isAdminMaster ? 'p-4' : 'flex-1 py-4'} rounded-2xl bg-slate-100 text-slate-400 hover:bg-slate-200 transition-all active:scale-95 flex items-center justify-center gap-2`}>
+                        <Users size={16} /> {!isAdminMaster && <span className="text-[10px] font-black uppercase tracking-widest">Detail</span>}
                     </button>
                 </div>
             </div>
