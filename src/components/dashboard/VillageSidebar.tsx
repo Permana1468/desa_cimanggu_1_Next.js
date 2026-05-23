@@ -45,7 +45,7 @@ const menuItems = [
   { name: "Kelembagaan", icon: Building2, href: "/dashboard/kelembagaan" },
   { name: "BUMDES", icon: Store, href: "/dashboard/bumdes" },
   { name: "Infrastruktur", icon: HardHat, href: "/dashboard/infrastruktur" },
-  { name: "Usulan Dana", icon: Banknote, href: "/dashboard/finance" },
+  { name: "Usulan Pembangunan", icon: Banknote, href: "/dashboard/finance" },
   { name: "APBDes", icon: PieChart, href: "/dashboard/apbdes" },
   { name: "Peta Interaktif", icon: Map, href: "/dashboard/map" },
   { name: "Arsip Digital", icon: Archive, href: "/dashboard/arsip" },
@@ -114,14 +114,25 @@ export const VillageSidebar = () => {
 
             let itemsToRender = menuItems.filter(item => {
               if (["ADMIN_DESA", "KADES", "SEKDES", "KASI", "KAUR", "PERANGKAT_DESA", "OPERATOR_DESA", "ADMIN_MASTER"].includes(role as string)) return true;
-              if (["PKK", "TP_PKK", "POSYANDU", "LPM", "BPD", "KADUS", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
-                 return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Dana", "Tracking Layanan", "Peta Interaktif"].includes(item.name);
+              if (["PKK", "TP_PKK", "POSYANDU", "BPD", "KADUS", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
+                 return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Pembangunan", "Tracking Layanan", "Peta Interaktif"].includes(item.name);
               }
               if (role === "BUMDES") {
                  return ["Dashboard", "BUMDES"].includes(item.name);
               }
               return false;
             });
+
+            if (role === "LPM") {
+              itemsToRender = [
+                { name: "Dashboard", icon: LayoutDashboard, href: "/kelembagaan?tab=overview" },
+                { name: "Usulan Pembangunan", icon: Banknote, href: "/kelembagaan/finance" },
+                { name: "Program Kerja", icon: Activity, href: "/kelembagaan?tab=program" },
+                { name: "Pemberdayaan", icon: Sparkles, href: "/kelembagaan?tab=pemberdayaan" },
+                { name: "Swadaya & Gotong Royong", icon: HeartHandshake, href: "/kelembagaan?tab=swadaya" },
+                { name: "Susunan Pengurus", icon: Users, href: "/kelembagaan?tab=pengurus" }
+              ];
+            }
 
             if (role === "RT" || role === "RW") {
               itemsToRender = [
@@ -144,16 +155,19 @@ export const VillageSidebar = () => {
               
               // Map dashboard links to kelembagaan links for institutional roles
               let href = item.href;
-              if (isInstitutional) {
+              if (isInstitutional && role !== "LPM") {
                   if (href === "/dashboard") href = "/kelembagaan";
                   else href = href.replace("/dashboard/", "/kelembagaan/");
               }
 
               let isActive = false;
-              if (role === "RT" || role === "RW") {
+              if (role === "RT" || role === "RW" || role === "LPM") {
                 const urlTab = tabParam || "overview";
                 const itemTab = item.href.split("tab=")[1] || "overview";
-                isActive = pathname === "/dashboard" && urlTab === itemTab;
+                isActive = (pathname === "/dashboard" || pathname === "/kelembagaan") && urlTab === itemTab;
+                if (item.name === "Usulan Pembangunan" && role === "LPM") {
+                  isActive = pathname === "/kelembagaan/finance";
+                }
               } else {
                 isActive = pathname === href;
               }

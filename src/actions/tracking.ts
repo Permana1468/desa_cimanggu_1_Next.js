@@ -6,7 +6,15 @@ import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
 // 1. Finance Proposals
-export async function createFinanceProposal(data: { title: string, description: string, amount: number, category: string }) {
+export async function createFinanceProposal(data: { 
+    title: string, 
+    description: string, 
+    amount: number, 
+    category: string,
+    volume?: string,
+    kubikasi?: number,
+    rab?: any
+}) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
@@ -14,7 +22,13 @@ export async function createFinanceProposal(data: { title: string, description: 
 
         const result = await prisma.financeProposal.create({
             data: {
-                ...data,
+                title: data.title,
+                description: data.description,
+                amount: data.amount,
+                category: data.category,
+                volume: data.volume || null,
+                kubikasi: data.kubikasi || null,
+                rab: data.rab ? JSON.parse(JSON.stringify(data.rab)) : null,
                 submittedBy: u.id,
                 tenantId: u.tenantId,
                 status: "PENDING"
@@ -99,6 +113,84 @@ export async function addSuratTracking(suratId: string, status: string, notes?: 
                 updatedBy: u.id
             }
         });
+    } catch (error) {
+        throw error;
+    }
+}
+
+// 3. Convert Verified/Approved Proposal to active InfrastrukturProject
+export async function convertProposalToInfrastrukturProject(proposalId: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const u = session.user as any;
+
+        // 1. Get the proposal
+        const proposal = await prisma.financeProposal.findUnique({
+            where: { id: proposalId }
+        });
+
+        if (!proposal) throw new Error("Proposal tidak ditemukan");
+
+        // 2. Parse volume details
+        let dimensiPanjang = null;
+        let dimensiLebar = null;
+        let dimensiTinggi = null;
+        let volumeTotal = proposal.kubikasi || null;
+
+        if (proposal.volume) {
+            // format: "100 x 1 x 0.10 m" or similar
+            const cleanVol = proposal.volume.replace(" m", "").trim();
+            const parts = cleanVol.split("x").map(p => parseFloat(p.trim()));
+            if (parts.length === 3) {
+                dimensiPanjang = parts[0];
+                dimensiLebar = parts[1];
+                dimensiTinggi = parts[2];
+                if (!volumeTotal) {
+                    volumeTotal = dimensiPanjang * dimensiLebar * dimensiTinggi;
+                }
+            }
+        }
+
+        // 3. Create InfrastrukturProject
+        const project = await prisma.infrastrukturProject.create({
+            data: {
+                namaProyek: proposal.title,
+                jenisPekerjaan: "PEMBANGUNAN FISIK (LPM)",
+                lokasi: "Desa Cimanggu I",
+                dimensiPanjang,
+                dimensiLebar,
+                dimensiTinggi,
+                volumeTotal,
+                satuanVolume: "m³",
+                anggaran: proposal.amount,
+                sumberDana: "Dana Usulan LPM",
+                status: "PERENCANAAN",
+                userId: u.id,
+                tenantId: u.tenantId
+            }
+        });
+
+        // 4. Update Proposal status to APPROVED and add tracking log
+        await prisma.financeProposal.update({
+            where: { id: proposalId },
+            data: { status: "APPROVED" }
+        });
+
+        await prisma.tracking.create({
+            data: {
+                entityType: "FINANCE_PROPOSAL",
+                entityId: proposalId,
+                status: "APPROVED",
+                notes: `Dikonversi menjadi Proyek Fisik: ${project.namaProyek}`,
+                updatedBy: u.id
+            }
+        });
+
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/infrastruktur");
+        revalidatePath("/dashboard/finance");
+        return { success: true, project };
     } catch (error) {
         throw error;
     }

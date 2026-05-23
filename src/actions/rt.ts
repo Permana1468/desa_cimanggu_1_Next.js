@@ -179,12 +179,13 @@ export async function getRtActivities() {
     }
 }
 
-export async function addRtActivity(data: { title: string, description: string, date: Date, budget?: number, status: string, imageUrl?: string }) {
-    const { tenantId, rt, rw } = await getRtSession();
+export async function addRtActivity(data: { title: string, description: string, date: Date, budget?: number, status: string, imageUrl?: string, rt?: string }) {
+    const { tenantId, rt: sessionRt, rw, role } = await getRtSession();
+    const targetRt = role === "RW" ? (data.rt || "") : sessionRt;
     try {
         const activity = await prisma.rtActivity.create({
             data: {
-                rt,
+                rt: targetRt,
                 rw,
                 title: data.title,
                 description: data.description,
@@ -623,12 +624,13 @@ export async function getRtInventories() {
     }
 }
 
-export async function addRtInventory(data: { itemName: string, quantity: number, condition: string }) {
-    const { tenantId, rt, rw } = await getRtSession();
+export async function addRtInventory(data: { itemName: string, quantity: number, condition: string, rt?: string }) {
+    const { tenantId, rt: sessionRt, rw, role } = await getRtSession();
+    const targetRt = role === "RW" ? (data.rt || "") : sessionRt;
     try {
         const item = await prisma.rtInventory.create({
             data: {
-                rt,
+                rt: targetRt,
                 rw,
                 itemName: data.itemName,
                 quantity: data.quantity,
@@ -1039,5 +1041,97 @@ async function triggerRwPolygonAggregation(tenantId: string, rwName: string) {
                 color: "#f59e0b"
             }
         });
+    }
+}
+
+export async function getRwDashboardStats() {
+    try {
+        const { tenantId, rw, role } = await getRtSession();
+        if (role !== "RW" && role !== "ADMIN_DESA" && role !== "KADES" && role !== "SEKDES" && role !== "ADMIN_MASTER") {
+            throw new Error("Unauthorized");
+        }
+
+        const citizens = await prisma.dataKependudukan.findMany({
+            where: { tenantId, rw }
+        });
+
+        const rtWargaMap: Record<string, number> = {};
+        const rtKkMap: Record<string, Set<string>> = {};
+        citizens.forEach(c => {
+            const rtKey = c.rt || "000";
+            rtWargaMap[rtKey] = (rtWargaMap[rtKey] || 0) + 1;
+            if (!rtKkMap[rtKey]) rtKkMap[rtKey] = new Set();
+            rtKkMap[rtKey].add(c.noKK);
+        });
+
+        const finances = await prisma.rtFinance.findMany({
+            where: { tenantId, rw }
+        });
+        const rtKasMap: Record<string, number> = {};
+        finances.forEach(f => {
+            const rtKey = f.rt || "000";
+            if (!rtKasMap[rtKey]) rtKasMap[rtKey] = 0;
+            if (f.type === "INCOME") rtKasMap[rtKey] += f.amount;
+            else if (f.type === "EXPENSE") rtKasMap[rtKey] -= f.amount;
+        });
+
+        const activities = await prisma.rtActivity.findMany({
+            where: { tenantId, rw }
+        });
+        const rtActivitiesCount: Record<string, number> = {};
+        activities.forEach(a => {
+            const rtKey = a.rt || "000";
+            rtActivitiesCount[rtKey] = (rtActivitiesCount[rtKey] || 0) + 1;
+        });
+
+        const rts = Array.from(new Set([
+            ...Object.keys(rtWargaMap),
+            ...Object.keys(rtKasMap),
+            ...Object.keys(rtActivitiesCount)
+        ])).sort();
+
+        const rtBreakdown = rts.map(rtVal => ({
+            rt: rtVal,
+            totalWarga: rtWargaMap[rtVal] || 0,
+            totalKK: rtKkMap[rtVal]?.size || 0,
+            totalKas: rtKasMap[rtVal] || 0,
+            totalActivities: rtActivitiesCount[rtVal] || 0
+        }));
+
+        return {
+            success: true,
+            rtBreakdown
+        };
+    } catch (error: any) {
+        return { success: false, rtBreakdown: [], error: error.message };
+    }
+}
+
+export async function getRwMapBoundaries() {
+    try {
+        const { tenantId, rw, role } = await getRtSession();
+        if (role !== "RW" && role !== "ADMIN_DESA" && role !== "KADES" && role !== "SEKDES" && role !== "ADMIN_MASTER") {
+            throw new Error("Unauthorized");
+        }
+        
+        const rwBoundary = await prisma.mapBoundary.findFirst({
+            where: {
+                tenantId,
+                type: "RW",
+                name: rw
+            }
+        });
+
+        const rtBoundaries = await prisma.mapBoundary.findMany({
+            where: {
+                tenantId,
+                type: "RT",
+                parentName: rw
+            }
+        });
+
+        return { success: true, rwBoundary, rtBoundaries };
+    } catch (error: any) {
+        return { success: false, error: error.message, rwBoundary: null, rtBoundaries: [] };
     }
 }

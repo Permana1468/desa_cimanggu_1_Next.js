@@ -88,7 +88,7 @@ export async function updateSuratStatus(id: string, status: StatusSurat) {
     }
 }
 
-export async function getWargaList(query?: string) {
+export async function getWargaList(query?: string, rtFilter?: string) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
@@ -103,6 +103,7 @@ export async function getWargaList(query?: string) {
             filterScope.rw = userRw;
         } else if (role === "RW") {
             filterScope.rw = userRw;
+            if (rtFilter) filterScope.rt = rtFilter;
         }
 
         return await prisma.dataKependudukan.findMany({

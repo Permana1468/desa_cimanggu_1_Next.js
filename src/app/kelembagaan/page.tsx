@@ -31,8 +31,11 @@ import {
     Shield
 } from "lucide-react";
 
-export default function KelembagaanDashboard() {
+import { LpmDashboardClient } from "@/components/dashboard/roles/LpmDashboardClient";
+
+function KelembagaanDashboardContent() {
     const { data: session, status } = useSession();
+
     const [lembaga, setLembaga] = useState<any>(null);
     const [members, setMembers] = useState<any[]>([]);
     const [programs, setPrograms] = useState<any[]>([]);
@@ -467,4 +470,15 @@ function StatCard({ icon: Icon, label, value, color }: any) {
             </div>
         </div>
     )
+}
+
+export default function KelembagaanDashboard() {
+    const { data: session } = useSession();
+    const role = (session?.user as any)?.role;
+
+    if (role === "LPM") {
+        return <LpmDashboardClient />;
+    }
+
+    return <KelembagaanDashboardContent />;
 }

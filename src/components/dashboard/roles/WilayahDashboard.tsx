@@ -21,7 +21,7 @@ import {
   getRtInventories, addRtInventory, deleteRtInventory,
   getRtInventoryLoans, addRtInventoryLoan, returnRtInventoryLoan,
   getResidentKks, getSensusPoints, saveSensusPoint, deleteSensusPoint,
-  getRtMapBoundary, saveRtMapBoundary
+  getRtMapBoundary, saveRtMapBoundary, getRwDashboardStats, getRwMapBoundaries
 } from "@/actions/rt";
 import { getWargaList, addWarga, updateWarga, deleteWarga, getSuratList, updateSuratStatus } from "@/actions/village";
 import "leaflet/dist/leaflet.css";
@@ -64,12 +64,31 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
   });
 
   const [loadingStats, setLoadingStats] = useState(true);
+  const [rtBreakdown, setRtBreakdown] = useState<any[]>([]);
 
   // Load stats
   const fetchStats = async () => {
     setLoadingStats(true);
-    const data = await getRtDashboardStats();
-    setStats(data);
+    let data;
+    if (session?.user?.role === "RW") {
+        const rwData = await getRwDashboardStats();
+        if (rwData.success) {
+            setRtBreakdown(rwData.rtBreakdown);
+            let tWarga = 0, tKK = 0, tKas = 0;
+            rwData.rtBreakdown.forEach((r: any) => {
+                tWarga += r.totalWarga; tKK += r.totalKK; tKas += r.totalKas;
+            });
+            // Fetch normal stats to get pending letters and LAMPID
+            data = await getRtDashboardStats();
+            data.totalWarga = tWarga;
+            data.totalKK = tKK;
+            data.totalKas = tKas;
+            setStats(data);
+        }
+    } else {
+        data = await getRtDashboardStats();
+        setStats(data);
+    }
     setLoadingStats(false);
   };
 
@@ -109,11 +128,11 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
 
               <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white/10 border border-white/20 rounded-2xl p-4 min-w-[150px] backdrop-blur-md">
-                      <span className="block text-[10px] font-bold text-teal-100 mb-1 uppercase">Total Warga RT</span>
+                      <span className="block text-[10px] font-bold text-teal-100 mb-1 uppercase">{session?.user?.role === "RW" ? "Total Warga RW" : "Total Warga RT"}</span>
                       <span className="block text-3xl font-black text-white">{stats.totalWarga}</span>
                   </div>
                   <div className="bg-white/10 border border-white/20 rounded-2xl p-4 min-w-[150px] backdrop-blur-md">
-                      <span className="block text-[10px] font-bold text-teal-100 mb-1 uppercase font-black">Saldo Kas RT</span>
+                      <span className="block text-[10px] font-bold text-teal-100 mb-1 uppercase font-black">{session?.user?.role === "RW" ? "Saldo Kas RW" : "Saldo Kas RT"}</span>
                       <span className="block text-xl font-black text-white">Rp {stats.totalKas.toLocaleString("id-ID")}</span>
                   </div>
               </div>
@@ -123,15 +142,15 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
 
       {/* TAB CONTENT */}
       <div className="mt-2">
-        {activeTab === "overview" && <OverviewTab stats={stats} loading={loadingStats} />}
-        {activeTab === "warga" && <WargaTab />}
+        {activeTab === "overview" && <OverviewTab stats={stats} loading={loadingStats} session={session} rtBreakdown={rtBreakdown} />}
+        {activeTab === "warga" && <WargaTab session={session} />}
         {activeTab === "finance" && <FinanceTab totalKas={stats.totalKas} />}
         {activeTab === "surat" && <SuratTab />}
-        {activeTab === "kegiatan" && <KegiatanTab />}
+        {activeTab === "kegiatan" && <KegiatanTab session={session} />}
         {activeTab === "lampid" && <LampidTab stats={stats} />}
         {activeTab === "announcements" && <AnnouncementsTab rt={userRt} rw={userRw} />}
         {activeTab === "complaints" && <ComplaintsTab rt={userRt} rw={userRw} />}
-        {activeTab === "inventory" && <InventoryTab rt={userRt} rw={userRw} />}
+        {activeTab === "inventory" && <InventoryTab rt={userRt} rw={userRw} session={session} />}
         {activeTab === "geosensus" && <GeoSensusTab session={session} />}
         {activeTab === "bansos" && <BansosTab session={session} />}
       </div>
@@ -158,7 +177,7 @@ function TabButton({ active, onClick, label, icon: Icon }: { active: boolean; on
 // ==========================================
 // 1. OVERVIEW TAB
 // ==========================================
-function OverviewTab({ stats, loading }: { stats: any; loading: boolean }) {
+function OverviewTab({ stats, loading, session, rtBreakdown }: { stats: any; loading: boolean; session?: any; rtBreakdown?: any[] }) {
   if (loading) {
     return (
       <div className="py-20 text-center flex flex-col items-center justify-center gap-4">
@@ -190,6 +209,36 @@ function OverviewTab({ stats, loading }: { stats: any; loading: boolean }) {
           </div>
         </div>
       </div>
+
+      {session?.user?.role === "RW" && rtBreakdown && rtBreakdown.length > 0 && (
+        <div className="lg:col-span-3 bg-white rounded-[2.5rem] p-8 border border-slate-200/60 shadow-sm mt-2">
+          <h3 className="text-base font-black text-slate-800 mb-6">Rekapitulasi RT di Wilayah RW {(session.user as any).rw}</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200">
+                  <th className="p-4">Nama RT</th>
+                  <th className="p-4">Total Warga</th>
+                  <th className="p-4">Total KK</th>
+                  <th className="p-4">Saldo Kas</th>
+                  <th className="p-4 text-right">Total Kegiatan</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs">
+                {rtBreakdown.map((r, i) => (
+                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="p-4 font-black text-slate-800">RT {r.rt}</td>
+                    <td className="p-4 font-bold text-slate-600">{r.totalWarga} Jiwa</td>
+                    <td className="p-4 font-bold text-slate-600">{r.totalKK} Keluarga</td>
+                    <td className="p-4 font-black text-emerald-600">Rp {r.totalKas.toLocaleString("id-ID")}</td>
+                    <td className="p-4 font-bold text-slate-500 text-right">{r.totalActivities} Laporan</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* QUICK RULES/INFO */}
       <div className="lg:col-span-1 space-y-6">
@@ -250,8 +299,9 @@ function ProgressBar({ label, count, total, color }: { label: string; count: num
 // ==========================================
 // 2. DATA WARGA TAB
 // ==========================================
-function WargaTab() {
+function WargaTab({ session }: { session?: any }) {
   const [query, setQuery] = useState("");
+  const [filterRt, setFilterRt] = useState("");
   const [wargaList, setWargaList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -276,14 +326,14 @@ function WargaTab() {
 
   const loadWarga = async () => {
     setLoading(true);
-    const data = await getWargaList(query);
+    const data = await getWargaList(query, filterRt);
     setWargaList(data);
     setLoading(false);
   };
 
   useEffect(() => {
     loadWarga();
-  }, []);
+  }, [filterRt]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -368,8 +418,8 @@ function WargaTab() {
     <div className="bg-white rounded-[2rem] p-6 border border-slate-200/60 shadow-sm space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-black text-slate-800">Manajemen Data Warga RT</h3>
-          <p className="text-slate-500 text-xs mt-0.5">Kelola, tambah, edit, dan hapus warga di wilayah RT Anda saja.</p>
+          <h3 className="text-lg font-black text-slate-800">{session?.user?.role === "RW" ? "Manajemen Data Warga RW" : "Manajemen Data Warga RT"}</h3>
+          <p className="text-slate-500 text-xs mt-0.5">{session?.user?.role === "RW" ? "Kelola dan pantau seluruh warga di wilayah RW Anda." : "Kelola, tambah, edit, dan hapus warga di wilayah RT Anda saja."}</p>
         </div>
         <button
           onClick={handleOpenAdd}
@@ -391,6 +441,19 @@ function WargaTab() {
             className="w-full pl-11 pr-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-900"
           />
         </div>
+        {session?.user?.role === "RW" && (
+          <select
+            value={filterRt}
+            onChange={e => setFilterRt(e.target.value)}
+            className="bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-900"
+          >
+            <option value="">Semua RT</option>
+            {[...Array(20)].map((_, i) => {
+              const num = (i + 1).toString().padStart(3, '0');
+              return <option key={num} value={num}>RT {num}</option>;
+            })}
+          </select>
+        )}
         <button type="submit" className="bg-slate-950 text-white px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-800 transition-all">
           Cari
         </button>
@@ -408,6 +471,7 @@ function WargaTab() {
               <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-wider">
                 <th className="py-3 px-4">Nama / NIK</th>
                 <th className="py-3 px-4">No KK</th>
+                {session?.user?.role === "RW" && <th className="py-3 px-4">RT</th>}
                 <th className="py-3 px-4">Hub. Keluarga</th>
                 <th className="py-3 px-4">Pekerjaan</th>
                 <th className="py-3 px-4 text-center">Aksi</th>
@@ -421,6 +485,11 @@ function WargaTab() {
                     <div className="text-[10px] text-slate-400 mt-0.5">{w.nik}</div>
                   </td>
                   <td className="py-3.5 px-4 text-slate-500">{w.noKK}</td>
+                  {session?.user?.role === "RW" && (
+                    <td className="py-3.5 px-4">
+                      <span className="px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg text-[10px] font-black">RT {w.rt}</span>
+                    </td>
+                  )}
                   <td className="py-3.5 px-4">
                     <span className="px-2.5 py-1 rounded-full bg-slate-100 text-[9px] font-bold uppercase text-slate-600">
                       {w.hubunganKeluarga.replace(/_/g, ' ')}
@@ -838,7 +907,7 @@ function SuratTab() {
 // ==========================================
 // 5. LAPORAN KEGIATAN TAB
 // ==========================================
-function KegiatanTab() {
+function KegiatanTab({ session }: { session?: any }) {
   const [activities, setActivities] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -849,7 +918,8 @@ function KegiatanTab() {
     date: new Date().toISOString().split('T')[0],
     budget: "",
     status: "RENCANA",
-    imageUrl: ""
+    imageUrl: "",
+    rt: ""
   });
 
   const loadActivities = async () => {
@@ -872,7 +942,8 @@ function KegiatanTab() {
         date: new Date(formData.date),
         budget: formData.budget ? parseFloat(formData.budget) : undefined,
         status: formData.status,
-        imageUrl: formData.imageUrl || undefined
+        imageUrl: formData.imageUrl || undefined,
+        rt: session?.user?.role === "RW" ? formData.rt : undefined
       });
       if (res.success) {
         alert("Berhasil menerbitkan laporan kegiatan");
@@ -883,7 +954,8 @@ function KegiatanTab() {
           date: new Date().toISOString().split('T')[0],
           budget: "",
           status: "RENCANA",
-          imageUrl: ""
+          imageUrl: "",
+          rt: ""
         });
         loadActivities();
       } else {
@@ -911,8 +983,8 @@ function KegiatanTab() {
     <div className="bg-white rounded-[2rem] p-6 border border-slate-200/60 shadow-sm space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-black text-slate-800">Laporan & Publikasi Kegiatan RT</h3>
-          <p className="text-slate-500 text-xs mt-0.5">Catat agenda gotong royong, arisan RT, pembangunan fisik, dan rapat koordinasi.</p>
+          <h3 className="text-lg font-black text-slate-800">{session?.user?.role === "RW" ? "Laporan & Publikasi Kegiatan RW" : "Laporan & Publikasi Kegiatan RT"}</h3>
+          <p className="text-slate-500 text-xs mt-0.5">{session?.user?.role === "RW" ? "Pantau agenda kegiatan dari seluruh RT di wilayah Anda." : "Catat agenda gotong royong, arisan RT, pembangunan fisik, dan rapat koordinasi."}</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
@@ -932,9 +1004,14 @@ function KegiatanTab() {
             <div key={a.id} className="p-6 rounded-3xl border border-slate-100 bg-slate-50/20 hover:shadow-lg transition-all relative flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-start mb-4">
-                  <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase ${a.status === "RENCANA" ? "bg-amber-50 text-amber-600" : "bg-emerald-50 text-emerald-600"}`}>
-                    {a.status}
-                  </span>
+                  <div>
+                    <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase ${a.status === "RENCANA" ? "bg-amber-50 text-amber-600" : "bg-emerald-50 text-emerald-600"}`}>
+                      {a.status}
+                    </span>
+                    {session?.user?.role === "RW" && (
+                      <span className="ml-2 px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg text-[9px] font-black">RT {a.rt}</span>
+                    )}
+                  </div>
                   <button onClick={() => handleDelete(a.id)} className="text-slate-300 hover:text-rose-500 transition-colors p-1.5 hover:bg-rose-50 rounded-lg">
                     <Trash2 size={14} />
                   </button>
@@ -975,6 +1052,18 @@ function KegiatanTab() {
             </div>
             
             <form onSubmit={handleSubmit} className="p-6 space-y-4 bg-slate-50/20">
+              {session?.user?.role === "RW" && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Pilih RT Target</label>
+                  <select value={formData.rt} onChange={e => setFormData({...formData, rt: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-950" required>
+                    <option value="">-- Pilih RT --</option>
+                    {[...Array(20)].map((_, i) => {
+                      const num = (i + 1).toString().padStart(3, '0');
+                      return <option key={num} value={num}>RT {num}</option>;
+                    })}
+                  </select>
+                </div>
+              )}
               <FormGroup label="Judul Kegiatan" value={formData.title} onChange={v => setFormData({...formData, title: v})} placeholder="Contoh: Gotong Royong RT 01" />
               
               <div className="space-y-1">
@@ -1796,7 +1885,7 @@ function ComplaintsTab({ rt, rw }: { rt: string; rw: string }) {
 // ==========================================
 // 9. INVENTORY TAB
 // ==========================================
-function InventoryTab({ rt, rw }: { rt: string; rw: string }) {
+function InventoryTab({ rt, rw, session }: { rt: string; rw: string; session?: any }) {
   const [inventories, setInventories] = useState<any[]>([]);
   const [loans, setLoans] = useState<any[]>([]);
   const [subTab, setSubTab] = useState<"items" | "loans">("items");
@@ -1804,7 +1893,7 @@ function InventoryTab({ rt, rw }: { rt: string; rw: string }) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showLoanForm, setShowLoanForm] = useState(false);
   
-  const [itemForm, setItemForm] = useState({ itemName: "", quantity: 1, condition: "Baik" });
+  const [itemForm, setItemForm] = useState({ itemName: "", quantity: 1, condition: "Baik", rt: "" });
   const [loanForm, setLoanForm] = useState({ inventoryId: "", borrowerName: "", borrowerPhone: "", quantity: 1, loanDate: "" });
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -1830,11 +1919,12 @@ function InventoryTab({ rt, rw }: { rt: string; rw: string }) {
     const res = await addRtInventory({
       itemName: itemForm.itemName,
       quantity: Number(itemForm.quantity),
-      condition: itemForm.condition
+      condition: itemForm.condition,
+      rt: session?.user?.role === "RW" ? itemForm.rt : undefined
     });
     setActionLoading(false);
     if (res.success) {
-      setItemForm({ itemName: "", quantity: 1, condition: "Baik" });
+      setItemForm({ itemName: "", quantity: 1, condition: "Baik", rt: "" });
       setShowAddForm(false);
       fetchData();
     }
@@ -1881,9 +1971,9 @@ function InventoryTab({ rt, rw }: { rt: string; rw: string }) {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight">📦 Manajemen Inventaris RT</h2>
+          <h2 className="text-2xl font-black text-slate-800 tracking-tight">📦 Manajemen Inventaris {session?.user?.role === "RW" ? "RW" : "RT"}</h2>
           <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">
-            Data aset fasilitas RT {rt} / RW {rw} dan pencatatan peminjaman barang
+            {session?.user?.role === "RW" ? `Data aset fasilitas seluruh RT di wilayah RW ${rw} dan pencatatan peminjaman barang` : `Data aset fasilitas RT ${rt} / RW ${rw} dan pencatatan peminjaman barang`}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -1928,6 +2018,18 @@ function InventoryTab({ rt, rw }: { rt: string; rw: string }) {
                   </div>
                   <FormGroup label="Jumlah Unit" type="number" value={itemForm.quantity.toString()} onChange={v => setItemForm({...itemForm, quantity: Number(v)})} />
                 </div>
+                {session?.user?.role === "RW" && (
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Aset Kepemilikan RT</label>
+                    <select value={itemForm.rt} onChange={e => setItemForm({...itemForm, rt: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-semibold focus:outline-none focus:border-teal-500" required>
+                      <option value="">-- Pilih RT --</option>
+                      {[...Array(20)].map((_, i) => {
+                        const num = (i + 1).toString().padStart(3, '0');
+                        return <option key={num} value={num}>RT {num}</option>;
+                      })}
+                    </select>
+                  </div>
+                )}
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Kondisi Awal</label>
                   <select
@@ -1969,6 +2071,7 @@ function InventoryTab({ rt, rw }: { rt: string; rw: string }) {
                   <thead>
                     <tr className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200">
                       <th className="p-6">Nama Barang</th>
+                      {session?.user?.role === "RW" && <th className="p-6">RT</th>}
                       <th className="p-6">Total Unit</th>
                       <th className="p-6">Dipinjam</th>
                       <th className="p-6">Kondisi</th>
@@ -1983,6 +2086,11 @@ function InventoryTab({ rt, rw }: { rt: string; rw: string }) {
                       return (
                         <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="p-6 font-bold text-slate-800">{item.itemName}</td>
+                          {session?.user?.role === "RW" && (
+                            <td className="p-6">
+                              <span className="px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg text-[10px] font-black">RT {item.rt}</span>
+                            </td>
+                          )}
                           <td className="p-6 font-black text-slate-800">{item.quantity} Unit</td>
                           <td className="p-6 font-semibold text-slate-500">
                             {activeBorrowed > 0 ? (
@@ -2086,6 +2194,7 @@ function InventoryTab({ rt, rw }: { rt: string; rw: string }) {
                     <tr className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200">
                       <th className="p-6">Peminjam</th>
                       <th className="p-6">Barang</th>
+                      {session?.user?.role === "RW" && <th className="p-6">RT</th>}
                       <th className="p-6">Jumlah</th>
                       <th className="p-6">Tgl Pinjam</th>
                       <th className="p-6">Tgl Kembali</th>
@@ -2101,6 +2210,11 @@ function InventoryTab({ rt, rw }: { rt: string; rw: string }) {
                           {item.borrowerPhone && <div className="text-[10px] text-slate-400 font-medium">{item.borrowerPhone}</div>}
                         </td>
                         <td className="p-6 font-bold text-slate-800">{item.inventory?.itemName || "Barang Dihapus"}</td>
+                        {session?.user?.role === "RW" && (
+                          <td className="p-6">
+                            <span className="px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg text-[10px] font-black">RT {item.inventory?.rt}</span>
+                          </td>
+                        )}
                         <td className="p-6 font-black text-slate-800">{item.quantity} Unit</td>
                         <td className="p-6 font-semibold text-slate-500">
                           {new Date(item.loanDate).toLocaleDateString("id-ID")}
@@ -2150,6 +2264,8 @@ function GeoSensusTab({ session }: { session: any }) {
   const [points, setPoints] = useState<any[]>([]);
   const [kks, setKks] = useState<any[]>([]);
   const [boundary, setBoundary] = useState<any>(null);
+  const [rtBoundaries, setRtBoundaries] = useState<any[]>([]);
+  const [rwBoundary, setRwBoundary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   const mapContainerId = "geosensus-operator-map";
@@ -2262,15 +2378,29 @@ function GeoSensusTab({ session }: { session: any }) {
 
   const fetchInitialData = async () => {
     setLoading(true);
-    const [pts, fams, boundRes] = await Promise.all([
-      getSensusPoints(),
-      getResidentKks(),
-      getRtMapBoundary()
-    ]);
-    setPoints(pts);
-    setKks(fams);
-    if (boundRes.success && boundRes.boundary) {
-      setBoundary(boundRes.boundary);
+    if (session?.user?.role === "RW") {
+      const [pts, fams, rwBoundRes] = await Promise.all([
+        getSensusPoints(),
+        getResidentKks(),
+        getRwMapBoundaries()
+      ]);
+      setPoints(pts);
+      setKks(fams);
+      if (rwBoundRes.success) {
+        setRwBoundary(rwBoundRes.rwBoundary);
+        setRtBoundaries(rwBoundRes.rtBoundaries);
+      }
+    } else {
+      const [pts, fams, boundRes] = await Promise.all([
+        getSensusPoints(),
+        getResidentKks(),
+        getRtMapBoundary()
+      ]);
+      setPoints(pts);
+      setKks(fams);
+      if (boundRes.success && boundRes.boundary) {
+        setBoundary(boundRes.boundary);
+      }
     }
     setLoading(false);
   };
@@ -2305,7 +2435,12 @@ function GeoSensusTab({ session }: { session: any }) {
       let defaultCenter: [number, number] = [-6.5971, 106.6786];
       let defaultZoom = 16;
 
-      if (boundary) {
+      if (session?.user?.role === "RW" && rwBoundary) {
+        try {
+          const coords = typeof rwBoundary.coordinates === "string" ? JSON.parse(rwBoundary.coordinates) : rwBoundary.coordinates;
+          if (coords && coords.length > 0) defaultCenter = coords[0];
+        } catch (e) {}
+      } else if (boundary) {
         try {
           const coords = typeof boundary.coordinates === "string" ? JSON.parse(boundary.coordinates) : boundary.coordinates;
           if (coords && coords.length > 0) {
@@ -2358,7 +2493,7 @@ function GeoSensusTab({ session }: { session: any }) {
         mapInstance.remove();
       }
     };
-  }, [loading, boundary]);
+  }, [loading, boundary, rwBoundary, rtBoundaries]);
 
   useEffect(() => {
     if (mapRef.current) {
@@ -2401,7 +2536,7 @@ function GeoSensusTab({ session }: { session: any }) {
 
   useEffect(() => {
     redrawAll();
-  }, [points, layers]);
+  }, [points, layers, boundary, rwBoundary, rtBoundaries]);
 
   const redrawAll = () => {
     const L = LRef.current;
@@ -2414,19 +2549,54 @@ function GeoSensusTab({ session }: { session: any }) {
     pointGroup.clearLayers();
     boundGroup.clearLayers();
 
-    if (boundary && layers.boundary) {
-      try {
-        const coords = typeof boundary.coordinates === "string" ? JSON.parse(boundary.coordinates) : boundary.coordinates;
-        if (coords && coords.length > 0) {
-          L.polygon(coords, {
-            color: "#f43f5e",
-            fillColor: "#f43f5e",
-            fillOpacity: 0.15,
-            weight: 3,
-            dashArray: "4, 6"
-          }).addTo(boundGroup);
-        }
-      } catch (e) {}
+    if (session?.user?.role === "RW") {
+      if (layers.boundary && rtBoundaries.length > 0) {
+        rtBoundaries.forEach(b => {
+          try {
+            const coords = typeof b.coordinates === "string" ? JSON.parse(b.coordinates) : b.coordinates;
+            if (coords && coords.length > 0) {
+              const poly = L.polygon(coords, {
+                color: b.color || "#10b981",
+                fillColor: b.color || "#10b981",
+                fillOpacity: 0.08,
+                weight: 2,
+                dashArray: "3, 5"
+              }).addTo(boundGroup);
+              poly.bindTooltip(`Batas RT ${b.name}`, { sticky: true, className: "font-bold text-xs text-slate-700 bg-white border border-slate-200 shadow-sm" });
+            }
+          } catch (e) {}
+        });
+      }
+      if (layers.boundary && rwBoundary) {
+        try {
+          const coords = typeof rwBoundary.coordinates === "string" ? JSON.parse(rwBoundary.coordinates) : rwBoundary.coordinates;
+          if (coords && coords.length > 0) {
+            const poly = L.polygon(coords, {
+              color: "#f59e0b",
+              fillColor: "#f59e0b",
+              fillOpacity: 0.05,
+              weight: 4,
+              dashArray: "8, 8"
+            }).addTo(boundGroup);
+            poly.bindTooltip(`Batas RW ${rwBoundary.name}`, { permanent: true, direction: "center", className: "font-black text-[10px] text-amber-700 bg-amber-50/80 border border-amber-200 shadow-sm px-2 py-1 rounded" });
+          }
+        } catch (e) {}
+      }
+    } else {
+      if (boundary && layers.boundary) {
+        try {
+          const coords = typeof boundary.coordinates === "string" ? JSON.parse(boundary.coordinates) : boundary.coordinates;
+          if (coords && coords.length > 0) {
+            L.polygon(coords, {
+              color: "#f43f5e",
+              fillColor: "#f43f5e",
+              fillOpacity: 0.15,
+              weight: 3,
+              dashArray: "4, 6"
+            }).addTo(boundGroup);
+          }
+        } catch (e) {}
+      }
     }
 
     points.forEach(p => {
