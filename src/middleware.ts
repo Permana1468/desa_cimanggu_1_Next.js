@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Roles classification
-const CORE_ADMIN_ROLES = ["ADMIN_DESA", "KADES", "SEKDES", "KASI", "KAUR", "OPERATOR_DESA"];
-const INSTITUTIONAL_ROLES = ["RT", "RW", "PKK", "POSYANDU", "LPM", "BPD", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS", "KADUS", "TP_PKK"];
+const CORE_ADMIN_ROLES = ["ADMIN_DESA", "KADES", "SEKDES", "KASI", "KAUR", "OPERATOR_DESA", "RT", "RW", "KADUS"];
+const INSTITUTIONAL_ROLES = ["PKK", "POSYANDU", "LPM", "BPD", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS", "TP_PKK"];
 const MASTER_ROLES = ["ADMIN_MASTER"];
 const RESIDENT_ROLES = ["WARGA"];
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { getSuratList, updateSuratStatus } from "@/actions/village";
 import { StatusSurat } from "@prisma/client";
 import { 
@@ -50,7 +51,13 @@ export default function SuratManagementPage() {
                     <h1 className="text-3xl font-black text-slate-800 tracking-tight">Pusat Persuratan</h1>
                     <p className="text-slate-500 text-sm">Kelola, verifikasi, dan pantau seluruh pengajuan surat warga.</p>
                 </div>
-                <div className="flex gap-3">
+                <div className="flex gap-3 items-center">
+                    <Link 
+                        href="/dashboard/surat/templates"
+                        className="bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2"
+                    >
+                        <FileText size={16} /> Kelola Template
+                    </Link>
                     <div className="relative">
                         <Search className="absolute left-3 top-2.5 text-slate-400" size={18} />
                         <input 

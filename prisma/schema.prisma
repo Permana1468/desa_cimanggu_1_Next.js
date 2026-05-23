@@ -28,6 +28,7 @@ model Tenant {
   berita      Berita[]
   profile     VillageProfile?
   bumdesStats BumdesFinancial[]
+  bumdesUnits BumdesUnit[]
   lembagas    Lembaga[]
   aparatur    AparaturDesa[]
   letterTemplates LetterTemplate[]
@@ -38,6 +39,20 @@ model Tenant {
   infrastrukturProjects InfrastrukturProject[]
   apbdesFinances       ApbdesFinance[]
   villageDocuments     VillageDocument[]
+
+  // RT Modules
+  rtFinances           RtFinance[]
+  rtActivities         RtActivity[]
+  rtBirthReports       RtBirthReport[]
+  rtDeathReports       RtDeathReport[]
+  rtMoveReports        RtMoveReport[]
+  rtIncomingReports    RtIncomingReport[]
+  rtAnnouncements      RtAnnouncement[]
+  rtComplaints         RtComplaint[]
+  rtInventories        RtInventory[]
+  rtInventoryLoans     RtInventoryLoan[]
+  sensusPoints         SensusPoint[]
+  bansosData           BansosData[]
 }
 
 // ==============================
@@ -193,10 +208,34 @@ model DataKependudukan {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   surat             Surat[]
+  bansosData        BansosData?
 
   @@index([tenantId, noKK])
   @@index([tenantId, rt, rw])
   @@index([tenantId, jenisKelamin])
+}
+
+// ==============================
+// 4.1 BANSOS KESEJAHTERAAN
+// ==============================
+model BansosData {
+  id              String   @id @default(uuid())
+  wargaId         String   @unique
+  warga           DataKependudukan @relation(fields: [wargaId], references: [id], onDelete: Cascade)
+  
+  desil           Int?     // 1-10
+  jenisBantuan    Json?    // Array of strings, e.g. ["PKH", "BPNT", "BLT-DD"]
+  status          String   @default("AKTIF") // AKTIF, NON-AKTIF, USULAN_RT
+  keterangan      String?
+  
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId, desil])
+  @@index([tenantId, status])
 }
 
 
@@ -321,6 +360,24 @@ model BumdesFinancial {
   updatedAt   DateTime @updatedAt
 }
 
+model BumdesUnit {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  
+  name        String
+  description String?
+  status      String   @default("Active") // Active, Inactive, Profit, Loss
+  growth      String   @default("0%")     // e.g. "+15%" or "-2%"
+  color       String   @default("blue")   // for UI highlights
+  icon        String   @default("ShoppingBag") // name of lucide icon
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
 model Lembaga {
   id          String   @id @default(uuid())
   name        String   // e.g., "LPM", "PKK"
@@ -331,8 +388,50 @@ model Lembaga {
   tenantId    String
   tenant      Tenant   @relation(fields: [tenantId], references: [id])
 
+  members     LembagaMember[]
+  programs    LembagaProgram[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model LembagaMember {
+  id          String   @id @default(uuid())
+  lembagaId   String
+  lembaga     Lembaga  @relation(fields: [lembagaId], references: [id], onDelete: Cascade)
+  
+  name        String
+  nik         String?
+  position    String   // Custom title e.g. "Ketua LPM"
+  photo       String?
+  email       String?
+  phoneNumber String?
+  
+  level       Int      @default(2) // 0: Ketua, 1: Sekretaris/Bendahara, 2: Anggota
+  order       Int      @default(0)
+  
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([lembagaId, isActive, level])
+}
+
+model LembagaProgram {
+  id          String   @id @default(uuid())
+  lembagaId   String
+  lembaga     Lembaga  @relation(fields: [lembagaId], references: [id], onDelete: Cascade)
+  
+  title       String
+  description String   @db.Text
+  date        DateTime @default(now())
+  status      String   @default("RENCANA") // RENCANA, BERJALAN, SELESAI
+  budget      Float?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([lembagaId])
 }
 
 model AparaturDesa {
@@ -345,6 +444,8 @@ model AparaturDesa {
   role        RoleType
   position    String   // Custom title e.g. "Kepala Desa Cimanggu"
   photo       String?
+  email       String?
+  phoneNumber String?
   
   // SK Details
   skNumber    String?
@@ -500,4 +601,225 @@ model VillageDocument {
   updatedAt       DateTime @updatedAt
 
   @@index([tenantId, jenisDokumen])
+}
+
+// ==============================
+// 13. RT MODULES (RT-specific features)
+// ==============================
+model RtFinance {
+  id          String   @id @default(uuid())
+  rt          String
+  rw          String
+  amount      Float
+  type        String   // INCOME, EXPENSE
+  category    String   // e.g. "Iuran Warga", "Sosial", "Operasional", "Lain-lain"
+  date        DateTime @default(now())
+  description String?
+  
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, rt, rw])
+}
+
+model RtActivity {
+  id          String   @id @default(uuid())
+  rt          String
+  rw          String
+  title       String
+  description String   @db.Text
+  date        DateTime @default(now())
+  budget      Float?
+  status      String   @default("RENCANA") // RENCANA, TERLAKSANA
+  imageUrl    String?
+
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, rt, rw])
+}
+
+model RtBirthReport {
+  id           String   @id @default(uuid())
+  rt           String
+  rw           String
+  namaBayi     String
+  tanggalLahir DateTime
+  jenisKelamin String
+  namaAyah     String?
+  namaIbu      String?
+  keterangan   String?
+
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId, rt, rw])
+}
+
+model RtDeathReport {
+  id               String   @id @default(uuid())
+  rt               String
+  rw               String
+  nik              String
+  namaLengkap      String
+  tanggalMeninggal DateTime
+  penyebab         String?
+  keterangan       String?
+
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([tenantId, rt, rw])
+}
+
+model RtMoveReport {
+  id            String   @id @default(uuid())
+  rt            String
+  rw            String
+  nik           String
+  namaLengkap   String
+  tanggalPindah DateTime
+  alamatTujuan  String
+  alasan        String?
+
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId, rt, rw])
+}
+
+model RtIncomingReport {
+  id            String   @id @default(uuid())
+  rt            String
+  rw            String
+  nik           String
+  noKK          String
+  namaLengkap   String
+  tanggalDatang DateTime
+  alamatAsal    String
+  keterangan    String?
+
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId, rt, rw])
+}
+
+model RtAnnouncement {
+  id          String   @id @default(uuid())
+  rt          String
+  rw          String
+  title       String
+  content     String   @db.Text
+  date        DateTime @default(now())
+  category    String   // e.g. "Kerja Bakti", "Rapat", "Posyandu", "Berita Duka"
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, rt, rw])
+}
+
+model RtComplaint {
+  id          String   @id @default(uuid())
+  rt          String
+  rw          String
+  reporterName String
+  reporterPhone String?
+  title       String
+  content     String   @db.Text
+  status      String   @default("PENDING") // PENDING, PROSES, SELESAI
+  category    String   // e.g. "Fasilitas Umum", "Keamanan", "Sosial", "Lain-lain"
+  date        DateTime @default(now())
+  notes       String?  @db.Text // Tindak lanjut
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, rt, rw])
+}
+
+model RtInventory {
+  id          String   @id @default(uuid())
+  rt          String
+  rw          String
+  itemName    String
+  quantity    Int
+  condition   String   @default("BAIK") // BAIK, RUSAK
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  loans       RtInventoryLoan[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, rt, rw])
+}
+
+model RtInventoryLoan {
+  id            String   @id @default(uuid())
+  inventoryId   String
+  inventory     RtInventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+  borrowerName  String
+  borrowerPhone String?
+  quantity      Int
+  loanDate      DateTime @default(now())
+  returnDate    DateTime?
+  status        String   @default("DIPINJAM") // DIPINJAM, KEMBALI
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId, inventoryId])
+}
+
+model SensusPoint {
+  id            String   @id @default(uuid())
+  rt            String
+  rw            String
+  type          String   // RUMAH_WARGA, FASUM_FASOS
+  latitude      Float
+  longitude     Float
+  nomorUrut     Int?     // Urutan rumah warga
+  
+  // For RUMAH_WARGA
+  noKK          String?  // Linked to DataKependudukan's noKK
+  statusWarga   String?  // WARGA_TETAP, KONTRAK, RUMAH_KOSONG
+  name          String?  // Family Head name
+  
+  // For FASUM_FASOS
+  categoryFasum String?  // IBADAH, POS_RONDA, LAPANGAN, PEMAKAMAN, UMKM, RAWAN_BENCANA, SAMPAH
+  description   String?  @db.Text
+
+  tenantId      String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId, rt, rw])
 }

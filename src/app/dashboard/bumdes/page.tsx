@@ -1,14 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getBumdesFinances, addBumdesTransaction } from "@/actions/village";
+import { 
+    getBumdesFinances, 
+    addBumdesTransaction, 
+    getBumdesUnits, 
+    addBumdesUnit, 
+    deleteBumdesUnit 
+} from "@/actions/village";
 import { useSession } from "next-auth/react";
 import { 
     ShoppingBag, 
     TrendingUp, 
     DollarSign, 
     Package, 
-    ExternalLink, 
     Plus, 
     X, 
     Loader2, 
@@ -19,16 +24,32 @@ import {
     PieChart,
     BarChart3,
     Activity,
-    CreditCard
+    CreditCard,
+    Store,
+    Briefcase,
+    Trash2
 } from "lucide-react";
+
+const iconMap: { [key: string]: any } = {
+    CreditCard: CreditCard,
+    ShoppingBag: ShoppingBag,
+    Package: Package,
+    Store: Store,
+    Briefcase: Briefcase
+};
 
 export default function BumdesPage() {
     const { data: session } = useSession();
-    const canEdit = ["BUMDES", "ADMIN_MASTER"].includes((session?.user as any)?.role);
+    const role = (session?.user as any)?.role;
+    const canEdit = ["BUMDES", "ADMIN_MASTER"].includes(role);
     const [finances, setFinances] = useState<any[]>([]);
+    const [units, setUnits] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showAddUnitModal, setShowAddUnitModal] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [savingUnit, setSavingUnit] = useState(false);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -37,22 +58,41 @@ export default function BumdesPage() {
         description: ""
     });
 
-    const units = [
-        { name: "Unit Simpan Pinjam", status: "Profit", growth: "+15%", icon: CreditCard, color: "blue" },
-        { name: "Unit Grosir Sembako", status: "Stable", growth: "+5%", icon: ShoppingBag, color: "emerald" },
-        { name: "Unit Pengelolaan Sampah", status: "Growing", growth: "+20%", icon: Package, color: "amber" }
-    ];
+    const [unitFormData, setUnitFormData] = useState({
+        name: "",
+        description: "",
+        status: "Profit",
+        growth: "+10%",
+        color: "blue",
+        icon: "ShoppingBag"
+    });
 
     useEffect(() => {
-        fetchFinances();
+        fetchData();
     }, []);
 
-    const fetchFinances = async () => {
+    const fetchData = async () => {
         setLoading(true);
         try {
-            const data = await getBumdesFinances();
-            setFinances(data);
+            const finData = await getBumdesFinances();
+            setFinances(finData);
+
+            let unitData = await getBumdesUnits();
+            // Automatically seed default units if empty and user canEdit
+            if (unitData.length === 0 && canEdit) {
+                const defaults = [
+                    { name: "Unit Simpan Pinjam", status: "Profit", growth: "+15%", icon: "CreditCard", color: "blue", description: "Layanan simpan pinjam bagi warga desa." },
+                    { name: "Unit Grosir Sembako", status: "Stable", growth: "+5%", icon: "ShoppingBag", color: "emerald", description: "Penyediaan sembako murah untuk warga." },
+                    { name: "Unit Pengelolaan Sampah", status: "Growing", growth: "+20%", icon: "Package", color: "amber", description: "Pengelolaan limbah dan daur ulang desa." }
+                ];
+                for (const def of defaults) {
+                    await addBumdesUnit(def);
+                }
+                unitData = await getBumdesUnits();
+            }
+            setUnits(unitData);
         } catch (err) {
+            console.error(err);
         }
         setLoading(false);
     };
@@ -63,12 +103,47 @@ export default function BumdesPage() {
         try {
             await addBumdesTransaction(formData);
             setShowAddModal(false);
-            fetchFinances();
+            const finData = await getBumdesFinances();
+            setFinances(finData);
             setFormData({ title: "", amount: "", type: "INCOME", description: "" });
         } catch (error) {
             alert("Gagal menambahkan transaksi.");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleAddUnit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSavingUnit(true);
+        try {
+            await addBumdesUnit(unitFormData);
+            setShowAddUnitModal(false);
+            const unitData = await getBumdesUnits();
+            setUnits(unitData);
+            setUnitFormData({
+                name: "",
+                description: "",
+                status: "Profit",
+                growth: "+10%",
+                color: "blue",
+                icon: "ShoppingBag"
+            });
+        } catch (error) {
+            alert("Gagal menambahkan unit usaha.");
+        } finally {
+            setSavingUnit(false);
+        }
+    };
+
+    const handleDeleteUnit = async (id: string) => {
+        if (!confirm("Apakah Anda yakin ingin menghapus unit usaha ini?")) return;
+        try {
+            await deleteBumdesUnit(id);
+            const unitData = await getBumdesUnits();
+            setUnits(unitData);
+        } catch (error) {
+            alert("Gagal menghapus unit usaha.");
         }
     };
 
@@ -94,12 +169,20 @@ export default function BumdesPage() {
                     <p className="text-slate-500 font-medium mt-1">Badan Usaha Milik Desa - Penggerak Ekonomi Desa Cimanggu I.</p>
                 </div>
                 {canEdit && (
-                    <button 
-                        onClick={() => setShowAddModal(true)}
-                        className="bg-slate-900 text-white px-8 py-4 rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-2xl shadow-slate-900/10 hover:bg-black transition-all active:scale-95 flex items-center gap-2 group"
-                    >
-                        <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Tambah Laporan
-                    </button>
+                    <div className="flex gap-3">
+                        <button 
+                            onClick={() => setShowAddUnitModal(true)}
+                            className="bg-white border border-slate-200 text-slate-800 px-6 py-4 rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-sm hover:bg-slate-50 transition-all active:scale-95 flex items-center gap-2"
+                        >
+                            <Plus size={18} /> Tambah Unit Usaha
+                        </button>
+                        <button 
+                            onClick={() => setShowAddModal(true)}
+                            className="bg-slate-900 text-white px-6 py-4 rounded-[1.5rem] text-xs font-black uppercase tracking-widest shadow-2xl shadow-slate-900/10 hover:bg-black transition-all active:scale-95 flex items-center gap-2 group"
+                        >
+                            <Plus size={18} className="group-hover:rotate-90 transition-transform" /> Catat Transaksi
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -149,36 +232,58 @@ export default function BumdesPage() {
                     </div>
                     <div className="pt-8 border-t border-slate-50">
                         <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
-                            <span>Kesehatan Usaha</span>
-                            <span className="text-emerald-600">SANGAT BAIK</span>
+                             <span>Kesehatan Usaha</span>
+                             <span className="text-emerald-600">SANGAT BAIK</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* BUSINESS UNITS GRID */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {units.map((unit, i) => (
-                    <div key={i} className="bg-white rounded-[3rem] p-10 shadow-sm border border-slate-200/60 hover:shadow-2xl hover:-translate-y-2 transition-all group relative overflow-hidden">
-                        <div className={`absolute -bottom-6 -right-6 w-32 h-32 bg-${unit.color}-50 rounded-full group-hover:scale-150 transition-transform duration-1000`} />
-                        <div className="relative z-10">
-                            <div className={`w-14 h-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm mb-8`}>
-                                <unit.icon size={28} />
-                            </div>
-                            <h4 className="text-2xl font-black text-slate-800 mb-2">{unit.name}</h4>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Unit Bisnis Aktif</p>
-                            
-                            <div className="flex items-center justify-between mt-10">
-                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm ${unit.status === 'Profit' ? 'bg-emerald-50 text-emerald-600' : 'bg-blue-50 text-blue-600'}`}>
-                                    {unit.status}
-                                </span>
-                                <div className="flex items-center gap-1 text-emerald-600 font-black text-sm">
-                                    <ArrowUpRight size={16} /> {unit.growth}
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-black text-slate-800 tracking-tight">Unit Bisnis BUMDes</h3>
+                    <span className="text-xs font-bold text-slate-400">{units.length} Unit Terdaftar</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {units.map((unit) => {
+                        const IconComponent = iconMap[unit.icon] || Store;
+                        return (
+                            <div key={unit.id} className="bg-white rounded-[3rem] p-10 shadow-sm border border-slate-200/60 hover:shadow-2xl hover:-translate-y-1 transition-all group relative overflow-hidden flex flex-col justify-between min-h-[300px]">
+                                <div>
+                                    <div className="flex items-center justify-between mb-6">
+                                        <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-500 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-inner shrink-0">
+                                            <IconComponent size={28} />
+                                        </div>
+                                        {canEdit && (
+                                            <button 
+                                                onClick={() => handleDeleteUnit(unit.id)}
+                                                className="p-2.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        )}
+                                    </div>
+                                    <h4 className="text-2xl font-black text-slate-800 mb-2 leading-tight">{unit.name}</h4>
+                                    <p className="text-slate-500 text-xs font-medium leading-relaxed line-clamp-2">{unit.description}</p>
+                                </div>
+                                
+                                <div className="flex items-center justify-between mt-8 pt-4 border-t border-slate-50">
+                                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                        unit.status === 'Profit' || unit.status === 'Growing' ? 'bg-emerald-50 text-emerald-600' : 
+                                        unit.status === 'Stable' ? 'bg-blue-50 text-blue-600' : 'bg-red-50 text-red-600'
+                                    }`}>
+                                        {unit.status}
+                                    </span>
+                                    <div className="flex items-center gap-1 text-emerald-600 font-black text-sm">
+                                        <ArrowUpRight size={16} /> {unit.growth}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                ))}
+                        );
+                    })}
+                </div>
             </div>
 
             {/* TRANSACTION HISTORY */}
@@ -192,10 +297,6 @@ export default function BumdesPage() {
                             <h3 className="text-2xl font-black text-slate-800 tracking-tight">Riwayat Transaksi</h3>
                             <p className="text-slate-500 font-medium text-sm mt-0.5">Laporan arus kas terbaru dari seluruh unit usaha.</p>
                         </div>
-                    </div>
-                    <div className="flex gap-2">
-                        <button className="p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-all text-slate-400 hover:text-slate-900"><PieChart size={20} /></button>
-                        <button className="p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-all text-slate-400 hover:text-slate-900"><BarChart3 size={20} /></button>
                     </div>
                 </div>
                 
@@ -274,6 +375,78 @@ export default function BumdesPage() {
 
                             <button type="submit" disabled={saving} className="w-full bg-blue-600 hover:bg-blue-700 text-white py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl shadow-blue-500/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50">
                                 {saving ? <Loader2 className="animate-spin" size={24} /> : <><Save size={24} /> Simpan Laporan Keuangan</>}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* ADD UNIT MODAL */}
+            {showAddUnitModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowAddUnitModal(false)} />
+                    <div className="bg-white rounded-[3rem] w-full max-w-xl relative z-10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-10 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div>
+                                <h2 className="text-3xl font-black text-slate-800 tracking-tight">Tambah Unit Usaha</h2>
+                                <p className="text-slate-500 text-sm font-medium mt-1">Daftarkan unit bisnis baru di bawah naungan BUMDes.</p>
+                            </div>
+                            <button onClick={() => setShowAddUnitModal(false)} className="p-3 hover:bg-slate-200 rounded-2xl transition-all">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        
+                        <form onSubmit={handleAddUnit} className="p-10 overflow-y-auto space-y-6 custom-scrollbar bg-white">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Nama Unit Usaha</label>
+                                <input required placeholder="Contoh: Unit Grosir Sembako" value={unitFormData.name} onChange={e => setUnitFormData({...unitFormData, name: e.target.value})} className="w-full bg-slate-50 border-2 border-transparent rounded-2xl py-4 px-6 text-sm font-bold text-slate-950 focus:border-blue-500 focus:bg-white transition-all outline-none" />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Status Kesehatan</label>
+                                    <select value={unitFormData.status} onChange={e => setUnitFormData({...unitFormData, status: e.target.value})} className="w-full bg-slate-50 border-2 border-transparent rounded-2xl py-4 px-6 text-sm font-bold text-slate-950 focus:border-blue-500 focus:bg-white transition-all outline-none">
+                                        <option value="Profit">Profit</option>
+                                        <option value="Stable">Stable</option>
+                                        <option value="Growing">Growing</option>
+                                        <option value="Loss">Loss</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Pertumbuhan (Growth)</label>
+                                    <input placeholder="Contoh: +15%" value={unitFormData.growth} onChange={e => setUnitFormData({...unitFormData, growth: e.target.value})} className="w-full bg-slate-50 border-2 border-transparent rounded-2xl py-4 px-6 text-sm font-bold text-slate-950 focus:border-blue-500 focus:bg-white transition-all outline-none" />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Warna Aksen UI</label>
+                                    <select value={unitFormData.color} onChange={e => setUnitFormData({...unitFormData, color: e.target.value})} className="w-full bg-slate-50 border-2 border-transparent rounded-2xl py-4 px-6 text-sm font-bold text-slate-950 focus:border-blue-500 focus:bg-white transition-all outline-none">
+                                        <option value="blue">Biru (Blue)</option>
+                                        <option value="emerald">Hijau (Emerald)</option>
+                                        <option value="amber">Kuning (Amber)</option>
+                                        <option value="rose">Merah (Rose)</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Icon Unit Usaha</label>
+                                    <select value={unitFormData.icon} onChange={e => setUnitFormData({...unitFormData, icon: e.target.value})} className="w-full bg-slate-50 border-2 border-transparent rounded-2xl py-4 px-6 text-sm font-bold text-slate-950 focus:border-blue-500 focus:bg-white transition-all outline-none">
+                                        <option value="ShoppingBag">Tas Belanja (ShoppingBag)</option>
+                                        <option value="CreditCard">Kartu Kredit/Simpan Pinjam (CreditCard)</option>
+                                        <option value="Package">Paket (Package)</option>
+                                        <option value="Store">Toko (Store)</option>
+                                        <option value="Briefcase">Tas Kerja (Briefcase)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Deskripsi Unit Usaha</label>
+                                <textarea placeholder="Jelaskan bidang usaha dan fokus operasional unit..." value={unitFormData.description} onChange={e => setUnitFormData({...unitFormData, description: e.target.value})} className="w-full bg-slate-50 border-2 border-transparent rounded-2xl py-4 px-6 text-sm font-bold text-slate-950 min-h-[100px] focus:border-blue-500 focus:bg-white transition-all outline-none" />
+                            </div>
+
+                            <button type="submit" disabled={savingUnit} className="w-full bg-slate-900 hover:bg-black text-white py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl transition-all flex items-center justify-center gap-3 disabled:opacity-50">
+                                {savingUnit ? <Loader2 className="animate-spin" size={24} /> : <><Save size={24} /> Simpan Unit Usaha</>}
                             </button>
                         </form>
                     </div>

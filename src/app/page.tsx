@@ -181,7 +181,6 @@ export default async function LandingPage() {
                 </section>
 
                 <LandingNews newsData={newsData} />
-                <LandingAspiration />
                 <LandingOrganization orgData={orgData} />
 
                 {/* Lembaga Section */}
@@ -203,6 +202,8 @@ export default async function LandingPage() {
                         </div>
                     </ScrollReveal>
                 </section>
+
+                <LandingAspiration />
 
                 {/* Footer Section */}
                 <footer className="pt-20 border-t border-white/10 text-slate-500">

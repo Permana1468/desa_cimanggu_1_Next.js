@@ -7,7 +7,8 @@ import { revalidatePath } from "next/cache";
 
 async function checkAdminDesa() {
     const session = await getServerSession(authOptions);
-    if (!session?.user || !['ADMIN_MASTER', 'ADMIN_DESA', 'SEKDES', 'KADES', 'OPERATOR_DESA'].includes((session.user as any).role)) {
+    const role = (session?.user as any)?.role;
+    if (!session?.user || role === "WARGA") {
         throw new Error("Unauthorized");
     }
     return session as any;
@@ -198,7 +199,10 @@ export async function deleteVillageDocument(id: string) {
 // 4. ANALITICS (Realtime Stats)
 // ==============================
 export async function getDashboardRealtimeStats(tenantId: string) {
-    await checkAdminDesa();
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+        throw new Error("Unauthorized");
+    }
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);

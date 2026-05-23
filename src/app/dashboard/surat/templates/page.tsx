@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getLetterTemplates, createLetterTemplate } from "@/actions/documents";
+import { getLetterTemplates, createLetterTemplate, uploadTemplateFile } from "@/actions/documents";
 import { 
     FileText, 
     Plus, 
@@ -30,6 +30,25 @@ export default function TemplateRepositoryPage() {
         fileUrl: "",
         variables: ""
     });
+    const [fileBase64, setFileBase64] = useState<string>("");
+    const [fileName, setFileName] = useState<string>("");
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert("File terlalu besar. Maksimum 5MB.");
+                return;
+            }
+            setFileName(file.name);
+            const reader = new FileReader();
+            reader.onload = () => {
+                const base64 = (reader.result as string).split(',')[1];
+                setFileBase64(base64);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     useEffect(() => {
         loadTemplates();
@@ -44,11 +63,29 @@ export default function TemplateRepositoryPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!fileBase64) {
+            alert("Harap unggah file template .docx terlebih dahulu.");
+            return;
+        }
         setSaving(true);
         try {
             const variablesArray = formData.variables ? formData.variables.split(',').map(v => v.trim()) : [];
-            await createLetterTemplate({ ...formData, variables: variablesArray });
+            const uploadRes = await uploadTemplateFile(formData.code, fileBase64);
+            if (!uploadRes.success) {
+                alert(uploadRes.error);
+                return;
+            }
+
+            await createLetterTemplate({
+                name: formData.name,
+                code: formData.code,
+                fileUrl: `/templates/${formData.code}.docx`,
+                variables: variablesArray
+            });
             setShowModal(false);
+            setFileName("");
+            setFileBase64("");
+            setFormData({ name: "", code: "", fileUrl: "", variables: "" });
             loadTemplates();
             alert("Template berhasil ditambahkan ke repository.");
         } catch (error) {
@@ -225,15 +262,25 @@ export default function TemplateRepositoryPage() {
                                 />
                             </div>
                             
-                            <div className="border-2 border-dashed border-slate-200 rounded-[2rem] p-10 text-center flex flex-col items-center gap-4 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer">
+                            <label className="border-2 border-dashed border-slate-200 rounded-[2rem] p-10 text-center flex flex-col items-center gap-4 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer relative">
+                                <input 
+                                    type="file" 
+                                    accept=".docx" 
+                                    onChange={handleFileChange} 
+                                    className="hidden" 
+                                />
                                 <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
                                     <Upload size={32} />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-black text-slate-800">Klik untuk Unggah .docx</p>
-                                    <p className="text-xs text-slate-400 font-bold mt-1">Maksimal ukuran file: 5MB</p>
+                                    <p className="text-sm font-black text-slate-800">
+                                        {fileName ? `File: ${fileName}` : "Klik untuk Unggah .docx"}
+                                    </p>
+                                    <p className="text-xs text-slate-400 font-bold mt-1">
+                                        {fileName ? "Klik lagi untuk mengganti file" : "Maksimal ukuran file: 5MB"}
+                                    </p>
                                 </div>
-                            </div>
+                            </label>
 
                             <button type="submit" disabled={saving} className="w-full bg-blue-600 text-white py-5 rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-2xl shadow-blue-500/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50 mt-4">
                                 {saving ? <Loader2 className="animate-spin" size={24} /> : "Simpan Template"}

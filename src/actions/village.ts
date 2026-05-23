@@ -30,9 +30,24 @@ export async function getSuratList() {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
         const tenantId = (session.user as { tenantId: string }).tenantId;
+        const role = (session.user as any).role;
+        const userRt = (session.user as any).rt;
+        const userRw = (session.user as any).rw;
+
+        let filterScope: any = { tenantId };
+        if (role === "RT") {
+            filterScope.warga = {
+                rt: userRt,
+                rw: userRw
+            };
+        } else if (role === "RW") {
+            filterScope.warga = {
+                rw: userRw
+            };
+        }
 
         return await prisma.surat.findMany({
-            where: { tenantId },
+            where: filterScope,
             orderBy: { createdAt: 'desc' },
             include: { warga: true },
             take: 20
@@ -46,6 +61,23 @@ export async function updateSuratStatus(id: string, status: StatusSurat) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
+        const role = (session.user as any).role;
+        const userRt = (session.user as any).rt;
+        const userRw = (session.user as any).rw;
+
+        if (role === "RT" || role === "RW") {
+            const targetSurat = await prisma.surat.findUnique({
+                where: { id },
+                include: { warga: true }
+            });
+            if (!targetSurat) throw new Error("Surat tidak ditemukan");
+            if (role === "RT" && (targetSurat.warga.rt !== userRt || targetSurat.warga.rw !== userRw)) {
+                throw new Error("Unauthorized: data isolation violation");
+            }
+            if (role === "RW" && targetSurat.warga.rw !== userRw) {
+                throw new Error("Unauthorized: data isolation violation");
+            }
+        }
 
         return await prisma.surat.update({
             where: { id },
@@ -61,10 +93,21 @@ export async function getWargaList(query?: string) {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
         const tenantId = (session.user as { tenantId: string }).tenantId;
+        const role = (session.user as any).role;
+        const userRt = (session.user as any).rt;
+        const userRw = (session.user as any).rw;
+
+        let filterScope: any = { tenantId };
+        if (role === "RT") {
+            filterScope.rt = userRt;
+            filterScope.rw = userRw;
+        } else if (role === "RW") {
+            filterScope.rw = userRw;
+        }
 
         return await prisma.dataKependudukan.findMany({
             where: {
-                tenantId,
+                ...filterScope,
                 OR: query ? [
                     { namaLengkap: { contains: query, mode: 'insensitive' } },
                     { nik: { contains: query } }
@@ -106,10 +149,24 @@ export async function addWarga(data: any) {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
         const tenantId = (session.user as { tenantId: string }).tenantId;
+        const role = (session.user as any).role;
+        const userRt = (session.user as any).rt;
+        const userRw = (session.user as any).rw;
+
+        let rt = data.rt;
+        let rw = data.rw;
+        if (role === "RT") {
+            rt = userRt;
+            rw = userRw;
+        } else if (role === "RW") {
+            rw = userRw;
+        }
 
         return await prisma.dataKependudukan.create({
             data: {
                 ...data,
+                rt,
+                rw,
                 tenantId
             }
         });
@@ -122,11 +179,36 @@ export async function updateWarga(id: string, data: any) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
+        const role = (session.user as any).role;
+        const userRt = (session.user as any).rt;
+        const userRw = (session.user as any).rw;
+
+        if (role === "RT" || role === "RW") {
+            const targetWarga = await prisma.dataKependudukan.findUnique({ where: { id } });
+            if (!targetWarga) throw new Error("Warga not found");
+            if (role === "RT" && (targetWarga.rt !== userRt || targetWarga.rw !== userRw)) {
+                throw new Error("Unauthorized");
+            }
+            if (role === "RW" && targetWarga.rw !== userRw) {
+                throw new Error("Unauthorized");
+            }
+        }
+
+        let rt = data.rt;
+        let rw = data.rw;
+        if (role === "RT") {
+            rt = userRt;
+            rw = userRw;
+        } else if (role === "RW") {
+            rw = userRw;
+        }
 
         return await prisma.dataKependudukan.update({
             where: { id },
             data: {
                 ...data,
+                rt,
+                rw,
                 updatedAt: new Date()
             }
         });
@@ -139,6 +221,20 @@ export async function deleteWarga(id: string) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
+        const role = (session.user as any).role;
+        const userRt = (session.user as any).rt;
+        const userRw = (session.user as any).rw;
+
+        if (role === "RT" || role === "RW") {
+            const targetWarga = await prisma.dataKependudukan.findUnique({ where: { id } });
+            if (!targetWarga) throw new Error("Warga not found");
+            if (role === "RT" && (targetWarga.rt !== userRt || targetWarga.rw !== userRw)) {
+                throw new Error("Unauthorized");
+            }
+            if (role === "RW" && targetWarga.rw !== userRw) {
+                throw new Error("Unauthorized");
+            }
+        }
 
         return await prisma.dataKependudukan.delete({
             where: { id }
@@ -307,6 +403,51 @@ export async function addBumdesTransaction(data: any) {
     }
 }
 
+export async function getBumdesUnits() {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.bumdesUnit.findMany({
+            where: { tenantId },
+            orderBy: { createdAt: 'asc' }
+        });
+    } catch (error) {
+        return [];
+    }
+}
+
+export async function addBumdesUnit(data: { name: string; description?: string; status?: string; growth?: string; color?: string; icon?: string }) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.bumdesUnit.create({
+            data: {
+                ...data,
+                tenantId
+            }
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function deleteBumdesUnit(id: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        return await prisma.bumdesUnit.delete({
+            where: { id }
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
 export async function getAparaturHierarchy() {
     try {
         const session = await getServerSession(authOptions);
@@ -334,6 +475,166 @@ export async function updateAparaturSK(id: string, data: { skNumber?: string, sk
         });
     } catch (error) {
         throw error;
+    }
+}
+
+export async function getAparaturDesaList() {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.aparaturDesa.findMany({
+            where: { tenantId, isActive: true },
+            orderBy: [{ level: 'asc' }, { order: 'asc' }]
+        });
+    } catch (error) {
+        return [];
+    }
+}
+
+export async function addAparaturDesa(data: { name: string; nik?: string; role: any; position: string; photo?: string; level: number; order?: number; parentId?: string }) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.aparaturDesa.create({
+            data: {
+                ...data,
+                tenantId,
+                isActive: true
+            }
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function updateAparaturDesa(id: string, data: any) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        return await prisma.aparaturDesa.update({
+            where: { id },
+            data: {
+                ...data,
+                updatedAt: new Date()
+            }
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function deleteAparaturDesa(id: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        return await prisma.aparaturDesa.delete({
+            where: { id }
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function getLembagaMembers(lembagaId: string) {
+    try {
+        return await prisma.lembagaMember.findMany({
+            where: { lembagaId, isActive: true },
+            orderBy: [{ level: 'asc' }, { order: 'asc' }]
+        });
+    } catch (error) {
+        return [];
+    }
+}
+
+export async function addLembagaMember(data: { lembagaId: string; name: string; nik?: string; position: string; photo?: string; email?: string; phoneNumber?: string; level: number }) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        return await prisma.lembagaMember.create({
+            data: {
+                ...data,
+                isActive: true
+            }
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function deleteLembagaMember(id: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        return await prisma.lembagaMember.delete({
+            where: { id }
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function getLembagaPrograms(lembagaId: string) {
+    try {
+        return await prisma.lembagaProgram.findMany({
+            where: { lembagaId },
+            orderBy: { date: 'desc' }
+        });
+    } catch (error) {
+        return [];
+    }
+}
+
+export async function addLembagaProgram(data: { lembagaId: string; title: string; description: string; date?: Date; status?: string; budget?: number }) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        return await prisma.lembagaProgram.create({
+            data
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function deleteLembagaProgram(id: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        return await prisma.lembagaProgram.delete({
+            where: { id }
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function getLembagaByName(name: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.lembaga.findFirst({
+            where: {
+                tenantId,
+                name: {
+                    equals: name,
+                    mode: 'insensitive'
+                }
+            }
+        });
+    } catch (error) {
+        return null;
     }
 }
 

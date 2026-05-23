@@ -15,9 +15,22 @@ export async function exportWargaExcel(filter?: any) {
         if (!session?.user) throw new Error("Unauthorized");
         const tenantId = (session.user as { tenantId: string }).tenantId;
 
+        const role = (session.user as any).role;
+        const userRt = (session.user as any).rt;
+        const userRw = (session.user as any).rw;
+
+        let filterScope: any = {};
+        if (role === "RT") {
+            filterScope.rt = userRt;
+            filterScope.rw = userRw;
+        } else if (role === "RW") {
+            filterScope.rw = userRw;
+        }
+
         const warga = await prisma.dataKependudukan.findMany({
             where: {
                 tenantId,
+                ...filterScope,
                 ...filter
             },
             orderBy: { namaLengkap: 'asc' }
@@ -85,6 +98,17 @@ export async function generateSurat(templateCode: string, wargaId: string, custo
             where: { id: wargaId }
         });
         if (!warga) throw new Error("Warga tidak ditemukan");
+
+        const role = (session.user as any).role;
+        const userRt = (session.user as any).rt;
+        const userRw = (session.user as any).rw;
+
+        if (role === "RT" && (warga.rt !== userRt || warga.rw !== userRw)) {
+            throw new Error("Unauthorized: data isolation violation");
+        }
+        if (role === "RW" && warga.rw !== userRw) {
+            throw new Error("Unauthorized: data isolation violation");
+        }
 
         const template = await prisma.letterTemplate.findFirst({
             where: { code: templateCode, tenantId, isActive: true }
@@ -164,5 +188,26 @@ export async function createLetterTemplate(data: { name: string, code: string, f
         });
     } catch (error) {
         throw error;
+    }
+}
+
+export async function uploadTemplateFile(code: string, base64Data: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        const buffer = Buffer.from(base64Data, "base64");
+        const dirPath = path.join(process.cwd(), "public", "templates");
+
+        if (!fs.existsSync(dirPath)) {
+            fs.mkdirSync(dirPath, { recursive: true });
+        }
+
+        const filePath = path.join(dirPath, `${code}.docx`);
+        fs.writeFileSync(filePath, buffer);
+
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Gagal mengunggah file template." };
     }
 }

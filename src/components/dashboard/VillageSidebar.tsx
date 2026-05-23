@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import { 
@@ -24,7 +24,14 @@ import {
   HardHat,
   Activity,
   PieChart,
-  Archive
+  Archive,
+  Sparkles,
+  Milestone,
+  Megaphone,
+  AlertCircle,
+  Package,
+  Compass,
+  HeartHandshake
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,6 +49,7 @@ const menuItems = [
   { name: "APBDes", icon: PieChart, href: "/dashboard/apbdes" },
   { name: "Peta Interaktif", icon: Map, href: "/dashboard/map" },
   { name: "Arsip Digital", icon: Archive, href: "/dashboard/arsip" },
+  { name: "Data Bansos", icon: HeartHandshake, href: "/dashboard/bansos" },
   { name: "Monitoring", icon: Activity, href: "/dashboard/monitoring" },
   { name: "Tracking Layanan", icon: Clock, href: "/dashboard/tracking" },
   { name: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
@@ -99,41 +107,74 @@ export const VillageSidebar = () => {
 
         {/* Navigation */}
         <nav className="flex-1 px-3 space-y-1.5 mt-2 overflow-y-auto custom-scrollbar">
-          {menuItems.filter(item => {
+          {(() => {
             const role = session?.user?.role;
-            if (["ADMIN_DESA", "KADES", "SEKDES", "KASI", "KAUR", "PERANGKAT_DESA", "OPERATOR_DESA", "ADMIN_MASTER"].includes(role as string)) return true;
-            if (["RT", "RW", "PKK", "TP_PKK", "POSYANDU", "LPM", "BPD", "KADUS", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
-               return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Dana", "Tracking Layanan", "Peta Interaktif"].includes(item.name);
-            }
-            return false;
-          }).map((item) => {
-            const role = session?.user?.role;
-            const isInstitutional = ["RT", "RW", "PKK", "TP_PKK", "POSYANDU", "LPM", "BPD", "KADUS", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string);
-            
-            // Map dashboard links to kelembagaan links for institutional roles
-            let href = item.href;
-            if (isInstitutional) {
-                if (href === "/dashboard") href = "/kelembagaan";
-                else href = href.replace("/dashboard/", "/kelembagaan/");
+            const searchParams = useSearchParams();
+            const tabParam = searchParams.get("tab");
+
+            let itemsToRender = menuItems.filter(item => {
+              if (["ADMIN_DESA", "KADES", "SEKDES", "KASI", "KAUR", "PERANGKAT_DESA", "OPERATOR_DESA", "ADMIN_MASTER"].includes(role as string)) return true;
+              if (["PKK", "TP_PKK", "POSYANDU", "LPM", "BPD", "KADUS", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
+                 return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Dana", "Tracking Layanan", "Peta Interaktif"].includes(item.name);
+              }
+              if (role === "BUMDES") {
+                 return ["Dashboard", "BUMDES"].includes(item.name);
+              }
+              return false;
+            });
+
+            if (role === "RT" || role === "RW") {
+              itemsToRender = [
+                { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard?tab=overview" },
+                { name: "Data Warga", icon: Users, href: "/dashboard?tab=warga" },
+                { name: "Kas Keuangan", icon: Banknote, href: "/dashboard?tab=finance" },
+                { name: "Cek Surat", icon: FileText, href: "/dashboard?tab=surat" },
+                { name: "Laporan Kegiatan", icon: Sparkles, href: "/dashboard?tab=kegiatan" },
+                { name: "Laporan LAMPID", icon: Milestone, href: "/dashboard?tab=lampid" },
+                { name: "Pengumuman", icon: Megaphone, href: "/dashboard?tab=announcements" },
+                { name: "Aduan Warga", icon: AlertCircle, href: "/dashboard?tab=complaints" },
+                { name: "Inventaris RT", icon: Package, href: "/dashboard?tab=inventory" },
+                { name: "GeoSENSUS", icon: Compass, href: "/dashboard?tab=geosensus" },
+                { name: "Data Bansos", icon: HeartHandshake, href: "/dashboard?tab=bansos" }
+              ];
             }
 
-            const isActive = pathname === href;
-            return (
-              <Link
-                key={item.name}
-                href={href}
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                  isActive 
-                    ? "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20" 
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
-                } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
-              >
-                <item.icon size={20} className={isActive ? "" : "group-hover:scale-110 transition-transform"} />
-                {(!isCollapsed || isOpen) && <span className="text-sm">{item.name}</span>}
-              </Link>
-            );
-          })}
+            return itemsToRender.map((item) => {
+              const isInstitutional = ["PKK", "TP_PKK", "POSYANDU", "LPM", "BPD", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string);
+              
+              // Map dashboard links to kelembagaan links for institutional roles
+              let href = item.href;
+              if (isInstitutional) {
+                  if (href === "/dashboard") href = "/kelembagaan";
+                  else href = href.replace("/dashboard/", "/kelembagaan/");
+              }
+
+              let isActive = false;
+              if (role === "RT" || role === "RW") {
+                const urlTab = tabParam || "overview";
+                const itemTab = item.href.split("tab=")[1] || "overview";
+                isActive = pathname === "/dashboard" && urlTab === itemTab;
+              } else {
+                isActive = pathname === href;
+              }
+
+              return (
+                <Link
+                  key={item.name}
+                  href={href}
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                    isActive 
+                      ? "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20" 
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                  } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
+                >
+                  <item.icon size={20} className={isActive ? "" : "group-hover:scale-110 transition-transform"} />
+                  {(!isCollapsed || isOpen) && <span className="text-sm">{item.name}</span>}
+                </Link>
+              );
+            });
+          })()}
         </nav>
 
         {/* User Area & Logout (Compact Aesthetic Design) */}

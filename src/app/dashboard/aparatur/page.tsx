@@ -1,8 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAparatur, addAparatur, updateAparaturSK } from "@/actions/village";
+import { 
+    getAparaturDesaList, 
+    addAparaturDesa, 
+    updateAparaturDesa, 
+    deleteAparaturDesa, 
+    updateAparaturSK 
+} from "@/actions/village";
 import { useSession } from "next-auth/react";
+import { ImageUpload } from "@/components/dashboard/ImageUpload";
 import { 
     Users, 
     Mail, 
@@ -16,12 +23,13 @@ import {
     ChevronDown,
     Building,
     FileText,
-    ExternalLink
+    ExternalLink,
+    Trash2
 } from "lucide-react";
 
 export default function AparaturPage() {
     const { data: session } = useSession();
-    const isAdminMaster = (session?.user as any)?.role === "ADMIN_MASTER";
+    const isAdminMaster = (session?.user as any)?.role === "ADMIN_MASTER" || (session?.user as any)?.role === "ADMIN_DESA";
     const [aparatur, setAparatur] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showAddModal, setShowAddModal] = useState(false);
@@ -30,12 +38,13 @@ export default function AparaturPage() {
     const [selectedAparatur, setSelectedAparatur] = useState<any>(null);
 
     const [formData, setFormData] = useState({
-        fullName: "",
+        name: "",
+        nik: "",
         email: "",
         phoneNumber: "",
         role: "ADMIN_DESA",
         position: "",
-        password: ""
+        photo: ""
     });
 
     const [skData, setSkData] = useState({
@@ -50,7 +59,7 @@ export default function AparaturPage() {
     const fetchAparatur = async () => {
         setLoading(true);
         try {
-            const data = await getAparatur();
+            const data = await getAparaturDesaList();
             setAparatur(data);
         } catch (err) {
         }
@@ -61,14 +70,32 @@ export default function AparaturPage() {
         e.preventDefault();
         setSaving(true);
         try {
-            await addAparatur(formData);
+            let level = 2;
+            if (formData.role === "KADES") level = 0;
+            else if (formData.role === "SEKDES") level = 1;
+            else if (formData.role === "KADUS") level = 3;
+
+            await addAparaturDesa({
+                ...formData,
+                level
+            });
             setShowAddModal(false);
             fetchAparatur();
-            setFormData({ fullName: "", email: "", phoneNumber: "", role: "ADMIN_DESA", position: "", password: "" });
+            setFormData({ name: "", nik: "", email: "", phoneNumber: "", role: "ADMIN_DESA", position: "", photo: "" });
         } catch (error) {
             alert("Gagal menambahkan aparatur.");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("Apakah Anda yakin ingin menghapus aparatur ini?")) return;
+        try {
+            await deleteAparaturDesa(id);
+            fetchAparatur();
+        } catch (error) {
+            alert("Gagal menghapus aparatur.");
         }
     };
 
@@ -150,6 +177,7 @@ export default function AparaturPage() {
                                         setSkData({ skNumber: person.skNumber || "", skUrl: person.skUrl || "" }); 
                                         setShowSKModal(true); 
                                     }} 
+                                    onDelete={() => handleDelete(person.id)}
                                 />
                             ))}
                         </div>
@@ -186,11 +214,15 @@ export default function AparaturPage() {
                                     <tr key={person.id} className="group hover:bg-slate-50/30 transition-all">
                                         <td className="bg-white border-y border-l border-slate-100 rounded-l-[2rem] px-8 py-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center font-black text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-inner">
-                                                    {person.fullName.charAt(0)}
+                                                <div className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-inner overflow-hidden relative bg-slate-100">
+                                                    {person.photo ? (
+                                                        <img src={person.photo} alt={person.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        person.name.charAt(0)
+                                                    )}
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-black text-slate-800">{person.fullName}</p>
+                                                    <p className="text-sm font-black text-slate-800">{person.name}</p>
                                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{person.position}</p>
                                                 </div>
                                             </div>
@@ -244,22 +276,25 @@ export default function AparaturPage() {
                         </div>
                         <form onSubmit={handleAdd} className="p-10 overflow-y-auto space-y-8 custom-scrollbar bg-white">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <InputGroup label="Nama Lengkap" value={formData.fullName} onChange={(v: string) => setFormData({...formData, fullName: v})} required />
-                                <InputGroup label="Email Resmi" value={formData.email} onChange={(v: string) => setFormData({...formData, email: v})} type="email" required />
+                                <InputGroup label="Nama Lengkap" value={formData.name} onChange={(v: string) => setFormData({...formData, name: v})} required />
+                                <InputGroup label="NIK (Optional)" value={formData.nik} onChange={(v: string) => setFormData({...formData, nik: v})} />
+                                <InputGroup label="Email Resmi" value={formData.email} onChange={(v: string) => setFormData({...formData, email: v})} type="email" />
                                 <InputGroup label="Jabatan Struktur" placeholder="Contoh: Kasi Pemerintahan" value={formData.position} onChange={(v: string) => setFormData({...formData, position: v})} required />
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Role Sistem</label>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Jabatan Sistem</label>
                                     <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value as any})} className="w-full bg-slate-50 border-2 border-transparent rounded-2xl py-4 px-6 text-sm font-bold text-slate-950 focus:border-blue-500 focus:bg-white transition-all outline-none appearance-none">
-                                        <option value="ADMIN_DESA">Admin Desa</option>
                                         <option value="KADES">Kepala Desa</option>
                                         <option value="SEKDES">Sekretaris Desa</option>
                                         <option value="KASI">Kepala Seksi</option>
                                         <option value="KAUR">Kepala Urusan</option>
                                         <option value="KADUS">Kepala Dusun</option>
+                                        <option value="ADMIN_DESA">Aparatur Umum / Staff</option>
                                     </select>
                                 </div>
                                 <InputGroup label="WhatsApp" value={formData.phoneNumber} onChange={(v: string) => setFormData({...formData, phoneNumber: v})} />
-                                <InputGroup label="Password Akses" value={formData.password} onChange={(v: string) => setFormData({...formData, password: v})} type="password" required />
+                                <div className="md:col-span-2">
+                                    <ImageUpload onUploadSuccess={(url) => setFormData({...formData, photo: url})} defaultValue={formData.photo} label="Foto Aparatur" />
+                                </div>
                             </div>
                             <button type="submit" disabled={saving} className="w-full bg-slate-900 hover:bg-black text-white py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest shadow-2xl transition-all flex items-center justify-center gap-3 disabled:opacity-50">
                                 {saving ? <Loader2 className="animate-spin" size={24} /> : <><Save size={24} /> Simpan Data Aparatur</>}
@@ -315,7 +350,7 @@ function EmptySlot({ label }: { label: string }) {
     )
 }
 
-function AparaturCard({ person, variant = "default", isAdminMaster, onEditSK }: { person: any, variant?: "primary" | "secondary" | "default", isAdminMaster?: boolean, onEditSK: () => void }) {
+function AparaturCard({ person, variant = "default", isAdminMaster, onEditSK, onDelete }: { person: any, variant?: "primary" | "secondary" | "default", isAdminMaster?: boolean, onEditSK: () => void, onDelete?: () => void }) {
     const isPrimary = variant === "primary";
     const isSecondary = variant === "secondary";
 
@@ -336,10 +371,14 @@ function AparaturCard({ person, variant = "default", isAdminMaster, onEditSK }: 
                     ${isPrimary ? 'bg-blue-600 text-white' : isSecondary ? 'bg-slate-900 text-white' : 'bg-blue-50 text-blue-600'}
                 `}>
                     <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    {person.fullName.charAt(0)}
+                    {person.photo ? (
+                        <img src={person.photo} alt={person.name} className="w-full h-full object-cover" />
+                    ) : (
+                        person.name.charAt(0)
+                    )}
                 </div>
                 <div className="space-y-3">
-                    <h3 className="font-black text-slate-800 text-2xl leading-tight tracking-tight">{person.fullName}</h3>
+                    <h3 className="font-black text-slate-800 text-2xl leading-tight tracking-tight">{person.name}</h3>
                     <div className={`
                         inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest
                         ${isPrimary ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-600'}
@@ -359,13 +398,20 @@ function AparaturCard({ person, variant = "default", isAdminMaster, onEditSK }: 
                 </div>
                 <div className="flex gap-3 w-full">
                     {isAdminMaster && (
-                        <button onClick={onEditSK} className="flex-1 py-4 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-black hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
-                            <FileText size={14} /> Arsip SK
+                        <>
+                            <button onClick={onEditSK} className="flex-1 py-4 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.25em] hover:bg-black hover:shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2">
+                                <FileText size={14} /> SK
+                            </button>
+                            <button onClick={onDelete} className="p-4 rounded-2xl bg-red-50 text-red-500 hover:bg-red-100 hover:text-red-600 transition-all active:scale-95 flex items-center justify-center">
+                                <Trash2 size={16} />
+                            </button>
+                        </>
+                    )}
+                    {!isAdminMaster && (
+                        <button className="flex-1 py-4 rounded-2xl bg-slate-100 text-slate-400 hover:bg-slate-200 transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <Users size={16} /> <span className="text-[10px] font-black uppercase tracking-widest">Detail</span>
                         </button>
                     )}
-                    <button className={`${isAdminMaster ? 'p-4' : 'flex-1 py-4'} rounded-2xl bg-slate-100 text-slate-400 hover:bg-slate-200 transition-all active:scale-95 flex items-center justify-center gap-2`}>
-                        <Users size={16} /> {!isAdminMaster && <span className="text-[10px] font-black uppercase tracking-widest">Detail</span>}
-                    </button>
                 </div>
             </div>
         </div>
