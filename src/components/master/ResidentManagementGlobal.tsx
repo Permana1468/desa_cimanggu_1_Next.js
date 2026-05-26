@@ -6,9 +6,10 @@ import {
     Filter, MapPin, CheckCircle2, AlertCircle, Loader2, FileText,
     ChevronLeft, ChevronRight, MoreHorizontal, User, Briefcase, Map,
     FileSpreadsheet, UserPlus, Fingerprint, Home, Heart, GraduationCap, Users2, Globe,
-    Activity, ShieldCheck, Building, History, Settings
+    Activity, ShieldCheck, Building, History, Settings, Printer, Calendar
 } from "lucide-react";
-import { upsertResident, deleteResident, bulkImportResidents } from "@/actions/master";
+import { upsertResident, deleteResident, bulkImportResidents, deleteAllResidents, bulkDeleteResidents } from "@/actions/master";
+import { fetchGoogleSheetData } from "@/actions/google";
 import ExcelJS from "exceljs";
 
 interface Resident {
@@ -52,11 +53,20 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
     const [isImporting, setIsImporting] = useState(false);
     const [editingResident, setEditingResident] = useState<any>(null);
 
+    // Bulk Selection & Deletion States
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [paperSize, setPaperSize] = useState("A4");
+
     // Dynamic Import States
     const [importStep, setImportStep] = useState<"UPLOAD" | "MAPPING" | "PREVIEW">("UPLOAD");
     const [excelData, setExcelData] = useState<any[]>([]);
     const [excelHeaders, setExcelHeaders] = useState<string[]>([]);
     const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
+
+    // Google Sheets Integration States
+    const [importSource, setImportSource] = useState<"FILE" | "GOOGLE_SHEET">("FILE");
+    const [spreadsheetId, setSpreadsheetId] = useState("");
+    const [sheetRange, setSheetRange] = useState("Sheet1!A1:Z500");
 
     const DB_FIELDS = useMemo(() => [
         { key: "nik", label: "NIK", required: true },
@@ -193,9 +203,251 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
         try {
             await deleteResident(id);
             setResidents(residents.filter(r => r.id !== id));
+            setSelectedIds(prev => prev.filter(item => item !== id));
         } catch (error) {
             alert("Gagal menghapus data.");
         }
+    };
+
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            const pageIds = filteredResidents.map(r => r.id);
+            setSelectedIds(pageIds);
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const handleSelectOne = (id: string) => {
+        setSelectedIds(prev => 
+            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+        );
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedIds.length === 0) return;
+        const msg = `Apakah Anda yakin ingin menghapus ${selectedIds.length} data warga terpilih secara permanen?`;
+        if (!confirm(msg)) return;
+
+        try {
+            setIsSaving(true);
+            await bulkDeleteResidents(selectedIds);
+            setResidents(prev => prev.filter(r => !selectedIds.includes(r.id)));
+            setSelectedIds([]);
+            alert("Data terpilih berhasil dihapus!");
+        } catch (error) {
+            alert("Gagal menghapus data terpilih.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleResetAll = async () => {
+        const tenantName = selectedTenant === "all" ? "Semua Desa" : tenants.find(t => t.id === selectedTenant)?.name || "Desa Terpilih";
+        const msg = `⚠️ PERINGATAN CRITICAL ⚠️\n\nApakah Anda yakin ingin MENGHAPUS SEMUA DATA warga untuk wilayah [${tenantName}] secara permanen?\n\nTindakan ini tidak dapat dibatalkan!`;
+        if (!confirm(msg)) return;
+
+        const doubleConfirm = prompt(`Ketik "HAPUS SEMUA DATA" untuk mengonfirmasi tindakan ini:`);
+        if (doubleConfirm !== "HAPUS SEMUA DATA") {
+            alert("Konfirmasi gagal. Penghapusan dibatalkan.");
+            return;
+        }
+
+        try {
+            setIsSaving(true);
+            const res = await deleteAllResidents(selectedTenant);
+            setResidents(prev => {
+                if (selectedTenant === "all") return [];
+                return prev.filter(r => r.tenantId !== selectedTenant);
+            });
+            setSelectedIds([]);
+            alert(`Berhasil menghapus seluruh data kependudukan (${res.count} jiwa)!`);
+        } catch (error) {
+            alert("Gagal menghapus data.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handlePrint = () => {
+        const tenantName = selectedTenant === "all" ? "DESA CIIMANGGU I" : tenants.find(t => t.id === selectedTenant)?.name.toUpperCase() || "DESA CIIMANGGU I";
+        const printWindow = window.open("", "_blank");
+        if (!printWindow) {
+            alert("Gagal membuka jendela cetak. Pastikan pop-up blocker Anda dinonaktifkan.");
+            return;
+        }
+
+        let pageStyleSize = "A4 landscape";
+        if (paperSize === "F4") {
+            pageStyleSize = "330mm 215mm";
+        } else if (paperSize === "LEGAL") {
+            pageStyleSize = "355.6mm 215.9mm";
+        }
+
+        const tableRows = filteredResidents.map((r, index) => {
+            // Age calculation
+            let ageStr = "-";
+            if (r.tanggalLahir) {
+                const dob = new Date(r.tanggalLahir);
+                if (!isNaN(dob.getTime())) {
+                    const today = new Date();
+                    let years = today.getFullYear() - dob.getFullYear();
+                    let months = today.getMonth() - dob.getMonth();
+                    let days = today.getDate() - dob.getDate();
+                    if (days < 0) {
+                        months--;
+                        const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+                        days += prevMonth.getDate();
+                    }
+                    if (months < 0) {
+                        years--;
+                        months += 12;
+                    }
+                    ageStr = `${years} Tahun, ${months} Bulan, ${days} Hari`;
+                }
+            }
+
+            // Date birth formatting (M/D/YYYY)
+            let dobFormatted = "-";
+            if (r.tanggalLahir) {
+                const dob = new Date(r.tanggalLahir);
+                if (!isNaN(dob.getTime())) {
+                    dobFormatted = `${dob.getMonth() + 1}/${dob.getDate()}/${dob.getFullYear()}`;
+                }
+            }
+
+            // Gender mapping
+            const genderStr = r.jenisKelamin === "LAKI_LAKI" ? "LAKI-LAKI" : "PEREMPUAN";
+
+            // Status Perkawinan mapping
+            let statusKawinStr = "-";
+            if (r.statusKawin === "KAWIN") statusKawinStr = "KAWIN";
+            else if (r.statusKawin === "BELUM_KAWIN") statusKawinStr = "BELUM KAWIN";
+            else if (r.statusKawin === "CERAI_HIDUP") statusKawinStr = "CERAI HIDUP";
+            else if (r.statusKawin === "CERAI_MATI") statusKawinStr = "CERAI MATI";
+
+            return `
+                <tr>
+                    <td style="font-family: monospace; text-align: center;">${r.nik}</td>
+                    <td style="font-family: monospace; text-align: center;">${r.noKK}</td>
+                    <td>${r.namaLengkap.toUpperCase()}</td>
+                    <td style="text-align: center;">${genderStr}</td>
+                    <td>${(r.tempatLahir || "BOGOR").toUpperCase()}</td>
+                    <td style="text-align: center;">${dobFormatted}</td>
+                    <td style="white-space: nowrap;">${ageStr}</td>
+                    <td style="text-align: center;">${r.agama.toUpperCase()}</td>
+                    <td style="text-align: center;">${(r.pendidikan || "SD").toUpperCase()}</td>
+                    <td>${(r.pekerjaan || "BELUM BEKERJA").toUpperCase()}</td>
+                    <td style="text-align: center;">${(r.golonganDarah || "-").toUpperCase()}</td>
+                    <td style="text-align: center;">${statusKawinStr}</td>
+                    <td>${r.hubunganKeluarga.replace(/_/g, " ").toUpperCase()}</td>
+                    <td style="text-align: center;">${r.kewarganegaraan.toUpperCase()}</td>
+                    <td>${(r.namaAyah || "-").toUpperCase()}</td>
+                    <td>${(r.namaIbu || "-").toUpperCase()}</td>
+                    <td>${(r.alamat || "-").toUpperCase()}</td>
+                    <td style="text-align: center;">${r.rt}</td>
+                    <td style="text-align: center;">${r.rw}</td>
+                    <td>${(r.dusun || "-").toUpperCase()}</td>
+                </tr>
+            `;
+        }).join("");
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Buku Induk Kependudukan - ${tenantName}</title>
+                    <style>
+                        @page {
+                            size: ${pageStyleSize};
+                            margin: 10mm;
+                        }
+                        body {
+                            font-family: Arial, sans-serif;
+                            font-size: 8px;
+                            color: #000;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .header {
+                            text-align: center;
+                            margin-bottom: 20px;
+                        }
+                        .header h1 {
+                            font-size: 14px;
+                            font-weight: bold;
+                            margin: 0;
+                            text-transform: uppercase;
+                            letter-spacing: 0.5px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            font-size: 7.5px;
+                        }
+                        th, td {
+                            border: 1px solid #000;
+                            padding: 4px 3px;
+                        }
+                        th {
+                            font-weight: bold;
+                            text-align: center;
+                            text-transform: uppercase;
+                        }
+                        .highlight-header {
+                            background-color: #ffff00 !important; /* Bright Yellow like spreadsheet */
+                            color: #000;
+                            font-size: 8px;
+                        }
+                        tr:nth-child(even) {
+                            background-color: #fcfcfc;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>BUKU INDUK KEPENDUDUKAN ${tenantName}</h1>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="highlight-header">NIK</th>
+                                <th class="highlight-header">NO KK</th>
+                                <th class="highlight-header">NAMA LENGKAP</th>
+                                <th class="highlight-header">JENIS KELAMIN</th>
+                                <th class="highlight-header">TEMPAT LAHIR</th>
+                                <th class="highlight-header">TANGGAL LAHIR</th>
+                                <th class="highlight-header">UMUR</th>
+                                <th class="highlight-header">AGAMA</th>
+                                <th class="highlight-header">PENDIDIKAN</th>
+                                <th class="highlight-header">PEKERJAAN</th>
+                                <th class="highlight-header">GOL. DARAH</th>
+                                <th class="highlight-header">STATUS PERKAWINAN</th>
+                                <th class="highlight-header">HUBUNGAN KELUARGA</th>
+                                <th class="highlight-header">KEWARGA NEGARAAN</th>
+                                <th class="highlight-header">NAMA AYAH</th>
+                                <th class="highlight-header">NAMA IBU</th>
+                                <th class="highlight-header">KP</th>
+                                <th class="highlight-header">RT</th>
+                                <th class="highlight-header">RW</th>
+                                <th class="highlight-header">DUSUN</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            window.onafterprint = function() {
+                                window.close();
+                            };
+                        };
+                    </script>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
     };
 
     const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -212,36 +464,64 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
             await workbook.xlsx.load(buffer as any);
             const worksheet = workbook.worksheets[0];
             
-            const headers: string[] = [];
-            worksheet.getRow(1).eachCell((cell, colNumber) => {
-                headers.push(cell.text || `Column ${colNumber}`);
+            const rawRows: any[][] = [];
+            worksheet.eachRow({ includeEmpty: true }, (row) => {
+                const rowValues: any[] = [];
+                const maxCol = row.cellCount;
+                for (let colNum = 1; colNum <= maxCol; colNum++) {
+                    const cell = row.getCell(colNum);
+                    rowValues.push(cell.text !== undefined && cell.text !== null ? cell.text : "");
+                }
+                rawRows.push(rowValues);
             });
 
-            const data: any[] = [];
-            worksheet.eachRow((row, rowNumber) => {
-                if (rowNumber > 1) { // Skip header
-                    const rowData: Record<string, string> = {};
-                    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
-                        const header = headers[colNumber - 1];
-                        if (header) rowData[header] = cell.text;
-                    });
-                    data.push(rowData);
-                }
-            });
+            const { headers, data } = processRawSheetData(rawRows);
+            if (headers.length === 0) {
+                alert("Data kosong atau tidak memiliki header.");
+                return;
+            }
 
             setExcelHeaders(headers);
             setExcelData(data);
 
-            // Auto-Match logic
+            // Robust Auto-Match logic using synonyms
             const initialMapping: Record<string, string> = {};
             DB_FIELDS.forEach(field => {
-                const match = headers.find(h => 
-                    h.toLowerCase().includes(field.label.toLowerCase()) || 
-                    field.label.toLowerCase().includes(h.toLowerCase()) || 
-                    h.toLowerCase() === field.key.toLowerCase()
-                );
-                if (match) initialMapping[field.key] = match;
+                const synonyms = fieldSynonyms[field.key] || [];
+                
+                // 1. Exact match
+                let match = headers.find(h => {
+                    const cleanH = h.trim().toLowerCase();
+                    return synonyms.some(syn => cleanH === syn);
+                });
+                
+                // 2. Inclusion match
+                if (!match) {
+                    match = headers.find(h => {
+                        const cleanH = h.trim().toLowerCase();
+                        // Only match if the spreadsheet header contains the synonym.
+                        // This prevents false positives like "NAMA" matching "namaAyah" / "namaIbu".
+                        return synonyms.some(syn => cleanH.includes(syn));
+                    });
+                }
+                
+                if (match) {
+                    initialMapping[field.key] = match;
+                }
             });
+
+            // Special Case: TEMPAT, TGL. LAHIR (Merged header splitting)
+            const tempatHeader = initialMapping["tempatLahir"];
+            if (tempatHeader) {
+                const cleanT = tempatHeader.toLowerCase();
+                if (cleanT.includes("tempat") && (cleanT.includes("tgl") || cleanT.includes("tanggal") || cleanT.includes("lahir"))) {
+                    const idx = headers.indexOf(tempatHeader);
+                    if (idx !== -1 && idx + 1 < headers.length) {
+                        initialMapping["tanggalLahir"] = headers[idx + 1];
+                    }
+                }
+            }
+
             setColumnMapping(initialMapping);
             setImportStep("MAPPING");
 
@@ -253,41 +533,270 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
         }
     };
 
+    const handleImportGoogleSheet = async () => {
+        const rawId = spreadsheetId.trim();
+        if (!rawId || !sheetRange.trim() || !formData.tenantId) {
+            alert("Harap isi Spreadsheet ID, Range, dan pilih tenant tujuan.");
+            return;
+        }
+
+        // Auto-extract Spreadsheet ID if a full URL is provided
+        let targetId = rawId;
+        const urlMatch = rawId.match(/\/d\/([a-zA-Z0-9-_]+)/);
+        if (urlMatch && urlMatch[1]) {
+            targetId = urlMatch[1];
+        }
+
+        setIsImporting(true);
+        try {
+            const rows = await fetchGoogleSheetData(targetId, sheetRange.trim());
+            if (!rows || rows.length === 0) {
+                alert("Data kosong atau tidak memiliki header.");
+                return;
+            }
+
+            const { headers, data } = processRawSheetData(rows);
+            if (headers.length === 0) {
+                alert("Data kosong atau tidak memiliki header.");
+                return;
+            }
+
+            setExcelHeaders(headers);
+            setExcelData(data);
+
+            // Robust Auto-Match logic using synonyms
+            const initialMapping: Record<string, string> = {};
+            DB_FIELDS.forEach(field => {
+                const synonyms = fieldSynonyms[field.key] || [];
+                
+                // 1. Exact match
+                let match = headers.find(h => {
+                    const cleanH = h.trim().toLowerCase();
+                    return synonyms.some(syn => cleanH === syn);
+                });
+                
+                // 2. Inclusion match
+                if (!match) {
+                    match = headers.find(h => {
+                        const cleanH = h.trim().toLowerCase();
+                        // Only match if the spreadsheet header contains the synonym.
+                        return synonyms.some(syn => cleanH.includes(syn));
+                    });
+                }
+                
+                if (match) {
+                    initialMapping[field.key] = match;
+                }
+            });
+
+            // Special Case: TEMPAT, TGL. LAHIR (Merged header splitting)
+            const tempatHeader = initialMapping["tempatLahir"];
+            if (tempatHeader) {
+                const cleanT = tempatHeader.toLowerCase();
+                if (cleanT.includes("tempat") && (cleanT.includes("tgl") || cleanT.includes("tanggal") || cleanT.includes("lahir"))) {
+                    const idx = headers.indexOf(tempatHeader);
+                    if (idx !== -1 && idx + 1 < headers.length) {
+                        initialMapping["tanggalLahir"] = headers[idx + 1];
+                    }
+                }
+            }
+
+            setColumnMapping(initialMapping);
+            setImportStep("MAPPING");
+
+        } catch (error: any) {
+            alert(error.message || "Gagal mengambil data dari Google Sheets. Pastikan ID dan range sesuai.");
+        } finally {
+            setIsImporting(false);
+        }
+    };
+
     const executeImport = async () => {
         setIsImporting(true);
         try {
+            // Helper for cleaning numeric strings like NIK and KK
+            const cleanNumeric = (val: any) => {
+                if (val === undefined || val === null) return "";
+                return String(val).replace(/['`\s\-_]/g, "").trim();
+            };
+
+            // Helper for robust Date parsing
+            const parseDate = (val: any): Date => {
+                if (!val) return new Date("1970-01-01");
+                if (val instanceof Date) return val;
+                
+                const str = String(val).trim();
+                if (!str) return new Date("1970-01-01");
+                
+                if (/^\d+(\.\d+)?$/.test(str)) {
+                    const serial = parseFloat(str);
+                    const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+                    const msPerDay = 24 * 60 * 60 * 1000;
+                    return new Date(excelEpoch.getTime() + serial * msPerDay);
+                }
+                
+                const parsed = Date.parse(str);
+                if (!isNaN(parsed)) return new Date(parsed);
+                
+                const parts = str.split(/[-\/.]/);
+                if (parts.length === 3) {
+                    if (parts[0].length === 4) {
+                        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    } else if (parts[2].length === 4) {
+                        return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+                    } else if (parts[2].length === 2) {
+                        const yr = parseInt(parts[2], 10) + (parseInt(parts[2], 10) > 30 ? 1900 : 2000);
+                        return new Date(yr, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+                    }
+                }
+                return new Date("1970-01-01");
+            };
+
+            const normalizeStatusKawin = (val: any): string => {
+                const s = String(val || "").toUpperCase().trim();
+                if (s === "B" || s.includes("BELUM")) return "BELUM_KAWIN";
+                if (s === "K" || s === "KAWIN" || s === "S" || s.includes("NIKAH")) return "KAWIN";
+                if (s.includes("CERAI HIDUP") || s === "CH") return "CERAI_HIDUP";
+                if (s.includes("CERAI MATI") || s === "CM") return "CERAI_MATI";
+                return "BELUM_KAWIN";
+            };
+
+            const normalizeHubunganKeluarga = (val: any): string => {
+                const h = String(val || "").toUpperCase().trim();
+                if (h.includes("KEPALA") || h === "KK") return "KEPALA_KELUARGA";
+                if (h.includes("ISTRI")) return "ISTRI";
+                if (h.includes("ANAK")) return "ANAK";
+                if (h.includes("MERTUA")) return "MERTUA";
+                if (h.includes("MENANTU")) return "MENANTU";
+                if (h.includes("CUCU")) return "CUCU";
+                if (h.includes("ORANG TUA") || h.includes("ORTU")) return "ORANG_TUA";
+                if (h.includes("FAMILI") || h.includes("LAIN")) return "FAMILI_LAIN";
+                if (h.includes("PEMBANTU")) return "PEMBANTU";
+                return "KEPALA_KELUARGA";
+            };
+
+            const normalizeKewarganegaraan = (val: any): string => {
+                const k = String(val || "").toUpperCase().trim();
+                if (k.includes("WNA") || k === "2") return "WNA";
+                return "WNI";
+            };
+
+            // Helper to automatically look up Dusun name from RT/RW and villageStructure
+            const getResolvedDusun = (rtVal: string, rwVal: string): string => {
+                if (!villageStructure || !villageStructure.dusun) return "";
+                const cleanRt = String(rtVal).replace(/^0+/, "").trim();
+                const cleanRw = String(rwVal).replace(/^0+/, "").trim();
+                
+                for (const d of villageStructure.dusun) {
+                    if (!d.rw) continue;
+                    for (const r of d.rw) {
+                        const currentRwClean = String(r.name).replace(/^0+/, "").trim();
+                        if (currentRwClean === cleanRw) {
+                            if (r.rt) {
+                                const hasRt = r.rt.some((rtName: string) => 
+                                    String(rtName).replace(/^0+/, "").trim() === cleanRt
+                                );
+                                if (hasRt) return d.name;
+                            }
+                        }
+                    }
+                }
+                if (villageStructure.dusun.length > 0) {
+                    return villageStructure.dusun[0].name;
+                }
+                return "";
+            };
+
             const formattedData = excelData.map(row => {
+                // Check if the row has any content to avoid importing blank rows
+                const hasAnyContent = Object.values(row).some(val => val !== undefined && val !== null && String(val).trim() !== "");
+                if (!hasAnyContent) return null;
+
+                const nameRaw = String(row[columnMapping['namaLengkap']] || "").trim();
+                const nikRaw = cleanNumeric(row[columnMapping['nik']]);
+                
+                // If it's a completely empty data row (e.g. has some border but no name/nik), skip it
+                if (!nameRaw && !nikRaw) return null;
+
+                // Auto-generate temporary NIK if missing or too short
+                let nik = nikRaw;
+                if (!nik || nik.length < 10) {
+                    nik = "TEMP-" + Math.random().toString(36).substring(2, 8).toUpperCase() + "-" + Date.now().toString().substring(9);
+                }
+
+                // Auto-generate temporary No KK if missing
+                let noKK = cleanNumeric(row[columnMapping['noKK']]);
+                if (!noKK) {
+                    noKK = "TEMP-KK-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+                }
+
+                const namaLengkap = nameRaw || "WARGA TANPA NAMA";
+                
                 const jkRaw = String(row[columnMapping['jenisKelamin']] || "").toUpperCase();
                 const jk = jkRaw === "L" || jkRaw === "LAKI-LAKI" || jkRaw === "LAKI_LAKI" ? "LAKI_LAKI" : "PEREMPUAN";
+                
+                const tempatLahir = String(row[columnMapping['tempatLahir']] || "Belum Diisi").trim();
+                const tanggalLahir = parseDate(row[columnMapping['tanggalLahir']]);
+                const agama = String(row[columnMapping['agama']] || "ISLAM").toUpperCase().trim();
+                const pendidikan = String(row[columnMapping['pendidikan']] || "Belum Diisi").trim();
+                const pekerjaan = String(row[columnMapping['pekerjaan']] || "Belum Diisi").trim();
+                const golonganDarah = String(row[columnMapping['golonganDarah']] || "-").trim();
+                
+                const statusKawin = normalizeStatusKawin(row[columnMapping['statusKawin']]);
+                const hubunganKeluarga = normalizeHubunganKeluarga(row[columnMapping['hubunganKeluarga']]);
+                const kewarganegaraan = normalizeKewarganegaraan(row[columnMapping['kewarganegaraan']]);
+                
+                const namaAyah = String(row[columnMapping['namaAyah']] || "Belum Diisi").trim();
+                const namaIbu = String(row[columnMapping['namaIbu']] || "Belum Diisi").trim();
+                const alamat = String(row[columnMapping['alamat']] || "Belum Diisi").trim();
+                
+                const rt = cleanNumeric(row[columnMapping['rt']]) || "001";
+                const rw = cleanNumeric(row[columnMapping['rw']]) || "001";
+                
+                // Resolve Dusun
+                let dusun = String(row[columnMapping['dusun']] || "").trim();
+                if (!dusun) {
+                    dusun = getResolvedDusun(rt, rw);
+                }
+                if (!dusun) {
+                    dusun = "Dusun I";
+                }
 
                 return {
-                    nik: row[columnMapping['nik']] || "",
-                    noKK: row[columnMapping['noKK']] || "",
-                    namaLengkap: row[columnMapping['namaLengkap']] || "",
+                    nik,
+                    noKK,
+                    namaLengkap,
                     jenisKelamin: jk,
-                    tempatLahir: row[columnMapping['tempatLahir']] || "",
-                    tanggalLahir: row[columnMapping['tanggalLahir']] || "",
-                    agama: row[columnMapping['agama']] || "ISLAM",
-                    pendidikan: row[columnMapping['pendidikan']] || "",
-                    pekerjaan: row[columnMapping['pekerjaan']] || "",
-                    golonganDarah: row[columnMapping['golonganDarah']] || "-",
-                    statusKawin: row[columnMapping['statusKawin']] || "BELUM_KAWIN",
-                    hubunganKeluarga: row[columnMapping['hubunganKeluarga']] || "KEPALA_KELUARGA",
-                    kewarganegaraan: row[columnMapping['kewarganegaraan']] || "WNI",
-                    namaAyah: row[columnMapping['namaAyah']] || "",
-                    namaIbu: row[columnMapping['namaIbu']] || "",
-                    alamat: row[columnMapping['alamat']] || "",
-                    rt: row[columnMapping['rt']] || "",
-                    rw: row[columnMapping['rw']] || "",
-                    dusun: row[columnMapping['dusun']] || "",
+                    tempatLahir,
+                    tanggalLahir,
+                    agama,
+                    pendidikan,
+                    pekerjaan,
+                    golonganDarah,
+                    statusKawin,
+                    hubunganKeluarga,
+                    kewarganegaraan,
+                    namaAyah,
+                    namaIbu,
+                    alamat,
+                    rt,
+                    rw,
+                    dusun
                 };
-            });
+            }).filter((item): item is NonNullable<typeof item> => item !== null);
+
+            if (formattedData.length === 0) {
+                alert("Tidak ada data warga valid untuk diimpor. Pastikan file tidak kosong.");
+                setIsImporting(false);
+                return;
+            }
 
             await bulkImportResidents(formattedData, formData.tenantId);
             alert(`Berhasil mengimpor ${formattedData.length} data kependudukan!`);
             window.location.reload(); 
-        } catch (error) {
-            alert("Gagal mengimpor data kependudukan.");
+        } catch (error: any) {
+            console.error("Import Error: ", error);
+            alert(`Gagal mengimpor data kependudukan. Detail: ${error?.message || "Kesalahan database"}`);
             setIsImporting(false);
         }
     };
@@ -300,6 +809,9 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
             setExcelData([]);
             setExcelHeaders([]);
             setColumnMapping({});
+            setImportSource("FILE");
+            setSpreadsheetId("");
+            setSheetRange("Sheet1!A1:Z500");
         }, 300);
     };
 
@@ -331,6 +843,31 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                         />
                     </div>
                     <div className="flex gap-3">
+                        <div className="relative flex items-center">
+                            <select 
+                                value={paperSize}
+                                onChange={(e) => setPaperSize(e.target.value)}
+                                className="bg-emerald-50 text-emerald-700 border border-emerald-100/50 pl-5 pr-8 py-5 rounded-[2rem] text-sm font-black shadow-xl shadow-emerald-100/10 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer appearance-none"
+                            >
+                                <option value="A4">A4 (Landscape)</option>
+                                <option value="F4">F4 / Folio</option>
+                                <option value="LEGAL">Legal (Landscape)</option>
+                            </select>
+                            <span className="absolute right-3.5 pointer-events-none text-emerald-600/80 text-[10px] font-black">▼</span>
+                        </div>
+                        <button 
+                            onClick={handlePrint}
+                            className="bg-emerald-600 text-white border border-emerald-600/20 px-6 py-5 rounded-[2rem] text-sm font-black shadow-xl shadow-emerald-600/10 hover:bg-emerald-700 transition-all active:scale-95 flex items-center justify-center gap-2"
+                        >
+                            <Printer size={18} /> Cetak Buku Induk
+                        </button>
+                        <button 
+                            disabled={isSaving}
+                            onClick={handleResetAll}
+                            className="bg-rose-50 text-rose-600 border border-rose-100/50 px-6 py-5 rounded-[2rem] text-sm font-black shadow-xl shadow-rose-100/10 hover:bg-rose-100 transition-all active:scale-95 flex items-center justify-center gap-2"
+                        >
+                            <Trash2 size={18} /> Hapus Semua
+                        </button>
                         <button 
                             onClick={() => setIsImportOpen(true)}
                             className="bg-slate-100 text-slate-700 px-6 py-5 rounded-[2rem] text-sm font-black shadow-xl shadow-slate-200/20 hover:bg-slate-200 transition-all active:scale-95 flex items-center justify-center gap-2"
@@ -361,6 +898,15 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                         {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                     </select>
                 </div>
+                {selectedIds.length > 0 && (
+                    <button 
+                        disabled={isSaving}
+                        onClick={handleBulkDelete}
+                        className="flex items-center gap-2 px-6 py-3 bg-rose-50 text-rose-600 border border-rose-100/50 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all active:scale-95"
+                    >
+                        <Trash2 size={12} /> Hapus Terpilih ({selectedIds.length})
+                    </button>
+                )}
                 <div className="flex-1" />
                 <div className="px-6 py-3 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest">
                     Total: {filteredResidents.length} Jiwa
@@ -373,7 +919,15 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50/50 border-b border-slate-100">
-                                <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Biodata Lengkap</th>
+                                <th className="pl-10 pr-4 py-8 w-12">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={filteredResidents.length > 0 && selectedIds.length === filteredResidents.length}
+                                        onChange={handleSelectAll}
+                                        className="w-4.5 h-4.5 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+                                    />
+                                </th>
+                                <th className="px-6 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Biodata Lengkap</th>
                                 <th className="px-6 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">NIK & NO KK</th>
                                 <th className="px-6 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Domisili</th>
                                 <th className="px-6 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Info Keluarga</th>
@@ -383,7 +937,15 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                         <tbody className="divide-y divide-slate-50">
                             {filteredResidents.map((r) => (
                                 <tr key={r.id} className="group hover:bg-blue-50/30 transition-all duration-300">
-                                    <td className="px-10 py-8">
+                                    <td className="pl-10 pr-4 py-8">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={selectedIds.includes(r.id)}
+                                            onChange={() => handleSelectOne(r.id)}
+                                            className="w-4.5 h-4.5 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+                                        />
+                                    </td>
+                                    <td className="px-6 py-8">
                                         <div className="flex items-center gap-5">
                                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-lg shadow-sm group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 ${r.jenisKelamin === 'LAKI_LAKI' ? 'bg-blue-100 text-blue-600' : 'bg-rose-100 text-rose-600'}`}>
                                                 {r.namaLengkap.charAt(0)}
@@ -450,8 +1012,14 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                     {filteredResidents.map((r) => (
                         <div key={r.id} className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/30 border border-slate-100 space-y-6 active:scale-95 transition-all">
                             <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-5">
-                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-lg ${r.jenisKelamin === 'LAKI_LAKI' ? 'bg-blue-100 text-blue-600' : 'bg-rose-100 text-rose-600'}`}>
+                                <div className="flex items-center gap-4">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={selectedIds.includes(r.id)}
+                                        onChange={() => handleSelectOne(r.id)}
+                                        className="w-4.5 h-4.5 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
+                                    />
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-lg shrink-0 ${r.jenisKelamin === 'LAKI_LAKI' ? 'bg-blue-100 text-blue-600' : 'bg-rose-100 text-rose-600'}`}>
                                         {r.namaLengkap.charAt(0)}
                                     </div>
                                     <div>
@@ -503,65 +1071,42 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                             </div>
                         </div>
 
-                        <form onSubmit={handleSave} className="p-8 md:p-12 space-y-12 overflow-y-auto custom-scrollbar bg-slate-50/30">
-                            {/* SECTION 1: IDENTITAS UTAMA */}
-                            <div className="space-y-8">
-                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/20"><User size={16} /></div>
-                                    Identitas Utama (NIK & KK)
+                        <form onSubmit={handleSave} className="p-8 md:p-12 space-y-8 overflow-y-auto custom-scrollbar bg-slate-50/30">
+                            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/20">
+                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/20"><FileSpreadsheet size={16} /></div>
+                                    Form Isian Warga (Sesuai Kolom Buku Induk)
                                 </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                    <FormGroup label="Nomor Induk Kependudukan (NIK)" icon={Fingerprint}>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <FormGroup label="1. Nomor Induk Kependudukan (NIK)" icon={Fingerprint}>
                                         <input required value={formData.nik} onChange={e => setFormData({...formData, nik: e.target.value})} placeholder="16 Digit NIK" className="form-input-premium" />
                                     </FormGroup>
-                                    <FormGroup label="Nomor Kartu Keluarga (NO KK)" icon={Home}>
+
+                                    <FormGroup label="2. Nomor Kartu Keluarga (NO KK)" icon={Home}>
                                         <input required value={formData.noKK} onChange={e => setFormData({...formData, noKK: e.target.value})} placeholder="16 Digit No KK" className="form-input-premium" />
                                     </FormGroup>
-                                    <FormGroup label="Nama Lengkap (Sesuai KTP)" icon={User}>
+
+                                    <FormGroup label="3. Nama Lengkap (Sesuai KTP)" icon={User}>
                                         <input required value={formData.namaLengkap} onChange={e => setFormData({...formData, namaLengkap: e.target.value})} placeholder="Nama Lengkap" className="form-input-premium" />
                                     </FormGroup>
-                                </div>
-                            </div>
 
-                            {/* SECTION 2: KELAHIRAN & FISIK */}
-                            <div className="space-y-8">
-                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-600/20"><Heart size={16} /></div>
-                                    Kelahiran & Informasi Personal
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                                    <FormGroup label="Tempat Lahir" icon={MapPin}>
-                                        <input required value={formData.tempatLahir} onChange={e => setFormData({...formData, tempatLahir: e.target.value})} placeholder="Kota / Kabupaten" className="form-input-premium" />
-                                    </FormGroup>
-                                    <FormGroup label="Tanggal Lahir" icon={FileSpreadsheet}>
-                                        <input required type="date" value={formData.tanggalLahir} onChange={e => setFormData({...formData, tanggalLahir: e.target.value})} className="form-input-premium" />
-                                    </FormGroup>
-                                    <FormGroup label="Jenis Kelamin" icon={Users}>
+                                    <FormGroup label="4. Jenis Kelamin" icon={Users}>
                                         <select value={formData.jenisKelamin} onChange={e => setFormData({...formData, jenisKelamin: e.target.value})} className="form-input-premium appearance-none">
                                             <option value="LAKI_LAKI">LAKI-LAKI</option>
                                             <option value="PEREMPUAN">PEREMPUAN</option>
                                         </select>
                                     </FormGroup>
-                                    <FormGroup label="Golongan Darah" icon={Activity}>
-                                        <select value={formData.golonganDarah} onChange={e => setFormData({...formData, golonganDarah: e.target.value})} className="form-input-premium appearance-none">
-                                            <option value="-">- TIDAK TAHU -</option>
-                                            <option value="A">A</option>
-                                            <option value="B">B</option>
-                                            <option value="AB">AB</option>
-                                            <option value="O">O</option>
-                                        </select>
-                                    </FormGroup>
-                                </div>
-                            </div>
 
-                            {/* SECTION 3: SOSIAL & PENDIDIKAN */}
-                            <div className="space-y-8">
-                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-600/20"><GraduationCap size={16} /></div>
-                                    Status Sosial & Pendidikan
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                                    <FormGroup label="Agama" icon={ShieldCheck}>
+                                    <FormGroup label="5. Tempat Lahir" icon={MapPin}>
+                                        <input required value={formData.tempatLahir} onChange={e => setFormData({...formData, tempatLahir: e.target.value})} placeholder="Kota / Kabupaten" className="form-input-premium" />
+                                    </FormGroup>
+
+                                    <FormGroup label="6. Tanggal Lahir" icon={Calendar}>
+                                        <input required type="date" value={formData.tanggalLahir} onChange={e => setFormData({...formData, tanggalLahir: e.target.value})} className="form-input-premium" />
+                                    </FormGroup>
+
+                                    <FormGroup label="7. Agama" icon={ShieldCheck}>
                                         <select value={formData.agama} onChange={e => setFormData({...formData, agama: e.target.value})} className="form-input-premium appearance-none">
                                             <option value="ISLAM">ISLAM</option>
                                             <option value="KRISTEN">KRISTEN</option>
@@ -571,7 +1116,8 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                                             <option value="KONGHUCU">KONGHUCU</option>
                                         </select>
                                     </FormGroup>
-                                    <FormGroup label="Pendidikan Terakhir" icon={GraduationCap}>
+
+                                    <FormGroup label="8. Pendidikan Terakhir" icon={GraduationCap}>
                                         <select value={formData.pendidikan} onChange={e => setFormData({...formData, pendidikan: e.target.value})} className="form-input-premium appearance-none">
                                             <option value="TIDAK_SEKOLAH">TIDAK SEKOLAH</option>
                                             <option value="SD">SD</option>
@@ -583,10 +1129,22 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                                             <option value="S3">DOKTOR (S3)</option>
                                         </select>
                                     </FormGroup>
-                                    <FormGroup label="Pekerjaan" icon={Briefcase}>
+
+                                    <FormGroup label="9. Pekerjaan" icon={Briefcase}>
                                         <input value={formData.pekerjaan} onChange={e => setFormData({...formData, pekerjaan: e.target.value})} placeholder="Pekerjaan" className="form-input-premium" />
                                     </FormGroup>
-                                    <FormGroup label="Status Perkawinan" icon={Heart}>
+
+                                    <FormGroup label="10. Golongan Darah" icon={Activity}>
+                                        <select value={formData.golonganDarah} onChange={e => setFormData({...formData, golonganDarah: e.target.value})} className="form-input-premium appearance-none">
+                                            <option value="-">- TIDAK TAHU -</option>
+                                            <option value="A">A</option>
+                                            <option value="B">B</option>
+                                            <option value="AB">AB</option>
+                                            <option value="O">O</option>
+                                        </select>
+                                    </FormGroup>
+
+                                    <FormGroup label="11. Status Perkawinan" icon={Heart}>
                                         <select value={formData.statusKawin} onChange={e => setFormData({...formData, statusKawin: e.target.value})} className="form-input-premium appearance-none">
                                             <option value="BELUM_KAWIN">BELUM KAWIN</option>
                                             <option value="KAWIN">KAWIN</option>
@@ -594,17 +1152,8 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                                             <option value="CERAI_MATI">CERAI MATI</option>
                                         </select>
                                     </FormGroup>
-                                </div>
-                            </div>
 
-                            {/* SECTION 4: HUBUNGAN KELUARGA & ORANG TUA */}
-                            <div className="space-y-8">
-                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-amber-600 text-white flex items-center justify-center shadow-lg shadow-amber-600/20"><Users2 size={16} /></div>
-                                    Hubungan Keluarga & Orang Tua
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                                    <FormGroup label="Hubungan Dalam Keluarga" icon={Users2}>
+                                    <FormGroup label="12. Hubungan Dalam Keluarga" icon={Users2}>
                                         <select value={formData.hubunganKeluarga} onChange={e => setFormData({...formData, hubunganKeluarga: e.target.value})} className="form-input-premium appearance-none">
                                             <option value="KEPALA_KELUARGA">KEPALA KELUARGA</option>
                                             <option value="ISTRI">ISTRI</option>
@@ -614,81 +1163,75 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                                             <option value="LAINNYA">LAINNYA</option>
                                         </select>
                                     </FormGroup>
-                                    <FormGroup label="Kewarganegaraan" icon={Globe}>
+
+                                    <FormGroup label="13. Kewarganegaraan" icon={Globe}>
                                         <select value={formData.kewarganegaraan} onChange={e => setFormData({...formData, kewarganegaraan: e.target.value})} className="form-input-premium appearance-none">
                                             <option value="WNI">WNI</option>
                                             <option value="WNA">WNA</option>
                                         </select>
                                     </FormGroup>
-                                    <FormGroup label="Nama Ayah" icon={User}>
+
+                                    <FormGroup label="14. Nama Ayah" icon={User}>
                                         <input value={formData.namaAyah} onChange={e => setFormData({...formData, namaAyah: e.target.value})} placeholder="Nama Ayah Kandung" className="form-input-premium" />
                                     </FormGroup>
-                                    <FormGroup label="Nama Ibu" icon={User}>
+
+                                    <FormGroup label="15. Nama Ibu" icon={User}>
                                         <input value={formData.namaIbu} onChange={e => setFormData({...formData, namaIbu: e.target.value})} placeholder="Nama Ibu Kandung" className="form-input-premium" />
                                     </FormGroup>
-                                </div>
-                            </div>
 
-                            {/* SECTION 5: ALAMAT & TENANT */}
-                            <div className="space-y-8">
-                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center shadow-lg shadow-slate-900/20"><MapPin size={16} /></div>
-                                    Domisili & Wilayah Administratif
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <FormGroup label="Alamat Lengkap" icon={Map}>
-                                        <textarea required value={formData.alamat} onChange={e => setFormData({...formData, alamat: e.target.value})} placeholder="Dusun, Kampung, No Rumah..." className="form-input-premium min-h-[120px] pt-5" />
+                                    <FormGroup label="16. KP (Kampung / Alamat)" icon={Map}>
+                                        <input required value={formData.alamat} onChange={e => setFormData({...formData, alamat: e.target.value})} placeholder="Nama Kampung / Alamat Lengkap" className="form-input-premium" />
                                     </FormGroup>
-                                    <div className="space-y-8">
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                            <FormGroup label="Dusun" icon={MapPin}>
-                                                <select 
-                                                    required 
-                                                    value={formData.dusun} 
-                                                    onChange={e => setFormData({...formData, dusun: e.target.value, rw: "", rt: ""})} 
-                                                    className="form-input-premium appearance-none"
-                                                >
-                                                    <option value="">- Pilih Dusun -</option>
-                                                    {villageStructure.dusun.map(d => (
-                                                        <option key={d.name} value={d.name}>{d.name}</option>
-                                                    ))}
-                                                </select>
-                                            </FormGroup>
-                                            <FormGroup label="RW" icon={MapPin}>
-                                                <select 
-                                                    required 
-                                                    value={formData.rw} 
-                                                    onChange={e => setFormData({...formData, rw: e.target.value, rt: ""})} 
-                                                    className="form-input-premium appearance-none"
-                                                    disabled={!formData.dusun}
-                                                >
-                                                    <option value="">- Pilih RW -</option>
-                                                    {villageStructure.dusun.find(d => d.name === formData.dusun)?.rw.map(r => (
-                                                        <option key={r.name} value={r.name}>{r.name}</option>
-                                                    ))}
-                                                </select>
-                                            </FormGroup>
-                                            <FormGroup label="RT" icon={MapPin}>
-                                                <select 
-                                                    required 
-                                                    value={formData.rt} 
-                                                    onChange={e => setFormData({...formData, rt: e.target.value})} 
-                                                    className="form-input-premium appearance-none"
-                                                    disabled={!formData.rw}
-                                                >
-                                                    <option value="">- Pilih RT -</option>
-                                                    {villageStructure.dusun.find(d => d.name === formData.dusun)?.rw.find(r => r.name === formData.rw)?.rt.map(rt => (
-                                                        <option key={rt} value={rt}>{rt}</option>
-                                                    ))}
-                                                </select>
-                                            </FormGroup>
-                                        </div>
-                                        <FormGroup label="Wilayah Desa" icon={Building}>
-                                            <select required value={formData.tenantId} onChange={e => setFormData({...formData, tenantId: e.target.value})} className="form-input-premium appearance-none">
-                                                {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                                            </select>
-                                        </FormGroup>
-                                    </div>
+
+                                    <FormGroup label="17. Dusun" icon={MapPin}>
+                                        <select 
+                                            required 
+                                            value={formData.dusun} 
+                                            onChange={e => setFormData({...formData, dusun: e.target.value, rw: "", rt: ""})} 
+                                            className="form-input-premium appearance-none"
+                                        >
+                                            <option value="">- Pilih Dusun -</option>
+                                            {villageStructure.dusun.map(d => (
+                                                <option key={d.name} value={d.name}>{d.name}</option>
+                                            ))}
+                                        </select>
+                                    </FormGroup>
+
+                                    <FormGroup label="18. RW" icon={MapPin}>
+                                        <select 
+                                            required 
+                                            value={formData.rw} 
+                                            onChange={e => setFormData({...formData, rw: e.target.value, rt: ""})} 
+                                            className="form-input-premium appearance-none"
+                                            disabled={!formData.dusun}
+                                        >
+                                            <option value="">- Pilih RW -</option>
+                                            {villageStructure.dusun.find(d => d.name === formData.dusun)?.rw.map(r => (
+                                                <option key={r.name} value={r.name}>{r.name}</option>
+                                            ))}
+                                        </select>
+                                    </FormGroup>
+
+                                    <FormGroup label="19. RT" icon={MapPin}>
+                                        <select 
+                                            required 
+                                            value={formData.rt} 
+                                            onChange={e => setFormData({...formData, rt: e.target.value})} 
+                                            className="form-input-premium appearance-none"
+                                            disabled={!formData.rw}
+                                        >
+                                            <option value="">- Pilih RT -</option>
+                                            {villageStructure.dusun.find(d => d.name === formData.dusun)?.rw.find(r => r.name === formData.rw)?.rt.map(rt => (
+                                                <option key={rt} value={rt}>{rt}</option>
+                                            ))}
+                                        </select>
+                                    </FormGroup>
+
+                                    <FormGroup label="20. Wilayah Desa (Tenant)" icon={Building}>
+                                        <select required value={formData.tenantId} onChange={e => setFormData({...formData, tenantId: e.target.value})} className="form-input-premium appearance-none">
+                                            {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                                        </select>
+                                    </FormGroup>
                                 </div>
                             </div>
 
@@ -732,16 +1275,76 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                                     </select>
                                 </FormGroup>
 
-                                <div className="relative p-12 border-4 border-dashed border-slate-100 rounded-[3rem] flex flex-col items-center gap-6 text-center group hover:border-blue-500/30 transition-all bg-slate-50/50">
-                                    <div className="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center text-slate-300 group-hover:text-blue-600 transition-all shadow-xl shadow-slate-200/50">
-                                        {isImporting ? <Loader2 className="animate-spin" size={32} /> : <Upload size={32} />}
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-black text-slate-800">Tarik File Excel ke Sini</p>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Format: .xlsx (Max 50MB)</p>
-                                    </div>
-                                    <input type="file" accept=".xlsx" onChange={handleImportExcel} className="absolute inset-0 opacity-0 cursor-pointer" disabled={isImporting} />
+                                {/* Import Source Switcher */}
+                                <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                                    <button
+                                        type="button"
+                                        onClick={() => setImportSource("FILE")}
+                                        className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                                            importSource === "FILE"
+                                                ? "bg-white text-slate-900 shadow-sm"
+                                                : "text-slate-500 hover:text-slate-900"
+                                        }`}
+                                    >
+                                        Excel File (.xlsx)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setImportSource("GOOGLE_SHEET")}
+                                        className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                                            importSource === "GOOGLE_SHEET"
+                                                ? "bg-white text-slate-900 shadow-sm"
+                                                : "text-slate-500 hover:text-slate-900"
+                                        }`}
+                                    >
+                                        Google Sheets Sync
+                                    </button>
                                 </div>
+
+                                {importSource === "FILE" ? (
+                                    <div className="relative p-12 border-4 border-dashed border-slate-100 rounded-[3rem] flex flex-col items-center gap-6 text-center group hover:border-blue-500/30 transition-all bg-slate-50/50">
+                                        <div className="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center text-slate-300 group-hover:text-blue-600 transition-all shadow-xl shadow-slate-200/50">
+                                            {isImporting ? <Loader2 className="animate-spin" size={32} /> : <Upload size={32} />}
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-black text-slate-800">Tarik File Excel ke Sini</p>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Format: .xlsx (Max 50MB)</p>
+                                        </div>
+                                        <input type="file" accept=".xlsx" onChange={handleImportExcel} className="absolute inset-0 opacity-0 cursor-pointer" disabled={isImporting} />
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        <FormGroup label="Spreadsheet ID" icon={FileSpreadsheet}>
+                                            <input 
+                                                type="text" 
+                                                value={spreadsheetId} 
+                                                onChange={e => setSpreadsheetId(e.target.value)} 
+                                                placeholder="Contoh: 1BxiMVs0XRA5nFMdKvB..." 
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-5 text-sm font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
+                                                disabled={isImporting}
+                                            />
+                                        </FormGroup>
+                                        <FormGroup label="Sheet Range" icon={FileText}>
+                                            <input 
+                                                type="text" 
+                                                value={sheetRange} 
+                                                onChange={e => setSheetRange(e.target.value)} 
+                                                placeholder="Contoh: Sheet1!A1:Z500" 
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-5 text-sm font-bold text-slate-800 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
+                                                disabled={isImporting}
+                                            />
+                                        </FormGroup>
+                                        <button 
+                                            type="button"
+                                            onClick={handleImportGoogleSheet}
+                                            disabled={isImporting}
+                                            className="w-full py-5 bg-slate-900 hover:bg-black text-white rounded-[2rem] text-sm font-black transition-all flex items-center justify-center gap-3 active:scale-95 shadow-xl shadow-slate-900/10 disabled:opacity-50"
+                                        >
+                                            {isImporting ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
+                                            Tarik Data dari Google Sheet
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -767,7 +1370,7 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                                                     className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-3 text-sm font-bold text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all appearance-none"
                                                 >
                                                     <option value="">-- Abaikan (Kosongkan) --</option>
-                                                    {excelHeaders.map(h => <option key={h} value={h}>{h}</option>)}
+                                                    {excelHeaders.map((h, index) => <option key={`${h}-${index}`} value={h}>{h}</option>)}
                                                 </select>
                                             </div>
                                         ))}
@@ -867,5 +1470,192 @@ function FormGroup({ label, icon: Icon, children }: { label: string; icon: any; 
             </div>
         </div>
     )
+}
+
+// Synonyms helper for mapping database columns
+const fieldSynonyms: Record<string, string[]> = {
+    nik: ["nik", "n.i.k.", "nomor induk", "nomor induk kependudukan"],
+    noKK: ["kk", "no. kk", "no kk", "nomor kk", "kartu keluarga", "nomor kartu keluarga"],
+    namaLengkap: ["nama", "nama lengkap", "fullname", "nama_lengkap"],
+    jenisKelamin: ["jenis kelamin", "jk", "sex", "gender", "kelamin", "j.k.", "jenis_kelamin"],
+    tempatLahir: ["tempat lahir", "tempat_lahir", "tmpt lahir", "tempat"],
+    tanggalLahir: ["tanggal lahir", "tgl lahir", "tgl. lahir", "tanggal_lahir", "tgl", "lahir", "tanggal"],
+    agama: ["agama", "religion"],
+    pendidikan: ["pendidikan", "school", "education"],
+    pekerjaan: ["pekerjaan", "job", "profession", "work"],
+    golonganDarah: ["golongan darah", "gol darah", "goldar", "gol. darah", "darah"],
+    statusKawin: ["status kawin", "status perkawinan", "status pernikahan", "status perka", "status"],
+    hubunganKeluarga: ["hubungan keluarga", "hubungan", "shdk", "kedudukan dalam keluarga", "kedudukan keluarga", "status hubungan", "kedudukan"],
+    kewarganegaraan: ["kewarganegaraan", "warga negara", "wn"],
+    namaAyah: ["ayah", "nama ayah"],
+    namaIbu: ["ibu", "nama ibu"],
+    alamat: ["alamat", "alamat lengkap", "alamat_lengkap"],
+    rt: ["rt", "r.t.", "alamat - rt", "alamat rt"],
+    rw: ["rw", "r.w.", "alamat - rw", "alamat rw"],
+    dusun: ["dusun", "lingkungan", "wilayah", "dusun/dukuh"]
+};
+
+// Interface for intelligent sheet parsing
+interface ParsedSheetResult {
+    headers: string[];
+    data: Record<string, string>[];
+}
+
+// Intelligent multi-row header merging and numbering row detection
+function processRawSheetData(rows: any[][]): ParsedSheetResult {
+    if (!rows || rows.length === 0) {
+        return { headers: [], data: [] };
+    }
+
+    // Convert all cells to string and trim
+    const stringRows = rows.map(row => 
+        row.map(cell => (cell !== undefined && cell !== null) ? String(cell).trim() : "")
+    );
+
+    // 1. Find the header row by scoring
+    let headerRowIndex = 0;
+    let maxScore = -1;
+    for (let i = 0; i < Math.min(stringRows.length, 10); i++) {
+        const score = getRowHeaderScore(stringRows[i]);
+        if (score > maxScore) {
+            maxScore = score;
+            headerRowIndex = i;
+        }
+    }
+
+    // Default to first row if no good header is found
+    if (maxScore <= 0) {
+        headerRowIndex = 0;
+    }
+
+    const mainHeaderRow = stringRows[headerRowIndex];
+    let finalHeaders: string[] = [...mainHeaderRow];
+
+    // 2. Check if the next row contains sub-headers (like RT, RW)
+    const nextRowIndex = headerRowIndex + 1;
+    let dataStartRowIndex = nextRowIndex;
+
+    if (nextRowIndex < stringRows.length) {
+        const nextRow = stringRows[nextRowIndex];
+        // If the next row has non-empty values where the main header is empty (due to merge) or has RT/RW
+        let hasSubHeaders = false;
+        for (let i = 0; i < mainHeaderRow.length; i++) {
+            const mainCell = mainHeaderRow[i];
+            const subCell = nextRow[i] || "";
+            if (subCell && (!mainCell || subCell.toLowerCase() === "rt" || subCell.toLowerCase() === "rw")) {
+                hasSubHeaders = true;
+                break;
+            }
+        }
+
+        if (hasSubHeaders) {
+            // Reconstruct headers
+            let currentMainHeader = "";
+            for (let i = 0; i < mainHeaderRow.length; i++) {
+                if (mainHeaderRow[i]) {
+                    currentMainHeader = mainHeaderRow[i];
+                }
+                const subCell = nextRow[i] || "";
+                if (subCell) {
+                    if (currentMainHeader && currentMainHeader !== subCell) {
+                        finalHeaders[i] = `${currentMainHeader} - ${subCell}`;
+                    } else {
+                        finalHeaders[i] = subCell;
+                    }
+                } else {
+                    finalHeaders[i] = currentMainHeader;
+                }
+            }
+            dataStartRowIndex = nextRowIndex + 1;
+        }
+    }
+
+    // Ensure all headers are unique and not empty
+    const uniqueHeaders = finalHeaders.map((h, i) => {
+        let name = h.trim();
+        if (!name) {
+            // Look left to see if it was a merged column
+            let leftName = "";
+            for (let j = i - 1; j >= 0; j--) {
+                if (finalHeaders[j]) {
+                    leftName = finalHeaders[j];
+                    break;
+                }
+            }
+            if (leftName) {
+                name = `${leftName} (Kolom ${i + 1})`;
+            } else {
+                name = `Kolom_${i + 1}`;
+            }
+        }
+        return name;
+    });
+
+    // Handle duplicates
+    const seen: Record<string, number> = {};
+    const headers = uniqueHeaders.map(h => {
+        if (seen[h] !== undefined) {
+            seen[h]++;
+            return `${h}_${seen[h]}`;
+        } else {
+            seen[h] = 0;
+            return h;
+        }
+    });
+
+    // 3. Parse data rows
+    const dataRows = stringRows.slice(dataStartRowIndex);
+    const data: Record<string, string>[] = [];
+
+    for (const row of dataRows) {
+        // Skip numbering row if detected
+        if (isNumberingRow(row)) {
+            continue;
+        }
+
+        // Skip completely empty rows
+        if (row.every(cell => !cell)) {
+            continue;
+        }
+
+        const rowData: Record<string, string> = {};
+        headers.forEach((header, index) => {
+            rowData[header] = row[index] !== undefined ? row[index] : "";
+        });
+        data.push(rowData);
+    }
+
+    return { headers, data };
+}
+
+function getRowHeaderScore(row: string[]): number {
+    let score = 0;
+    row.forEach(cell => {
+        const c = String(cell || "").trim().toLowerCase();
+        if (c === "nama" || c === "nama lengkap") score += 2;
+        if (c === "nik") score += 2;
+        if (c === "no. kk" || c === "no kk") score += 2;
+        if (c === "jenis kelamin" || c === "jk") score += 2;
+        if (c === "tempat, tgl. lahir" || c === "tempat lahir") score += 2;
+        if (c === "agama") score += 1;
+        if (c === "pekerjaan") score += 1;
+        if (c === "pendidikan") score += 1;
+    });
+    return score;
+}
+
+function isNumberingRow(row: string[]): boolean {
+    const numbers = row.map(c => Number(String(c || "").trim())).filter(n => !isNaN(n) && n > 0);
+    if (numbers.length > 4) {
+        let sequential = true;
+        for (let i = 1; i < numbers.length; i++) {
+            if (numbers[i] !== numbers[i - 1] + 1 && numbers[i] !== numbers[i - 1]) {
+                sequential = false;
+                break;
+            }
+        }
+        return sequential;
+    }
+    return false;
 }
 

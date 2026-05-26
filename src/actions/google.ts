@@ -17,7 +17,7 @@ async function checkMaster() {
 }
 
 // Generate redirect URI dynamically based on the current host header
-async function getRedirectUri() {
+export async function getRedirectUri() {
     const headersList = await headers();
     const host = headersList.get("host") || "localhost:3000";
     const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
@@ -304,3 +304,28 @@ export async function testGoogleConnection() {
         };
     }
 }
+
+// Fetch data from a specific Google Sheet
+export async function fetchGoogleSheetData(spreadsheetId: string, range: string) {
+    await checkMaster();
+    try {
+        const integration = await getGoogleIntegration();
+        if (!integration || !integration.isConnected) {
+            throw new Error("Integrasi Google API belum diaktifkan. Silakan hubungkan terlebih dahulu di menu Integrasi.");
+        }
+
+        const { auth } = await getAuthenticatedClient(integration);
+        const sheets = google.sheets({ version: "v4", auth: auth as any });
+
+        const res = await sheets.spreadsheets.values.get({
+            spreadsheetId,
+            range
+        });
+
+        return res.data.values || [];
+    } catch (error: any) {
+        console.error("Gagal membaca Google Sheet:", error);
+        throw new Error(error.message || "Gagal mengambil data dari Google Sheet.");
+    }
+}
+

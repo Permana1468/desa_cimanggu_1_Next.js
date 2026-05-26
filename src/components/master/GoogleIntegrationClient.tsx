@@ -11,9 +11,10 @@ import { saveGoogleIntegration, getGoogleOAuthUrl, testGoogleConnection, disconn
 
 interface GoogleIntegrationClientProps {
     initialSettings: any;
+    redirectUri?: string;
 }
 
-export function GoogleIntegrationClient({ initialSettings }: GoogleIntegrationClientProps) {
+export function GoogleIntegrationClient({ initialSettings, redirectUri = "" }: GoogleIntegrationClientProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
@@ -40,14 +41,14 @@ export function GoogleIntegrationClient({ initialSettings }: GoogleIntegrationCl
     const [testLogs, setTestLogs] = useState<string[]>([]);
     const [testStatus, setTestStatus] = useState<"idle" | "running" | "success" | "failed">("idle");
     const [copiedRedirect, setCopiedRedirect] = useState(false);
-    const [localRedirectUri, setLocalRedirectUri] = useState("");
+    const [localRedirectUri, setLocalRedirectUri] = useState(redirectUri);
 
-    // Read redirect callback URL on mount
+    // Read redirect callback URL on mount if not provided by server
     useEffect(() => {
-        if (typeof window !== "undefined") {
+        if (!localRedirectUri && typeof window !== "undefined") {
             setLocalRedirectUri(`${window.location.origin}/api/auth/google/callback`);
         }
-    }, []);
+    }, [localRedirectUri]);
 
     // Handle OAuth Callback Search Parameters (Toast/Notif)
     useEffect(() => {

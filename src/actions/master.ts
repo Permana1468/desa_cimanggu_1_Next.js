@@ -425,7 +425,11 @@ export async function bulkImportResidents(residents: any[], tenantId: string) {
                         tenantId 
                     }
                 });
-            })
+            }),
+            {
+                maxWait: 15000,
+                timeout: 90000
+            }
         );
 
         await prisma.auditLog.create({
@@ -662,6 +666,63 @@ export async function toggleUserSecurity(userId: string, data: { force2FA?: bool
 
         revalidatePath("/master-admin/pengguna-sistem");
         return result;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function deleteAllResidents(tenantId?: string) {
+    const session = await checkMaster();
+    try {
+        let deletedCount = 0;
+        if (tenantId && tenantId !== "all") {
+            const result = await prisma.dataKependudukan.deleteMany({
+                where: { tenantId }
+            });
+            deletedCount = result.count;
+        } else {
+            const result = await prisma.dataKependudukan.deleteMany({});
+            deletedCount = result.count;
+        }
+
+        await prisma.auditLog.create({
+            data: {
+                action: "DELETE_ALL_RESIDENTS",
+                entity: "DataKependudukan",
+                details: { tenantId, count: deletedCount },
+                userId: session.user.id,
+                tenantId: session.user.tenantId,
+                category: "DATA"
+            }
+        });
+
+        revalidatePath("/master-admin/data");
+        return { success: true, count: deletedCount };
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function bulkDeleteResidents(ids: string[]) {
+    const session = await checkMaster();
+    try {
+        const result = await prisma.dataKependudukan.deleteMany({
+            where: { id: { in: ids } }
+        });
+
+        await prisma.auditLog.create({
+            data: {
+                action: "BULK_DELETE_RESIDENTS",
+                entity: "DataKependudukan",
+                details: { count: result.count, ids },
+                userId: session.user.id,
+                tenantId: session.user.tenantId,
+                category: "DATA"
+            }
+        });
+
+        revalidatePath("/master-admin/data");
+        return { success: true, count: result.count };
     } catch (error) {
         throw error;
     }
