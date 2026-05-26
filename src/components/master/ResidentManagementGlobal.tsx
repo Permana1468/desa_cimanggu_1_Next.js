@@ -57,6 +57,10 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [paperSize, setPaperSize] = useState("A4");
 
+    // Pagination States
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(25);
+
     // Dynamic Import States
     const [importStep, setImportStep] = useState<"UPLOAD" | "MAPPING" | "PREVIEW">("UPLOAD");
     const [excelData, setExcelData] = useState<any[]>([]);
@@ -122,6 +126,18 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
             return matchSearch && matchTenant;
         });
     }, [residents, searchQuery, selectedTenant]);
+
+    // Reset page index on filter change
+    React.useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, selectedTenant]);
+
+    const totalPages = Math.ceil(filteredResidents.length / itemsPerPage);
+
+    const paginatedResidents = useMemo(() => {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        return filteredResidents.slice(startIndex, startIndex + itemsPerPage);
+    }, [filteredResidents, currentPage, itemsPerPage]);
 
     const handleOpenModal = (resident?: any) => {
         if (resident) {
@@ -211,7 +227,7 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
 
     const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.checked) {
-            const pageIds = filteredResidents.map(r => r.id);
+            const pageIds = paginatedResidents.map(r => r.id);
             setSelectedIds(pageIds);
         } else {
             setSelectedIds([]);
@@ -922,7 +938,7 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                                 <th className="pl-10 pr-4 py-8 w-12">
                                     <input 
                                         type="checkbox" 
-                                        checked={filteredResidents.length > 0 && selectedIds.length === filteredResidents.length}
+                                        checked={paginatedResidents.length > 0 && paginatedResidents.every(r => selectedIds.includes(r.id))}
                                         onChange={handleSelectAll}
                                         className="w-4.5 h-4.5 text-blue-600 border-slate-300 rounded focus:ring-blue-500 cursor-pointer"
                                     />
@@ -935,7 +951,7 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
-                            {filteredResidents.map((r) => (
+                            {paginatedResidents.map((r) => (
                                 <tr key={r.id} className="group hover:bg-blue-50/30 transition-all duration-300">
                                     <td className="pl-10 pr-4 py-8">
                                         <input 
@@ -1009,7 +1025,7 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
 
                 {/* Mobile View */}
                 <div className="lg:hidden p-5 md:p-8 space-y-6 bg-slate-50/50">
-                    {filteredResidents.map((r) => (
+                    {paginatedResidents.map((r) => (
                         <div key={r.id} className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/30 border border-slate-100 space-y-6 active:scale-95 transition-all">
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-4">
@@ -1047,6 +1063,74 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                         </div>
                     ))}
                 </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-6 px-10 py-8 bg-slate-50/50 border-t border-slate-100">
+                        <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+                            <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-slate-100 shadow-sm">
+                                <span className="text-xs font-black text-slate-400 uppercase tracking-wider">Tampilkan:</span>
+                                <select 
+                                    value={itemsPerPage} 
+                                    onChange={e => {
+                                        setItemsPerPage(Number(e.target.value));
+                                        setCurrentPage(1);
+                                    }} 
+                                    className="bg-transparent border-none p-0 text-xs font-black text-slate-700 focus:ring-0 cursor-pointer"
+                                >
+                                    <option value={10}>10</option>
+                                    <option value={25}>25</option>
+                                    <option value={50}>50</option>
+                                    <option value={100}>100</option>
+                                </select>
+                            </div>
+                            <span className="text-xs font-bold text-slate-400">
+                                Menampilkan {filteredResidents.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1}-{Math.min(filteredResidents.length, currentPage * itemsPerPage)} dari {filteredResidents.length} warga
+                            </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            <button 
+                                type="button"
+                                disabled={currentPage === 1}
+                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-100 disabled:opacity-50 disabled:hover:text-slate-500 disabled:hover:border-slate-100 transition-all shadow-sm"
+                            >
+                                <ChevronLeft size={18} />
+                            </button>
+                            
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                let pageNum = i + 1;
+                                if (currentPage > 3 && totalPages > 5) {
+                                    if (currentPage + 2 <= totalPages) {
+                                        pageNum = currentPage - 3 + i + 1;
+                                    } else {
+                                        pageNum = totalPages - 5 + i + 1;
+                                    }
+                                }
+                                return (
+                                    <button 
+                                        key={pageNum}
+                                        type="button"
+                                        onClick={() => setCurrentPage(pageNum)}
+                                        className={`w-10 h-10 rounded-xl text-xs font-black transition-all shadow-sm ${currentPage === pageNum ? 'bg-blue-600 text-white shadow-blue-500/10' : 'bg-white border border-slate-100 text-slate-600 hover:text-blue-600 hover:border-blue-100'}`}
+                                    >
+                                        {pageNum}
+                                    </button>
+                                );
+                            })}
+
+                            <button 
+                                type="button"
+                                disabled={currentPage === totalPages}
+                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-500 hover:text-blue-600 hover:border-blue-100 disabled:opacity-50 disabled:hover:text-slate-500 disabled:hover:border-slate-100 transition-all shadow-sm"
+                            >
+                                <ChevronRight size={18} />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* EPIC MODAL - FULL FORM */}
