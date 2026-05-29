@@ -11,6 +11,30 @@ import {
 import { upsertResident, deleteResident, bulkImportResidents, deleteAllResidents, bulkDeleteResidents } from "@/actions/master";
 import { fetchGoogleSheetData } from "@/actions/google";
 import ExcelJS from "exceljs";
+import { WARGA_FIELDS, DEFAULT_WARGA_FORM, isWargaDataIncomplete } from "@/lib/wargaSchema";
+
+const FieldIconMap: Record<string, any> = {
+    nik: Fingerprint,
+    noKK: Home,
+    namaLengkap: User,
+    jenisKelamin: Users,
+    tempatLahir: MapPin,
+    tanggalLahir: Calendar,
+    agama: ShieldCheck,
+    pendidikan: GraduationCap,
+    pekerjaan: Briefcase,
+    golonganDarah: Activity,
+    statusKawin: Heart,
+    hubunganKeluarga: Users2,
+    kewarganegaraan: Globe,
+    namaAyah: User,
+    namaIbu: User,
+    alamat: Map,
+    dusun: MapPin,
+    rw: MapPin,
+    rt: MapPin,
+    tenantId: Building
+};
 
 interface Resident {
     id: string;
@@ -96,27 +120,11 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
     ], []);
 
     const [formData, setFormData] = useState({
-        nik: "",
-        noKK: "",
-        namaLengkap: "",
-        jenisKelamin: "LAKI_LAKI",
-        tempatLahir: "",
-        tanggalLahir: "",
-        pekerjaan: "",
-        agama: "ISLAM",
-        pendidikan: "",
-        golonganDarah: "-",
-        statusKawin: "BELUM_KAWIN",
-        hubunganKeluarga: "KEPALA_KELUARGA",
-        kewarganegaraan: "WNI",
-        namaAyah: "",
-        namaIbu: "",
-        alamat: "",
-        rt: "",
-        rw: "",
-        dusun: "",
+        ...DEFAULT_WARGA_FORM,
         tenantId: tenants[0]?.id || ""
     });
+
+    const [filterIncomplete, setFilterIncomplete] = useState(false);
 
     const filteredResidents = useMemo(() => {
         return residents.filter(r => {
@@ -124,9 +132,10 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                                 r.nik.includes(searchQuery) || 
                                 (r.noKK && r.noKK.includes(searchQuery));
             const matchTenant = selectedTenant === "all" || r.tenantId === selectedTenant;
-            return matchSearch && matchTenant;
+            const matchIncomplete = !filterIncomplete || isWargaDataIncomplete(r);
+            return matchSearch && matchTenant && matchIncomplete;
         });
-    }, [residents, searchQuery, selectedTenant]);
+    }, [residents, searchQuery, selectedTenant, filterIncomplete]);
 
     // Reset page index on filter change
     React.useEffect(() => {
@@ -144,15 +153,15 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
         if (resident) {
             setEditingResident(resident);
             setFormData({
-                nik: resident.nik,
+                nik: resident.nik || "",
                 noKK: resident.noKK || "",
-                namaLengkap: resident.namaLengkap,
-                jenisKelamin: resident.jenisKelamin,
+                namaLengkap: resident.namaLengkap || "",
+                jenisKelamin: resident.jenisKelamin || "LAKI_LAKI",
                 tempatLahir: resident.tempatLahir || "",
                 tanggalLahir: resident.tanggalLahir ? new Date(resident.tanggalLahir).toISOString().split('T')[0] : "",
                 pekerjaan: resident.pekerjaan || "",
                 agama: resident.agama || "ISLAM",
-                pendidikan: resident.pendidikan || "",
+                pendidikan: resident.pendidikan || "SD",
                 golonganDarah: resident.golonganDarah || "-",
                 statusKawin: resident.statusKawin || "BELUM_KAWIN",
                 hubunganKeluarga: resident.hubunganKeluarga || "KEPALA_KELUARGA",
@@ -168,25 +177,7 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
         } else {
             setEditingResident(null);
             setFormData({
-                nik: "",
-                noKK: "",
-                namaLengkap: "",
-                jenisKelamin: "LAKI_LAKI",
-                tempatLahir: "",
-                tanggalLahir: "",
-                pekerjaan: "",
-                agama: "ISLAM",
-                pendidikan: "",
-                golonganDarah: "-",
-                statusKawin: "BELUM_KAWIN",
-                hubunganKeluarga: "KEPALA_KELUARGA",
-                kewarganegaraan: "WNI",
-                namaAyah: "",
-                namaIbu: "",
-                alamat: "",
-                rt: "",
-                rw: "",
-                dusun: "",
+                ...DEFAULT_WARGA_FORM,
                 tenantId: selectedTenant === "all" ? tenants[0]?.id : selectedTenant
             });
         }
@@ -925,6 +916,16 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                     </button>
                 )}
                 <div className="flex-1" />
+                <button 
+                    onClick={() => setFilterIncomplete(prev => !prev)}
+                    className={`flex items-center gap-2 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${
+                        filterIncomplete 
+                            ? "bg-rose-600 text-white border-rose-600 shadow-lg shadow-rose-600/10" 
+                            : "bg-white text-slate-600 border-slate-100 hover:bg-slate-50"
+                    }`}
+                >
+                    <AlertCircle size={12} /> Perlu Lengkap ({residents.filter(isWargaDataIncomplete).length})
+                </button>
                 <div className="px-6 py-3 bg-blue-50 text-blue-600 rounded-2xl text-[10px] font-black uppercase tracking-widest">
                     Total: {filteredResidents.length} Jiwa
                 </div>
@@ -968,7 +969,14 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                                                 {r.namaLengkap.charAt(0)}
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-none mb-1">{r.namaLengkap}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-none mb-1">{r.namaLengkap}</span>
+                                                    {isWargaDataIncomplete(r) && (
+                                                        <span className="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-md text-[9px] font-black uppercase tracking-tight flex items-center gap-1">
+                                                            <AlertCircle size={10} /> Belum Lengkap
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <div className="flex items-center gap-2">
                                                     <Briefcase size={12} className="text-slate-300" />
                                                     <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{r.pekerjaan || "BELUM BEKERJA"}</span>
@@ -1164,155 +1172,93 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                                 </h3>
                                 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    <FormGroup label="1. Nomor Induk Kependudukan (NIK)" icon={Fingerprint}>
-                                        <input required value={formData.nik} onChange={e => setFormData({...formData, nik: e.target.value})} placeholder="16 Digit NIK" className="form-input-premium" />
-                                    </FormGroup>
+                                    {WARGA_FIELDS.map((field) => {
+                                        const Icon = FieldIconMap[field.key] || User;
+                                        if (field.key === "dusun") {
+                                            return (
+                                                <FormGroup key={field.key} label={field.label} icon={Icon}>
+                                                    <select 
+                                                        required={field.required}
+                                                        value={formData.dusun} 
+                                                        onChange={e => setFormData({...formData, dusun: e.target.value, rw: "", rt: ""})} 
+                                                        className="form-input-premium appearance-none animate-in fade-in"
+                                                    >
+                                                        <option value="">- Pilih Dusun -</option>
+                                                        {villageStructure.dusun.map(d => (
+                                                            <option key={d.name} value={d.name}>{d.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </FormGroup>
+                                            );
+                                        }
+                                        if (field.key === "rw") {
+                                            return (
+                                                <FormGroup key={field.key} label={field.label} icon={Icon}>
+                                                    <select 
+                                                        required={field.required}
+                                                        value={formData.rw} 
+                                                        onChange={e => setFormData({...formData, rw: e.target.value, rt: ""})} 
+                                                        className="form-input-premium appearance-none animate-in fade-in"
+                                                        disabled={!formData.dusun}
+                                                    >
+                                                        <option value="">- Pilih RW -</option>
+                                                        {villageStructure.dusun.find(d => d.name === formData.dusun)?.rw.map(r => (
+                                                            <option key={r.name} value={r.name}>{r.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </FormGroup>
+                                            );
+                                        }
+                                        if (field.key === "rt") {
+                                            return (
+                                                <FormGroup key={field.key} label={field.label} icon={Icon}>
+                                                    <select 
+                                                        required={field.required}
+                                                        value={formData.rt} 
+                                                        onChange={e => setFormData({...formData, rt: e.target.value})} 
+                                                        className="form-input-premium appearance-none animate-in fade-in"
+                                                        disabled={!formData.rw}
+                                                    >
+                                                        <option value="">- Pilih RT -</option>
+                                                        {villageStructure.dusun.find(d => d.name === formData.dusun)?.rw.find(r => r.name === formData.rw)?.rt.map(rt => (
+                                                            <option key={rt} value={rt}>{rt}</option>
+                                                        ))}
+                                                    </select>
+                                                </FormGroup>
+                                            );
+                                        }
+                                        
+                                        if (field.type === "select") {
+                                            return (
+                                                <FormGroup key={field.key} label={field.label} icon={Icon}>
+                                                    <select 
+                                                        value={formData[field.key as keyof typeof formData] || ""} 
+                                                        onChange={e => setFormData({...formData, [field.key]: e.target.value})} 
+                                                        className="form-input-premium appearance-none animate-in fade-in"
+                                                    >
+                                                        {field.options?.map(opt => (
+                                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                        ))}
+                                                    </select>
+                                                </FormGroup>
+                                            );
+                                        }
 
-                                    <FormGroup label="2. Nomor Kartu Keluarga (NO KK)" icon={Home}>
-                                        <input required value={formData.noKK} onChange={e => setFormData({...formData, noKK: e.target.value})} placeholder="16 Digit No KK" className="form-input-premium" />
-                                    </FormGroup>
+                                        return (
+                                            <FormGroup key={field.key} label={field.label} icon={Icon}>
+                                                <input 
+                                                    required={field.required}
+                                                    type={field.type}
+                                                    value={formData[field.key as keyof typeof formData] || ""} 
+                                                    onChange={e => setFormData({...formData, [field.key]: e.target.value})} 
+                                                    placeholder={field.placeholder} 
+                                                    className="form-input-premium animate-in fade-in" 
+                                                />
+                                            </FormGroup>
+                                        );
+                                    })}
 
-                                    <FormGroup label="3. Nama Lengkap (Sesuai KTP)" icon={User}>
-                                        <input required value={formData.namaLengkap} onChange={e => setFormData({...formData, namaLengkap: e.target.value})} placeholder="Nama Lengkap" className="form-input-premium" />
-                                    </FormGroup>
-
-                                    <FormGroup label="4. Jenis Kelamin" icon={Users}>
-                                        <select value={formData.jenisKelamin} onChange={e => setFormData({...formData, jenisKelamin: e.target.value})} className="form-input-premium appearance-none">
-                                            <option value="LAKI_LAKI">LAKI-LAKI</option>
-                                            <option value="PEREMPUAN">PEREMPUAN</option>
-                                        </select>
-                                    </FormGroup>
-
-                                    <FormGroup label="5. Tempat Lahir" icon={MapPin}>
-                                        <input required value={formData.tempatLahir} onChange={e => setFormData({...formData, tempatLahir: e.target.value})} placeholder="Kota / Kabupaten" className="form-input-premium" />
-                                    </FormGroup>
-
-                                    <FormGroup label="6. Tanggal Lahir" icon={Calendar}>
-                                        <input required type="date" value={formData.tanggalLahir} onChange={e => setFormData({...formData, tanggalLahir: e.target.value})} className="form-input-premium" />
-                                    </FormGroup>
-
-                                    <FormGroup label="7. Agama" icon={ShieldCheck}>
-                                        <select value={formData.agama} onChange={e => setFormData({...formData, agama: e.target.value})} className="form-input-premium appearance-none">
-                                            <option value="ISLAM">ISLAM</option>
-                                            <option value="KRISTEN">KRISTEN</option>
-                                            <option value="KATOLIK">KATOLIK</option>
-                                            <option value="HINDU">HINDU</option>
-                                            <option value="BUDHA">BUDHA</option>
-                                            <option value="KONGHUCU">KONGHUCU</option>
-                                        </select>
-                                    </FormGroup>
-
-                                    <FormGroup label="8. Pendidikan Terakhir" icon={GraduationCap}>
-                                        <select value={formData.pendidikan} onChange={e => setFormData({...formData, pendidikan: e.target.value})} className="form-input-premium appearance-none">
-                                            <option value="TIDAK_SEKOLAH">TIDAK SEKOLAH</option>
-                                            <option value="SD">SD</option>
-                                            <option value="SMP">SMP</option>
-                                            <option value="SMA">SMA/SMK</option>
-                                            <option value="D3">DIPLOMA (D3)</option>
-                                            <option value="S1">SARJANA (S1)</option>
-                                            <option value="S2">MAGISTER (S2)</option>
-                                            <option value="S3">DOKTOR (S3)</option>
-                                        </select>
-                                    </FormGroup>
-
-                                    <FormGroup label="9. Pekerjaan" icon={Briefcase}>
-                                        <input value={formData.pekerjaan} onChange={e => setFormData({...formData, pekerjaan: e.target.value})} placeholder="Pekerjaan" className="form-input-premium" />
-                                    </FormGroup>
-
-                                    <FormGroup label="10. Golongan Darah" icon={Activity}>
-                                        <select value={formData.golonganDarah} onChange={e => setFormData({...formData, golonganDarah: e.target.value})} className="form-input-premium appearance-none">
-                                            <option value="-">- TIDAK TAHU -</option>
-                                            <option value="A">A</option>
-                                            <option value="B">B</option>
-                                            <option value="AB">AB</option>
-                                            <option value="O">O</option>
-                                        </select>
-                                    </FormGroup>
-
-                                    <FormGroup label="11. Status Perkawinan" icon={Heart}>
-                                        <select value={formData.statusKawin} onChange={e => setFormData({...formData, statusKawin: e.target.value})} className="form-input-premium appearance-none">
-                                            <option value="BELUM_KAWIN">BELUM KAWIN</option>
-                                            <option value="KAWIN">KAWIN</option>
-                                            <option value="CERAI_HIDUP">CERAI HIDUP</option>
-                                            <option value="CERAI_MATI">CERAI MATI</option>
-                                        </select>
-                                    </FormGroup>
-
-                                    <FormGroup label="12. Hubungan Dalam Keluarga" icon={Users2}>
-                                        <select value={formData.hubunganKeluarga} onChange={e => setFormData({...formData, hubunganKeluarga: e.target.value})} className="form-input-premium appearance-none">
-                                            <option value="KEPALA_KELUARGA">KEPALA KELUARGA</option>
-                                            <option value="ISTRI">ISTRI</option>
-                                            <option value="ANAK">ANAK</option>
-                                            <option value="MERTUA">MERTUA</option>
-                                            <option value="ORANG_TUA">ORANG TUA</option>
-                                            <option value="LAINNYA">LAINNYA</option>
-                                        </select>
-                                    </FormGroup>
-
-                                    <FormGroup label="13. Kewarganegaraan" icon={Globe}>
-                                        <select value={formData.kewarganegaraan} onChange={e => setFormData({...formData, kewarganegaraan: e.target.value})} className="form-input-premium appearance-none">
-                                            <option value="WNI">WNI</option>
-                                            <option value="WNA">WNA</option>
-                                        </select>
-                                    </FormGroup>
-
-                                    <FormGroup label="14. Nama Ayah" icon={User}>
-                                        <input value={formData.namaAyah} onChange={e => setFormData({...formData, namaAyah: e.target.value})} placeholder="Nama Ayah Kandung" className="form-input-premium" />
-                                    </FormGroup>
-
-                                    <FormGroup label="15. Nama Ibu" icon={User}>
-                                        <input value={formData.namaIbu} onChange={e => setFormData({...formData, namaIbu: e.target.value})} placeholder="Nama Ibu Kandung" className="form-input-premium" />
-                                    </FormGroup>
-
-                                    <FormGroup label="16. KP (Kampung / Alamat)" icon={Map}>
-                                        <input required value={formData.alamat} onChange={e => setFormData({...formData, alamat: e.target.value})} placeholder="Nama Kampung / Alamat Lengkap" className="form-input-premium" />
-                                    </FormGroup>
-
-                                    <FormGroup label="17. Dusun" icon={MapPin}>
-                                        <select 
-                                            required 
-                                            value={formData.dusun} 
-                                            onChange={e => setFormData({...formData, dusun: e.target.value, rw: "", rt: ""})} 
-                                            className="form-input-premium appearance-none"
-                                        >
-                                            <option value="">- Pilih Dusun -</option>
-                                            {villageStructure.dusun.map(d => (
-                                                <option key={d.name} value={d.name}>{d.name}</option>
-                                            ))}
-                                        </select>
-                                    </FormGroup>
-
-                                    <FormGroup label="18. RW" icon={MapPin}>
-                                        <select 
-                                            required 
-                                            value={formData.rw} 
-                                            onChange={e => setFormData({...formData, rw: e.target.value, rt: ""})} 
-                                            className="form-input-premium appearance-none"
-                                            disabled={!formData.dusun}
-                                        >
-                                            <option value="">- Pilih RW -</option>
-                                            {villageStructure.dusun.find(d => d.name === formData.dusun)?.rw.map(r => (
-                                                <option key={r.name} value={r.name}>{r.name}</option>
-                                            ))}
-                                        </select>
-                                    </FormGroup>
-
-                                    <FormGroup label="19. RT" icon={MapPin}>
-                                        <select 
-                                            required 
-                                            value={formData.rt} 
-                                            onChange={e => setFormData({...formData, rt: e.target.value})} 
-                                            className="form-input-premium appearance-none"
-                                            disabled={!formData.rw}
-                                        >
-                                            <option value="">- Pilih RT -</option>
-                                            {villageStructure.dusun.find(d => d.name === formData.dusun)?.rw.find(r => r.name === formData.rw)?.rt.map(rt => (
-                                                <option key={rt} value={rt}>{rt}</option>
-                                            ))}
-                                        </select>
-                                    </FormGroup>
-
-                                    <FormGroup label="20. Wilayah Desa (Tenant)" icon={Building}>
+                                    <FormGroup label="Wilayah Desa (Tenant)" icon={Building}>
                                         <select required value={formData.tenantId} onChange={e => setFormData({...formData, tenantId: e.target.value})} className="form-input-premium appearance-none">
                                             {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                                         </select>

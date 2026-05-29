@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { searchWarga, addWarga, updateWarga, deleteWarga } from "@/actions/village";
 import { exportWargaExcel, getLetterTemplates, generateSurat } from "@/actions/documents";
 import { 
@@ -20,8 +20,20 @@ import {
     FileSpreadsheet,
     FileText,
     AlertCircle,
-    Info
+    Info,
+    Fingerprint, 
+    Home as HomeIcon, 
+    User as LucideUser, 
+    Users as LucideUsers, 
+    Heart as HeartIcon, 
+    GraduationCap, 
+    Users2, 
+    Globe, 
+    Map as MapIcon, 
+    ShieldCheck, 
+    Activity as ActivityIcon
 } from "lucide-react";
+import { WARGA_FIELDS, DEFAULT_WARGA_FORM, isWargaDataIncomplete } from "@/lib/wargaSchema";
 
 export default function WargaManagementPage() {
     const [query, setQuery] = useState("");
@@ -46,19 +58,13 @@ export default function WargaManagementPage() {
     });
 
     const [formData, setFormData] = useState({
-        nik: "",
-        namaLengkap: "",
-        tempatLahir: "",
-        tanggalLahir: "",
-        jenisKelamin: "LAKI_LAKI",
-        alamat: "",
-        rt: "",
-        rw: "",
-        dusun: "Dusun 1",
-        agama: "ISLAM",
-        statusKawin: "BELUM_KAWIN",
-        pekerjaan: ""
+        ...DEFAULT_WARGA_FORM
     });
+    const [filterIncomplete, setFilterIncomplete] = useState(false);
+
+    const displayedWarga = useMemo(() => {
+        return warga.filter(w => !filterIncomplete || isWargaDataIncomplete(w));
+    }, [warga, filterIncomplete]);
 
     useEffect(() => {
         handleSearch();
@@ -133,18 +139,25 @@ export default function WargaManagementPage() {
     const handleEdit = (item: any) => {
         setEditingId(item.id);
         setFormData({
-            nik: item.nik,
-            namaLengkap: item.namaLengkap,
-            tempatLahir: item.tempatLahir,
-            tanggalLahir: new Date(item.tanggalLahir).toISOString().split('T')[0],
-            jenisKelamin: item.jenisKelamin,
-            alamat: item.alamat,
-            rt: item.rt,
-            rw: item.rw,
-            dusun: item.dusun,
-            agama: item.agama,
-            statusKawin: item.statusKawin,
-            pekerjaan: item.pekerjaan
+            nik: item.nik || "",
+            noKK: item.noKK || "",
+            namaLengkap: item.namaLengkap || "",
+            tempatLahir: item.tempatLahir || "",
+            tanggalLahir: item.tanggalLahir ? new Date(item.tanggalLahir).toISOString().split('T')[0] : "",
+            jenisKelamin: item.jenisKelamin || "LAKI_LAKI",
+            alamat: item.alamat || "",
+            rt: item.rt || "",
+            rw: item.rw || "",
+            dusun: item.dusun || "",
+            agama: item.agama || "ISLAM",
+            statusKawin: item.statusKawin || "BELUM_KAWIN",
+            hubunganKeluarga: item.hubunganKeluarga || "KEPALA_KELUARGA",
+            pekerjaan: item.pekerjaan || "",
+            pendidikan: item.pendidikan || "SD",
+            golonganDarah: item.golonganDarah || "-",
+            kewarganegaraan: item.kewarganegaraan || "WNI",
+            namaAyah: item.namaAyah || "",
+            namaIbu: item.namaIbu || ""
         });
         setShowModal(true);
     };
@@ -201,18 +214,7 @@ export default function WargaManagementPage() {
                         onClick={() => {
                             setEditingId(null);
                             setFormData({
-                                nik: "",
-                                namaLengkap: "",
-                                tempatLahir: "",
-                                tanggalLahir: "",
-                                jenisKelamin: "LAKI_LAKI",
-                                alamat: "",
-                                rt: "",
-                                rw: "",
-                                dusun: "Dusun 1",
-                                agama: "ISLAM",
-                                statusKawin: "BELUM_KAWIN",
-                                pekerjaan: ""
+                                ...DEFAULT_WARGA_FORM
                             });
                             setShowModal(true);
                         }}
@@ -258,6 +260,17 @@ export default function WargaManagementPage() {
                             <option value="Dusun 3">Dusun 3</option>
                         </select>
                         <button 
+                            type="button"
+                            onClick={() => setFilterIncomplete(prev => !prev)}
+                            className={`flex items-center gap-1.5 px-5 py-4 rounded-2xl text-xs font-black uppercase tracking-wider transition-all border ${
+                                filterIncomplete 
+                                    ? "bg-rose-50 text-rose-600 border-rose-100 shadow-sm" 
+                                    : "bg-slate-50 text-slate-500 border-transparent hover:bg-slate-100"
+                            }`}
+                        >
+                            <AlertCircle size={14} /> Perlu Sinkronisasi ({warga.filter(isWargaDataIncomplete).length})
+                        </button>
+                        <button 
                             onClick={handleSearch}
                             className="bg-slate-900 text-white px-8 py-4 rounded-2xl text-xs font-black hover:bg-slate-800 transition-all active:scale-95 flex items-center gap-2"
                         >
@@ -271,7 +284,7 @@ export default function WargaManagementPage() {
                         Array(6).fill(0).map((_, i) => (
                             <div key={i} className="h-56 bg-slate-50 animate-pulse rounded-[2.5rem]" />
                         ))
-                    ) : warga.length > 0 ? warga.map((item) => (
+                    ) : displayedWarga.length > 0 ? displayedWarga.map((item) => (
                         <div key={item.id} className="p-7 rounded-[2.5rem] border border-slate-100 hover:border-blue-200 hover:shadow-2xl hover:shadow-slate-200/50 transition-all group bg-white relative overflow-hidden flex flex-col">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:bg-blue-50 transition-colors" />
                             
@@ -291,7 +304,14 @@ export default function WargaManagementPage() {
                                 </div>
                                 
                                 <div className="mb-6 min-w-0">
-                                    <h3 className="text-base font-black text-slate-800 truncate leading-tight mb-1">{item.namaLengkap}</h3>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <h3 className="text-base font-black text-slate-800 truncate leading-tight">{item.namaLengkap}</h3>
+                                        {isWargaDataIncomplete(item) && (
+                                            <span className="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-md text-[9px] font-black uppercase tracking-tight flex items-center gap-1 shrink-0">
+                                                <AlertCircle size={10} /> Belum Lengkap
+                                            </span>
+                                        )}
+                                    </div>
                                     <span className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">{item.nik}</span>
                                 </div>
 
@@ -445,30 +465,39 @@ export default function WargaManagementPage() {
                         </div>
                         
                         <form onSubmit={handleSubmit} className="p-10 overflow-y-auto space-y-8 custom-scrollbar bg-slate-50/30">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <FormInput label="NIK (Nomor Induk Kependudukan)" value={formData.nik} onChange={(v: string) => setFormData({...formData, nik: v})} placeholder="Masukkan 16 digit NIK" />
-                                <FormInput label="Nama Lengkap" value={formData.namaLengkap} onChange={(v: string) => setFormData({...formData, namaLengkap: v})} placeholder="Sesuai KTP" />
-                                <FormInput label="Tempat Lahir" value={formData.tempatLahir} onChange={(v: string) => setFormData({...formData, tempatLahir: v})} />
-                                <FormInput label="Tanggal Lahir" type="date" value={formData.tanggalLahir} onChange={(v: string) => setFormData({...formData, tanggalLahir: v})} />
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Jenis Kelamin</label>
-                                    <select value={formData.jenisKelamin} onChange={e => setFormData({...formData, jenisKelamin: e.target.value})} className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all text-slate-950">
-                                        <option value="LAKI_LAKI">Laki-Laki</option>
-                                        <option value="PEREMPUAN">Perempuan</option>
-                                    </select>
-                                </div>
-                                <FormInput label="Pekerjaan" value={formData.pekerjaan} onChange={(v: string) => setFormData({...formData, pekerjaan: v})} />
-                            </div>
-                            
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Alamat Lengkap</label>
-                                <textarea value={formData.alamat} onChange={e => setFormData({...formData, alamat: e.target.value})} className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 min-h-[100px] text-slate-950" placeholder="Alamat lengkap domisili..." />
-                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {WARGA_FIELDS.map((field) => {
+                                    if (field.type === "select") {
+                                        return (
+                                            <div key={field.key} className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{field.label}</label>
+                                                <select 
+                                                    value={formData[field.key as keyof typeof formData] || ""} 
+                                                    onChange={e => setFormData({...formData, [field.key]: e.target.value})} 
+                                                    className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all text-slate-950"
+                                                >
+                                                    {field.options?.map(opt => (
+                                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        );
+                                    }
 
-                            <div className="grid grid-cols-3 gap-6">
-                                <FormInput label="RT" value={formData.rt} onChange={(v: string) => setFormData({...formData, rt: v})} centered />
-                                <FormInput label="RW" value={formData.rw} onChange={(v: string) => setFormData({...formData, rw: v})} centered />
-                                <FormInput label="Dusun" value={formData.dusun} onChange={(v: string) => setFormData({...formData, dusun: v})} />
+                                    return (
+                                        <div key={field.key} className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{field.label}</label>
+                                            <input 
+                                                required={field.required}
+                                                type={field.type}
+                                                value={formData[field.key as keyof typeof formData] || ""} 
+                                                onChange={e => setFormData({...formData, [field.key]: e.target.value})} 
+                                                placeholder={field.placeholder} 
+                                                className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all text-slate-950"
+                                            />
+                                        </div>
+                                    );
+                                })}
                             </div>
 
                             <button type="submit" disabled={saving} className="w-full bg-slate-900 hover:bg-blue-600 text-white py-5 rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-2xl shadow-slate-900/10 transition-all flex items-center justify-center gap-3 disabled:opacity-50">

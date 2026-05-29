@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { StatusSurat } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { buildWilayahFilterScope } from "./rt";
 
 export async function getVillageDashboardStats() {
     try {
@@ -88,7 +89,7 @@ export async function updateSuratStatus(id: string, status: StatusSurat) {
     }
 }
 
-export async function getWargaList(query?: string, rtFilter?: string) {
+export async function getWargaList(query?: string, rtFilter?: string, rwFilter?: string) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
@@ -97,13 +98,33 @@ export async function getWargaList(query?: string, rtFilter?: string) {
         const userRt = (session.user as any).rt;
         const userRw = (session.user as any).rw;
 
-        let filterScope: any = { tenantId };
-        if (role === "RT") {
-            filterScope.rt = userRt;
-            filterScope.rw = userRw;
-        } else if (role === "RW") {
-            filterScope.rw = userRw;
-            if (rtFilter) filterScope.rt = rtFilter;
+        let filterScope = await buildWilayahFilterScope(role, userRt, userRw, tenantId);
+
+        const cleanDigits = (val: string) => val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0';
+
+        if (role === "RW") {
+            if (rtFilter) {
+                const rtClean = cleanDigits(rtFilter);
+                filterScope.rt = { in: [rtFilter, rtClean.padStart(3, '0'), rtClean] };
+            }
+        } else if (role === "KADUS") {
+            if (rwFilter) {
+                delete filterScope.OR;
+                const rwClean = cleanDigits(rwFilter);
+                filterScope.rw = { in: [rwFilter, rwClean.padStart(3, '0'), rwClean] };
+                
+                if (rtFilter) {
+                    const rtClean = cleanDigits(rtFilter);
+                    filterScope.rt = { in: [rtFilter, rtClean.padStart(3, '0'), rtClean] };
+                }
+            } else if (rtFilter) {
+                const rtClean = cleanDigits(rtFilter);
+                if (filterScope.OR) {
+                    filterScope.OR = filterScope.OR.map((cond: any) => {
+                        return { ...cond, rt: { in: [rtFilter, rtClean.padStart(3, '0'), rtClean] } };
+                    });
+                }
+            }
         }
 
         return await prisma.dataKependudukan.findMany({
@@ -114,7 +135,7 @@ export async function getWargaList(query?: string, rtFilter?: string) {
                     { nik: { contains: query } }
                 ] : undefined
             },
-            take: 20
+            take: 50
         });
     } catch (error) {
         return [];
@@ -145,6 +166,25 @@ export async function createVillageAccount(data: { email: string; fullName: stri
         }
     });
 }
+
+function cleanDigits(val: string): string {
+    return val ? val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0' : '';
+}
+
+function resolveDusunForRw(rwVal: string, structure: any): string {
+    if (!rwVal) return "";
+    const cleanRw = cleanDigits(rwVal);
+    let matchedDusun = "";
+    structure.dusun?.forEach((d: any) => {
+        d.rw?.forEach((rw: any) => {
+            if (cleanDigits(rw.name) === cleanRw) {
+                matchedDusun = d.name;
+            }
+        });
+    });
+    return matchedDusun;
+}
+
 export async function addWarga(data: any) {
     try {
         const session = await getServerSession(authOptions);
@@ -163,11 +203,30 @@ export async function addWarga(data: any) {
             rw = userRw;
         }
 
+        // Pad RT/RW
+        if (rt) rt = rt.toString().replace(/\D/g, '').padStart(3, '0');
+        if (rw) rw = rw.toString().replace(/\D/g, '').padStart(3, '0');
+
+        // Fetch structure to resolve/validate dusun automatically
+        const structureConfig = await prisma.systemSetting.findUnique({
+            where: { id: "village_structure" }
+        });
+        const structure = (structureConfig?.settings as any) || { dusun: [] };
+        
+        let dusun = data.dusun || "";
+        if (rw) {
+            const resolvedDusun = resolveDusunForRw(rw, structure);
+            if (resolvedDusun) {
+                dusun = resolvedDusun;
+            }
+        }
+
         return await prisma.dataKependudukan.create({
             data: {
                 ...data,
                 rt,
                 rw,
+                dusun,
                 tenantId
             }
         });
@@ -204,12 +263,31 @@ export async function updateWarga(id: string, data: any) {
             rw = userRw;
         }
 
+        // Pad RT/RW
+        if (rt) rt = rt.toString().replace(/\D/g, '').padStart(3, '0');
+        if (rw) rw = rw.toString().replace(/\D/g, '').padStart(3, '0');
+
+        // Fetch structure to resolve/validate dusun automatically
+        const structureConfig = await prisma.systemSetting.findUnique({
+            where: { id: "village_structure" }
+        });
+        const structure = (structureConfig?.settings as any) || { dusun: [] };
+        
+        let dusun = data.dusun || "";
+        if (rw) {
+            const resolvedDusun = resolveDusunForRw(rw, structure);
+            if (resolvedDusun) {
+                dusun = resolvedDusun;
+            }
+        }
+
         return await prisma.dataKependudukan.update({
             where: { id },
             data: {
                 ...data,
                 rt,
                 rw,
+                dusun,
                 updatedAt: new Date()
             }
         });

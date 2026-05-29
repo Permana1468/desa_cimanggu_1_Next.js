@@ -22,7 +22,7 @@ export async function registerWarga(rawData: any) {
             include: { tenant: true }
         });
 
-        if (!wargaData) {
+        if (!wargaData || wargaData.tenant?.name !== "Desa Cimanggu I") {
             return { error: "NIK tidak terdaftar sebagai warga Desa Cimanggu I. Hubungi Admin untuk verifikasi data." };
         }
 

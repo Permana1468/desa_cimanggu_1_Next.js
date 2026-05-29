@@ -1,14 +1,26 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
   Users, MapPin, FileText, AlertTriangle, HeartPulse, TrendingUp, Search, 
   CheckCircle2, ChevronRight, Banknote, Calendar, Plus, Trash2, ArrowUpRight, 
   ArrowDownRight, Check, X, FileSpreadsheet, Loader2, Sparkles, PlusCircle,
   FileDown, Info, Edit, Eye, UserPlus, Milestone, Megaphone, AlertCircle, Package,
-  Compass, Share2, Clipboard, Activity, Layers, Maximize, Minimize
+  Compass, Share2, Clipboard, Activity, Layers, Maximize, Minimize,
+  Fingerprint, 
+  Home as HomeIcon, 
+  User as LucideUser, 
+  Users as LucideUsers, 
+  Heart as HeartIcon, 
+  GraduationCap, 
+  Users2, 
+  Globe, 
+  Map as MapIcon, 
+  ShieldCheck, 
+  Activity as ActivityIcon
 } from "lucide-react";
+import { WARGA_FIELDS, DEFAULT_WARGA_FORM, isWargaDataIncomplete } from "@/lib/wargaSchema";
 import { 
   getRtDashboardStats, getRtFinance, addRtFinanceTransaction, deleteRtFinanceTransaction,
   getRtActivities, addRtActivity, deleteRtActivity,
@@ -21,7 +33,7 @@ import {
   getRtInventories, addRtInventory, deleteRtInventory,
   getRtInventoryLoans, addRtInventoryLoan, returnRtInventoryLoan,
   getResidentKks, getSensusPoints, saveSensusPoint, deleteSensusPoint,
-  getRtMapBoundary, saveRtMapBoundary, getRwDashboardStats, getRwMapBoundaries
+  getRtMapBoundary, saveRtMapBoundary, getRwDashboardStats, getRwMapBoundaries, getWilayahStrukturOptions, getFullVillageStructure
 } from "@/actions/rt";
 import { getWargaList, addWarga, updateWarga, deleteWarga, getSuratList, updateSuratStatus } from "@/actions/village";
 import "leaflet/dist/leaflet.css";
@@ -37,6 +49,8 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
     displayTitle = `Dashboard RT ${userRt} / RW ${userRw}`;
   } else if (roleName === "RW" && userRw) {
     displayTitle = `Dashboard RW ${userRw}`;
+  } else if (roleName === "KADUS" && userRw) {
+    displayTitle = `Dashboard ${userRw}`;
   }
 
   const searchParams = useSearchParams();
@@ -70,7 +84,7 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
   const fetchStats = async () => {
     setLoadingStats(true);
     let data;
-    if (session?.user?.role === "RW") {
+    if (session?.user?.role === "RW" || session?.user?.role === "KADUS") {
         const rwData = await getRwDashboardStats();
         if (rwData.success) {
             setRtBreakdown(rwData.rtBreakdown);
@@ -302,61 +316,92 @@ function ProgressBar({ label, count, total, color }: { label: string; count: num
 function WargaTab({ session }: { session?: any }) {
   const [query, setQuery] = useState("");
   const [filterRt, setFilterRt] = useState("");
+  const [filterRw, setFilterRw] = useState("");
+  const [allowedRts, setAllowedRts] = useState<string[]>([]);
+  const [allowedRws, setAllowedRws] = useState<{ name: string, rt: string[] }[]>([]);
+  const [dusunName, setDusunName] = useState("");
+  const [fullStructure, setFullStructure] = useState<{ dusun: { name: string, rw: { name: string, rt: string[] }[] }[] }>({ dusun: [] });
   const [wargaList, setWargaList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [filterIncomplete, setFilterIncomplete] = useState(false);
 
   const [formData, setFormData] = useState({
-    nik: "",
-    noKK: "",
-    namaLengkap: "",
-    tempatLahir: "",
-    tanggalLahir: "",
-    jenisKelamin: "LAKI_LAKI",
-    alamat: "",
-    rt: "",
-    rw: "",
-    dusun: "Dusun 1",
-    agama: "ISLAM",
-    statusKawin: "BELUM_KAWIN",
-    hubunganKeluarga: "KEPALA_KELUARGA",
-    pekerjaan: ""
+    ...DEFAULT_WARGA_FORM
   });
 
   const loadWarga = async () => {
     setLoading(true);
-    const data = await getWargaList(query, filterRt);
+    const data = await getWargaList(query, filterRt, filterRw);
     setWargaList(data);
     setLoading(false);
   };
 
   useEffect(() => {
+    const fetchOptions = async () => {
+      const [opts, structure] = await Promise.all([
+        getWilayahStrukturOptions(),
+        getFullVillageStructure()
+      ]);
+      if (opts.rtList) {
+        setAllowedRts(opts.rtList);
+      }
+      if (opts.rwList) {
+        setAllowedRws(opts.rwList);
+      }
+      if (opts.dusunName) {
+        setDusunName(opts.dusunName);
+      }
+      if (structure?.dusun) {
+        setFullStructure(structure);
+      }
+    };
+    fetchOptions();
+  }, []);
+
+  useEffect(() => {
     loadWarga();
-  }, [filterRt]);
+  }, [filterRt, filterRw]);
+
+  const handleRwChange = (val: string) => {
+    setFilterRw(val);
+    setFilterRt("");
+  };
+
+  const rtOptions = useMemo(() => {
+    if (session?.user?.role === "RW") {
+      return allowedRts;
+    } else if (session?.user?.role === "KADUS") {
+      if (!filterRw) return [];
+      const rwObj = allowedRws.find(r => r.name === filterRw);
+      return rwObj ? rwObj.rt : [];
+    }
+    return [];
+  }, [session, filterRw, allowedRts, allowedRws]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     loadWarga();
   };
 
+  const userRole = session?.user?.role;
+  const userRt = session?.user?.rt || "";
+  const userRw = session?.user?.rw || "";
+
   const handleOpenAdd = () => {
     setEditingId(null);
+    // Auto-prefill rt/rw/dusun based on role
+    const prefillRw = (userRole === "RT" || userRole === "RW") ? userRw : "";
+    const prefillRt = userRole === "RT" ? userRt : "";
+    // Resolve dusun from structure based on RW
+    let prefillDusun = dusunName;
+    if (userRole === "KADUS") prefillDusun = (session?.user as any)?.rw || "";
     setFormData({
-      nik: "",
-      noKK: "",
-      namaLengkap: "",
-      tempatLahir: "",
-      tanggalLahir: "",
-      jenisKelamin: "LAKI_LAKI",
-      alamat: "",
-      rt: "",
-      rw: "",
-      dusun: "Dusun 1",
-      agama: "ISLAM",
-      statusKawin: "BELUM_KAWIN",
-      hubunganKeluarga: "KEPALA_KELUARGA",
-      pekerjaan: ""
+      ...DEFAULT_WARGA_FORM,
+      rt: prefillRt,
+      rw: prefillRw,
+      dusun: prefillDusun
     });
     setShowModal(true);
   };
@@ -364,20 +409,25 @@ function WargaTab({ session }: { session?: any }) {
   const handleEdit = (item: any) => {
     setEditingId(item.id);
     setFormData({
-      nik: item.nik,
-      noKK: item.noKK,
-      namaLengkap: item.namaLengkap,
-      tempatLahir: item.tempatLahir,
-      tanggalLahir: new Date(item.tanggalLahir).toISOString().split('T')[0],
-      jenisKelamin: item.jenisKelamin,
-      alamat: item.alamat,
-      rt: item.rt,
-      rw: item.rw,
-      dusun: item.dusun,
-      agama: item.agama,
-      statusKawin: item.statusKawin,
-      hubunganKeluarga: item.hubunganKeluarga,
-      pekerjaan: item.pekerjaan || ""
+      nik: item.nik || "",
+      noKK: item.noKK || "",
+      namaLengkap: item.namaLengkap || "",
+      tempatLahir: item.tempatLahir || "",
+      tanggalLahir: item.tanggalLahir ? new Date(item.tanggalLahir).toISOString().split('T')[0] : "",
+      jenisKelamin: item.jenisKelamin || "LAKI_LAKI",
+      alamat: item.alamat || "",
+      rt: item.rt || "",
+      rw: item.rw || "",
+      dusun: item.dusun || "",
+      agama: item.agama || "ISLAM",
+      statusKawin: item.statusKawin || "BELUM_KAWIN",
+      hubunganKeluarga: item.hubunganKeluarga || "KEPALA_KELUARGA",
+      pekerjaan: item.pekerjaan || "",
+      pendidikan: item.pendidikan || "SD",
+      golonganDarah: item.golonganDarah || "-",
+      kewarganegaraan: item.kewarganegaraan || "WNI",
+      namaAyah: item.namaAyah || "",
+      namaIbu: item.namaIbu || ""
     });
     setShowModal(true);
   };
@@ -414,12 +464,20 @@ function WargaTab({ session }: { session?: any }) {
     }
   };
 
+  const displayedWarga = useMemo(() => {
+    return wargaList.filter(w => !filterIncomplete || isWargaDataIncomplete(w));
+  }, [wargaList, filterIncomplete]);
+
   return (
     <div className="bg-white rounded-[2rem] p-6 border border-slate-200/60 shadow-sm space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-black text-slate-800">{session?.user?.role === "RW" ? "Manajemen Data Warga RW" : "Manajemen Data Warga RT"}</h3>
-          <p className="text-slate-500 text-xs mt-0.5">{session?.user?.role === "RW" ? "Kelola dan pantau seluruh warga di wilayah RW Anda." : "Kelola, tambah, edit, dan hapus warga di wilayah RT Anda saja."}</p>
+          <h3 className="text-lg font-black text-slate-800">
+            {session?.user?.role === "KADUS" ? `Manajemen Data Warga ${session?.user?.rw}` : session?.user?.role === "RW" ? "Manajemen Data Warga RW" : "Manajemen Data Warga RT"}
+          </h3>
+          <p className="text-slate-500 text-xs mt-0.5">
+            {session?.user?.role === "KADUS" ? "Kelola dan pantau seluruh warga di wilayah Dusun Anda." : session?.user?.role === "RW" ? "Kelola dan pantau seluruh warga di wilayah RW Anda." : "Kelola, tambah, edit, dan hapus warga di wilayah RT Anda saja."}
+          </p>
         </div>
         <button
           onClick={handleOpenAdd}
@@ -430,7 +488,7 @@ function WargaTab({ session }: { session?: any }) {
       </div>
 
       {/* Search Input */}
-      <form onSubmit={handleSearch} className="flex gap-3">
+      <form onSubmit={handleSearch} className="flex flex-wrap md:flex-nowrap gap-3 items-center">
         <div className="relative flex-1">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
           <input
@@ -448,12 +506,54 @@ function WargaTab({ session }: { session?: any }) {
             className="bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-900"
           >
             <option value="">Semua RT</option>
-            {[...Array(20)].map((_, i) => {
-              const num = (i + 1).toString().padStart(3, '0');
-              return <option key={num} value={num}>RT {num}</option>;
+            {allowedRts.map((rtVal) => {
+              const cleanDigits = rtVal.replace(/\D/g, '');
+              const label = `RT ${cleanDigits.padStart(3, '0')}`;
+              return <option key={rtVal} value={rtVal}>{label}</option>;
             })}
           </select>
         )}
+        {session?.user?.role === "KADUS" && (
+          <>
+            <select
+              value={filterRw}
+              onChange={e => handleRwChange(e.target.value)}
+              className="bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-900"
+            >
+              <option value="">Semua RW</option>
+              {allowedRws.map((rwObj) => {
+                const cleanDigits = rwObj.name.replace(/\D/g, '');
+                const label = `RW ${cleanDigits.padStart(3, '0')}`;
+                return <option key={rwObj.name} value={rwObj.name}>{label}</option>;
+              })}
+            </select>
+
+            <select
+              value={filterRt}
+              onChange={e => setFilterRt(e.target.value)}
+              disabled={!filterRw}
+              className="bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-900 disabled:opacity-50"
+            >
+              <option value="">Semua RT</option>
+              {rtOptions.map((rtVal) => {
+                const cleanDigits = rtVal.replace(/\D/g, '');
+                const label = `RT ${cleanDigits.padStart(3, '0')}`;
+                return <option key={rtVal} value={rtVal}>{label}</option>;
+              })}
+            </select>
+          </>
+        )}
+        <button 
+          type="button"
+          onClick={() => setFilterIncomplete(prev => !prev)}
+          className={`flex items-center gap-1.5 px-4 py-3 rounded-xl text-xs font-bold transition-all border ${
+            filterIncomplete 
+              ? "bg-rose-50 text-rose-600 border-rose-100" 
+              : "bg-slate-50 text-slate-500 border-transparent hover:bg-slate-100"
+          }`}
+        >
+          <AlertCircle size={14} /> Perlu Sinkronisasi ({wargaList.filter(isWargaDataIncomplete).length})
+        </button>
         <button type="submit" className="bg-slate-950 text-white px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-800 transition-all">
           Cari
         </button>
@@ -465,40 +565,57 @@ function WargaTab({ session }: { session?: any }) {
           <div className="py-20 text-center">
             <Loader2 className="animate-spin text-teal-600 mx-auto" size={32} />
           </div>
-        ) : wargaList.length > 0 ? (
+        ) : displayedWarga.length > 0 ? (
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-wider">
                 <th className="py-3 px-4">Nama / NIK</th>
                 <th className="py-3 px-4">No KK</th>
-                {session?.user?.role === "RW" && <th className="py-3 px-4">RT</th>}
+                {(session?.user?.role === "RW" || session?.user?.role === "KADUS") && <th className="py-3 px-4">RT / RW</th>}
                 <th className="py-3 px-4">Hub. Keluarga</th>
                 <th className="py-3 px-4">Pekerjaan</th>
                 <th className="py-3 px-4 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 text-xs font-bold text-slate-700">
-              {wargaList.map((w: any) => (
+              {displayedWarga.map((w: any) => (
                 <tr key={w.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="py-3.5 px-4">
-                    <div className="font-bold text-slate-800">{w.namaLengkap}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="font-bold text-slate-800">{w.namaLengkap}</div>
+                      {isWargaDataIncomplete(w) && (
+                        <span className="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-md text-[9px] font-black uppercase tracking-tight flex items-center gap-1">
+                          <AlertCircle size={10} /> Belum Lengkap
+                        </span>
+                      )}
+                    </div>
                     <div className="text-[10px] text-slate-400 mt-0.5">{w.nik}</div>
                   </td>
                   <td className="py-3.5 px-4 text-slate-500">{w.noKK}</td>
-                  {session?.user?.role === "RW" && (
+                  {(session?.user?.role === "RW" || session?.user?.role === "KADUS") && (
                     <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg text-[10px] font-black">RT {w.rt}</span>
+                      <span className="px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg text-[10px] font-black">RT {w.rt} / RW {w.rw}</span>
                     </td>
                   )}
                   <td className="py-3.5 px-4">
                     <span className="px-2.5 py-1 rounded-full bg-slate-100 text-[9px] font-bold uppercase text-slate-600">
-                      {w.hubunganKeluarga.replace(/_/g, ' ')}
+                      {(w.hubunganKeluarga || "").replace(/_/g, ' ')}
                     </span>
                   </td>
                   <td className="py-3.5 px-4 text-slate-500">{w.pekerjaan || "-"}</td>
                   <td className="py-3.5 px-4">
                     <div className="flex justify-center gap-2">
-                      <button onClick={() => handleEdit(w)} className="p-2 hover:bg-teal-50 rounded-lg text-teal-600 transition-all">
+                      {isWargaDataIncomplete(w) && (
+                        <button
+                          onClick={() => handleEdit(w)}
+                          title="Upgrade / Lengkapi Data Kependudukan"
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 border border-amber-200 rounded-lg text-[9px] font-black uppercase tracking-wide transition-all"
+                        >
+                          <ArrowUpRight size={11} />
+                          Upgrade
+                        </button>
+                      )}
+                      <button onClick={() => handleEdit(w)} className="p-2 hover:bg-teal-50 rounded-lg text-teal-600 transition-all" title="Lengkapi / Edit Data">
                         <Edit size={14} />
                       </button>
                       <button onClick={() => handleDelete(w.id)} className="p-2 hover:bg-rose-50 rounded-lg text-rose-600 transition-all">
@@ -519,74 +636,206 @@ function WargaTab({ session }: { session?: any }) {
       {showModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowModal(false)} />
-          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl relative z-10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-3xl relative z-10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h4 className="text-lg font-black text-slate-800">{editingId ? "Edit Data Warga" : "Tambah Warga Baru"}</h4>
-                <p className="text-slate-400 text-xs">Form input kependudukan resmi RT/RW.</p>
+                <h4 className="text-lg font-black text-slate-800">
+                  {editingId
+                    ? isWargaDataIncomplete(wargaList.find((w: any) => w.id === editingId))
+                      ? "⬆ Upgrade Data Kependudukan"
+                      : "Edit Data Warga"
+                    : "Tambah Warga Baru"}
+                </h4>
+                <p className="text-slate-400 text-xs">
+                  {editingId && isWargaDataIncomplete(wargaList.find((w: any) => w.id === editingId))
+                    ? "Perbarui data yang belum lengkap agar tersinkronisasi dengan admin master."
+                    : "Form input kependudukan resmi RT/RW."}
+                </p>
               </div>
               <button onClick={() => setShowModal(false)} className="p-2 hover:bg-slate-100 rounded-xl">
                 <X size={20} />
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 custom-scrollbar bg-slate-50/20">
-              <div className="grid grid-cols-2 gap-4">
-                <FormGroup label="NIK (16 Digit)" value={formData.nik} onChange={v => setFormData({...formData, nik: v})} placeholder="Masukkan NIK" />
-                <FormGroup label="No. Kartu Keluarga" value={formData.noKK} onChange={v => setFormData({...formData, noKK: v})} placeholder="Masukkan No KK" />
-              </div>
-              <FormGroup label="Nama Lengkap" value={formData.namaLengkap} onChange={v => setFormData({...formData, namaLengkap: v})} placeholder="Masukkan Nama Lengkap" />
-              
-              <div className="grid grid-cols-2 gap-4">
-                <FormGroup label="Tempat Lahir" value={formData.tempatLahir} onChange={v => setFormData({...formData, tempatLahir: v})} placeholder="Masukkan Tempat Lahir" />
-                <FormGroup label="Tanggal Lahir" type="date" value={formData.tanggalLahir} onChange={v => setFormData({...formData, tanggalLahir: v})} />
-              </div>
+            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-6 custom-scrollbar bg-slate-50/20">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {WARGA_FIELDS.map((field) => {
+                  const isDisabled = (field.key === "rt" || field.key === "rw") && userRole === "RT";
+                  
+                  if (field.key === "rw") {
+                    if (userRole === "RT" || userRole === "RW") {
+                      return (
+                        <div key={field.key} className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">{field.label}</label>
+                          <input 
+                            disabled
+                            type="text"
+                            value={formData.rw || ""} 
+                            className="w-full bg-slate-100 border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold text-slate-505"
+                          />
+                        </div>
+                      );
+                    } else if (userRole === "KADUS") {
+                      return (
+                        <div key={field.key} className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">{field.label}</label>
+                          <select 
+                            required
+                            value={formData.rw || ""} 
+                            onChange={e => {
+                              const selectedRw = e.target.value;
+                              const matchedDusunName = (session?.user as any)?.rw || "";
+                              setFormData({
+                                ...formData,
+                                rw: selectedRw,
+                                rt: "",
+                                dusun: matchedDusunName
+                              });
+                            }} 
+                            className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-950"
+                          >
+                            <option value="">Pilih RW</option>
+                            {allowedRws.map(rwObj => {
+                              const cleanDigits = rwObj.name.replace(/\D/g, '');
+                              const label = `RW ${cleanDigits.padStart(3, '0')}`;
+                              return <option key={rwObj.name} value={rwObj.name}>{label}</option>;
+                            })}
+                          </select>
+                        </div>
+                      );
+                    }
+                  }
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Jenis Kelamin</label>
-                  <select value={formData.jenisKelamin} onChange={e => setFormData({...formData, jenisKelamin: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-950">
-                    <option value="LAKI_LAKI">Laki-Laki</option>
-                    <option value="PEREMPUAN">Perempuan</option>
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Agama</label>
-                  <select value={formData.agama} onChange={e => setFormData({...formData, agama: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-950">
-                    <option value="ISLAM">Islam</option>
-                    <option value="KRISTEN">Kristen</option>
-                    <option value="KATOLIK">Katolik</option>
-                    <option value="HINDU">Hindu</option>
-                    <option value="BUDHA">Budha</option>
-                    <option value="KONGHUCU">Konghucu</option>
-                  </select>
-                </div>
-              </div>
+                  if (field.key === "rt") {
+                    if (userRole === "RT") {
+                      return (
+                        <div key={field.key} className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">{field.label}</label>
+                          <input 
+                            disabled
+                            type="text"
+                            value={formData.rt || ""} 
+                            className="w-full bg-slate-100 border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold text-slate-505"
+                          />
+                        </div>
+                      );
+                    } else if (userRole === "RW") {
+                      return (
+                        <div key={field.key} className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">{field.label}</label>
+                          <select 
+                            required
+                            value={formData.rt || ""} 
+                            onChange={e => setFormData({ ...formData, rt: e.target.value })} 
+                            className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-950"
+                          >
+                            <option value="">Pilih RT</option>
+                            {allowedRts.map(rtVal => {
+                              const cleanDigits = rtVal.replace(/\D/g, '');
+                              const label = `RT ${cleanDigits.padStart(3, '0')}`;
+                              return <option key={rtVal} value={rtVal}>{label}</option>;
+                            })}
+                          </select>
+                        </div>
+                      );
+                    } else if (userRole === "KADUS") {
+                      const currentRwObj = allowedRws.find(r => r.name === formData.rw);
+                      const formRtOptions = currentRwObj ? currentRwObj.rt : [];
+                      return (
+                        <div key={field.key} className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">{field.label}</label>
+                          <select 
+                            required
+                            disabled={!formData.rw}
+                            value={formData.rt || ""} 
+                            onChange={e => setFormData({ ...formData, rt: e.target.value })} 
+                            className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-950 disabled:opacity-60 disabled:bg-slate-100"
+                          >
+                            <option value="">Pilih RT</option>
+                            {formRtOptions.map(rtVal => {
+                              const cleanDigits = rtVal.replace(/\D/g, '');
+                              const label = `RT ${cleanDigits.padStart(3, '0')}`;
+                              return <option key={rtVal} value={rtVal}>{label}</option>;
+                            })}
+                          </select>
+                        </div>
+                      );
+                    }
+                  }
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Hubungan Keluarga</label>
-                  <select value={formData.hubunganKeluarga} onChange={e => setFormData({...formData, hubunganKeluarga: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-950">
-                    <option value="KEPALA_KELUARGA">Kepala Keluarga</option>
-                    <option value="ISTRI">Istri</option>
-                    <option value="ANAK">Anak</option>
-                    <option value="ORANG_TUA">Orang Tua</option>
-                    <option value="MERTUA">Mertua</option>
-                    <option value="FAMILI_LAIN">Famili Lain</option>
-                  </select>
-                </div>
-                <FormGroup label="Pekerjaan" value={formData.pekerjaan} onChange={v => setFormData({...formData, pekerjaan: v})} placeholder="Contoh: Karyawan Swasta" />
-              </div>
+                  if (field.key === "dusun") {
+                    if (userRole === "KADUS") {
+                      // KADUS: full dusun select, on change resets rw/rt and updates allowedRws
+                      return (
+                        <div key={field.key} className="space-y-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">{field.label}</label>
+                          <select
+                            required
+                            value={formData.dusun || ""}
+                            onChange={e => {
+                              const selectedDusun = e.target.value;
+                              const dusunObj = fullStructure.dusun?.find((d: any) => d.name === selectedDusun);
+                              const newRwList = dusunObj?.rw?.map((r: any) => ({ name: r.name, rt: r.rt || [] })) || [];
+                              setAllowedRws(newRwList);
+                              setFormData({ ...formData, dusun: selectedDusun, rw: "", rt: "" });
+                            }}
+                            className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-950"
+                          >
+                            <option value="">Pilih Dusun</option>
+                            {fullStructure.dusun?.map((d: any) => (
+                              <option key={d.name} value={d.name}>{d.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    }
+                    // RT / RW: show locked dusun (auto-resolved)
+                    return (
+                      <div key={field.key} className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">{field.label}</label>
+                        <input
+                          disabled
+                          type="text"
+                          value={formData.dusun || dusunName || ""}
+                          className="w-full bg-slate-100 border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold text-slate-500"
+                        />
+                      </div>
+                    );
+                  }
+                  
+                  if (field.type === "select") {
+                    return (
+                      <div key={field.key} className="space-y-1">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">{field.label}</label>
+                        <select 
+                          disabled={isDisabled}
+                          value={formData[field.key as keyof typeof formData] || ""} 
+                          onChange={e => setFormData({...formData, [field.key]: e.target.value})} 
+                          className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-950 disabled:opacity-60 disabled:bg-slate-100"
+                        >
+                          {field.options?.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  }
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Alamat Domisili</label>
-                <textarea value={formData.alamat} onChange={e => setFormData({...formData, alamat: e.target.value})} placeholder="Masukkan alamat lengkap..." className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all min-h-[80px] text-slate-950" />
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <FormGroup label="RT" value={formData.rt} onChange={v => setFormData({...formData, rt: v})} placeholder="001" />
-                <FormGroup label="RW" value={formData.rw} onChange={v => setFormData({...formData, rw: v})} placeholder="002" />
-                <FormGroup label="Dusun" value={formData.dusun} onChange={v => setFormData({...formData, dusun: v})} placeholder="Dusun 1" />
+                  return (
+                    <div key={field.key} className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">{field.label}</label>
+                      <input 
+                        required={field.required}
+                        disabled={isDisabled}
+                        type={field.type}
+                        value={formData[field.key as keyof typeof formData] || ""} 
+                        onChange={e => setFormData({...formData, [field.key]: e.target.value})} 
+                        placeholder={field.placeholder} 
+                        className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-950 disabled:opacity-60 disabled:bg-slate-100"
+                      />
+                    </div>
+                  );
+                })}
               </div>
 
               <button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white py-4 rounded-xl text-xs font-black uppercase tracking-wider mt-4 transition-all">

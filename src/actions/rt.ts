@@ -10,7 +10,7 @@ async function getRtSession() {
     const session = await getServerSession(authOptions);
     if (!session?.user) throw new Error("Unauthorized");
     const role = (session.user as any).role;
-    if (role !== "RT" && role !== "RW" && role !== "ADMIN_DESA" && role !== "KADES" && role !== "SEKDES" && role !== "ADMIN_MASTER") {
+    if (role !== "RT" && role !== "RW" && role !== "KADUS" && role !== "ADMIN_DESA" && role !== "KADES" && role !== "SEKDES" && role !== "ADMIN_MASTER") {
         throw new Error("Unauthorized");
     }
     const tenantId = (session.user as { tenantId: string }).tenantId;
@@ -19,18 +19,198 @@ async function getRtSession() {
     return { session, tenantId, rt, rw, role };
 }
 
+function cleanDigits(val: string): string {
+    return val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0';
+}
+
+function cleanName(val: string): string {
+    return val.toString().toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+export async function buildWilayahFilterScope(role: string, userRt: string, userRw: string, tenantId: string) {
+    let filterScope: any = { tenantId };
+    
+    if (role === "RT") {
+        filterScope.rt = userRt;
+        filterScope.rw = userRw;
+        return filterScope;
+    }
+    
+    const config = await prisma.systemSetting.findUnique({
+        where: { id: "village_structure" }
+    });
+    const structure = (config?.settings as any) || { dusun: [] };
+    
+    if (role === "RW") {
+        const targetRwClean = cleanDigits(userRw || "");
+        let rtScopeList: string[] = [];
+        
+        structure.dusun?.forEach((d: any) => {
+            d.rw?.forEach((rw: any) => {
+                if (cleanDigits(rw.name) === targetRwClean) {
+                    rw.rt?.forEach((rt: any) => {
+                        rtScopeList.push(rt);
+                    });
+                }
+            });
+        });
+        
+        const matchedRts = rtScopeList.flatMap(rt => {
+            const clean = cleanDigits(rt);
+            return [clean, clean.padStart(3, '0'), rt];
+        });
+        
+        filterScope.rw = { in: [userRw, cleanDigits(userRw).padStart(3, '0')] };
+        if (matchedRts.length > 0) {
+            filterScope.rt = { in: matchedRts };
+        }
+    } else if (role === "KADUS") {
+        let allowedRts: string[] = [];
+        let allowedRws: string[] = [];
+        let dusunName = "";
+        
+        const targetDusunClean = cleanName(userRw || "");
+        const matchedDusun = structure.dusun?.find((d: any) => cleanName(d.name) === targetDusunClean);
+        
+        if (matchedDusun) {
+            dusunName = matchedDusun.name;
+            matchedDusun.rw?.forEach((rw: any) => {
+                allowedRws.push(rw.name);
+                rw.rt?.forEach((rt: any) => {
+                    allowedRts.push(rt);
+                });
+            });
+        }
+        
+        const matchedRws = allowedRws.flatMap(rw => {
+            const clean = cleanDigits(rw);
+            return [clean, clean.padStart(3, '0'), rw];
+        });
+        const matchedRts = allowedRts.flatMap(rt => {
+            const clean = cleanDigits(rt);
+            return [clean, clean.padStart(3, '0'), rt];
+        });
+        
+        filterScope.OR = [];
+        if (dusunName) {
+            filterScope.OR.push({ dusun: { equals: dusunName, mode: 'insensitive' } });
+        }
+        if (matchedRws.length > 0 && matchedRts.length > 0) {
+            filterScope.OR.push({
+                rw: { in: matchedRws },
+                rt: { in: matchedRts }
+            });
+        }
+        if (filterScope.OR.length === 0) {
+            filterScope.id = "none";
+        }
+    }
+    
+    return filterScope;
+}
+
+export async function getWilayahStrukturOptions() {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const role = (session.user as any).role;
+        const userRw = (session.user as any).rw || "";
+        const userRt = (session.user as any).rt || "";
+        
+        const config = await prisma.systemSetting.findUnique({
+            where: { id: "village_structure" }
+        });
+        const structure = (config?.settings as any) || { dusun: [] };
+        
+        if (role === "RT") {
+            const targetRwClean = cleanDigits(userRw);
+            let matchedDusunName = "";
+            let rtOptions: string[] = [];
+            
+            structure.dusun?.forEach((d: any) => {
+                d.rw?.forEach((rw: any) => {
+                    if (cleanDigits(rw.name) === targetRwClean) {
+                        matchedDusunName = d.name;
+                        rw.rt?.forEach((rt: any) => {
+                            rtOptions.push(rt);
+                        });
+                    }
+                });
+            });
+            
+            return {
+                dusunName: matchedDusunName,
+                rtList: Array.from(new Set(rtOptions)).sort()
+            };
+        } else if (role === "RW") {
+            const targetRwClean = cleanDigits(userRw);
+            let rtOptions: string[] = [];
+            let matchedDusunName = "";
+            
+            structure.dusun?.forEach((d: any) => {
+                d.rw?.forEach((rw: any) => {
+                    if (cleanDigits(rw.name) === targetRwClean) {
+                        matchedDusunName = d.name;
+                        rw.rt?.forEach((rt: any) => {
+                            rtOptions.push(rt);
+                        });
+                    }
+                });
+            });
+            
+            return {
+                dusunName: matchedDusunName,
+                rtList: Array.from(new Set(rtOptions)).sort()
+            };
+        } else if (role === "KADUS") {
+            const targetDusunClean = cleanName(userRw);
+            const matchedDusun = structure.dusun?.find((d: any) => cleanName(d.name) === targetDusunClean);
+            
+            let rwOptions: { name: string, rt: string[] }[] = [];
+            if (matchedDusun) {
+                matchedDusun.rw?.forEach((rw: any) => {
+                    rwOptions.push({
+                        name: rw.name,
+                        rt: rw.rt || []
+                    });
+                });
+            }
+            
+            return {
+                dusunName: matchedDusun?.name || userRw,
+                rwList: rwOptions
+            };
+        }
+        return {};
+    } catch (error) {
+        return {};
+    }
+}
+
+/**
+ * Returns the full village structure (all dusun > rw > rt)
+ * Used to populate cascading dropdowns in citizen forms.
+ */
+export async function getFullVillageStructure() {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        const config = await prisma.systemSetting.findUnique({
+            where: { id: "village_structure" }
+        });
+        return (config?.settings as any) || { dusun: [] };
+    } catch (error) {
+        return { dusun: [] };
+    }
+}
+
+
 // 1. STATS OVERVIEW
 export async function getRtDashboardStats() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        
-        let filterScope: any = { tenantId };
-        if (role === "RT") {
-            filterScope.rt = rt;
-            filterScope.rw = rw;
-        } else if (role === "RW") {
-            filterScope.rw = rw;
-        }
+        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         // Total Warga
         const totalWarga = await prisma.dataKependudukan.count({
@@ -55,14 +235,11 @@ export async function getRtDashboardStats() {
         });
 
         // Pending Letters
-        let letterFilterScope: any = { tenantId, status: "TERTUNDA" };
-        if (role === "RT") {
-            letterFilterScope.warga = { rt, rw };
-        } else if (role === "RW") {
-            letterFilterScope.warga = { rw };
-        }
         const pendingLetters = await prisma.surat.count({
-            where: letterFilterScope
+            where: {
+                status: "TERTUNDA",
+                warga: filterScope
+            }
         });
 
         // LAMPID Counts
@@ -102,13 +279,7 @@ export async function getRtDashboardStats() {
 export async function getRtFinance() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        let filterScope: any = { tenantId };
-        if (role === "RT") {
-            filterScope.rt = rt;
-            filterScope.rw = rw;
-        } else if (role === "RW") {
-            filterScope.rw = rw;
-        }
+        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtFinance.findMany({
             where: filterScope,
@@ -162,13 +333,7 @@ export async function deleteRtFinanceTransaction(id: string) {
 export async function getRtActivities() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        let filterScope: any = { tenantId };
-        if (role === "RT") {
-            filterScope.rt = rt;
-            filterScope.rw = rw;
-        } else if (role === "RW") {
-            filterScope.rw = rw;
-        }
+        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtActivity.findMany({
             where: filterScope,
@@ -224,13 +389,7 @@ export async function deleteRtActivity(id: string) {
 export async function getRtBirthReports() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        let filterScope: any = { tenantId };
-        if (role === "RT") {
-            filterScope.rt = rt;
-            filterScope.rw = rw;
-        } else if (role === "RW") {
-            filterScope.rw = rw;
-        }
+        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtBirthReport.findMany({
             where: filterScope,
@@ -285,13 +444,7 @@ export async function deleteRtBirthReport(id: string) {
 export async function getRtDeathReports() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        let filterScope: any = { tenantId };
-        if (role === "RT") {
-            filterScope.rt = rt;
-            filterScope.rw = rw;
-        } else if (role === "RW") {
-            filterScope.rw = rw;
-        }
+        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtDeathReport.findMany({
             where: filterScope,
@@ -345,13 +498,7 @@ export async function deleteRtDeathReport(id: string) {
 export async function getRtMoveReports() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        let filterScope: any = { tenantId };
-        if (role === "RT") {
-            filterScope.rt = rt;
-            filterScope.rw = rw;
-        } else if (role === "RW") {
-            filterScope.rw = rw;
-        }
+        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtMoveReport.findMany({
             where: filterScope,
@@ -405,13 +552,7 @@ export async function deleteRtMoveReport(id: string) {
 export async function getRtIncomingReports() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        let filterScope: any = { tenantId };
-        if (role === "RT") {
-            filterScope.rt = rt;
-            filterScope.rw = rw;
-        } else if (role === "RW") {
-            filterScope.rw = rw;
-        }
+        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtIncomingReport.findMany({
             where: filterScope,
@@ -466,13 +607,7 @@ export async function deleteRtIncomingReport(id: string) {
 export async function getRtAnnouncements() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        let filterScope: any = { tenantId };
-        if (role === "RT") {
-            filterScope.rt = rt;
-            filterScope.rw = rw;
-        } else if (role === "RW") {
-            filterScope.rw = rw;
-        }
+        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtAnnouncement.findMany({
             where: filterScope,
@@ -525,13 +660,7 @@ export async function deleteRtAnnouncement(id: string) {
 export async function getRtComplaints() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        let filterScope: any = { tenantId };
-        if (role === "RT") {
-            filterScope.rt = rt;
-            filterScope.rw = rw;
-        } else if (role === "RW") {
-            filterScope.rw = rw;
-        }
+        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtComplaint.findMany({
             where: filterScope,
@@ -606,13 +735,7 @@ export async function deleteRtComplaint(id: string) {
 export async function getRtInventories() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        let filterScope: any = { tenantId };
-        if (role === "RT") {
-            filterScope.rt = rt;
-            filterScope.rw = rw;
-        } else if (role === "RW") {
-            filterScope.rw = rw;
-        }
+        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtInventory.findMany({
             where: filterScope,
@@ -666,12 +789,9 @@ export async function getRtInventoryLoans() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
         let filterScope: any = { tenantId };
-        if (role === "RT" || role === "RW") {
-            filterScope.inventory = {
-                rt: role === "RT" ? rt : undefined,
-                rw: rw
-            };
-        }
+        const innerScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        delete innerScope.tenantId;
+        filterScope.inventory = innerScope;
 
         return await prisma.rtInventoryLoan.findMany({
             where: filterScope,
@@ -749,13 +869,7 @@ export async function returnRtInventoryLoan(id: string) {
 export async function getResidentKks() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        let filterScope: any = { tenantId };
-        if (role === "RT") {
-            filterScope.rt = rt;
-            filterScope.rw = rw;
-        } else if (role === "RW") {
-            filterScope.rw = rw;
-        }
+        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         const residents = await prisma.dataKependudukan.findMany({
             where: {
@@ -777,13 +891,7 @@ export async function getResidentKks() {
 export async function getSensusPoints() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        let filterScope: any = { tenantId };
-        if (role === "RT") {
-            filterScope.rt = rt;
-            filterScope.rw = rw;
-        } else if (role === "RW") {
-            filterScope.rw = rw;
-        }
+        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.sensusPoint.findMany({
             where: filterScope
@@ -1046,57 +1154,76 @@ async function triggerRwPolygonAggregation(tenantId: string, rwName: string) {
 
 export async function getRwDashboardStats() {
     try {
-        const { tenantId, rw, role } = await getRtSession();
-        if (role !== "RW" && role !== "ADMIN_DESA" && role !== "KADES" && role !== "SEKDES" && role !== "ADMIN_MASTER") {
+        const { tenantId, rt, rw, role } = await getRtSession();
+        if (role !== "RW" && role !== "KADUS" && role !== "ADMIN_DESA" && role !== "KADES" && role !== "SEKDES" && role !== "ADMIN_MASTER") {
             throw new Error("Unauthorized");
         }
 
+        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+
         const citizens = await prisma.dataKependudukan.findMany({
-            where: { tenantId, rw }
+            where: filterScope
         });
 
         const rtWargaMap: Record<string, number> = {};
         const rtKkMap: Record<string, Set<string>> = {};
+        const rtRwMap: Record<string, { rt: string, rw: string }> = {};
         citizens.forEach(c => {
             const rtKey = c.rt || "000";
-            rtWargaMap[rtKey] = (rtWargaMap[rtKey] || 0) + 1;
-            if (!rtKkMap[rtKey]) rtKkMap[rtKey] = new Set();
-            rtKkMap[rtKey].add(c.noKK);
+            const rwKey = c.rw || "000";
+            const compositeKey = `${rwKey}_${rtKey}`;
+            
+            rtWargaMap[compositeKey] = (rtWargaMap[compositeKey] || 0) + 1;
+            if (!rtKkMap[compositeKey]) rtKkMap[compositeKey] = new Set();
+            rtKkMap[compositeKey].add(c.noKK);
+            rtRwMap[compositeKey] = { rt: rtKey, rw: rwKey };
         });
 
         const finances = await prisma.rtFinance.findMany({
-            where: { tenantId, rw }
+            where: filterScope
         });
         const rtKasMap: Record<string, number> = {};
         finances.forEach(f => {
             const rtKey = f.rt || "000";
-            if (!rtKasMap[rtKey]) rtKasMap[rtKey] = 0;
-            if (f.type === "INCOME") rtKasMap[rtKey] += f.amount;
-            else if (f.type === "EXPENSE") rtKasMap[rtKey] -= f.amount;
+            const rwKey = f.rw || "000";
+            const compositeKey = `${rwKey}_${rtKey}`;
+            
+            if (!rtKasMap[compositeKey]) rtKasMap[compositeKey] = 0;
+            if (f.type === "INCOME") rtKasMap[compositeKey] += f.amount;
+            else if (f.type === "EXPENSE") rtKasMap[compositeKey] -= f.amount;
+            rtRwMap[compositeKey] = { rt: rtKey, rw: rwKey };
         });
 
         const activities = await prisma.rtActivity.findMany({
-            where: { tenantId, rw }
+            where: filterScope
         });
         const rtActivitiesCount: Record<string, number> = {};
         activities.forEach(a => {
             const rtKey = a.rt || "000";
-            rtActivitiesCount[rtKey] = (rtActivitiesCount[rtKey] || 0) + 1;
+            const rwKey = a.rw || "000";
+            const compositeKey = `${rwKey}_${rtKey}`;
+            
+            rtActivitiesCount[compositeKey] = (rtActivitiesCount[compositeKey] || 0) + 1;
+            rtRwMap[compositeKey] = { rt: rtKey, rw: rwKey };
         });
 
-        const rts = Array.from(new Set([
+        const keys = Array.from(new Set([
             ...Object.keys(rtWargaMap),
             ...Object.keys(rtKasMap),
             ...Object.keys(rtActivitiesCount)
         ])).sort();
 
-        const rtBreakdown = rts.map(rtVal => ({
-            rt: rtVal,
-            totalWarga: rtWargaMap[rtVal] || 0,
-            totalKK: rtKkMap[rtVal]?.size || 0,
-            totalKas: rtKasMap[rtVal] || 0,
-            totalActivities: rtActivitiesCount[rtVal] || 0
-        }));
+        const rtBreakdown = keys.map(key => {
+            const { rt: rtVal, rw: rwVal } = rtRwMap[key];
+            return {
+                rt: rtVal,
+                rw: rwVal,
+                totalWarga: rtWargaMap[key] || 0,
+                totalKK: rtKkMap[key]?.size || 0,
+                totalKas: rtKasMap[key] || 0,
+                totalActivities: rtActivitiesCount[key] || 0
+            };
+        });
 
         return {
             success: true,

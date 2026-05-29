@@ -362,6 +362,24 @@ export async function getGlobalResidents(tenantId?: string) {
     }
 }
 
+function cleanDigits(val: string): string {
+    return val ? val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0' : '';
+}
+
+function resolveDusunForRw(rwVal: string, structure: any): string {
+    if (!rwVal) return "";
+    const cleanRw = cleanDigits(rwVal);
+    let matchedDusun = "";
+    structure.dusun?.forEach((d: any) => {
+        d.rw?.forEach((rw: any) => {
+            if (cleanDigits(rw.name) === cleanRw) {
+                matchedDusun = d.name;
+            }
+        });
+    });
+    return matchedDusun;
+}
+
 export async function upsertResident(data: any) {
     const session = await checkMaster();
     try {
@@ -370,6 +388,23 @@ export async function upsertResident(data: any) {
         // Ensure date is properly formatted
         if (rest.tanggalLahir) {
             rest.tanggalLahir = new Date(rest.tanggalLahir);
+        }
+
+        // Fetch structure to resolve/validate dusun automatically
+        const structureConfig = await prisma.systemSetting.findUnique({
+            where: { id: "village_structure" }
+        });
+        const structure = (structureConfig?.settings as any) || { dusun: [] };
+        
+        if (rest.rw) {
+            rest.rw = rest.rw.toString().replace(/\D/g, '').padStart(3, '0');
+            const resolvedDusun = resolveDusunForRw(rest.rw, structure);
+            if (resolvedDusun) {
+                rest.dusun = resolvedDusun;
+            }
+        }
+        if (rest.rt) {
+            rest.rt = rest.rt.toString().replace(/\D/g, '').padStart(3, '0');
         }
 
         let result;
@@ -410,22 +445,41 @@ export async function upsertResident(data: any) {
 export async function bulkImportResidents(residents: any[], tenantId: string) {
     const session = await checkMaster();
     try {
+        // Fetch structure to resolve/validate dusun automatically
+        const structureConfig = await prisma.systemSetting.findUnique({
+            where: { id: "village_structure" }
+        });
+        const structure = (structureConfig?.settings as any) || { dusun: [] };
+
         // Bulk create with transaction
         const result = await prisma.$transaction(
             residents.map(r => {
                 const { tanggalLahir, ...rest } = r;
+
+                let rw = rest.rw ? rest.rw.toString().replace(/\D/g, '').padStart(3, '0') : "";
+                let rt = rest.rt ? rest.rt.toString().replace(/\D/g, '').padStart(3, '0') : "";
+                let dusun = rest.dusun || "";
+
+                if (rw) {
+                    const resolvedDusun = resolveDusunForRw(rw, structure);
+                    if (resolvedDusun) {
+                        dusun = resolvedDusun;
+                    }
+                }
+
+                const updatedData = {
+                    ...rest,
+                    rw,
+                    rt,
+                    dusun,
+                    tanggalLahir: new Date(tanggalLahir),
+                    tenantId
+                };
+
                 return prisma.dataKependudukan.upsert({
                     where: { nik: r.nik },
-                    update: { 
-                        ...rest, 
-                        tanggalLahir: new Date(tanggalLahir),
-                        tenantId 
-                    },
-                    create: { 
-                        ...rest, 
-                        tanggalLahir: new Date(tanggalLahir),
-                        tenantId 
-                    }
+                    update: updatedData,
+                    create: updatedData
                 });
             }),
             {
