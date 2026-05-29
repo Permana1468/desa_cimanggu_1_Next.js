@@ -1,12 +1,26 @@
 import { getSystemStats } from "@/actions/master";
 import { 
-    Users, Database, FileText, Activity, Shield, 
-    TrendingUp, Server, Cpu, Globe, Zap, ArrowUpRight,
-    Layout
+    Users, Database, FileText, Activity, Server, Cpu, Zap, ArrowUpRight, Layout
 } from "lucide-react";
 import { VisualStats } from "@/components/master/VisualStatsWrapper";
+import { Suspense } from "react";
+
+// Enable instant client navigation validation to prevent page navigation blocking
+export const unstable_instant = { prefetch: "static" };
 
 export default async function StatisticsPage({
+    searchParams
+}: {
+    searchParams: Promise<{ tenantId?: string }>
+}) {
+    return (
+        <Suspense fallback={<StatsSkeleton />}>
+            <StatsContent searchParams={searchParams} />
+        </Suspense>
+    );
+}
+
+async function StatsContent({
     searchParams
 }: {
     searchParams: Promise<{ tenantId?: string }>
@@ -119,6 +133,26 @@ export default async function StatisticsPage({
     );
 }
 
+function StatsSkeleton() {
+    return (
+        <div className="space-y-16 animate-pulse p-6">
+            <div className="flex justify-between items-center">
+                <div className="space-y-3">
+                    <div className="h-4 w-40 bg-slate-200 rounded" />
+                    <div className="h-12 w-96 bg-slate-200 rounded" />
+                </div>
+                <div className="h-16 w-80 bg-slate-200 rounded-full" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="bg-white rounded-[3rem] p-10 h-48 border border-slate-100 shadow-xl" />
+                ))}
+            </div>
+            <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl h-96" />
+        </div>
+    );
+}
+
 function PremiumStatCard({ icon: Icon, label, value, trend, color }: any) {
     const colors: any = {
         blue: "bg-blue-600 text-white shadow-blue-500/30",
@@ -140,7 +174,7 @@ function PremiumStatCard({ icon: Icon, label, value, trend, color }: any) {
                 <p className="text-4xl font-black text-slate-950 tabular-nums">{value.toLocaleString('id-ID')}</p>
             </div>
         </div>
-    )
+    );
 }
 
 function HealthMetric({ label, value, progress, color }: any) {
@@ -155,10 +189,10 @@ function HealthMetric({ label, value, progress, color }: any) {
             </div>
             <div className="h-2.5 bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5">
                 <div 
-                    className={`h-full ${color} rounded-full transition-all duration-2000 ease-out shadow-[0_0_15px_rgba(59,130,246,0.5)]`} 
+                    className={`h-full ${color} rounded-full transition-all duration-2000 ease-out`} 
                     style={{ width: `${progress}%` }} 
                 />
             </div>
         </div>
-    )
+    );
 }

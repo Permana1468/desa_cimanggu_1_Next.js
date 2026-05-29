@@ -1,16 +1,31 @@
 import { getAuditLogs } from "@/actions/master";
-import { History, Terminal, Globe, User as UserIcon, ShieldAlert, Activity, Command, ShieldCheck, ArrowRight } from "lucide-react";
+import { History, Terminal, Globe, ShieldAlert, Activity, Command, ShieldCheck, ArrowRight } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
 import Link from "next/link";
+import { Suspense } from "react";
+
+// Enable instant client navigation validation to prevent page navigation blocking
+export const unstable_instant = { prefetch: "static" };
 
 export default async function AuditLogsPage({
     searchParams
 }: {
     searchParams: Promise<{ category?: string; tenantId?: string }>
 }) {
+    return (
+        <Suspense fallback={<AuditLogsSkeleton />}>
+            <AuditLogsContent searchParams={searchParams} />
+        </Suspense>
+    );
+}
+
+async function AuditLogsContent({
+    searchParams
+}: {
+    searchParams: Promise<{ category?: string; tenantId?: string }>
+}) {
     const { category, tenantId } = await searchParams;
     const logs = await getAuditLogs(1, 100, category, tenantId);
-
     const activeTab = category === "SECURITY" ? "security" : "general";
 
     return (
@@ -141,6 +156,21 @@ export default async function AuditLogsPage({
                     Analytics Dashboard <ArrowRight size={18} />
                 </Link>
             </div>
+        </div>
+    );
+}
+
+function AuditLogsSkeleton() {
+    return (
+        <div className="space-y-12 animate-pulse p-6">
+            <div className="flex justify-between items-center">
+                <div className="space-y-2">
+                    <div className="h-4 w-40 bg-slate-200 rounded" />
+                    <div className="h-10 w-80 bg-slate-200 rounded" />
+                </div>
+                <div className="h-14 w-64 bg-slate-200 rounded-full" />
+            </div>
+            <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl h-[500px]" />
         </div>
     );
 }
