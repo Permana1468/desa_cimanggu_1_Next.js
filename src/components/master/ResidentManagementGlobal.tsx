@@ -79,6 +79,7 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
         { key: "jenisKelamin", label: "Jenis Kelamin (L/P)", required: true },
         { key: "tempatLahir", label: "Tempat Lahir", required: true },
         { key: "tanggalLahir", label: "Tanggal Lahir", required: true },
+        { key: "umur", label: "Umur", required: false },
         { key: "agama", label: "Agama", required: false },
         { key: "pendidikan", label: "Pendidikan", required: false },
         { key: "pekerjaan", label: "Pekerjaan", required: false },
@@ -1486,7 +1487,32 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                                             {excelData.slice(0, 5).map((row, idx) => (
                                                 <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
                                                     {DB_FIELDS.map(f => {
-                                                        const val = row[columnMapping[f.key]];
+                                                        let val = row[columnMapping[f.key]];
+                                                        
+                                                        // Automatically calculate age string from parsed date of birth if key is 'umur'
+                                                        if (f.key === "umur") {
+                                                            const dobVal = row[columnMapping['tanggalLahir']];
+                                                            if (dobVal) {
+                                                                const dob = parseSpreadsheetDate(dobVal);
+                                                                if (!isNaN(dob.getTime())) {
+                                                                    const today = new Date();
+                                                                    let years = today.getFullYear() - dob.getFullYear();
+                                                                    let months = today.getMonth() - dob.getMonth();
+                                                                    let days = today.getDate() - dob.getDate();
+                                                                    if (days < 0) {
+                                                                        months--;
+                                                                        const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+                                                                        days += prevMonth.getDate();
+                                                                    }
+                                                                    if (months < 0) {
+                                                                        years--;
+                                                                        months += 12;
+                                                                    }
+                                                                    val = `${years} Tahun, ${months} Bulan, ${days} Hari`;
+                                                                }
+                                                            }
+                                                        }
+                                                        
                                                         const isMissing = f.required && !val;
                                                         return (
                                                             <td key={f.key} className="px-4 py-3 text-xs font-medium text-slate-700">
@@ -1564,6 +1590,7 @@ const fieldSynonyms: Record<string, string[]> = {
     jenisKelamin: ["jenis kelamin", "jk", "sex", "gender", "kelamin", "j.k.", "jenis_kelamin"],
     tempatLahir: ["tempat lahir", "tempat_lahir", "tmpt lahir", "tempat"],
     tanggalLahir: ["tanggal lahir", "tgl lahir", "tgl. lahir", "tanggal_lahir", "tgl", "lahir", "tanggal"],
+    umur: ["umur", "usia", "age"],
     agama: ["agama", "religion"],
     pendidikan: ["pendidikan", "school", "education"],
     pekerjaan: ["pekerjaan", "job", "profession", "work"],
@@ -1741,5 +1768,37 @@ function isNumberingRow(row: string[]): boolean {
         return sequential;
     }
     return false;
+}
+
+// Helper for robust Date parsing from Excel/Google Sheets
+export function parseSpreadsheetDate(val: any): Date {
+    if (!val) return new Date("1970-01-01");
+    if (val instanceof Date) return val;
+    
+    const str = String(val).trim();
+    if (!str) return new Date("1970-01-01");
+    
+    if (/^\d+(\.\d+)?$/.test(str)) {
+        const serial = parseFloat(str);
+        const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+        const msPerDay = 24 * 60 * 60 * 1000;
+        return new Date(excelEpoch.getTime() + serial * msPerDay);
+    }
+    
+    const parsed = Date.parse(str);
+    if (!isNaN(parsed)) return new Date(parsed);
+    
+    const parts = str.split(/[-\/.]/);
+    if (parts.length === 3) {
+        if (parts[0].length === 4) {
+            return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        } else if (parts[2].length === 4) {
+            return new Date(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+        } else if (parts[2].length === 2) {
+            const yr = parseInt(parts[2], 10) + (parseInt(parts[2], 10) > 30 ? 1900 : 2000);
+            return new Date(yr, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+        }
+    }
+    return new Date("1970-01-01");
 }
 
