@@ -30,29 +30,28 @@ export default async function MasterDashboardPage({
 
   const filter = tenantId ? { tenantId } : {};
 
-  // Live Data Integration
-  const totalPenduduk = await prisma.dataKependudukan.count({ where: filter });
-  const adminAktif = await prisma.user.count({
-    where: { ...filter, isActive: true }
-  });
-  const totalTenant = tenantId ? 1 : await prisma.tenant.count();
-  const dailyLogs = await prisma.auditLog.count({
-    where: {
-      ...filter,
-      createdAt: {
-        gte: new Date(new Date().setHours(0, 0, 0, 0))
+  // Live Data Integration - Run queries concurrently using Promise.all to optimize page loading time
+  const [totalPenduduk, adminAktif, totalTenant, dailyLogs, latestLogs] = await Promise.all([
+    prisma.dataKependudukan.count({ where: filter }),
+    prisma.user.count({ where: { ...filter, isActive: true } }),
+    tenantId ? Promise.resolve(1) : prisma.tenant.count(),
+    prisma.auditLog.count({
+      where: {
+        ...filter,
+        createdAt: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0))
+        }
       }
-    }
-  });
-
-  const latestLogs = await prisma.auditLog.findMany({
-    where: filter,
-    take: 8,
-    orderBy: { createdAt: 'desc' },
-    include: {
-      user: { select: { fullName: true } }
-    }
-  });
+    }),
+    prisma.auditLog.findMany({
+      where: filter,
+      take: 8,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { fullName: true } }
+      }
+    })
+  ]);
 
   return (
     <div className="space-y-12 pb-20">

@@ -7,14 +7,16 @@ import { RoleType } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 
-// Security check for Master Admin
-async function checkMaster() {
+import { cache } from "react";
+
+// Security check for Master Admin - cached per-request to prevent redundant DB/crypto operations
+const checkMaster = cache(async () => {
     const session = await getServerSession(authOptions);
     if (!session?.user || (session.user as any).role !== "ADMIN_MASTER") {
         throw new Error("Unauthorized: Master Admin only");
     }
     return session as any;
-}
+});
 
 // 1. User Management
 export async function getAllUsers() {
