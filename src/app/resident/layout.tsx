@@ -13,6 +13,8 @@ import {
 } from "lucide-react";
 import { ResidentSidebar } from "@/components/resident/ResidentSidebar";
 
+export const unstable_instant = false;
+
 export default async function ResidentLayout({
     children,
 }: {

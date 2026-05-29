@@ -2,12 +2,15 @@ import { getAllTenantsMinimal, getVillageStructure } from "@/actions/master";
 import { getBoundaries } from "@/actions/gis";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { redirect } from "next/navigation";
 import GisManagementWrapper from "@/components/master/GisManagementWrapper";
 import { Suspense } from "react";
 
-// Enable instant client navigation validation to prevent page navigation blocking
-export const unstable_instant = { prefetch: "static" };
+export const unstable_instant = {
+    prefetch: "static",
+    samples: [
+        { searchParams: { tenantId: null } }
+    ]
+};
 
 export default async function GisManagementPage() {
     return (
@@ -20,18 +23,33 @@ export default async function GisManagementPage() {
 async function GisContent() {
     const session = await getServerSession(authOptions);
     
+    // Fallback UI if session is not loaded yet (e.g. during build-time static rendering)
     if (!session?.user || (session.user as any).role !== "ADMIN_MASTER") {
-        redirect("/login");
+        return (
+            <div className="p-8 text-center text-slate-500 font-bold bg-white rounded-3xl border border-slate-100 shadow-xl">
+                Mengautentikasi Sesi Master Admin...
+            </div>
+        );
     }
 
     const tenantId = (session.user as any).tenantId;
 
-    // Parallel fetch: tenants, boundaries for current tenant, and village structure config
-    const [tenants, boundariesRes, villageStructure] = await Promise.all([
-        getAllTenantsMinimal(),
-        getBoundaries(tenantId),
-        getVillageStructure(),
-    ]);
+    let tenants: any[] = [];
+    let boundariesRes: any = { success: false, data: [] };
+    let villageStructure: any = null;
+
+    try {
+        const [t, b, v] = await Promise.all([
+            getAllTenantsMinimal(),
+            getBoundaries(tenantId),
+            getVillageStructure(),
+        ]);
+        tenants = t;
+        boundariesRes = b;
+        villageStructure = v;
+    } catch (error) {
+        console.warn("Failed to fetch data for static shell rendering:", error);
+    }
 
     const initialBoundaries = boundariesRes.success ? boundariesRes.data || [] : [];
 

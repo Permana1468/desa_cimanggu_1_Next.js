@@ -2,8 +2,12 @@ import { getVillageStructure } from "@/actions/master";
 import { WilayahManagementClient } from "@/components/master/WilayahManagementClient";
 import { Suspense } from "react";
 
-// Enable instant client navigation validation to prevent page navigation blocking
-export const unstable_instant = { prefetch: "static" };
+export const unstable_instant = {
+    prefetch: "static",
+    samples: [
+        { searchParams: { tenantId: null } }
+    ]
+};
 
 export default async function WilayahPage() {
     return (
@@ -16,7 +20,12 @@ export default async function WilayahPage() {
 }
 
 async function WilayahContent() {
-    const structure = await getVillageStructure();
+    let structure = null;
+    try {
+        structure = await getVillageStructure();
+    } catch (error) {
+        console.warn("Failed to fetch data for static shell rendering:", error);
+    }
     return (
         <div className="animate-in fade-in duration-700">
             <WilayahManagementClient initialStructure={structure} />

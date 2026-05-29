@@ -3,8 +3,12 @@ import { ResidentManagementGlobal } from "@/components/master/ResidentManagement
 import { Users, Database, Activity } from "lucide-react";
 import { Suspense } from "react";
 
-// Enable instant client navigation validation to prevent page navigation blocking
-export const unstable_instant = { prefetch: "static" };
+export const unstable_instant = {
+    prefetch: "static",
+    samples: [
+        { searchParams: { tenantId: null } }
+    ]
+};
 
 export default async function GlobalDataPage() {
     return (
@@ -33,11 +37,22 @@ export default async function GlobalDataPage() {
 }
 
 async function GlobalDataContent() {
-    const [residents, tenants, structure] = await Promise.all([
-        getGlobalResidents(),
-        getAllTenantsMinimal(),
-        getVillageStructure()
-    ]);
+    let residents: any[] = [];
+    let tenants: any[] = [];
+    let structure: any = null;
+
+    try {
+        const [r, t, s] = await Promise.all([
+            getGlobalResidents(),
+            getAllTenantsMinimal(),
+            getVillageStructure()
+        ]);
+        residents = r;
+        tenants = t;
+        structure = s;
+    } catch (error) {
+        console.warn("Failed to fetch data for static shell rendering:", error);
+    }
 
     const stats = {
         total: residents.length,

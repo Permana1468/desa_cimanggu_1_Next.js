@@ -5,8 +5,12 @@ import {
 import { VisualStats } from "@/components/master/VisualStatsWrapper";
 import { Suspense } from "react";
 
-// Enable instant client navigation validation to prevent page navigation blocking
-export const unstable_instant = { prefetch: "static" };
+export const unstable_instant = {
+    prefetch: "static",
+    samples: [
+        { searchParams: { tenantId: null } }
+    ]
+};
 
 export default async function StatisticsPage({
     searchParams
@@ -26,7 +30,19 @@ async function StatsContent({
     searchParams: Promise<{ tenantId?: string }>
 }) {
     const { tenantId } = await searchParams;
-    const stats = await getSystemStats(tenantId);
+    let stats = {
+        totalUsers: 0,
+        totalTenants: 0,
+        totalWarga: 0,
+        totalSurat: 0,
+        growth: [] as any[],
+        demographics: [] as any[]
+    };
+    try {
+        stats = await getSystemStats(tenantId) as any;
+    } catch (error) {
+        console.warn("Failed to fetch data for static shell rendering:", error);
+    }
 
     return (
         <div className="space-y-16 pb-20 px-4 md:px-0 animate-in fade-in duration-1000">

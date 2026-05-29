@@ -4,8 +4,12 @@ import { formatRelativeTime } from "@/lib/utils";
 import Link from "next/link";
 import { Suspense } from "react";
 
-// Enable instant client navigation validation to prevent page navigation blocking
-export const unstable_instant = { prefetch: "static" };
+export const unstable_instant = {
+    prefetch: "static",
+    samples: [
+        { searchParams: { category: null, tenantId: null } }
+    ]
+};
 
 export default async function AuditLogsPage({
     searchParams
@@ -25,7 +29,12 @@ async function AuditLogsContent({
     searchParams: Promise<{ category?: string; tenantId?: string }>
 }) {
     const { category, tenantId } = await searchParams;
-    const logs = await getAuditLogs(1, 100, category, tenantId);
+    let logs: any[] = [];
+    try {
+        logs = await getAuditLogs(1, 100, category, tenantId);
+    } catch (error) {
+        console.warn("Failed to fetch data for static shell rendering:", error);
+    }
     const activeTab = category === "SECURITY" ? "security" : "general";
 
     return (

@@ -2,8 +2,12 @@ import { getAllUsers, getAllTenantsMinimal } from "@/actions/master";
 import UserManagementClient from "@/components/master/UserManagementClient";
 import { Suspense } from "react";
 
-// Enable instant client navigation validation to prevent page navigation blocking
-export const unstable_instant = { prefetch: "static" };
+export const unstable_instant = {
+    prefetch: "static",
+    samples: [
+        { searchParams: { tenantId: null } }
+    ]
+};
 
 export default async function UserManagementPage() {
     return (
@@ -14,10 +18,18 @@ export default async function UserManagementPage() {
 }
 
 async function UserManagementContent() {
-    const [users, tenants] = await Promise.all([
-        getAllUsers(),
-        getAllTenantsMinimal()
-    ]);
+    let users: any[] = [];
+    let tenants: any[] = [];
+    try {
+        const [u, t] = await Promise.all([
+            getAllUsers(),
+            getAllTenantsMinimal()
+        ]);
+        users = u;
+        tenants = t;
+    } catch (error) {
+        console.warn("Failed to fetch data for static shell rendering:", error);
+    }
 
     return (
         <div className="animate-in fade-in duration-700">

@@ -2,8 +2,15 @@ import { getGoogleIntegration, getRedirectUri } from "@/actions/google";
 import { GoogleIntegrationClient } from "@/components/master/GoogleIntegrationClient";
 import { Suspense } from "react";
 
-// Enable instant client navigation validation to prevent page navigation blocking
-export const unstable_instant = { prefetch: "static" };
+export const unstable_instant = {
+    prefetch: "static",
+    samples: [
+        { 
+            headers: [["host", null]],
+            searchParams: { tenantId: null }
+        }
+    ]
+};
 
 export default async function GoogleIntegrationPage() {
     return (
@@ -14,8 +21,18 @@ export default async function GoogleIntegrationPage() {
 }
 
 async function GoogleIntegrationContent() {
-    const settings = await getGoogleIntegration();
-    const redirectUri = await getRedirectUri();
+    let settings = null;
+    let redirectUri = "";
+    try {
+        const [s, r] = await Promise.all([
+            getGoogleIntegration(),
+            getRedirectUri()
+        ]);
+        settings = s;
+        redirectUri = r;
+    } catch (error) {
+        console.warn("Failed to fetch data for static shell rendering:", error);
+    }
 
     return (
         <div className="space-y-8 animate-in fade-in duration-1000 pb-20">

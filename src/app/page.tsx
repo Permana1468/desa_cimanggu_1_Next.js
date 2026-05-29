@@ -30,8 +30,7 @@ import { LandingNews } from '../components/landing/LandingNews';
 import { LandingOrganization } from '../components/landing/LandingOrganization';
 import { LandingAspiration } from '../components/landing/LandingAspiration';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const unstable_instant = false;
 
 export default async function LandingPage() {
     // FETCH DATA ON SERVER
