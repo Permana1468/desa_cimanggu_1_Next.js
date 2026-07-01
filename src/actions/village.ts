@@ -141,14 +141,29 @@ export async function getWargaList(query?: string, rtFilter?: string, rwFilter?:
             }
         }
 
+        const [deaths, moves] = await Promise.all([
+            prisma.rtDeathReport.findMany({ select: { nik: true } }),
+            prisma.rtMoveReport.findMany({ select: { nik: true } })
+        ]);
+        const inactiveNiks = [...deaths.map(d => d.nik), ...moves.map(m => m.nik)];
+
+        const whereCondition: any = {
+            ...filterScope,
+        };
+
+        if (inactiveNiks.length > 0) {
+            whereCondition.nik = { notIn: inactiveNiks };
+        }
+
+        if (query) {
+            whereCondition.OR = [
+                { namaLengkap: { contains: query, mode: 'insensitive' } },
+                { nik: { contains: query } }
+            ];
+        }
+
         return await prisma.dataKependudukan.findMany({
-            where: {
-                ...filterScope,
-                OR: query ? [
-                    { namaLengkap: { contains: query, mode: 'insensitive' } },
-                    { nik: { contains: query } }
-                ] : undefined
-            },
+            where: whereCondition,
             orderBy: [
                 { dusun: 'asc' },
                 { rw: 'asc' },

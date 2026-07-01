@@ -8,7 +8,7 @@ import {
   ArrowDownRight, Check, X, FileSpreadsheet, Loader2, Sparkles, PlusCircle,
   FileDown, Info, Edit, Eye, UserPlus, Milestone, Megaphone, AlertCircle, Package,
   Compass, Share2, Clipboard, Activity, Layers, Maximize, Minimize,
-  Fingerprint, Printer, 
+  Fingerprint, Printer, Skull, LogOut, UserX,
   Home as HomeIcon, 
   User as LucideUser, 
   Users as LucideUsers, 
@@ -59,6 +59,7 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
 
   // Active Main Tab
   const [activeTab, setActiveTab] = useState<"overview" | "warga" | "finance" | "surat" | "kegiatan" | "lampid" | "announcements" | "complaints" | "inventory" | "geosensus" | "bansos">("overview");
+  const [preFilledMutation, setPreFilledMutation] = useState<{ nik: string, namaLengkap: string, type: "mati" | "pindah" } | null>(null);
 
   useEffect(() => {
     if (tabParam && ["overview", "warga", "finance", "surat", "kegiatan", "lampid", "announcements", "complaints", "inventory", "geosensus", "bansos"].includes(tabParam)) {
@@ -158,11 +159,25 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
       {/* TAB CONTENT */}
       <div className="mt-2">
         {activeTab === "overview" && <OverviewTab stats={stats} loading={loadingStats} session={session} rtBreakdown={rtBreakdown} />}
-        {activeTab === "warga" && <WargaTab session={session} />}
+        {activeTab === "warga" && (
+          <WargaTab 
+            session={session} 
+            onReportMutation={(nik: string, namaLengkap: string, type: "mati" | "pindah") => {
+              setPreFilledMutation({ nik, namaLengkap, type });
+              setActiveTab("lampid");
+            }}
+          />
+        )}
         {activeTab === "finance" && <FinanceTab totalKas={stats.totalKas} />}
         {activeTab === "surat" && <SuratTab />}
         {activeTab === "kegiatan" && <KegiatanTab session={session} />}
-        {activeTab === "lampid" && <LampidTab stats={stats} />}
+        {activeTab === "lampid" && (
+          <LampidTab 
+            stats={stats} 
+            preFilledMutation={preFilledMutation}
+            clearPreFilledMutation={() => setPreFilledMutation(null)}
+          />
+        )}
         {activeTab === "announcements" && <AnnouncementsTab rt={userRt} rw={userRw} />}
         {activeTab === "complaints" && <ComplaintsTab rt={userRt} rw={userRw} />}
         {activeTab === "inventory" && <InventoryTab rt={userRt} rw={userRw} session={session} />}
@@ -334,7 +349,7 @@ function HoverMask({ value }: { value: string }) {
   );
 }
 
-function WargaTab({ session }: { session?: any }) {
+function WargaTab({ session, onReportMutation }: { session?: any; onReportMutation: (nik: string, namaLengkap: string, type: "mati" | "pindah") => void }) {
   const [query, setQuery] = useState("");
   const [filterRt, setFilterRt] = useState("");
   const [filterRw, setFilterRw] = useState("");
@@ -697,7 +712,21 @@ function WargaTab({ session }: { session?: any }) {
                       <button onClick={() => handleEdit(w)} className="p-2 hover:bg-teal-50 rounded-lg text-teal-600 transition-all" title="Lengkapi / Edit Data">
                         <Edit size={14} />
                       </button>
-                      <button onClick={() => handleDelete(w.id)} className="p-2 hover:bg-rose-50 rounded-lg text-rose-600 transition-all">
+                      <button 
+                        onClick={() => onReportMutation(w.nik, w.namaLengkap, "mati")} 
+                        className="p-2 hover:bg-rose-50 rounded-lg text-rose-500 transition-all" 
+                        title="Laporkan Meninggal (Mati)"
+                      >
+                        <Skull size={14} />
+                      </button>
+                      <button 
+                        onClick={() => onReportMutation(w.nik, w.namaLengkap, "pindah")} 
+                        className="p-2 hover:bg-amber-50 rounded-lg text-amber-600 transition-all" 
+                        title="Laporkan Pindah"
+                      >
+                        <LogOut size={14} />
+                      </button>
+                      <button onClick={() => handleDelete(w.id)} className="p-2 hover:bg-rose-50 rounded-lg text-rose-600 transition-all" title="Hapus Data Warga">
                         <Trash2 size={14} />
                       </button>
                     </div>
@@ -1427,8 +1456,17 @@ function KegiatanTab({ session }: { session?: any }) {
 // ==========================================
 // 6. LAMPID TAB (Lahir, Mati, Pindah, Datang)
 // ==========================================
-function LampidTab({ stats }: { stats: any }) {
+function LampidTab({ 
+  stats, 
+  preFilledMutation, 
+  clearPreFilledMutation 
+}: { 
+  stats: any; 
+  preFilledMutation: { nik: string, namaLengkap: string, type: "mati" | "pindah" } | null;
+  clearPreFilledMutation: () => void;
+}) {
   const [subTab, setSubTab] = useState<"lahir" | "mati" | "pindah" | "datang">("lahir");
+  const [modalFormType, setModalFormType] = useState<"lahir" | "mati" | "pindah" | "datang">("lahir");
   const [listData, setListData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -1460,6 +1498,33 @@ function LampidTab({ stats }: { stats: any }) {
   const [deathForm, setDeathForm] = useState({ nik: "", namaLengkap: "", tanggalMeninggal: new Date().toISOString().split('T')[0], penyebab: "", keterangan: "" });
   const [moveForm, setMoveForm] = useState({ nik: "", namaLengkap: "", tanggalPindah: new Date().toISOString().split('T')[0], alamatTujuan: "", alasan: "" });
   const [incomingForm, setIncomingForm] = useState({ nik: "", noKK: "", namaLengkap: "", tanggalDatang: new Date().toISOString().split('T')[0], alamatAsal: "", keterangan: "" });
+
+  useEffect(() => {
+    if (preFilledMutation) {
+      const { nik, namaLengkap, type } = preFilledMutation;
+      if (type === "mati") {
+        setDeathForm({
+          nik,
+          namaLengkap,
+          tanggalMeninggal: new Date().toISOString().split('T')[0],
+          penyebab: "",
+          keterangan: ""
+        });
+        setModalFormType("mati");
+      } else if (type === "pindah") {
+        setMoveForm({
+          nik,
+          namaLengkap,
+          tanggalPindah: new Date().toISOString().split('T')[0],
+          alamatTujuan: "",
+          alasan: ""
+        });
+        setModalFormType("pindah");
+      }
+      setShowModal(true);
+      clearPreFilledMutation();
+    }
+  }, [preFilledMutation, clearPreFilledMutation]);
 
   const loadData = async () => {
     setLoading(true);
@@ -1526,6 +1591,7 @@ function LampidTab({ stats }: { stats: any }) {
         alert("Berhasil melaporkan kematian");
         setShowModal(false);
         setDeathForm({ nik: "", namaLengkap: "", tanggalMeninggal: new Date().toISOString().split('T')[0], penyebab: "", keterangan: "" });
+        setSubTab("mati");
         loadData();
       }
     } catch (err) {
@@ -1547,6 +1613,7 @@ function LampidTab({ stats }: { stats: any }) {
         alert("Berhasil melaporkan kepindahan");
         setShowModal(false);
         setMoveForm({ nik: "", namaLengkap: "", tanggalPindah: new Date().toISOString().split('T')[0], alamatTujuan: "", alasan: "" });
+        setSubTab("pindah");
         loadData();
       }
     } catch (err) {
@@ -1569,6 +1636,7 @@ function LampidTab({ stats }: { stats: any }) {
         alert("Berhasil melaporkan kedatangan warga");
         setShowModal(false);
         setIncomingForm({ nik: "", noKK: "", namaLengkap: "", tanggalDatang: new Date().toISOString().split('T')[0], alamatAsal: "", keterangan: "" });
+        setSubTab("datang");
         loadData();
       }
     } catch (err) {
@@ -1591,7 +1659,10 @@ function LampidTab({ stats }: { stats: any }) {
             <Printer size={16} /> Cetak Laporan (Gambar 2)
           </button>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => {
+              setModalFormType(subTab);
+              setShowModal(true);
+            }}
             className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
           >
             <Plus size={16} /> Laporkan Peristiwa
@@ -1730,8 +1801,56 @@ function LampidTab({ stats }: { stats: any }) {
               </button>
             </div>
             
+            {/* Form Selection Tabs */}
+            <div className="px-6 py-2 bg-slate-50 border-b border-slate-100 flex gap-1.5 no-print">
+              <button
+                type="button"
+                onClick={() => setModalFormType("lahir")}
+                className={`flex-1 py-2 text-center rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+                  modalFormType === "lahir"
+                    ? "bg-teal-600 text-white shadow-sm"
+                    : "bg-white text-slate-400 hover:text-slate-700 border border-slate-200/60"
+                }`}
+              >
+                Lahir
+              </button>
+              <button
+                type="button"
+                onClick={() => setModalFormType("mati")}
+                className={`flex-1 py-2 text-center rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+                  modalFormType === "mati"
+                    ? "bg-teal-600 text-white shadow-sm"
+                    : "bg-white text-slate-400 hover:text-slate-700 border border-slate-200/60"
+                }`}
+              >
+                Meninggal
+              </button>
+              <button
+                type="button"
+                onClick={() => setModalFormType("pindah")}
+                className={`flex-1 py-2 text-center rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+                  modalFormType === "pindah"
+                    ? "bg-teal-600 text-white shadow-sm"
+                    : "bg-white text-slate-400 hover:text-slate-700 border border-slate-200/60"
+                }`}
+              >
+                Pindah
+              </button>
+              <button
+                type="button"
+                onClick={() => setModalFormType("datang")}
+                className={`flex-1 py-2 text-center rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+                  modalFormType === "datang"
+                    ? "bg-teal-600 text-white shadow-sm"
+                    : "bg-white text-slate-400 hover:text-slate-700 border border-slate-200/60"
+                }`}
+              >
+                Datang
+              </button>
+            </div>
+
             <div className="p-6 bg-slate-50/20">
-              {subTab === "lahir" && (
+              {modalFormType === "lahir" && (
                 <form onSubmit={handleAddBirth} className="space-y-4">
                   <FormGroup label="Nama Bayi" value={birthForm.namaBayi} onChange={v => setBirthForm({...birthForm, namaBayi: v})} placeholder="Masukkan nama bayi" />
                   <div className="grid grid-cols-2 gap-4">
@@ -1751,9 +1870,9 @@ function LampidTab({ stats }: { stats: any }) {
                 </form>
               )}
 
-              {subTab === "mati" && (
+              {modalFormType === "mati" && (
                 <form onSubmit={handleAddDeath} className="space-y-4">
-                  <FormGroup label="NIK Warga Deceased" value={deathForm.nik} onChange={v => setDeathForm({...deathForm, nik: v})} placeholder="Masukkan NIK warga" />
+                  <FormGroup label="NIK Warga Meninggal" value={deathForm.nik} onChange={v => setDeathForm({...deathForm, nik: v})} placeholder="Masukkan NIK warga" />
                   <FormGroup label="Nama Lengkap" value={deathForm.namaLengkap} onChange={v => setDeathForm({...deathForm, namaLengkap: v})} placeholder="Sesuai KTP" />
                   <FormGroup label="Tanggal Meninggal" type="date" value={deathForm.tanggalMeninggal} onChange={v => setDeathForm({...deathForm, tanggalMeninggal: v})} />
                   <FormGroup label="Penyebab Kematian" value={deathForm.penyebab} onChange={v => setDeathForm({...deathForm, penyebab: v})} placeholder="Sakit, Kecelakaan, Usia Lanjut, dll" />
@@ -1762,7 +1881,7 @@ function LampidTab({ stats }: { stats: any }) {
                 </form>
               )}
 
-              {subTab === "pindah" && (
+              {modalFormType === "pindah" && (
                 <form onSubmit={handleAddMove} className="space-y-4">
                   <FormGroup label="NIK Warga Pindah" value={moveForm.nik} onChange={v => setMoveForm({...moveForm, nik: v})} placeholder="Masukkan NIK" />
                   <FormGroup label="Nama Lengkap" value={moveForm.namaLengkap} onChange={v => setMoveForm({...moveForm, namaLengkap: v})} placeholder="Sesuai KTP" />
@@ -1773,7 +1892,7 @@ function LampidTab({ stats }: { stats: any }) {
                 </form>
               )}
 
-              {subTab === "datang" && (
+              {modalFormType === "datang" && (
                 <form onSubmit={handleAddIncoming} className="space-y-4">
                   <FormGroup label="NIK Warga Datang" value={incomingForm.nik} onChange={v => setIncomingForm({...incomingForm, nik: v})} placeholder="Masukkan NIK" />
                   <FormGroup label="No Kartu Keluarga" value={incomingForm.noKK} onChange={v => setIncomingForm({...incomingForm, noKK: v})} placeholder="Masukkan No KK" />
@@ -1792,7 +1911,7 @@ function LampidTab({ stats }: { stats: any }) {
       {showPrintModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto print-modal-parent">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md no-print" onClick={() => setShowPrintModal(false)} />
-          <div className="bg-white rounded-[2.5rem] w-full max-w-5xl relative z-10 shadow-2xl overflow-hidden flex flex-col my-8 no-print">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-5xl relative z-10 shadow-2xl overflow-hidden flex flex-col my-8">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between no-print">
               <div>
                 <h4 className="text-lg font-black text-slate-800">Cetak Laporan Bulanan Demografi RT</h4>
@@ -1843,7 +1962,7 @@ function LampidTab({ stats }: { stats: any }) {
                 <div className="print-area bg-white text-black p-8 shadow-md border border-slate-200 w-full max-w-[210mm] min-h-[297mm] font-serif text-[10px] leading-normal flex flex-col justify-between">
                   <style dangerouslySetInnerHTML={{__html: `
                     @media print {
-                      body * {
+                      body {
                         visibility: hidden !important;
                       }
                       .print-area, .print-area * {
@@ -1858,6 +1977,7 @@ function LampidTab({ stats }: { stats: any }) {
                         box-shadow: none !important;
                         padding: 0 !important;
                         margin: 0 !important;
+                        background: white !important;
                       }
                       .no-print {
                         display: none !important;
