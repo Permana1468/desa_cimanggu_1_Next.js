@@ -8,7 +8,7 @@ import {
   ArrowDownRight, Check, X, FileSpreadsheet, Loader2, Sparkles, PlusCircle,
   FileDown, Info, Edit, Eye, UserPlus, Milestone, Megaphone, AlertCircle, Package,
   Compass, Share2, Clipboard, Activity, Layers, Maximize, Minimize,
-  Fingerprint, 
+  Fingerprint, Printer, 
   Home as HomeIcon, 
   User as LucideUser, 
   Users as LucideUsers, 
@@ -33,7 +33,8 @@ import {
   getRtInventories, addRtInventory, deleteRtInventory,
   getRtInventoryLoans, addRtInventoryLoan, returnRtInventoryLoan,
   getResidentKks, getSensusPoints, saveSensusPoint, deleteSensusPoint,
-  getRtMapBoundary, saveRtMapBoundary, getRwDashboardStats, getRwMapBoundaries, getWilayahStrukturOptions, getFullVillageStructure
+  getRtMapBoundary, saveRtMapBoundary, getRwDashboardStats, getRwMapBoundaries, getWilayahStrukturOptions, getFullVillageStructure,
+  getRtDemographicReport
 } from "@/actions/rt";
 import { getWargaList, addWarga, updateWarga, deleteWarga, getSuratList, updateSuratStatus } from "@/actions/village";
 import "leaflet/dist/leaflet.css";
@@ -1431,6 +1432,28 @@ function LampidTab({ stats }: { stats: any }) {
   const [listData, setListData] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [reportMonth, setReportMonth] = useState(new Date().getMonth() + 1);
+  const [reportYear, setReportYear] = useState(new Date().getFullYear());
+  const [reportData, setReportData] = useState<any>(null);
+  const [loadingReport, setLoadingReport] = useState(false);
+
+  const fetchReportData = async () => {
+    setLoadingReport(true);
+    const res = await getRtDemographicReport(reportMonth, reportYear);
+    if (res.success) {
+      setReportData(res);
+    } else {
+      alert("Gagal memuat laporan: " + res.error);
+    }
+    setLoadingReport(false);
+  };
+
+  useEffect(() => {
+    if (showPrintModal) {
+      fetchReportData();
+    }
+  }, [showPrintModal, reportMonth, reportYear]);
 
   // Forms states
   const [birthForm, setBirthForm] = useState({ namaBayi: "", tanggalLahir: new Date().toISOString().split('T')[0], jenisKelamin: "LAKI_LAKI", namaAyah: "", namaIbu: "", keterangan: "" });
@@ -1560,12 +1583,20 @@ function LampidTab({ stats }: { stats: any }) {
           <h3 className="text-lg font-black text-slate-800">Rekapan Administrasi LAMPID</h3>
           <p className="text-slate-500 text-xs mt-0.5">Pantau dan publikasikan mutasi kelahiran, kematian, kepindahan, dan kedatangan warga.</p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
-        >
-          <Plus size={16} /> Laporkan Peristiwa
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowPrintModal(true)}
+            className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
+          >
+            <Printer size={16} /> Cetak Laporan (Gambar 2)
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
+          >
+            <Plus size={16} /> Laporkan Peristiwa
+          </button>
+        </div>
       </div>
 
       {/* Sub Tabs */}
@@ -1753,6 +1784,303 @@ function LampidTab({ stats }: { stats: any }) {
                   <button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white py-4 rounded-xl text-xs font-black uppercase tracking-wider mt-4 transition-all">Simpan Laporan Kedatangan</button>
                 </form>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPrintModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto print-modal-parent">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md no-print" onClick={() => setShowPrintModal(false)} />
+          <div className="bg-white rounded-[2.5rem] w-full max-w-5xl relative z-10 shadow-2xl overflow-hidden flex flex-col my-8 no-print">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between no-print">
+              <div>
+                <h4 className="text-lg font-black text-slate-800">Cetak Laporan Bulanan Demografi RT</h4>
+                <p className="text-slate-400 text-xs">Preview laporan demografi format standar bulanan.</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex gap-2">
+                  <select
+                    value={reportMonth}
+                    onChange={(e) => setReportMonth(Number(e.target.value))}
+                    className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800"
+                  >
+                    {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                      <option key={m} value={m}>
+                        {new Date(0, m - 1).toLocaleString('id-ID', { month: 'long' }).toUpperCase()}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={reportYear}
+                    onChange={(e) => setReportYear(Number(e.target.value))}
+                    className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800"
+                  >
+                    {[2024, 2025, 2026, 2027, 2028].map(y => (
+                      <option key={y} value={y}>{y}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  onClick={() => window.print()}
+                  className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5"
+                >
+                  <Printer size={14} /> Cetak / Print
+                </button>
+                <button onClick={() => setShowPrintModal(false)} className="p-2 hover:bg-slate-100 rounded-xl">
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-8 bg-slate-50 overflow-y-auto max-h-[70vh] flex justify-center">
+              {loadingReport ? (
+                <div className="py-20 text-center">
+                  <Loader2 className="animate-spin text-teal-600 mx-auto" size={32} />
+                  <p className="text-xs text-slate-400 mt-2 font-bold">Menghitung statistik demografi...</p>
+                </div>
+              ) : reportData ? (
+                <div className="print-area bg-white text-black p-8 shadow-md border border-slate-200 w-full max-w-[210mm] min-h-[297mm] font-serif text-[10px] leading-normal flex flex-col justify-between">
+                  <style dangerouslySetInnerHTML={{__html: `
+                    @media print {
+                      body * {
+                        visibility: hidden !important;
+                      }
+                      .print-area, .print-area * {
+                        visibility: visible !important;
+                      }
+                      .print-area {
+                        position: absolute !important;
+                        left: 0 !important;
+                        top: 0 !important;
+                        width: 100% !important;
+                        border: none !important;
+                        box-shadow: none !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                      }
+                      .no-print {
+                        display: none !important;
+                      }
+                    }
+                  `}} />
+                  
+                  <div>
+                    {/* Header */}
+                    <div className="text-center font-bold text-xs uppercase border-b border-black pb-2 mb-4">
+                      <div>Laporan Data (Lahir, Mati, Pindah dan Datang) Penduduk</div>
+                      <div>Desa Cimanggu I Kecamatan Cibungbulang Kabupaten Bogor</div>
+                      <div className="mt-1">
+                        RT {reportData.rtInfo?.rt || "...."} RW {reportData.rtInfo?.rw || "...."} Bulan {new Date(0, reportMonth - 1).toLocaleString('id-ID', { month: 'long' }).toUpperCase()} Tahun {reportYear}
+                      </div>
+                    </div>
+
+                    {/* Main Layout Grid */}
+                    <div className="grid grid-cols-12 gap-3 items-start">
+                      {/* Left Age Table (0-38) */}
+                      <div className="col-span-4">
+                        <table className="w-full border-collapse border border-black text-center">
+                          <thead>
+                            <tr className="border-b border-black font-bold">
+                              <th className="border-r border-black p-1 w-[40%]">USIA</th>
+                              <th className="border-r border-black p-1 w-[30%]">L</th>
+                              <th className="p-1 w-[30%]">P</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(() => {
+                              const rows = [];
+                              const m0_11 = reportData.ageDistribution["0-11 BLN"] || { L: 0, P: 0 };
+                              rows.push(
+                                <tr key="0-11" className="border-b border-black">
+                                  <td className="border-r border-black p-0.5 font-bold">0-11 BLN</td>
+                                  <td className="border-r border-black p-0.5">{m0_11.L || "-"}</td>
+                                  <td className="p-0.5">{m0_11.P || "-"}</td>
+                                </tr>
+                              );
+                              for (let i = 1; i <= 38; i++) {
+                                const val = reportData.ageDistribution[i.toString()] || { L: 0, P: 0 };
+                                rows.push(
+                                  <tr key={i} className="border-b border-black">
+                                    <td className="border-r border-black p-0.5">{i}</td>
+                                    <td className="border-r border-black p-0.5">{val.L || "-"}</td>
+                                    <td className="p-0.5">{val.P || "-"}</td>
+                                  </tr>
+                                );
+                              }
+                              return rows;
+                            })()}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Right Age Table (39-75+ and JUMLAH) */}
+                      <div className="col-span-4">
+                        <table className="w-full border-collapse border border-black text-center">
+                          <thead>
+                            <tr className="border-b border-black font-bold">
+                              <th className="border-r border-black p-1 w-[40%]">USIA</th>
+                              <th className="border-r border-black p-1 w-[30%]">L</th>
+                              <th className="p-1 w-[30%]">P</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(() => {
+                              const rows = [];
+                              for (let i = 39; i <= 74; i++) {
+                                const val = reportData.ageDistribution[i.toString()] || { L: 0, P: 0 };
+                                rows.push(
+                                  <tr key={i} className="border-b border-black">
+                                    <td className="border-r border-black p-0.5">{i}</td>
+                                    <td className="border-r border-black p-0.5">{val.L || "-"}</td>
+                                    <td className="p-0.5">{val.P || "-"}</td>
+                                  </tr>
+                                );
+                              }
+                              const m75 = reportData.ageDistribution["75+"] || { L: 0, P: 0 };
+                              rows.push(
+                                <tr key="75+" className="border-b border-black">
+                                  <td className="border-r border-black p-0.5">75 +</td>
+                                  <td className="border-r border-black p-0.5">{m75.L || "-"}</td>
+                                  <td className="p-0.5">{m75.P || "-"}</td>
+                                </tr>
+                              );
+                              
+                              // Calculate sums
+                              let sumL = 0;
+                              let sumP = 0;
+                              Object.values(reportData.ageDistribution).forEach((val: any) => {
+                                sumL += val.L || 0;
+                                sumP += val.P || 0;
+                              });
+
+                              rows.push(
+                                <tr key="jumlah" className="font-bold bg-slate-50">
+                                  <td className="border-r border-black p-1">JUMLAH</td>
+                                  <td className="border-r border-black p-1">{sumL}</td>
+                                  <td className="p-1">{sumP}</td>
+                                </tr>
+                              );
+                              return rows;
+                            })()}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Summary boxes (Right-most panel) */}
+                      <div className="col-span-4 flex flex-col gap-2">
+                        {/* 1. Penduduk */}
+                        <div className="border border-black p-1.5">
+                          <div className="font-bold text-[9px] mb-1">PENDUDUK</div>
+                          <div className="grid grid-cols-3 text-center border-t border-black pt-1">
+                            <div className="border-r border-black">L: {reportData.totals?.penduduk?.L}</div>
+                            <div className="border-r border-black">P: {reportData.totals?.penduduk?.P}</div>
+                            <div className="font-bold">JML: {reportData.totals?.penduduk?.L + reportData.totals?.penduduk?.P}</div>
+                          </div>
+                        </div>
+
+                        {/* 2. Wajib KTP */}
+                        <div className="border border-black p-1.5">
+                          <div className="font-bold text-[9px] mb-1">WAJIB KTP 17+</div>
+                          <div className="grid grid-cols-3 text-center border-t border-black pt-1">
+                            <div className="border-r border-black">L: {reportData.totals?.wajibKtp?.L}</div>
+                            <div className="border-r border-black">P: {reportData.totals?.wajibKtp?.P}</div>
+                            <div className="font-bold">JML: {reportData.totals?.wajibKtp?.L + reportData.totals?.wajibKtp?.P}</div>
+                          </div>
+                        </div>
+
+                        {/* 3. Kartu Keluarga */}
+                        <div className="border border-black p-1.5">
+                          <div className="font-bold text-[9px] mb-1">KARTU KELUARGA (KK)</div>
+                          <div className="text-center border-t border-black pt-1 font-bold">
+                            TOTAL: {reportData.totals?.totalKK} KK
+                          </div>
+                        </div>
+
+                        {/* 4. Penduduk Sementara */}
+                        <div className="border border-black p-1.5">
+                          <div className="font-bold text-[9px] mb-1">PENDUDUK SEMENTARA</div>
+                          <div className="grid grid-cols-3 text-center border-t border-black pt-1">
+                            <div className="border-r border-black">L: {reportData.totals?.pendudukSementara?.L}</div>
+                            <div className="border-r border-black">P: {reportData.totals?.pendudukSementara?.P}</div>
+                            <div className="font-bold">JML: {reportData.totals?.pendudukSementara?.L + reportData.totals?.pendudukSementara?.P}</div>
+                          </div>
+                        </div>
+
+                        {/* 5. Lahir */}
+                        <div className="border border-black p-1.5">
+                          <div className="font-bold text-[9px] text-teal-800 mb-1">MUTASI: LAHIR</div>
+                          <div className="grid grid-cols-3 text-center border-t border-black pt-1">
+                            <div className="border-r border-black">L: {reportData.mutasi?.lahir?.L}</div>
+                            <div className="border-r border-black">P: {reportData.mutasi?.lahir?.P}</div>
+                            <div className="font-bold">JML: {reportData.mutasi?.lahir?.L + reportData.mutasi?.lahir?.P}</div>
+                          </div>
+                        </div>
+
+                        {/* 6. Mati */}
+                        <div className="border border-black p-1.5">
+                          <div className="font-bold text-[9px] text-red-800 mb-1">MUTASI: MENINGGAL</div>
+                          <div className="grid grid-cols-3 text-center border-t border-black pt-1">
+                            <div className="border-r border-black">L: {reportData.mutasi?.mati?.L}</div>
+                            <div className="border-r border-black">P: {reportData.mutasi?.mati?.P}</div>
+                            <div className="font-bold">JML: {reportData.mutasi?.mati?.L + reportData.mutasi?.mati?.P}</div>
+                          </div>
+                        </div>
+
+                        {/* 7. Pindah */}
+                        <div className="border border-black p-1.5">
+                          <div className="font-bold text-[9px] text-orange-800 mb-1">MUTASI: PINDAH (KELUAR)</div>
+                          <div className="grid grid-cols-3 text-center border-t border-black pt-1">
+                            <div className="border-r border-black">L: {reportData.mutasi?.pindah?.L}</div>
+                            <div className="border-r border-black">P: {reportData.mutasi?.pindah?.P}</div>
+                            <div className="font-bold">JML: {reportData.mutasi?.pindah?.L + reportData.mutasi?.pindah?.P}</div>
+                          </div>
+                        </div>
+
+                        {/* 8. Datang */}
+                        <div className="border border-black p-1.5">
+                          <div className="font-bold text-[9px] text-blue-800 mb-1">MUTASI: DATANG (MASUK)</div>
+                          <div className="grid grid-cols-3 text-center border-t border-black pt-1">
+                            <div className="border-r border-black">L: {reportData.mutasi?.datang?.L}</div>
+                            <div className="border-r border-black">P: {reportData.mutasi?.datang?.P}</div>
+                            <div className="font-bold">JML: {reportData.mutasi?.datang?.L + reportData.mutasi?.datang?.P}</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer text boxes */}
+                    <div className="mt-4 border border-black p-2 min-h-[50px]">
+                      <div className="font-bold mb-1">KETERANGAN PERUBAHAN PENDUDUK:</div>
+                      <div className="italic text-slate-700 leading-relaxed">
+                        {reportData.changesDesc}
+                      </div>
+                    </div>
+
+                    <div className="mt-2 border border-black p-2">
+                      <div className="font-bold mb-1">REALISASI PEMBUATAN KTP DAN KK BULAN INI:</div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>Kartu Tanda Penduduk (KTP): {reportData.totals?.wajibKtp?.L + reportData.totals?.wajibKtp?.P} Warga Wajib KTP terdata aktif</div>
+                        <div>Kartu Keluarga (KK): {reportData.totals?.totalKK} KK terdaftar aktif di RT</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Signatures */}
+                  <div className="mt-8 flex justify-between items-end text-center">
+                    <div>
+                      {/* Empty spacer for alignment */}
+                    </div>
+                    <div className="w-[200px]">
+                      <div>Bogor, {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                      <div className="font-bold mt-1 uppercase">Ketua RT {reportData.rtInfo?.rt || "...."} RW {reportData.rtInfo?.rw || "...."}</div>
+                      <div className="h-16"></div>
+                      <div className="border-b border-black mx-auto w-[150px]"></div>
+                      <div className="text-[9px] mt-0.5 text-slate-500">Tanda Tangan & Cap Basah</div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

@@ -1265,3 +1265,184 @@ export async function getRwMapBoundaries() {
         return { success: false, error: error.message, rwBoundary: null, rtBoundaries: [] };
     }
 }
+
+export async function getRtDemographicReport(month: number, year: number) {
+    try {
+        const { tenantId, rt, rw, role } = await getRtSession();
+        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+
+        // Fetch all residents
+        const residents = await prisma.dataKependudukan.findMany({
+            where: filterScope
+        });
+
+        // Fetch all death and move reports to filter out inactive ones for the target month
+        const deaths = await prisma.rtDeathReport.findMany({ where: filterScope });
+        const moves = await prisma.rtMoveReport.findMany({ where: filterScope });
+
+        const deadNiks = new Set(
+            deaths.filter(d => {
+                const dDate = new Date(d.tanggalMeninggal);
+                const dMonths = (year - dDate.getFullYear()) * 12 + (month - (dDate.getMonth() + 1));
+                return dMonths >= 0;
+            }).map(d => d.nik)
+        );
+
+        const movedNiks = new Set(
+            moves.filter(m => {
+                const mDate = new Date(m.tanggalPindah);
+                const mMonths = (year - mDate.getFullYear()) * 12 + (month - (mDate.getMonth() + 1));
+                return mMonths >= 0;
+            }).map(m => m.nik)
+        );
+
+        // Active residents in this target month
+        const activeResidents = residents.filter(r => !deadNiks.has(r.nik) && !movedNiks.has(r.nik));
+
+        // Initialize age cohorts (0-11 months, 1 to 74, 75+)
+        const ageDistribution: Record<string, { L: number; P: number }> = {};
+        ageDistribution["0-11 BLN"] = { L: 0, P: 0 };
+        for (let i = 1; i <= 74; i++) {
+            ageDistribution[i.toString()] = { L: 0, P: 0 };
+        }
+        ageDistribution["75+"] = { L: 0, P: 0 };
+
+        let wajibKtpL = 0;
+        let wajibKtpP = 0;
+
+        activeResidents.forEach(r => {
+            const birthDate = new Date(r.tanggalLahir);
+            const birthYear = birthDate.getFullYear();
+            const birthMonth = birthDate.getMonth() + 1;
+
+            const totalMonthsDiff = (year - birthYear) * 12 + (month - birthMonth);
+            if (totalMonthsDiff < 0) return; // Not born yet
+
+            const ageInYears = Math.floor(totalMonthsDiff / 12);
+            const genderKey = r.jenisKelamin === "LAKI_LAKI" ? "L" : "P";
+
+            if (totalMonthsDiff <= 11) {
+                ageDistribution["0-11 BLN"][genderKey]++;
+            } else if (ageInYears >= 75) {
+                ageDistribution["75+"][genderKey]++;
+            } else {
+                ageDistribution[ageInYears.toString()][genderKey]++;
+            }
+
+            if (ageInYears >= 17) {
+                if (genderKey === "L") wajibKtpL++;
+                else wajibKtpP++;
+            }
+        });
+
+        // Family Cards (unique noKK)
+        const uniqueKk = new Set(activeResidents.map(r => r.noKK));
+        const totalKK = uniqueKk.size;
+
+        // Fetch mutasi for the specific month
+        const startDate = new Date(year, month - 1, 1);
+        const endDate = new Date(year, month, 1);
+
+        const [birthsThisMonth, deathsThisMonth, movesThisMonth, incomingThisMonth] = await Promise.all([
+            prisma.rtBirthReport.findMany({
+                where: {
+                    ...filterScope,
+                    tanggalLahir: { gte: startDate, lt: endDate }
+                }
+            }),
+            prisma.rtDeathReport.findMany({
+                where: {
+                    ...filterScope,
+                    tanggalMeninggal: { gte: startDate, lt: endDate }
+                }
+            }),
+            prisma.rtMoveReport.findMany({
+                where: {
+                    ...filterScope,
+                    tanggalPindah: { gte: startDate, lt: endDate }
+                }
+            }),
+            prisma.rtIncomingReport.findMany({
+                where: {
+                    ...filterScope,
+                    tanggalDatang: { gte: startDate, lt: endDate }
+                }
+            })
+        ]);
+
+        // Map mutasi by gender
+        const mutasi = {
+            lahir: {
+                L: birthsThisMonth.filter(b => b.jenisKelamin === "LAKI_LAKI").length,
+                P: birthsThisMonth.filter(b => b.jenisKelamin === "PEREMPUAN").length,
+            },
+            mati: {
+                L: deathsThisMonth.filter(d => {
+                    const res = residents.find(r => r.nik === d.nik);
+                    return res?.jenisKelamin === "LAKI_LAKI";
+                }).length,
+                P: deathsThisMonth.filter(d => {
+                    const res = residents.find(r => r.nik === d.nik);
+                    return res?.jenisKelamin === "PEREMPUAN";
+                }).length,
+            },
+            pindah: {
+                L: movesThisMonth.filter(m => {
+                    const res = residents.find(r => r.nik === m.nik);
+                    return res?.jenisKelamin === "LAKI_LAKI";
+                }).length,
+                P: movesThisMonth.filter(m => {
+                    const res = residents.find(r => r.nik === m.nik);
+                    return res?.jenisKelamin === "PEREMPUAN";
+                }).length,
+            },
+            datang: {
+                L: incomingThisMonth.filter(i => {
+                    // Check if they are registered as L or we fallback to L if unknown
+                    const res = residents.find(r => r.nik === i.nik);
+                    return res?.jenisKelamin === "LAKI_LAKI";
+                }).length,
+                P: incomingThisMonth.filter(i => {
+                    const res = residents.find(r => r.nik === i.nik);
+                    return res?.jenisKelamin === "PEREMPUAN";
+                }).length,
+            }
+        };
+
+        // Total Warga L and P
+        const totalWargaL = activeResidents.filter(r => r.jenisKelamin === "LAKI_LAKI").length;
+        const totalWargaP = activeResidents.filter(r => r.jenisKelamin === "PEREMPUAN").length;
+
+        // Build resident change descriptions (Keterangan Perubahan Penduduk)
+        const changesDesc: string[] = [];
+        if (birthsThisMonth.length > 0) {
+            changesDesc.push(`Lahir: ${birthsThisMonth.map(b => `${b.namaBayi} (${b.jenisKelamin === "LAKI_LAKI" ? "L" : "P"})`).join(", ")}`);
+        }
+        if (deathsThisMonth.length > 0) {
+            changesDesc.push(`Mati: ${deathsThisMonth.map(d => `${d.namaLengkap} (${d.penyebab || "sakit"})`).join(", ")}`);
+        }
+        if (movesThisMonth.length > 0) {
+            changesDesc.push(`Pindah: ${movesThisMonth.map(m => `${m.namaLengkap} ke ${m.alamatTujuan}`).join(", ")}`);
+        }
+        if (incomingThisMonth.length > 0) {
+            changesDesc.push(`Datang: ${incomingThisMonth.map(i => `${i.namaLengkap} dari ${i.alamatAsal}`).join(", ")}`);
+        }
+
+        return {
+            success: true,
+            rtInfo: { rt, rw },
+            ageDistribution,
+            totals: {
+                penduduk: { L: totalWargaL, P: totalWargaP },
+                wajibKtp: { L: wajibKtpL, P: wajibKtpP },
+                totalKK,
+                // Assume 0 for temporary residents for now (or calculate from incoming if needed)
+                pendudukSementara: { L: 0, P: 0 }
+            },
+            mutasi,
+            changesDesc: changesDesc.join(" | ") || "Tidak ada perubahan data kependudukan bulan ini."
+        };
+    } catch (error: any) {
+        return { success: false, error: error.message };
+    }
+}
