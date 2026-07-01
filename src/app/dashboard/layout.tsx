@@ -3,8 +3,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { FloatingChat } from "@/components/dashboard/FloatingChat";
+import { Suspense } from "react";
 
-export const unstable_instant = false;
+export const dynamic = "force-dynamic";
 
 export default async function VillageAdminLayout({
   children,
@@ -20,7 +21,9 @@ export default async function VillageAdminLayout({
   return (
     <div className="flex h-screen bg-slate-50 overflow-hidden text-slate-950 light-mode">
       {/* Village Sidebar */}
-      <VillageSidebar />
+      <Suspense fallback={<div className="w-64 h-screen bg-slate-900/90 shrink-0" />}>
+        <VillageSidebar session={session} />
+      </Suspense>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">

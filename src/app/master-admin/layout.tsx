@@ -4,15 +4,15 @@ import { redirect } from "next/navigation";
 import { getAllTenantsMinimal } from "@/actions/master";
 import { MasterShell } from "@/components/master/MasterShell";
 
-export const unstable_instant = false;
+export const dynamic = "force-dynamic";
 
 export default async function MasterLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
   const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
+  const session = isBuildTime ? null : await getServerSession(authOptions);
 
   if (!isBuildTime) {
     if (!session?.user) redirect("/login");

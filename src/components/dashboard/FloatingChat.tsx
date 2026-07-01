@@ -92,6 +92,11 @@ export function FloatingChat({ session }: { session: any }) {
         try {
             const data = await getChatContacts();
             
+            if (!Array.isArray(data)) {
+                console.error("getChatContacts did not return an array:", data);
+                return;
+            }
+            
             const newTotalUnread = data.reduce((acc: number, c: any) => acc + (c.unreadCount || 0), 0);
             
             if (prevTotalUnreadRef.current !== null && newTotalUnread > prevTotalUnreadRef.current) {
@@ -105,7 +110,7 @@ export function FloatingChat({ session }: { session: any }) {
                 
                 if (senderContact && (!isOpen || (activeContact && activeContact.id !== senderContact.id))) {
                     setNotificationToast({
-                        sender: senderContact.fullName,
+                        sender: senderContact.fullName || "Pengguna",
                         message: senderContact.lastMessage?.message || "Mengirim pesan baru"
                     });
                 }
@@ -136,6 +141,11 @@ export function FloatingChat({ session }: { session: any }) {
         if (showLoading) setLoadingMessages(true);
         try {
             const data = await getChatHistory(activeContact.id);
+            
+            if (!Array.isArray(data)) {
+                console.error("getChatHistory did not return an array:", data);
+                return;
+            }
             
             if (data.length > prevMessageCountRef.current) {
                 const lastMsg = data[data.length - 1];
@@ -194,10 +204,12 @@ export function FloatingChat({ session }: { session: any }) {
         }
     };
 
-    const filteredContacts = contacts.filter(c => 
-        c.fullName.toLowerCase().includes(contactSearch.toLowerCase()) ||
-        c.role.toLowerCase().includes(contactSearch.toLowerCase())
-    );
+    const filteredContacts = contacts.filter(c => {
+        const fullName = c.fullName || "";
+        const roleStr = c.role || "";
+        return fullName.toLowerCase().includes(contactSearch.toLowerCase()) ||
+               roleStr.toLowerCase().includes(contactSearch.toLowerCase());
+    });
 
     const totalUnread = contacts.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
 

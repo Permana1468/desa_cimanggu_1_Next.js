@@ -55,9 +55,16 @@ const menuItems = [
   { name: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
 ];
 
-export const VillageSidebar = () => {
+interface VillageSidebarProps {
+  session?: any;
+}
+
+export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) => {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams ? searchParams.get("tab") : null;
+  const { data: clientSession } = useSession();
+  const session = propSession || clientSession;
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -131,9 +138,6 @@ export const VillageSidebar = () => {
         {/* Navigation */}
         <nav className="flex-1 px-3 space-y-1.5 mt-2 overflow-y-auto custom-scrollbar">
           {(() => {
-            const searchParams = useSearchParams();
-            const tabParam = searchParams.get("tab");
-
             let itemsToRender = menuItems.filter(item => {
               if (["ADMIN_DESA", "KADES", "SEKDES", "PERANGKAT_DESA", "OPERATOR_DESA", "ADMIN_MASTER"].includes(role as string)) {
                   if (role === "ADMIN_DESA" && item.name === "Usulan Pembangunan") return false;
