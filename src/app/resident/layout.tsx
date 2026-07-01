@@ -13,21 +13,24 @@ import {
 } from "lucide-react";
 import { ResidentSidebar } from "@/components/resident/ResidentSidebar";
 
-export const dynamic = "force-dynamic";
+export const unstable_instant = false;
 
 export default async function ResidentLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    const session = await getServerSession(authOptions);
+    const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
+    const session = isBuildTime ? null : await getServerSession(authOptions);
 
-    if (!session?.user) {
-        redirect("/login");
-    }
+    if (!isBuildTime) {
+        if (!session?.user) {
+            redirect("/login");
+        }
 
-    if ((session.user as any).role !== "WARGA") {
-        redirect("/login"); 
+        if ((session.user as any).role !== "WARGA") {
+            redirect("/login"); 
+        }
     }
 
     return (
@@ -48,11 +51,11 @@ export default async function ResidentLayout({
                         <div className="h-8 w-px bg-slate-200 mx-2" />
                         <div className="flex items-center gap-3">
                             <div className="text-right hidden sm:block">
-                                <p className="text-xs font-black text-slate-800 leading-tight">{session.user.name}</p>
+                                <p className="text-xs font-black text-slate-800 leading-tight">{session?.user?.name || "Warga"}</p>
                                 <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-tighter">Status: Terverifikasi</p>
                             </div>
                             <div className="w-10 h-10 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-black shadow-lg shadow-blue-500/20">
-                                {session.user.name?.charAt(0)}
+                                {session?.user?.name?.charAt(0) || "W"}
                             </div>
                         </div>
                     </div>

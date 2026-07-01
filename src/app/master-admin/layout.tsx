@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getAllTenantsMinimal } from "@/actions/master";
 import { MasterShell } from "@/components/master/MasterShell";
 
-export const dynamic = "force-dynamic";
+export const unstable_instant = false;
 
 export default async function MasterLayout({
   children,
@@ -25,10 +25,12 @@ export default async function MasterLayout({
   }
 
   let tenants: any[] = [];
-  try {
-    tenants = await getAllTenantsMinimal();
-  } catch (error) {
-    console.warn("Failed to fetch tenants for static shell rendering:", error);
+  if (!isBuildTime) {
+    try {
+      tenants = await getAllTenantsMinimal();
+    } catch (error) {
+      console.warn("Failed to fetch tenants for static shell rendering:", error);
+    }
   }
 
   return (

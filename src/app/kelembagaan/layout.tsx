@@ -4,16 +4,17 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-export const dynamic = "force-dynamic";
+export const unstable_instant = false;
 
 export default async function KelembagaanLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
+  const session = isBuildTime ? null : await getServerSession(authOptions);
 
-  if (!session?.user) redirect("/login");
+  if (!isBuildTime && !session?.user) redirect("/login");
 
   return (
     <div className="flex h-screen bg-[#f1f5f9] overflow-hidden">

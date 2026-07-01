@@ -131,7 +131,7 @@ export function FloatingChat({ session }: { session: any }) {
 
         const interval = setInterval(() => {
             fetchContacts();
-        }, 2000);
+        }, 15000);
 
         return () => clearInterval(interval);
     }, [isOpen]);
@@ -169,7 +169,7 @@ export function FloatingChat({ session }: { session: any }) {
 
         const interval = setInterval(() => {
             fetchMessages();
-        }, 2000);
+        }, 10000);
 
         return () => clearInterval(interval);
     }, [activeContact, isOpen]);

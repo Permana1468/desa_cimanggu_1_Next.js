@@ -5,16 +5,17 @@ import { redirect } from "next/navigation";
 import { FloatingChat } from "@/components/dashboard/FloatingChat";
 import { Suspense } from "react";
 
-export const dynamic = "force-dynamic";
+export const unstable_instant = false;
 
 export default async function VillageAdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(authOptions);
+  const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build';
+  const session = isBuildTime ? null : await getServerSession(authOptions);
 
-  if (!session?.user) {
+  if (!isBuildTime && !session?.user) {
     redirect("/login");
   }
   
@@ -30,7 +31,9 @@ export default async function VillageAdminLayout({
         {/* Scrollable Page Content */}
         <main className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
           <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {children}
+            <Suspense fallback={<div className="flex h-full items-center justify-center py-10">Loading...</div>}>
+              {children}
+            </Suspense>
           </div>
         </main>
       </div>
