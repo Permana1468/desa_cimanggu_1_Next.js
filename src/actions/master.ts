@@ -783,3 +783,38 @@ export async function bulkDeleteResidents(ids: string[]) {
         throw error;
     }
 }
+
+export async function saveOfficialTemplates(templates: any[]) {
+    const session = await checkMaster();
+    try {
+        const configRecord = await prisma.systemSetting.findUnique({
+            where: { id: "global_config" }
+        });
+        const settings = configRecord ? (configRecord.settings as any) || {} : {};
+        settings.officialTemplates = templates;
+
+        await prisma.systemSetting.upsert({
+            where: { id: "global_config" },
+            update: { settings, updatedAt: new Date() },
+            create: { id: "global_config", settings, updatedAt: new Date() }
+        });
+
+        await prisma.auditLog.create({
+            data: {
+                action: "UPDATE_OFFICIAL_TEMPLATES",
+                entity: "SystemSetting",
+                entityId: "global_config",
+                details: { count: templates.length },
+                userId: session.user.id,
+                tenantId: session.user.tenantId,
+                category: "SYSTEM"
+            }
+        });
+
+        revalidatePath("/master-admin/templates");
+        revalidatePath("/dashboard/templates");
+        return { success: true };
+    } catch (error: any) {
+        throw new Error(error.message || "Gagal menyimpan template resmi.");
+    }
+}

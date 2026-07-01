@@ -21,15 +21,33 @@ async function getAdminSession() {
 }
 
 const DEFAULT_TENANT_ID = "cimanggu1";
+let cachedTenantId: string | null = null;
+
+async function resolveTenantId() {
+  if (cachedTenantId) return cachedTenantId;
+  try {
+    const tenant = await prisma.tenant.findUnique({
+      where: { domain: "cimanggu1.desa.id" }
+    });
+    if (tenant) {
+      cachedTenantId = tenant.id;
+      return tenant.id;
+    }
+  } catch (error) {
+    console.error("Failed to resolve tenant ID:", error);
+  }
+  return DEFAULT_TENANT_ID;
+}
 
 export async function getVillageStats() {
   try {
+    const tenantId = await resolveTenantId();
     const totalWarga = await prisma.dataKependudukan.count({
-      where: { tenantId: DEFAULT_TENANT_ID },
+      where: { tenantId },
     });
     const totalLaki = await prisma.dataKependudukan.count({
       where: { 
-        tenantId: DEFAULT_TENANT_ID, 
+        tenantId, 
         OR: [
           { jenisKelamin: "Laki-laki" },
           { jenisKelamin: "L" }
@@ -38,7 +56,7 @@ export async function getVillageStats() {
     });
     const totalPerempuan = await prisma.dataKependudukan.count({
       where: { 
-        tenantId: DEFAULT_TENANT_ID,
+        tenantId,
         OR: [
           { jenisKelamin: "Perempuan" },
           { jenisKelamin: "P" }
@@ -48,7 +66,7 @@ export async function getVillageStats() {
     
     const resultKK = await prisma.dataKependudukan.groupBy({
       by: ['noKK'],
-      where: { tenantId: DEFAULT_TENANT_ID },
+      where: { tenantId },
     });
 
     return {
@@ -70,9 +88,10 @@ export async function getVillageStats() {
 
 export async function getLatestNews() {
   try {
+    const tenantId = await resolveTenantId();
     return await prisma.berita.findMany({
       where: { 
-        tenantId: DEFAULT_TENANT_ID,
+        tenantId,
         isPublished: true,
       },
       orderBy: { createdAt: "desc" },
@@ -86,9 +105,10 @@ export async function getLatestNews() {
 
 export async function getOrganizationalStructure() {
   try {
+    const tenantId = await resolveTenantId();
     return await prisma.aparaturDesa.findMany({
       where: { 
-        tenantId: DEFAULT_TENANT_ID,
+        tenantId,
         isActive: true,
       },
       orderBy: [
@@ -104,8 +124,9 @@ export async function getOrganizationalStructure() {
 
 export async function getVillageProfile() {
   try {
+    const tenantId = await resolveTenantId();
     return await prisma.villageProfile.findUnique({
-      where: { tenantId: DEFAULT_TENANT_ID },
+      where: { tenantId },
     });
   } catch (error) {
     // Silently handle error
@@ -115,8 +136,9 @@ export async function getVillageProfile() {
 
 export async function getLembagaList() {
   try {
+    const tenantId = await resolveTenantId();
     return await prisma.lembaga.findMany({
-      where: { tenantId: DEFAULT_TENANT_ID },
+      where: { tenantId },
       orderBy: { name: "asc" },
     });
   } catch (error) {

@@ -2,6 +2,7 @@ import { VillageSidebar } from "@/components/dashboard/VillageSidebar";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { FloatingChat } from "@/components/dashboard/FloatingChat";
 
 export const unstable_instant = false;
 
@@ -30,6 +31,9 @@ export default async function VillageAdminLayout({
           </div>
         </main>
       </div>
+      
+      {/* Floating Transparent Chat for Dashboard Users */}
+      <FloatingChat session={session} />
     </div>
   );
 }

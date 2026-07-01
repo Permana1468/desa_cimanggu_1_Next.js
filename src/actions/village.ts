@@ -7,6 +7,10 @@ import { StatusSurat } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { buildWilayahFilterScope } from "./rt";
 
+function cleanDigits(val: string): string {
+    return val ? val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0' : '';
+}
+
 export async function getVillageDashboardStats() {
     try {
         const session = await getServerSession(authOptions);
@@ -37,13 +41,16 @@ export async function getSuratList() {
 
         let filterScope: any = { tenantId };
         if (role === "RT") {
+            const rtClean = cleanDigits(userRt || "");
+            const rwClean = cleanDigits(userRw || "");
             filterScope.warga = {
-                rt: userRt,
-                rw: userRw
+                rt: { in: [userRt, rtClean, rtClean.padStart(3, '0')] },
+                rw: { in: [userRw, rwClean, rwClean.padStart(3, '0')] }
             };
         } else if (role === "RW") {
+            const rwClean = cleanDigits(userRw || "");
             filterScope.warga = {
-                rw: userRw
+                rw: { in: [userRw, rwClean, rwClean.padStart(3, '0')] }
             };
         }
 
@@ -58,7 +65,7 @@ export async function getSuratList() {
     }
 }
 
-export async function updateSuratStatus(id: string, status: StatusSurat) {
+export async function updateSuratStatus(id: string, status: StatusSurat, nomorSurat?: string) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
@@ -72,17 +79,24 @@ export async function updateSuratStatus(id: string, status: StatusSurat) {
                 include: { warga: true }
             });
             if (!targetSurat) throw new Error("Surat tidak ditemukan");
-            if (role === "RT" && (targetSurat.warga.rt !== userRt || targetSurat.warga.rw !== userRw)) {
+            const cleanTargetRt = cleanDigits(targetSurat.warga.rt || "");
+            const cleanTargetRw = cleanDigits(targetSurat.warga.rw || "");
+            const cleanUserRt = cleanDigits(userRt || "");
+            const cleanUserRw = cleanDigits(userRw || "");
+            if (role === "RT" && (cleanTargetRt !== cleanUserRt || cleanTargetRw !== cleanUserRw)) {
                 throw new Error("Unauthorized: data isolation violation");
             }
-            if (role === "RW" && targetSurat.warga.rw !== userRw) {
+            if (role === "RW" && cleanTargetRw !== cleanUserRw) {
                 throw new Error("Unauthorized: data isolation violation");
             }
         }
 
         return await prisma.surat.update({
             where: { id },
-            data: { status }
+            data: { 
+                status,
+                ...(nomorSurat ? { nomorSurat } : {})
+            }
         });
     } catch (error) {
         throw error;
@@ -100,7 +114,7 @@ export async function getWargaList(query?: string, rtFilter?: string, rwFilter?:
 
         let filterScope = await buildWilayahFilterScope(role, userRt, userRw, tenantId);
 
-        const cleanDigits = (val: string) => val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0';
+        // Using global cleanDigits helper
 
         if (role === "RW") {
             if (rtFilter) {
@@ -135,6 +149,11 @@ export async function getWargaList(query?: string, rtFilter?: string, rwFilter?:
                     { nik: { contains: query } }
                 ] : undefined
             },
+            orderBy: [
+                { dusun: 'asc' },
+                { rw: 'asc' },
+                { rt: 'asc' }
+            ],
             take: 50
         });
     } catch (error) {
@@ -167,9 +186,7 @@ export async function createVillageAccount(data: { email: string; fullName: stri
     });
 }
 
-function cleanDigits(val: string): string {
-    return val ? val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0' : '';
-}
+// global cleanDigits helper moved to the top of the file
 
 function resolveDusunForRw(rwVal: string, structure: any): string {
     if (!rwVal) return "";
@@ -246,10 +263,14 @@ export async function updateWarga(id: string, data: any) {
         if (role === "RT" || role === "RW") {
             const targetWarga = await prisma.dataKependudukan.findUnique({ where: { id } });
             if (!targetWarga) throw new Error("Warga not found");
-            if (role === "RT" && (targetWarga.rt !== userRt || targetWarga.rw !== userRw)) {
+            const cleanTargetRt = cleanDigits(targetWarga.rt || "");
+            const cleanTargetRw = cleanDigits(targetWarga.rw || "");
+            const cleanUserRt = cleanDigits(userRt || "");
+            const cleanUserRw = cleanDigits(userRw || "");
+            if (role === "RT" && (cleanTargetRt !== cleanUserRt || cleanTargetRw !== cleanUserRw)) {
                 throw new Error("Unauthorized");
             }
-            if (role === "RW" && targetWarga.rw !== userRw) {
+            if (role === "RW" && cleanTargetRw !== cleanUserRw) {
                 throw new Error("Unauthorized");
             }
         }
@@ -307,10 +328,14 @@ export async function deleteWarga(id: string) {
         if (role === "RT" || role === "RW") {
             const targetWarga = await prisma.dataKependudukan.findUnique({ where: { id } });
             if (!targetWarga) throw new Error("Warga not found");
-            if (role === "RT" && (targetWarga.rt !== userRt || targetWarga.rw !== userRw)) {
+            const cleanTargetRt = cleanDigits(targetWarga.rt || "");
+            const cleanTargetRw = cleanDigits(targetWarga.rw || "");
+            const cleanUserRt = cleanDigits(userRt || "");
+            const cleanUserRw = cleanDigits(userRw || "");
+            if (role === "RT" && (cleanTargetRt !== cleanUserRt || cleanTargetRw !== cleanUserRw)) {
                 throw new Error("Unauthorized");
             }
-            if (role === "RW" && targetWarga.rw !== userRw) {
+            if (role === "RW" && cleanTargetRw !== cleanUserRw) {
                 throw new Error("Unauthorized");
             }
         }

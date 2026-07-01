@@ -6,6 +6,7 @@ import { NotificationPanel } from "./NotificationPanel";
 import { Menu, LayoutDashboard, Settings } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { FloatingChat } from "../dashboard/FloatingChat";
 
 export function MasterShell({ 
     children, 
@@ -83,6 +84,9 @@ export function MasterShell({
                 </main>
 
             </div>
+
+            {/* Floating Chat for Master Admins */}
+            <FloatingChat session={session} />
         </div>
     );
 }

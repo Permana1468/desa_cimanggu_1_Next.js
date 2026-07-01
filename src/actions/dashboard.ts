@@ -70,6 +70,22 @@ export async function upsertInfrastrukturProject(data: any) {
     }
 }
 
+export async function saveProjectRab(projectId: string, rabItems: any[]) {
+    const session = await checkAdminDesa();
+    try {
+        const result = await prisma.infrastrukturProject.update({
+            where: { id: projectId },
+            data: {
+                rab: JSON.parse(JSON.stringify(rabItems))
+            }
+        });
+        revalidatePath("/dashboard/infrastruktur");
+        return result;
+    } catch (error) {
+        throw error;
+    }
+}
+
 export async function deleteInfrastrukturProject(id: string) {
     const session = await checkAdminDesa();
     try {
@@ -198,11 +214,12 @@ export async function deleteVillageDocument(id: string) {
 // ==============================
 // 4. ANALITICS (Realtime Stats)
 // ==============================
-export async function getDashboardRealtimeStats(tenantId: string) {
+export async function getDashboardRealtimeStats() {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
         throw new Error("Unauthorized");
     }
+    const tenantId = (session.user as any).tenantId;
     try {
         const today = new Date();
         today.setHours(0, 0, 0, 0);

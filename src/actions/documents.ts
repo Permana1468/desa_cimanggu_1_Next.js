@@ -9,6 +9,10 @@ import path from "path";
 import PizZip from "pizzip";
 import Docxtemplater from "docxtemplater";
 
+function cleanDigits(val: string): string {
+    return val ? val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0' : '';
+}
+
 export async function exportWargaExcel(filter?: any) {
     try {
         const session = await getServerSession(authOptions);
@@ -21,10 +25,13 @@ export async function exportWargaExcel(filter?: any) {
 
         let filterScope: any = {};
         if (role === "RT") {
-            filterScope.rt = userRt;
-            filterScope.rw = userRw;
+            const rtClean = cleanDigits(userRt || "");
+            const rwClean = cleanDigits(userRw || "");
+            filterScope.rt = { in: [userRt, rtClean, rtClean.padStart(3, '0')] };
+            filterScope.rw = { in: [userRw, rwClean, rwClean.padStart(3, '0')] };
         } else if (role === "RW") {
-            filterScope.rw = userRw;
+            const rwClean = cleanDigits(userRw || "");
+            filterScope.rw = { in: [userRw, rwClean, rwClean.padStart(3, '0')] };
         }
 
         const warga = await prisma.dataKependudukan.findMany({
@@ -103,10 +110,15 @@ export async function generateSurat(templateCode: string, wargaId: string, custo
         const userRt = (session.user as any).rt;
         const userRw = (session.user as any).rw;
 
-        if (role === "RT" && (warga.rt !== userRt || warga.rw !== userRw)) {
+        const cleanWargaRt = cleanDigits(warga.rt || "");
+        const cleanWargaRw = cleanDigits(warga.rw || "");
+        const cleanUserRt = cleanDigits(userRt || "");
+        const cleanUserRw = cleanDigits(userRw || "");
+
+        if (role === "RT" && (cleanWargaRt !== cleanUserRt || cleanWargaRw !== cleanUserRw)) {
             throw new Error("Unauthorized: data isolation violation");
         }
-        if (role === "RW" && warga.rw !== userRw) {
+        if (role === "RW" && cleanWargaRw !== cleanUserRw) {
             throw new Error("Unauthorized: data isolation violation");
         }
 

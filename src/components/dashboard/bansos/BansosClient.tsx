@@ -4,6 +4,26 @@ import { useState, useEffect } from "react";
 import { getBansosList, updateBansosData, getBansosStats } from "@/actions/bansos";
 import { Loader2, HeartHandshake, Search, Filter, Edit, Check, X } from "lucide-react";
 
+function HoverMask({ value }: { value: string }) {
+    const [visible, setVisible] = useState(false);
+    if (!value) return <span>-</span>;
+    const getMasked = (val: string) => {
+        if (val.length <= 6) return "*".repeat(val.length);
+        return val.substring(0, 6) + "*".repeat(val.length - 6);
+    };
+    return (
+        <span 
+            onMouseEnter={() => setVisible(true)}
+            onMouseLeave={() => setVisible(false)}
+            onClick={() => setVisible(!visible)}
+            className="cursor-pointer transition-all duration-200 hover:text-teal-600 select-all font-mono"
+            title="Arahkan kursor atau klik untuk melihat lengkap"
+        >
+            {visible ? value : getMasked(value)}
+        </span>
+    );
+}
+
 export function BansosClient({ session }: { session: any }) {
     const role = session?.user?.role;
     const [wargaList, setWargaList] = useState<any[]>([]);
@@ -136,7 +156,7 @@ export function BansosClient({ session }: { session: any }) {
                                         <tr key={warga.id} className="hover:bg-slate-50/50 transition-colors">
                                             <td className="p-4">
                                                 <div className="font-bold text-slate-800">{warga.namaLengkap}</div>
-                                                <div className="text-[10px] text-slate-400 font-bold tracking-wider uppercase mt-1">NIK: {warga.nik} | RT {warga.rt}/RW {warga.rw}</div>
+                                                <div className="text-[10px] text-slate-400 font-bold tracking-wider uppercase mt-1">NIK: <HoverMask value={warga.nik} /> | RT {warga.rt}/RW {warga.rw}</div>
                                             </td>
                                             
                                             <td className="p-4">

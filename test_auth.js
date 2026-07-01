@@ -12,15 +12,16 @@ async function test() {
       'Cookie': csrfRes.headers.get('set-cookie') || ''
     },
     body: JSON.stringify({
-      identifier: 'sensus@cimanggu1.desa.id',
-      password: 'AdminSensus123!',
+      identifier: 'desa@cimanggu1.desa.id',
+      password: 'AdminDesa123!',
       redirect: 'false',
       csrfToken: csrfData.csrfToken
     })
   });
   
   console.log("Login Status:", loginRes.status);
+  console.log("Login Cookies:", loginRes.headers.get('set-cookie'));
   const text = await loginRes.text();
-  console.log("Login Body Prefix:", text.substring(0, 100));
+  console.log("Login Body Prefix:", text.substring(0, 200));
 }
 test().catch(console.error);

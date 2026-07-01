@@ -145,45 +145,7 @@ export default function AparaturPage() {
                 )}
             </div>
 
-            {/* HIERARCHY CHART */}
-            <div className="relative pt-10">
-                <div className="absolute top-20 left-1/2 w-0.5 h-full bg-slate-200 -translate-x-1/2 hidden lg:block" />
-
-                <div className="space-y-20">
-                    <div className="flex flex-col items-center relative z-10">
-                        <SectionTitle title="Pimpinan Tertinggi" />
-                        {kades ? <AparaturCard person={kades} variant="primary" isAdminMaster={isAdminMaster} onEditSK={() => { setSelectedAparatur(kades); setSkData({ skNumber: kades.skNumber || "", skUrl: kades.skUrl || "" }); setShowSKModal(true); }} /> : <EmptySlot label="Kepala Desa" />}
-                    </div>
-
-                    <div className="flex flex-col items-center relative z-10">
-                        <div className="w-0.5 h-16 bg-slate-200 mb-4" />
-                        <SectionTitle title="Administrasi Pusat" />
-                        {sekdes ? <AparaturCard person={sekdes} variant="secondary" isAdminMaster={isAdminMaster} onEditSK={() => { setSelectedAparatur(sekdes); setSkData({ skNumber: sekdes.skNumber || "", skUrl: sekdes.skUrl || "" }); setShowSKModal(true); }} /> : <EmptySlot label="Sekretaris Desa" />}
-                    </div>
-
-                    <div className="relative z-10">
-                        <div className="flex flex-col items-center mb-12">
-                             <div className="w-0.5 h-12 bg-slate-200" />
-                             <SectionTitle title="Unsur Pelaksana Teknis & Kewilayahan" />
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {staff.map((person) => (
-                                <AparaturCard 
-                                    key={person.id} 
-                                    person={person} 
-                                    isAdminMaster={isAdminMaster}
-                                    onEditSK={() => { 
-                                        setSelectedAparatur(person); 
-                                        setSkData({ skNumber: person.skNumber || "", skUrl: person.skUrl || "" }); 
-                                        setShowSKModal(true); 
-                                    }} 
-                                    onDelete={() => handleDelete(person.id)}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
+            {/* DAFTAR APARATUR (Tabel) */}
 
             {/* ARSIP SK SECTION */}
             <div className="bg-white rounded-[3rem] p-12 shadow-sm border border-slate-200/60 overflow-hidden relative">
@@ -191,8 +153,8 @@ export default function AparaturPage() {
                 <div className="relative z-10">
                     <div className="flex items-center justify-between mb-12">
                         <div>
-                            <h2 className="text-3xl font-black text-slate-800 tracking-tight">Arsip Digital SK</h2>
-                            <p className="text-slate-500 font-medium text-sm mt-1">Dokumentasi Surat Keputusan pengangkatan perangkat desa.</p>
+                            <h2 className="text-3xl font-black text-slate-800 tracking-tight">Daftar Aparatur Desa</h2>
+                            <p className="text-slate-500 font-medium text-sm mt-1">Data lengkap perangkat desa beserta arsip SK.</p>
                         </div>
                         <div className="w-16 h-16 bg-blue-50 rounded-[1.5rem] flex items-center justify-center text-blue-600 shadow-inner">
                              <Briefcase size={32} />
@@ -243,12 +205,20 @@ export default function AparaturPage() {
                                                     </a>
                                                 )}
                                                 {isAdminMaster && (
-                                                    <button 
-                                                        onClick={() => { setSelectedAparatur(person); setSkData({ skNumber: person.skNumber || "", skUrl: person.skUrl || "" }); setShowSKModal(true); }}
-                                                        className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-900 hover:text-white transition-all shadow-sm"
-                                                    >
-                                                        <FileText size={18} />
-                                                    </button>
+                                                    <>
+                                                        <button 
+                                                            onClick={() => { setSelectedAparatur(person); setSkData({ skNumber: person.skNumber || "", skUrl: person.skUrl || "" }); setShowSKModal(true); }}
+                                                            className="p-2.5 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+                                                        >
+                                                            <FileText size={18} />
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => handleDelete(person.id)}
+                                                            className="p-2.5 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-100 transition-all shadow-sm"
+                                                        >
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    </>
                                                 )}
                                             </div>
                                         </td>

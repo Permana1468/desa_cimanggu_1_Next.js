@@ -35,6 +35,26 @@ import {
 } from "lucide-react";
 import { WARGA_FIELDS, DEFAULT_WARGA_FORM, isWargaDataIncomplete } from "@/lib/wargaSchema";
 
+function HoverMask({ value }: { value: string }) {
+    const [visible, setVisible] = useState(false);
+    if (!value) return <span>-</span>;
+    const getMasked = (val: string) => {
+        if (val.length <= 6) return "*".repeat(val.length);
+        return val.substring(0, 6) + "*".repeat(val.length - 6);
+    };
+    return (
+        <span 
+            onMouseEnter={() => setVisible(true)}
+            onMouseLeave={() => setVisible(false)}
+            onClick={() => setVisible(!visible)}
+            className="cursor-pointer transition-all duration-200 hover:text-blue-600 select-all font-mono"
+            title="Arahkan kursor atau klik untuk melihat lengkap"
+        >
+            {visible ? value : getMasked(value)}
+        </span>
+    );
+}
+
 export default function WargaManagementPage() {
     const [query, setQuery] = useState("");
     const [warga, setWarga] = useState<any[]>([]);
@@ -61,10 +81,57 @@ export default function WargaManagementPage() {
         ...DEFAULT_WARGA_FORM
     });
     const [filterIncomplete, setFilterIncomplete] = useState(false);
+    const [sortBy, setSortBy] = useState("default");
 
     const displayedWarga = useMemo(() => {
-        return warga.filter(w => !filterIncomplete || isWargaDataIncomplete(w));
-    }, [warga, filterIncomplete]);
+        const filtered = warga.filter(w => !filterIncomplete || isWargaDataIncomplete(w));
+
+        const PENDIDIKAN_ORDER: Record<string, number> = {
+            "TIDAK_SEKOLAH": 0,
+            "SD": 1,
+            "SMP": 2,
+            "SMA": 3,
+            "D3": 4,
+            "S1": 5,
+            "S2": 6,
+            "S3": 7
+        };
+
+        return [...filtered].sort((a, b) => {
+            if (sortBy === "kk") {
+                const kkA = a.noKK || "";
+                const kkB = b.noKK || "";
+                if (kkA !== kkB) return kkA.localeCompare(kkB);
+                const roleOrder: Record<string, number> = {
+                    "KEPALA_KELUARGA": 0,
+                    "ISTRI": 1,
+                    "ANAK": 2,
+                    "MERTUA": 3,
+                    "ORANG_TUA": 4,
+                    "LAINNYA": 5
+                };
+                const orderA = roleOrder[a.hubunganKeluarga] ?? 99;
+                const orderB = roleOrder[b.hubunganKeluarga] ?? 99;
+                return orderA - orderB;
+            }
+            if (sortBy === "umur-asc") {
+                const dateA = a.tanggalLahir ? new Date(a.tanggalLahir).getTime() : 0;
+                const dateB = b.tanggalLahir ? new Date(b.tanggalLahir).getTime() : 0;
+                return dateB - dateA; // Youngest first (most recent date)
+            }
+            if (sortBy === "umur-desc") {
+                const dateA = a.tanggalLahir ? new Date(a.tanggalLahir).getTime() : 0;
+                const dateB = b.tanggalLahir ? new Date(b.tanggalLahir).getTime() : 0;
+                return dateA - dateB; // Oldest first
+            }
+            if (sortBy === "pendidikan") {
+                const orderA = PENDIDIKAN_ORDER[a.pendidikan || ""] ?? -1;
+                const orderB = PENDIDIKAN_ORDER[b.pendidikan || ""] ?? -1;
+                return orderB - orderA; // Higher education first
+            }
+            return a.namaLengkap.localeCompare(b.namaLengkap);
+        });
+    }, [warga, filterIncomplete, sortBy]);
 
     useEffect(() => {
         handleSearch();
@@ -258,6 +325,18 @@ export default function WargaManagementPage() {
                             <option value="Dusun 1">Dusun 1</option>
                             <option value="Dusun 2">Dusun 2</option>
                             <option value="Dusun 3">Dusun 3</option>
+                            <option value="Dusun 4">Dusun 4</option>
+                        </select>
+                        <select 
+                            value={sortBy}
+                            onChange={e => setSortBy(e.target.value)}
+                            className="bg-slate-50 border-none rounded-2xl px-4 py-2 text-[10px] font-black uppercase focus:ring-0"
+                        >
+                            <option value="default">Urutkan: Nama (A-Z)</option>
+                            <option value="kk">Urutkan: No KK</option>
+                            <option value="umur-desc">Urutkan: Umur (Tua ke Muda)</option>
+                            <option value="umur-asc">Urutkan: Umur (Muda ke Tua)</option>
+                            <option value="pendidikan">Urutkan: Pendidikan</option>
                         </select>
                         <button 
                             type="button"
@@ -312,7 +391,7 @@ export default function WargaManagementPage() {
                                             </span>
                                         )}
                                     </div>
-                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]">{item.nik}</span>
+                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]"><HoverMask value={item.nik} /></span>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">

@@ -7,6 +7,8 @@ import { Archive, Plus, Trash2, Search, FileText, Download } from "lucide-react"
 
 export default function ArsipDigitalPage() {
     const { data: session } = useSession();
+    const role = (session?.user as any)?.role;
+    const canEdit = !["ADMIN_DESA", "RT", "RW", "LPM", "WARGA"].includes(role);
     const [documents, setDocuments] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -59,10 +61,10 @@ export default function ArsipDigitalPage() {
     });
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
+        <div className="space-y-6 animate-in fade-in duration-500 ">
             {/* HERO CARD */}
-            <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-8 md:p-12 rounded-[3rem] shadow-2xl relative overflow-hidden text-white flex flex-col md:flex-row md:items-center justify-between gap-8">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-[100px] pointer-events-none" />
+            <div className="bg-slate-900 p-8 md:p-12 rounded-3xl shadow-2xl relative overflow-hidden text-white flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
                 <div className="relative z-10 space-y-2">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-2">
                         <Archive size={14} /> Knowledge Base
@@ -73,9 +75,11 @@ export default function ArsipDigitalPage() {
                     </p>
                 </div>
                 <div className="relative z-10 shrink-0">
-                    <button onClick={() => setShowModal(true)} className="px-8 py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-2xl font-black transition-all flex items-center gap-3 shadow-xl shadow-amber-500/20 hover:-translate-y-1">
-                        <Plus size={20} /> Unggah Dokumen
-                    </button>
+                    {canEdit && (
+                        <button onClick={() => setShowModal(true)} className="px-8 py-4 bg-amber-500 hover:bg-amber-400 text-slate-900 rounded-2xl font-black transition-all flex items-center gap-3 shadow-xl shadow-amber-500/20 hover:-translate-y-1">
+                            <Plus size={20} /> Unggah Dokumen
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -87,7 +91,7 @@ export default function ArsipDigitalPage() {
                             <button
                                 key={jenis}
                                 onClick={() => setFilterJenis(jenis)}
-                                className={`px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${filterJenis === jenis ? 'bg-white text-slate-800 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
+                                className={`whitespace-nowrap shrink-0 px-6 py-2.5 rounded-xl text-xs font-bold transition-all ${filterJenis === jenis ? 'bg-white text-slate-800 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'}`}
                             >
                                 {jenis}
                             </button>
@@ -132,9 +136,11 @@ export default function ArsipDigitalPage() {
                                     {doc.tanggalDitetapkan ? new Date(doc.tanggalDitetapkan).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : "-"}
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <button onClick={() => handleDelete(doc.id)} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
-                                        <Trash2 size={14} />
-                                    </button>
+                                    {canEdit && (
+                                        <button onClick={() => handleDelete(doc.id)} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-300 hover:text-red-500 hover:bg-red-50 transition-colors">
+                                            <Trash2 size={14} />
+                                        </button>
+                                    )}
                                     <a href={doc.fileUrl || "#"} target="_blank" className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-amber-500 hover:text-white transition-colors">
                                         <Download size={14} />
                                     </a>

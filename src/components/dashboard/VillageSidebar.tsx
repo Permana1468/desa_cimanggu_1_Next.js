@@ -61,6 +61,29 @@ export const VillageSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
+  const email = session?.user?.email || "";
+  const baseRole = session?.user?.role;
+  let role = baseRole;
+
+  // Dynamic mapping for KAUR & KASI sub-roles based on email
+  if (baseRole === "KAUR") {
+    if (email.includes("perencanaan")) {
+      role = "KAUR_PERENCANAAN";
+    } else if (email.includes("keuangan")) {
+      role = "KAUR_KEUANGAN";
+    } else if (email.includes("tu") || email.includes("umum")) {
+      role = "KAUR_TU";
+    }
+  } else if (baseRole === "KASI") {
+    if (email.includes("pemerintahan")) {
+      role = "KASI_PEMERINTAHAN";
+    } else if (email.includes("pelayanan")) {
+      role = "KASI_PELAYANAN";
+    } else if (email.includes("kesejahteraan")) {
+      role = "KASI_KESEJAHTERAAN";
+    }
+  }
+
   return (
     <>
       {/* MOBILE BACKDROP */}
@@ -91,7 +114,7 @@ export const VillageSidebar = () => {
             </div>
             {(!isCollapsed || isOpen) && (
               <div className="flex flex-col">
-                <span className="text-sm font-black text-slate-800 leading-tight uppercase">{session?.user?.role?.replace('_', ' ') || "ADMIN"}</span>
+                <span className="text-sm font-black text-slate-800 leading-tight uppercase">{role?.replace('_', ' ') || "ADMIN"}</span>
                 <span className="text-[10px] font-bold text-emerald-600 tracking-widest uppercase">Desa Cimanggu I</span>
               </div>
             )}
@@ -108,12 +131,37 @@ export const VillageSidebar = () => {
         {/* Navigation */}
         <nav className="flex-1 px-3 space-y-1.5 mt-2 overflow-y-auto custom-scrollbar">
           {(() => {
-            const role = session?.user?.role;
             const searchParams = useSearchParams();
             const tabParam = searchParams.get("tab");
 
             let itemsToRender = menuItems.filter(item => {
-              if (["ADMIN_DESA", "KADES", "SEKDES", "KASI", "KAUR", "PERANGKAT_DESA", "OPERATOR_DESA", "ADMIN_MASTER"].includes(role as string)) return true;
+              if (["ADMIN_DESA", "KADES", "SEKDES", "PERANGKAT_DESA", "OPERATOR_DESA", "ADMIN_MASTER"].includes(role as string)) {
+                  if (role === "ADMIN_DESA" && item.name === "Usulan Pembangunan") return false;
+                  return true;
+              }
+              
+              if (role === "KAUR_PERENCANAAN") {
+                return ["Dashboard", "Usulan Pembangunan", "Infrastruktur", "APBDes", "Peta Interaktif", "Arsip Digital", "Monitoring", "Pengaturan"].includes(item.name);
+              }
+              if (role === "KAUR_KEUANGAN") {
+                return ["Dashboard", "APBDes", "Usulan Pembangunan", "Pengaturan"].includes(item.name);
+              }
+              if (role === "KAUR_TU") {
+                return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Aparatur Desa", "Arsip Digital", "Tracking Layanan", "Pengaturan"].includes(item.name);
+              }
+              if (role === "KASI_PEMERINTAHAN") {
+                return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Peta Interaktif", "Tracking Layanan", "Pengaturan"].includes(item.name);
+              }
+              if (role === "KASI_PELAYANAN") {
+                return ["Dashboard", "Pusat Persuratan", "Tracking Layanan", "Pengaturan"].includes(item.name);
+              }
+              if (role === "KASI_KESEJAHTERAAN") {
+                return ["Dashboard", "Data Bansos", "Pengaturan"].includes(item.name);
+              }
+              
+              // Fallback for unmapped KAUR/KASI
+              if (["KAUR", "KASI"].includes(role as string)) return true;
+
               if (["PKK", "TP_PKK", "POSYANDU", "BPD", "KADUS", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
                  return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Pembangunan", "Tracking Layanan", "Peta Interaktif"].includes(item.name);
               }

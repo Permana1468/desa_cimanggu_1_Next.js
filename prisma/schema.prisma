@@ -115,6 +115,7 @@ model User {
 
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  lastActiveAt          DateTime?
 
   auditLogs             AuditLog[]
   suratDibuat           Surat[]   @relation("Pencatat")
@@ -343,6 +344,7 @@ model VillageProfile {
   batasTimur  String?
   batasBarat  String?
   gallery     Json?    // Array of URLs
+  galeri      Json?    // Array of string URLs
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -548,6 +550,7 @@ model InfrastrukturProject {
   sumberDana      String?  // e.g., Dana Desa, Banprov
   status          String   @default("PERENCANAAN") // PERENCANAAN, BERJALAN, SELESAI
   laporanLPJUrl   String?
+  rab             Json?
   
   userId          String   // Admin yang input
   user            User     @relation(fields: [userId], references: [id])
@@ -825,4 +828,16 @@ model SensusPoint {
   updatedAt     DateTime @updatedAt
 
   @@index([tenantId, rt, rw])
+}
+
+model ChatMessage {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  message    String   @db.Text
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([senderId, receiverId])
+  @@index([createdAt])
 }

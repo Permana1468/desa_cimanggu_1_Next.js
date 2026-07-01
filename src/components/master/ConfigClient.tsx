@@ -4,7 +4,8 @@ import { useState } from "react";
 import { 
     Settings, Shield, Globe, Zap, Database, Lock, Save, RefreshCw, 
     CreditCard, MessageSquare, AlertTriangle, HardDrive, Smartphone, 
-    Upload, Bell, CheckCircle2, Loader2, Play, Activity, Fingerprint, ShieldCheck
+    Upload, Bell, CheckCircle2, Loader2, Play, Activity, Fingerprint, ShieldCheck,
+    FileSpreadsheet, FileText
 } from "lucide-react";
 import { updateSystemSettings, backupDatabase, testWhatsAppConnection, registerMasterDevice } from "@/actions/master";
 
@@ -126,6 +127,20 @@ export function ConfigClient({ initialSettings }: ConfigClientProps) {
                                     value={settings.ppob_api_key || ""} 
                                     onChange={(v: string) => setSettings({...settings, ppob_api_key: v})}
                                     placeholder="API Key Provider PPOB"
+                                />
+                                <PremiumInput 
+                                    label="Official RAB Template Spreadsheet ID" 
+                                    icon={FileSpreadsheet} 
+                                    value={settings.rab_template_id || ""} 
+                                    onChange={(v: string) => setSettings({...settings, rab_template_id: v})}
+                                    placeholder="Google Sheets ID (e.g. 1aBcDeFg...)"
+                                />
+                                <PremiumInput 
+                                    label="Official RAB Template Range" 
+                                    icon={FileText} 
+                                    value={settings.rab_template_range || "Sheet1!B9:F20"} 
+                                    onChange={(v: string) => setSettings({...settings, rab_template_range: v})}
+                                    placeholder="Range (e.g. Sheet1!B9:F20)"
                                 />
                             </div>
 

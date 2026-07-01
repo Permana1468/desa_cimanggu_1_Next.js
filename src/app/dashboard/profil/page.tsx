@@ -20,7 +20,8 @@ export default function VillageProfilePage() {
         batasUtara: "",
         batasSelatan: "",
         batasTimur: "",
-        batasBarat: ""
+        batasBarat: "",
+        galeri: [] as string[]
     });
 
     useEffect(() => {
@@ -40,7 +41,8 @@ export default function VillageProfilePage() {
                 batasUtara: data.batasUtara || "",
                 batasSelatan: data.batasSelatan || "",
                 batasTimur: data.batasTimur || "",
-                batasBarat: data.batasBarat || ""
+                batasBarat: data.batasBarat || "",
+                galeri: Array.isArray((data as any).galeri) ? (data as any).galeri : []
             });
         }
         setLoading(false);
@@ -191,10 +193,13 @@ export default function VillageProfilePage() {
                             <ImageIcon size={20} className="text-amber-500" /> Galeri Desa
                         </h3>
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="aspect-square bg-slate-100 rounded-2xl" />
-                            <div className="aspect-square bg-slate-100 rounded-2xl" />
-                            <div className="aspect-square bg-slate-100 rounded-2xl" />
-                            <div className="aspect-square bg-slate-100 rounded-2xl" />
+                            {profile?.galeri?.length > 0 ? profile.galeri.map((img: string, i: number) => (
+                                <div key={i} className="aspect-square bg-slate-100 rounded-2xl overflow-hidden relative group">
+                                    <img src={img} alt="Galeri" className="w-full h-full object-cover" />
+                                </div>
+                            )) : (
+                                <p className="col-span-2 text-xs text-slate-400 font-medium italic">Belum ada foto galeri.</p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -267,6 +272,43 @@ export default function VillageProfilePage() {
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Batas Barat</label>
                                     <input value={formData.batasBarat} onChange={e => setFormData({...formData, batasBarat: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20" />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex justify-between">
+                                    <span>Galeri Desa (URL Gambar)</span>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setFormData({...formData, galeri: [...formData.galeri, ""]})}
+                                        className="text-blue-600 hover:text-blue-700"
+                                    >+ Tambah URL</button>
+                                </label>
+                                <div className="space-y-2">
+                                    {formData.galeri.map((url, i) => (
+                                        <div key={i} className="flex gap-2">
+                                            <input 
+                                                value={url} 
+                                                onChange={e => {
+                                                    const newGal = [...formData.galeri];
+                                                    newGal[i] = e.target.value;
+                                                    setFormData({...formData, galeri: newGal});
+                                                }}
+                                                placeholder="https://example.com/image.jpg"
+                                                className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-blue-500/20" 
+                                            />
+                                            <button 
+                                                type="button"
+                                                onClick={() => setFormData({...formData, galeri: formData.galeri.filter((_, idx) => idx !== i)})}
+                                                className="bg-rose-50 text-rose-600 px-3 rounded-xl hover:bg-rose-100"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {formData.galeri.length === 0 && (
+                                        <p className="text-xs text-slate-400 italic">Belum ada URL galeri yang ditambahkan.</p>
+                                    )}
                                 </div>
                             </div>
 

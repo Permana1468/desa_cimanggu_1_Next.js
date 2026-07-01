@@ -21,7 +21,8 @@ import {
   Cpu,
   Bell,
   Map as MapIcon,
-  Cloud
+  Cloud,
+  FileText
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -34,6 +35,7 @@ const menuItems = [
   { name: "Data Kependudukan", icon: Database, href: "/master-admin/data" },
   { name: "Wilayah & Lembaga", icon: Building2, href: "/master-admin/wilayah" },
   { name: "Statistik", icon: PieChart, href: "/master-admin/stats" },
+  { name: "Arsip Template", icon: FileText, href: "/master-admin/templates" },
   { name: "Integrasi Cloud", icon: Cloud, href: "/master-admin/integrasi" },
   { name: "Konfigurasi", icon: Settings, href: "/master-admin/config" },
 ];

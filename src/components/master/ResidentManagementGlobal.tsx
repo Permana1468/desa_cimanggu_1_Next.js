@@ -36,6 +36,26 @@ const FieldIconMap: Record<string, any> = {
     tenantId: Building
 };
 
+function HoverMask({ value }: { value: string }) {
+    const [visible, setVisible] = useState(false);
+    if (!value) return <span>-</span>;
+    const getMasked = (val: string) => {
+        if (val.length <= 6) return "*".repeat(val.length);
+        return val.substring(0, 6) + "*".repeat(val.length - 6);
+    };
+    return (
+        <span 
+            onMouseEnter={() => setVisible(true)}
+            onMouseLeave={() => setVisible(false)}
+            onClick={() => setVisible(!visible)}
+            className="cursor-pointer transition-all duration-200 hover:text-blue-600 select-all font-mono"
+            title="Arahkan kursor atau klik untuk melihat lengkap"
+        >
+            {visible ? value : getMasked(value)}
+        </span>
+    );
+}
+
 interface Resident {
     id: string;
     nik: string;
@@ -80,6 +100,7 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
     // Bulk Selection & Deletion States
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [paperSize, setPaperSize] = useState("A4");
+    const [sortBy, setSortBy] = useState("default");
 
     // Pagination States
     const [currentPage, setCurrentPage] = useState(1);
@@ -127,7 +148,7 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
     const [filterIncomplete, setFilterIncomplete] = useState(false);
 
     const filteredResidents = useMemo(() => {
-        return residents.filter(r => {
+        const filtered = residents.filter(r => {
             const matchSearch = r.namaLengkap.toLowerCase().includes(searchQuery.toLowerCase()) || 
                                 r.nik.includes(searchQuery) || 
                                 (r.noKK && r.noKK.includes(searchQuery));
@@ -135,7 +156,53 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
             const matchIncomplete = !filterIncomplete || isWargaDataIncomplete(r);
             return matchSearch && matchTenant && matchIncomplete;
         });
-    }, [residents, searchQuery, selectedTenant, filterIncomplete]);
+
+        const PENDIDIKAN_ORDER: Record<string, number> = {
+            "TIDAK_SEKOLAH": 0,
+            "SD": 1,
+            "SMP": 2,
+            "SMA": 3,
+            "D3": 4,
+            "S1": 5,
+            "S2": 6,
+            "S3": 7
+        };
+
+        return [...filtered].sort((a, b) => {
+            if (sortBy === "kk") {
+                const kkA = a.noKK || "";
+                const kkB = b.noKK || "";
+                if (kkA !== kkB) return kkA.localeCompare(kkB);
+                const roleOrder: Record<string, number> = {
+                    "KEPALA_KELUARGA": 0,
+                    "ISTRI": 1,
+                    "ANAK": 2,
+                    "MERTUA": 3,
+                    "ORANG_TUA": 4,
+                    "LAINNYA": 5
+                };
+                const orderA = roleOrder[a.hubunganKeluarga] ?? 99;
+                const orderB = roleOrder[b.hubunganKeluarga] ?? 99;
+                return orderA - orderB;
+            }
+            if (sortBy === "umur-asc") {
+                const dateA = a.tanggalLahir ? new Date(a.tanggalLahir).getTime() : 0;
+                const dateB = b.tanggalLahir ? new Date(b.tanggalLahir).getTime() : 0;
+                return dateB - dateA; // Youngest first (most recent date)
+            }
+            if (sortBy === "umur-desc") {
+                const dateA = a.tanggalLahir ? new Date(a.tanggalLahir).getTime() : 0;
+                const dateB = b.tanggalLahir ? new Date(b.tanggalLahir).getTime() : 0;
+                return dateA - dateB; // Oldest first
+            }
+            if (sortBy === "pendidikan") {
+                const orderA = PENDIDIKAN_ORDER[a.pendidikan || ""] ?? -1;
+                const orderB = PENDIDIKAN_ORDER[b.pendidikan || ""] ?? -1;
+                return orderB - orderA; // Higher education first
+            }
+            return a.namaLengkap.localeCompare(b.namaLengkap);
+        });
+    }, [residents, searchQuery, selectedTenant, filterIncomplete, sortBy]);
 
     // Reset page index on filter change
     React.useEffect(() => {
@@ -906,6 +973,20 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                         {tenants.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                     </select>
                 </div>
+                <div className="flex items-center gap-3 px-6 py-3 bg-slate-50 rounded-2xl border border-transparent">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Urutkan:</span>
+                    <select 
+                        value={sortBy}
+                        onChange={e => setSortBy(e.target.value)}
+                        className="bg-transparent border-none text-sm font-bold text-slate-800 focus:ring-0 cursor-pointer"
+                    >
+                        <option value="default">Nama (A-Z)</option>
+                        <option value="kk">No Kartu Keluarga</option>
+                        <option value="umur-desc">Umur (Tua ke Muda)</option>
+                        <option value="umur-asc">Umur (Muda ke Tua)</option>
+                        <option value="pendidikan">Pendidikan</option>
+                    </select>
+                </div>
                 {selectedIds.length > 0 && (
                     <button 
                         disabled={isSaving}
@@ -988,11 +1069,11 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                                         <div className="space-y-1.5">
                                             <div className="flex items-center gap-2 bg-slate-100 px-3 py-1 rounded-xl w-fit">
                                                 <Fingerprint size={12} className="text-slate-400" />
-                                                <code className="text-[11px] font-mono font-black text-slate-600">{r.nik}</code>
+                                                <code className="text-[11px] font-mono font-black text-slate-600"><HoverMask value={r.nik} /></code>
                                             </div>
                                             <div className="flex items-center gap-2 bg-amber-50 px-3 py-1 rounded-xl w-fit">
                                                 <Home size={12} className="text-amber-500" />
-                                                <code className="text-[11px] font-mono font-black text-amber-700">{r.noKK}</code>
+                                                <code className="text-[11px] font-mono font-black text-amber-700"><HoverMask value={r.noKK} /></code>
                                             </div>
                                         </div>
                                     </td>
@@ -1061,8 +1142,8 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                             <div className="grid grid-cols-2 gap-4 pt-6 border-t border-slate-50">
                                 <div>
                                     <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">NIK / KK</p>
-                                    <p className="text-[11px] font-mono font-black text-slate-600 tracking-tight">{r.nik}</p>
-                                    <p className="text-[11px] font-mono font-black text-amber-600 tracking-tight">{r.noKK}</p>
+                                    <p className="text-[11px] font-mono font-black text-slate-600 tracking-tight"><HoverMask value={r.nik} /></p>
+                                    <p className="text-[11px] font-mono font-black text-amber-600 tracking-tight"><HoverMask value={r.noKK} /></p>
                                 </div>
                                 <div>
                                     <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">Hub. Keluarga</p>

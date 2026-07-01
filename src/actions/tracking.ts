@@ -97,6 +97,41 @@ export async function updateProposalStatus(proposalId: string, status: string, n
     }
 }
 
+export async function deleteFinanceProposal(proposalId: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const u = session.user as any;
+
+        if (u.role !== "LPM") {
+            throw new Error("Hanya LPM yang dapat menghapus usulan pembangunan");
+        }
+
+        // 1. Delete associated tracking records first to prevent foreign key errors
+        await prisma.tracking.deleteMany({
+            where: {
+                entityType: "FINANCE_PROPOSAL",
+                entityId: proposalId
+            }
+        });
+
+        // 2. Delete the proposal
+        const result = await prisma.financeProposal.delete({
+            where: {
+                id: proposalId,
+                tenantId: u.tenantId
+            }
+        });
+
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/infrastruktur");
+        revalidatePath("/dashboard/finance");
+        return { success: true, result };
+    } catch (error: any) {
+        throw new Error(error.message || "Gagal menghapus usulan");
+    }
+}
+
 // 2. Document/Surat Tracking
 export async function addSuratTracking(suratId: string, status: string, notes?: string) {
     try {

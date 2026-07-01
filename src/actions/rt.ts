@@ -30,9 +30,12 @@ function cleanName(val: string): string {
 export async function buildWilayahFilterScope(role: string, userRt: string, userRw: string, tenantId: string) {
     let filterScope: any = { tenantId };
     
+    const rtClean = cleanDigits(userRt || "");
+    const rwClean = cleanDigits(userRw || "");
+    
     if (role === "RT") {
-        filterScope.rt = userRt;
-        filterScope.rw = userRw;
+        filterScope.rt = { in: [userRt, rtClean, rtClean.padStart(3, '0')] };
+        filterScope.rw = { in: [userRw, rwClean, rwClean.padStart(3, '0')] };
         return filterScope;
     }
     
@@ -60,7 +63,7 @@ export async function buildWilayahFilterScope(role: string, userRt: string, user
             return [clean, clean.padStart(3, '0'), rt];
         });
         
-        filterScope.rw = { in: [userRw, cleanDigits(userRw).padStart(3, '0')] };
+        filterScope.rw = { in: [userRw, targetRwClean, targetRwClean.padStart(3, '0')] };
         if (matchedRts.length > 0) {
             filterScope.rt = { in: matchedRts };
         }

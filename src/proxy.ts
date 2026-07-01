@@ -8,7 +8,12 @@ const INSTITUTIONAL_ROLES = ["PKK", "POSYANDU", "LPM", "BPD", "KARANG_TARUNA", "
 const MASTER_ROLES = ["ADMIN_MASTER"];
 const RESIDENT_ROLES = ["WARGA"];
 
-export default async function middleware(req: NextRequest) {
+interface CustomJWT {
+  role?: string;
+  isFirstLogin?: boolean;
+}
+
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   
   const token = await getToken({ 
@@ -17,10 +22,10 @@ export default async function middleware(req: NextRequest) {
   });
   
   const isAuth = !!token;
-  const role = (token as any)?.role;
+  const role = (token as CustomJWT)?.role || "";
 
-  // 1. Public routes & API auth
-  if (pathname === "/login" || pathname === "/" || pathname.startsWith("/api/auth")) {
+    // 1. Public routes & API auth
+    if (pathname === "/login" || pathname === "/" || pathname.startsWith("/api/auth")) {
     if (isAuth && (pathname === "/login" || pathname === "/")) {
       if (CORE_ADMIN_ROLES.includes(role)) return NextResponse.redirect(new URL("/dashboard", req.url));
       if (INSTITUTIONAL_ROLES.includes(role)) return NextResponse.redirect(new URL("/kelembagaan", req.url));
@@ -71,7 +76,7 @@ export default async function middleware(req: NextRequest) {
   }
 
   // First Login Check
-  if ((token as any).isFirstLogin && !pathname.includes("/setup-account") && !pathname.startsWith("/api")) {
+  if ((token as CustomJWT)?.isFirstLogin && !pathname.includes("/setup-account") && !pathname.startsWith("/api")) {
     const setupPath = INSTITUTIONAL_ROLES.includes(role) ? "/kelembagaan/setup-account" : "/dashboard/setup-account";
     return NextResponse.redirect(new URL(setupPath, req.url));
   }

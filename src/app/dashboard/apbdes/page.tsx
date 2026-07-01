@@ -7,6 +7,10 @@ import { PieChart, Plus, Trash2, ArrowUpRight, ArrowDownRight, Wallet } from "lu
 
 export default function ApbdesPage() {
     const { data: session } = useSession();
+    const role = (session?.user as any)?.role;
+    const email = session?.user?.email || "";
+    const isKaurKeuangan = role === "KAUR_KEUANGAN" || (role === "KAUR" && email.includes("keuangan"));
+    const canEdit = ["ADMIN_MASTER", "SEKDES"].includes(role) || isKaurKeuangan;
     const [finances, setFinances] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -65,8 +69,8 @@ export default function ApbdesPage() {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#0f172a] p-8 rounded-[2.5rem] shadow-xl text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-[80px] pointer-events-none" />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 p-8 rounded-3xl shadow-xl text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
                 <div className="relative z-10 flex items-center gap-5">
                     <div className="w-14 h-14 bg-white/10 rounded-[1.25rem] flex items-center justify-center text-emerald-400 border border-white/10">
                         <PieChart size={28} />
@@ -84,9 +88,11 @@ export default function ApbdesPage() {
                     >
                         {[2023, 2024, 2025, 2026, 2027].map(y => <option key={y} value={y} className="text-slate-900">Tahun {y}</option>)}
                     </select>
-                    <button onClick={() => setShowModal(true)} className="px-6 py-3 bg-emerald-500 text-white rounded-xl text-sm font-bold hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/30 flex items-center gap-2">
-                        <Plus size={16}/> Input Realisasi
-                    </button>
+                    {canEdit && (
+                        <button onClick={() => setShowModal(true)} className="px-6 py-3 bg-emerald-500 text-white rounded-xl text-sm font-bold hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/30 flex items-center gap-2">
+                            <Plus size={16}/> Input Realisasi
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -123,7 +129,7 @@ export default function ApbdesPage() {
                             <th className="pb-4 text-right">Anggaran (Rp)</th>
                             <th className="pb-4 text-right">Realisasi (Rp)</th>
                             <th className="pb-4 text-center">Persentase</th>
-                            <th className="pb-4 text-right pr-4">Aksi</th>
+                            {canEdit && <th className="pb-4 text-right pr-4">Aksi</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
@@ -145,11 +151,13 @@ export default function ApbdesPage() {
                                 <td className="py-4 text-center">
                                     <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold">{f.persentase.toFixed(1)}%</span>
                                 </td>
-                                <td className="py-4 text-right pr-4">
-                                    <button onClick={() => handleDelete(f.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
-                                        <Trash2 size={16} />
-                                    </button>
-                                </td>
+                                {canEdit && (
+                                    <td className="py-4 text-right pr-4">
+                                        <button onClick={() => handleDelete(f.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </td>
+                                )}
                             </tr>
                         ))}
                     </tbody>

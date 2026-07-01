@@ -5,6 +5,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 
+function cleanDigits(val: string): string {
+    return val ? val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0' : '';
+}
+
 async function getBansosSession() {
     const session = await getServerSession(authOptions);
     if (!session?.user) throw new Error("Unauthorized");
@@ -26,10 +30,13 @@ export async function getBansosList() {
         
         // RT/RW can only see their own residents' bansos
         if (role === "RT") {
-            filterScope.rt = rt;
-            filterScope.rw = rw;
+            const rtClean = cleanDigits(rt || "");
+            const rwClean = cleanDigits(rw || "");
+            filterScope.rt = { in: [rt, rtClean, rtClean.padStart(3, '0')] };
+            filterScope.rw = { in: [rw, rwClean, rwClean.padStart(3, '0')] };
         } else if (role === "RW") {
-            filterScope.rw = rw;
+            const rwClean = cleanDigits(rw || "");
+            filterScope.rw = { in: [rw, rwClean, rwClean.padStart(3, '0')] };
         }
 
         const wargaList = await prisma.dataKependudukan.findMany({
@@ -91,10 +98,13 @@ export async function getBansosStats() {
         
         let filterScope: any = { tenantId };
         if (role === "RT") {
-            filterScope.rt = rt;
-            filterScope.rw = rw;
+            const rtClean = cleanDigits(rt || "");
+            const rwClean = cleanDigits(rw || "");
+            filterScope.rt = { in: [rt, rtClean, rtClean.padStart(3, '0')] };
+            filterScope.rw = { in: [rw, rwClean, rwClean.padStart(3, '0')] };
         } else if (role === "RW") {
-            filterScope.rw = rw;
+            const rwClean = cleanDigits(rw || "");
+            filterScope.rw = { in: [rw, rwClean, rwClean.padStart(3, '0')] };
         }
 
         const totalWarga = await prisma.dataKependudukan.count({ where: filterScope });
