@@ -1541,6 +1541,196 @@ function LampidTab({
     loadData();
   }, [subTab]);
 
+  const handlePrint = () => {
+    if (!reportData) return;
+
+    const monthName = new Date(0, reportMonth - 1).toLocaleString('id-ID', { month: 'long' }).toUpperCase();
+    const ageDist = reportData.ageDistribution || {};
+
+    // Build left table rows (0-11 BLN + 1-38)
+    const leftRows: string[] = [];
+    const m0_11 = ageDist["0-11 BLN"] || { L: 0, P: 0 };
+    leftRows.push(`<tr><td>0-11 BLN</td><td>${m0_11.L || "-"}</td><td>${m0_11.P || "-"}</td></tr>`);
+    for (let i = 1; i <= 38; i++) {
+      const v = ageDist[i.toString()] || { L: 0, P: 0 };
+      leftRows.push(`<tr><td>${i}</td><td>${v.L || "-"}</td><td>${v.P || "-"}</td></tr>`);
+    }
+
+    // Build right table rows (39-74, 75+, JUMLAH)
+    const rightRows: string[] = [];
+    for (let i = 39; i <= 74; i++) {
+      const v = ageDist[i.toString()] || { L: 0, P: 0 };
+      rightRows.push(`<tr><td>${i}</td><td>${v.L || "-"}</td><td>${v.P || "-"}</td></tr>`);
+    }
+    const m75 = ageDist["75+"] || { L: 0, P: 0 };
+    rightRows.push(`<tr><td>75+</td><td>${m75.L || "-"}</td><td>${m75.P || "-"}</td></tr>`);
+    let sumL = 0, sumP = 0;
+    Object.values(ageDist).forEach((v: any) => { sumL += v.L || 0; sumP += v.P || 0; });
+    rightRows.push(`<tr class="bold"><td>JUMLAH</td><td>${sumL}</td><td>${sumP}</td></tr>`);
+
+    const totals = reportData.totals || {};
+    const mutasi = reportData.mutasi || {};
+    const rtInfo = reportData.rtInfo || {};
+
+    const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Laporan LAMPID RT ${rtInfo.rt || ".."} RW ${rtInfo.rw || ".."} - ${monthName} ${reportYear}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Times New Roman', serif; font-size: 10px; background: white; color: black; padding: 20px; }
+    h1, h2 { text-align: center; font-size: 11px; text-transform: uppercase; }
+    .header { text-align: center; border-bottom: 2px solid black; padding-bottom: 6px; margin-bottom: 10px; }
+    .layout { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    table { width: 100%; border-collapse: collapse; }
+    table, th, td { border: 1px solid black; }
+    th, td { padding: 2px 4px; text-align: center; }
+    th { font-weight: bold; }
+    .summary-box { border: 1px solid black; padding: 4px; margin-bottom: 4px; }
+    .summary-box .title { font-weight: bold; font-size: 9px; margin-bottom: 3px; border-bottom: 1px solid black; padding-bottom: 2px; }
+    .summary-row { display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; }
+    .summary-row div { border-right: 1px solid black; padding: 1px; }
+    .summary-row div:last-child { border-right: none; font-weight: bold; }
+    .bold { font-weight: bold; }
+    .keterangan { border: 1px solid black; padding: 6px; margin-top: 8px; min-height: 50px; }
+    .keterangan .ktitle { font-weight: bold; margin-bottom: 4px; }
+    .realisasi { border: 1px solid black; padding: 6px; margin-top: 4px; }
+    .realisasi .ktitle { font-weight: bold; margin-bottom: 4px; }
+    .realisasi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .signatures { margin-top: 30px; display: flex; justify-content: flex-end; }
+    .sig-box { text-align: center; width: 200px; }
+    .sig-line { border-bottom: 1px solid black; width: 150px; margin: 60px auto 0; }
+    .sig-note { font-size: 9px; color: #555; margin-top: 2px; }
+    @page { size: Legal portrait; margin: 10mm; }
+    @media print {
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Laporan Data (Lahir, Mati, Pindah dan Datang) Penduduk</h1>
+    <h2>Desa Cimanggu I Kecamatan Cibungbulang Kabupaten Bogor</h2>
+    <div style="margin-top:4px;font-weight:bold;">RT ${rtInfo.rt || "...."} RW ${rtInfo.rw || "...."} Bulan ${monthName} Tahun ${reportYear}</div>
+  </div>
+
+  <div class="layout">
+    <!-- Left: Age 0-38 -->
+    <table>
+      <thead><tr><th>USIA</th><th>L</th><th>P</th></tr></thead>
+      <tbody>${leftRows.join("")}</tbody>
+    </table>
+
+    <!-- Right: Age 39-75+ -->
+    <table>
+      <thead><tr><th>USIA</th><th>L</th><th>P</th></tr></thead>
+      <tbody>${rightRows.join("")}</tbody>
+    </table>
+
+    <!-- Summary panel -->
+    <div>
+      <div class="summary-box">
+        <div class="title">PENDUDUK</div>
+        <div class="summary-row">
+          <div>L: ${totals.penduduk?.L || 0}</div>
+          <div>P: ${totals.penduduk?.P || 0}</div>
+          <div>JML: ${(totals.penduduk?.L || 0) + (totals.penduduk?.P || 0)}</div>
+        </div>
+      </div>
+      <div class="summary-box">
+        <div class="title">WAJIB KTP 17+</div>
+        <div class="summary-row">
+          <div>L: ${totals.wajibKtp?.L || 0}</div>
+          <div>P: ${totals.wajibKtp?.P || 0}</div>
+          <div>JML: ${(totals.wajibKtp?.L || 0) + (totals.wajibKtp?.P || 0)}</div>
+        </div>
+      </div>
+      <div class="summary-box">
+        <div class="title">KARTU KELUARGA (KK)</div>
+        <div style="text-align:center;padding:2px;font-weight:bold;">TOTAL: ${totals.totalKK || 0} KK</div>
+      </div>
+      <div class="summary-box">
+        <div class="title">PENDUDUK SEMENTARA</div>
+        <div class="summary-row">
+          <div>L: ${totals.pendudukSementara?.L || 0}</div>
+          <div>P: ${totals.pendudukSementara?.P || 0}</div>
+          <div>JML: ${(totals.pendudukSementara?.L || 0) + (totals.pendudukSementara?.P || 0)}</div>
+        </div>
+      </div>
+      <div class="summary-box">
+        <div class="title">MUTASI: LAHIR</div>
+        <div class="summary-row">
+          <div>L: ${mutasi.lahir?.L || 0}</div>
+          <div>P: ${mutasi.lahir?.P || 0}</div>
+          <div>JML: ${(mutasi.lahir?.L || 0) + (mutasi.lahir?.P || 0)}</div>
+        </div>
+      </div>
+      <div class="summary-box">
+        <div class="title">MUTASI: MENINGGAL</div>
+        <div class="summary-row">
+          <div>L: ${mutasi.mati?.L || 0}</div>
+          <div>P: ${mutasi.mati?.P || 0}</div>
+          <div>JML: ${(mutasi.mati?.L || 0) + (mutasi.mati?.P || 0)}</div>
+        </div>
+      </div>
+      <div class="summary-box">
+        <div class="title">MUTASI: PINDAH (KELUAR)</div>
+        <div class="summary-row">
+          <div>L: ${mutasi.pindah?.L || 0}</div>
+          <div>P: ${mutasi.pindah?.P || 0}</div>
+          <div>JML: ${(mutasi.pindah?.L || 0) + (mutasi.pindah?.P || 0)}</div>
+        </div>
+      </div>
+      <div class="summary-box">
+        <div class="title">MUTASI: DATANG (MASUK)</div>
+        <div class="summary-row">
+          <div>L: ${mutasi.datang?.L || 0}</div>
+          <div>P: ${mutasi.datang?.P || 0}</div>
+          <div>JML: ${(mutasi.datang?.L || 0) + (mutasi.datang?.P || 0)}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="keterangan">
+    <div class="ktitle">KETERANGAN PERUBAHAN PENDUDUK:</div>
+    <div>${reportData.changesDesc || ""}</div>
+  </div>
+
+  <div class="realisasi">
+    <div class="ktitle">REALISASI PEMBUATAN KTP DAN KK BULAN INI:</div>
+    <div class="realisasi-grid">
+      <div>Kartu Tanda Penduduk (KTP): ${(totals.wajibKtp?.L || 0) + (totals.wajibKtp?.P || 0)} Warga Wajib KTP terdata aktif</div>
+      <div>Kartu Keluarga (KK): ${totals.totalKK || 0} KK terdaftar aktif di RT</div>
+    </div>
+  </div>
+
+  <div class="signatures">
+    <div class="sig-box">
+      <div>Bogor, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+      <div class="bold" style="margin-top:4px;text-transform:uppercase;">Ketua RT ${rtInfo.rt || "...."} RW ${rtInfo.rw || "...."}</div>
+      <div class="sig-line"></div>
+      <div class="sig-note">Tanda Tangan &amp; Cap Basah</div>
+    </div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      window.print();
+    };
+  </script>
+</body>
+</html>`;
+
+    const printWindow = window.open("", "_blank", "width=900,height=700");
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Hapus laporan mutasi penduduk ini?")) return;
     try {
@@ -1941,7 +2131,7 @@ function LampidTab({
                   </select>
                 </div>
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => handlePrint()}
                   className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5"
                 >
                   <Printer size={14} /> Cetak / Print
