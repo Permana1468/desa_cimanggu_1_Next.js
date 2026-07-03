@@ -1,16 +1,16 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { 
-    FileText, 
-    Map as MapIcon, 
-    HeartPulse, 
-    ShieldCheck, 
-    Users, 
-    Search, 
-    ChevronRight, 
-    Calendar, 
-    Clock 
+import {
+    FileText,
+    Map as MapIcon,
+    HeartPulse,
+    ShieldCheck,
+    Users,
+    Search,
+    ChevronRight,
+    Calendar,
+    Clock
 } from 'lucide-react';
 
 import ScrollReveal from '../components/ScrollReveal';
@@ -54,9 +54,10 @@ export default async function LandingPage() {
         gallery: ['/images/slide_1.webp', '/images/slide_6_.png', '/images/sawah.png']
     };
 
-    const heroImages = (Array.isArray(siteData.gallery) && siteData.gallery.length > 0 
-        ? siteData.gallery 
-        : ['/images/slide_1.webp', '/images/slide_6_.png', '/images/sawah.png']) as string[];
+    // BACKGROUND HERO SECTION (CAROUSEL)
+    const heroImages = (Array.isArray(siteData.gallery) && siteData.gallery.length > 0
+        ? siteData.gallery
+        : ['/images/slide_1.png', '/images/slide_6_.png', '/images/sawah.png']) as string[];
 
     const newsData = newsRes ? newsRes.map((item: any) => ({
         id: item.id,

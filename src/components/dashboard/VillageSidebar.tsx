@@ -31,7 +31,10 @@ import {
   AlertCircle,
   Package,
   Compass,
-  HeartHandshake
+  HeartHandshake,
+  Home as HomeIcon,
+  ShieldCheck,
+  HeartPulse
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -190,6 +193,7 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
               itemsToRender = [
                 { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard?tab=overview" },
                 { name: "Data Warga", icon: Users, href: "/dashboard?tab=warga" },
+                { name: "Rumah Warga", icon: HomeIcon, href: "/dashboard?tab=rumah" },
                 { name: "Kas Keuangan", icon: Banknote, href: "/dashboard?tab=finance" },
                 { name: "Cek Surat", icon: FileText, href: "/dashboard?tab=surat" },
                 { name: "Laporan Kegiatan", icon: Sparkles, href: "/dashboard?tab=kegiatan" },
@@ -198,8 +202,21 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                 { name: "Aduan Warga", icon: AlertCircle, href: "/dashboard?tab=complaints" },
                 { name: "Inventaris RT", icon: Package, href: "/dashboard?tab=inventory" },
                 { name: "GeoSENSUS", icon: Compass, href: "/dashboard?tab=geosensus" },
-                { name: "Data Bansos", icon: HeartHandshake, href: "/dashboard?tab=bansos" }
+                { name: "Data Bansos", icon: HeartHandshake, href: "/dashboard?tab=bansos" },
+                { name: "Keamanan Lingkungan", icon: ShieldCheck, href: "/dashboard?tab=security" }
               ];
+              
+              if (role === "RW") {
+                itemsToRender.push(
+                  { name: "Posyandu & Kesehatan", icon: HeartPulse, href: "/dashboard?tab=health" },
+                  { name: "Kelembagaan RW", icon: Building2, href: "/dashboard?tab=institutions" }
+                );
+              }
+            }
+
+            // Ensure 'Pengaturan' is always available for all roles
+            if (!itemsToRender.find(item => item.name === 'Pengaturan')) {
+                itemsToRender.push({ name: 'Pengaturan', icon: Settings, href: '/dashboard/settings' });
             }
 
             return itemsToRender.map((item) => {
@@ -248,8 +265,12 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
           {(!isCollapsed || isOpen) ? (
              <div className="flex items-center justify-between p-3 rounded-[1.25rem] bg-slate-50 border border-slate-100 shadow-sm">
                 <div className="flex items-center gap-3 overflow-hidden">
-                    <div className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-black shadow-md">
-                        {session?.user?.name?.charAt(0) || 'A'}
+                    <div className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-black shadow-md overflow-hidden">
+                        {session?.user?.photo ? (
+                            <Image src={session.user.photo} alt="Profile" width={40} height={40} className="object-cover w-full h-full" />
+                        ) : (
+                            session?.user?.name?.charAt(0) || 'A'
+                        )}
                     </div>
                     <div className="flex flex-col min-w-0 pr-2">
                         <span className="text-[11px] font-bold text-slate-800 truncate tracking-tight">{session?.user?.name || "Aparatur Desa"}</span>

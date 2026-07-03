@@ -169,7 +169,7 @@ export async function getWargaList(query?: string, rtFilter?: string, rwFilter?:
                 { rw: 'asc' },
                 { rt: 'asc' }
             ],
-            take: 50
+            take: 5000
         });
     } catch (error) {
         return [];

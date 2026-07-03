@@ -25,36 +25,85 @@ interface BeritaItem {
     createdAt: Date;
 }
 
+import { useSession } from "next-auth/react";
+
 export default function SettingsPage() {
-    const [activeTab, setActiveTab] = useState("cms");
-    
+    const { data: session, status } = useSession();
+    const role = (session?.user as any)?.role;
+    const isAdmin = role === "ADMIN_DESA" || role === "ADMIN_MASTER" || role === "KADES";
+    const [activeTab, setActiveTab] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (status === "authenticated") {
+            if (isAdmin) {
+                if (!activeTab) setActiveTab("cms");
+            } else {
+                setActiveTab("profile");
+            }
+        }
+    }, [status, isAdmin, activeTab]);
+
+    if (status === "loading" || !activeTab) {
+        return <div className="p-8 text-center text-slate-500 font-bold animate-pulse">Memuat pengaturan...</div>;
+    }
+
     return (
         <div className="space-y-6 pb-20">
             <div>
-                <h1 className="text-3xl font-black text-slate-800 tracking-tight">Pengaturan & Konten</h1>
-                <p className="text-slate-500 text-sm">Kelola konten website desa dan akun perangkat kewilayahan.</p>
+                <h1 className="text-3xl font-black text-slate-800 tracking-tight">{isAdmin ? "Pengaturan & Konten" : "Pengaturan Akun"}</h1>
+                <p className="text-slate-500 text-sm">{isAdmin ? "Kelola konten website desa dan akun perangkat kewilayahan." : "Kelola profil dan keamanan akun Anda."}</p>
             </div>
 
-            <div className="flex gap-2 p-1.5 bg-white border border-slate-200 rounded-2xl w-fit">
-                <TabButton 
-                    active={activeTab === "cms"} 
-                    onClick={() => setActiveTab("cms")} 
-                    icon={Newspaper} 
-                    label="Manajemen Berita" 
-                />
-                <TabButton 
-                    active={activeTab === "accounts"} 
-                    onClick={() => setActiveTab("accounts")} 
-                    icon={Users} 
-                    label="Akun RT/RW" 
-                />
-            </div>
+            {isAdmin && (
+                <div className="flex flex-wrap gap-2 p-1.5 bg-white border border-slate-200 rounded-2xl w-fit">
+                    <TabButton 
+                        active={activeTab === "cms"} 
+                        onClick={() => setActiveTab("cms")} 
+                        icon={Newspaper} 
+                        label="Manajemen Berita" 
+                    />
+                    <TabButton 
+                        active={activeTab === "accounts"} 
+                        onClick={() => setActiveTab("accounts")} 
+                        icon={Users} 
+                        label="Akun RT/RW" 
+                    />
+                    <TabButton 
+                        active={activeTab === "profile"} 
+                        onClick={() => setActiveTab("profile")} 
+                        icon={UserCircle} 
+                        label="Profil Saya" 
+                    />
+                </div>
+            )}
 
             <div className="mt-8">
-                {activeTab === "cms" ? <CMSManager /> : <AccountManager />}
+                {activeTab === "cms" && isAdmin && <CMSManager />}
+                {activeTab === "accounts" && isAdmin && <AccountManager />}
+                {activeTab === "profile" && <UserProfileManager />}
             </div>
         </div>
     );
+}
+
+import SettingsClient from "@/components/dashboard/settings/SettingsClient";
+import { getUserSettings } from "@/actions/settings";
+
+function UserProfileManager() {
+    const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        getUserSettings().then(res => {
+            setUser(res);
+            setLoading(false);
+        });
+    }, []);
+
+    if (loading) return <div className="p-8 text-center text-slate-500 font-bold">Memuat data profil...</div>;
+    if (!user) return <div className="p-8 text-center text-rose-500 font-bold">Gagal memuat profil.</div>;
+
+    return <SettingsClient user={user} />;
 }
 
 function CMSManager() {

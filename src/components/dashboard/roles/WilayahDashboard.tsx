@@ -36,9 +36,13 @@ import {
   getRtMapBoundary, saveRtMapBoundary, getRwDashboardStats, getRwMapBoundaries, getWilayahStrukturOptions, getFullVillageStructure,
   getRtDemographicReport
 } from "@/actions/rt";
+import { getRumahWargaList, addRumahWarga, updateRumahWarga, deleteRumahWarga, getKKWithoutRumah } from "@/actions/rumahWarga";
 import { getWargaList, addWarga, updateWarga, deleteWarga, getSuratList, updateSuratStatus } from "@/actions/village";
 import "leaflet/dist/leaflet.css";
 import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
+import { RwSecurityTab } from "../rw/RwSecurityTab";
+import { RwHealthTab } from "../rw/RwHealthTab";
+import { RwInstitutionsTab } from "../rw/RwInstitutionsTab";
 
 export function WilayahDashboard({ session, stats: initialStats }: { session: any, stats: any }) {
   const roleName = session?.user?.role?.replace('_', ' ') || "Perangkat Wilayah";
@@ -58,11 +62,11 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
   const tabParam = searchParams ? searchParams.get("tab") : null;
 
   // Active Main Tab
-  const [activeTab, setActiveTab] = useState<"overview" | "warga" | "finance" | "surat" | "kegiatan" | "lampid" | "announcements" | "complaints" | "inventory" | "geosensus" | "bansos">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "warga" | "rumah" | "finance" | "surat" | "kegiatan" | "lampid" | "announcements" | "complaints" | "inventory" | "geosensus" | "bansos" | "security" | "health" | "institutions">("overview");
   const [preFilledMutation, setPreFilledMutation] = useState<{ nik: string, namaLengkap: string, type: "mati" | "pindah" } | null>(null);
 
   useEffect(() => {
-    if (tabParam && ["overview", "warga", "finance", "surat", "kegiatan", "lampid", "announcements", "complaints", "inventory", "geosensus", "bansos"].includes(tabParam)) {
+    if (tabParam && ["overview", "warga", "rumah", "finance", "surat", "kegiatan", "lampid", "announcements", "complaints", "inventory", "geosensus", "bansos", "security", "health", "institutions"].includes(tabParam)) {
       setActiveTab(tabParam as any);
     }
   }, [tabParam]);
@@ -168,7 +172,8 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
             }}
           />
         )}
-        {activeTab === "finance" && <FinanceTab totalKas={stats.totalKas} />}
+        {activeTab === "rumah" && <RumahWargaTab session={session} />}
+        {activeTab === "finance" && <FinanceTab session={session} />}
         {activeTab === "surat" && <SuratTab />}
         {activeTab === "kegiatan" && <KegiatanTab session={session} />}
         {activeTab === "lampid" && (
@@ -183,6 +188,9 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
         {activeTab === "inventory" && <InventoryTab rt={userRt} rw={userRw} session={session} />}
         {activeTab === "geosensus" && <GeoSensusTab session={session} />}
         {activeTab === "bansos" && <BansosTab session={session} />}
+        {activeTab === "security" && <RwSecurityTab session={session} />}
+        {activeTab === "health" && <RwHealthTab session={session} />}
+        {activeTab === "institutions" && <RwInstitutionsTab session={session} />}
       </div>
     </div>
   );
@@ -555,8 +563,9 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
     <div className="bg-white rounded-[2rem] p-6 border border-slate-200/60 shadow-sm space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h3 className="text-lg font-black text-slate-800">
+          <h3 className="text-lg font-black text-slate-800 flex items-center gap-3">
             {session?.user?.role === "KADUS" ? `Manajemen Data Warga ${session?.user?.rw}` : session?.user?.role === "RW" ? "Manajemen Data Warga RW" : "Manajemen Data Warga RT"}
+            <span className="bg-teal-100 text-teal-700 px-3 py-1 text-[10px] rounded-full">Total: {displayedWarga.length} Warga</span>
           </h3>
           <p className="text-slate-500 text-xs mt-0.5">
             {session?.user?.role === "KADUS" ? "Kelola dan pantau seluruh warga di wilayah Dusun Anda." : session?.user?.role === "RW" ? "Kelola dan pantau seluruh warga di wilayah RW Anda." : "Kelola, tambah, edit, dan hapus warga di wilayah RT Anda saja."}
@@ -976,18 +985,12 @@ function FormGroup({ label, value, onChange, type = "text", placeholder }: { lab
 // ==========================================
 // 3. KAS KEUANGAN TAB
 // ==========================================
-function FinanceTab({ totalKas }: { totalKas: number }) {
+function FinanceTab({ session }: { session?: any }) {
   const [finances, setFinances] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
-
-  const [formData, setFormData] = useState({
-    amount: "",
-    type: "INCOME",
-    category: "Iuran Warga",
-    date: new Date().toISOString().split('T')[0],
-    description: ""
-  });
+  const [showPrint, setShowPrint] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null);
 
   const loadFinances = async () => {
     setLoading(true);
@@ -996,112 +999,140 @@ function FinanceTab({ totalKas }: { totalKas: number }) {
     setLoading(false);
   };
 
-  useEffect(() => {
-    loadFinances();
-  }, []);
+  useEffect(() => { loadFinances(); }, []);
+
+  // Hitung saldo otomatis dari seluruh transaksi (INCOME - EXPENSE)
+  const totalIncome = finances.filter(f => f.type === "INCOME").reduce((s, f) => s + f.amount, 0);
+  const totalExpense = finances.filter(f => f.type === "EXPENSE").reduce((s, f) => s + f.amount, 0);
+  const currentBalance = totalIncome - totalExpense;
+
+  // Sorted oldest-first untuk running balance
+  const sortedFinances = [...finances].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const withRunning = sortedFinances.reduce<any[]>((acc, f) => {
+    const prev = acc.length > 0 ? acc[acc.length - 1].running : 0;
+    const running = f.type === "INCOME" ? prev + f.amount : prev - f.amount;
+    return [...acc, { ...f, running }];
+  }, []).reverse(); // newest first for display
+
+  const [formData, setFormData] = useState({ amount: "", type: "INCOME", category: "Iuran Warga", date: new Date().toISOString().split('T')[0], description: "" });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await addRtFinanceTransaction({
-        amount: parseFloat(formData.amount),
-        type: formData.type,
-        category: formData.category,
-        date: new Date(formData.date),
-        description: formData.description
-      });
+      const res = await addRtFinanceTransaction({ amount: parseFloat(formData.amount), type: formData.type, category: formData.category, date: new Date(formData.date), description: formData.description });
       if (res.success) {
-        alert("Berhasil mencatat transaksi kas");
         setShowModal(false);
-        setFormData({
-          amount: "",
-          type: "INCOME",
-          category: "Iuran Warga",
-          date: new Date().toISOString().split('T')[0],
-          description: ""
-        });
+        setFormData({ amount: "", type: "INCOME", category: "Iuran Warga", date: new Date().toISOString().split('T')[0], description: "" });
         loadFinances();
-      } else {
-        alert(res.error);
-      }
-    } catch (err) {
-      alert("Gagal menambahkan transaksi");
-    }
+      } else { alert(res.error); }
+    } catch { alert("Gagal menambahkan transaksi"); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Hapus catatan transaksi ini?")) return;
-    try {
-      const res = await deleteRtFinanceTransaction(id);
-      if (res.success) {
-        alert("Berhasil menghapus transaksi");
-        loadFinances();
-      } else {
-        alert("Gagal menghapus");
-      }
-    } catch (err) {
-      alert("Terjadi kesalahan.");
-    }
+    const res = await deleteRtFinanceTransaction(id);
+    if (res.success) loadFinances();
+    else alert("Gagal menghapus");
   };
+
+  const handlePrint = () => {
+    const el = printRef.current;
+    if (!el) return;
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(`<html><head><title>Laporan Kas RT</title><style>
+      body{font-family:Arial,sans-serif;font-size:11px;padding:20px;color:#111}
+      h2{text-align:center;margin:0;font-size:16px}
+      p.sub{text-align:center;margin:2px 0 16px;color:#555;font-size:11px}
+      table{width:100%;border-collapse:collapse;margin-top:8px}
+      th{background:#065f46;color:#fff;padding:8px 6px;font-size:10px;text-align:left}
+      td{padding:7px 6px;border-bottom:1px solid #e5e7eb;font-size:10px}
+      .inc{color:#065f46;font-weight:bold} .exp{color:#dc2626;font-weight:bold}
+      .saldo{color:#1e40af;font-weight:bold}
+      .footer{margin-top:20px;display:flex;gap:40px;justify-content:flex-end}
+      .footer div{text-align:right} .footer label{font-size:10px;color:#555}
+      .footer span{display:block;font-size:13px;font-weight:bold}
+      @media print{body{padding:0}}
+    </style></head><body>${el.innerHTML}</body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => { w.print(); }, 300);
+  };
+
+  const userRt = (session?.user as any)?.rt;
+  const userRw = (session?.user as any)?.rw;
+  const today = new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" });
 
   return (
     <div className="bg-white rounded-[2rem] p-6 border border-slate-200/60 shadow-sm space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div>
-          <h3 className="text-lg font-black text-slate-800">Kas & Iuran Keuangan RT</h3>
-          <p className="text-slate-500 text-xs mt-0.5 font-bold">Total Saldo Kas RT Saat Ini: <span className="text-teal-600">Rp {totalKas.toLocaleString("id-ID")}</span></p>
+          <h3 className="text-lg font-black text-slate-800">Kas &amp; Iuran Keuangan RT</h3>
+          <p className="text-slate-500 text-xs mt-0.5 font-bold">Saldo Kas RT Saat Ini: <span className="text-teal-600 text-sm font-black">Rp {currentBalance.toLocaleString("id-ID")}</span></p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
-        >
-          <Plus size={16} /> Catat Transaksi Kas
-        </button>
+        <div className="flex gap-3">
+          <button onClick={handlePrint} className="border border-slate-200 hover:bg-slate-50 text-slate-600 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
+            <Printer size={15} /> Cetak Laporan
+          </button>
+          <button onClick={() => setShowModal(true)} className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
+            <Plus size={15} /> Catat Transaksi
+          </button>
+        </div>
       </div>
 
+      {/* SUMMARY CARDS */}
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100">
+          <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-1">Total Pemasukan</p>
+          <p className="text-base font-black text-emerald-600">Rp {totalIncome.toLocaleString("id-ID")}</p>
+        </div>
+        <div className="bg-rose-50 rounded-2xl p-4 border border-rose-100">
+          <p className="text-[10px] font-black text-rose-700 uppercase tracking-widest mb-1">Total Pengeluaran</p>
+          <p className="text-base font-black text-rose-600">Rp {totalExpense.toLocaleString("id-ID")}</p>
+        </div>
+        <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
+          <p className="text-[10px] font-black text-blue-700 uppercase tracking-widest mb-1">Saldo Akhir</p>
+          <p className={`text-base font-black ${currentBalance >= 0 ? "text-blue-600" : "text-rose-600"}`}>Rp {currentBalance.toLocaleString("id-ID")}</p>
+        </div>
+      </div>
+
+      {/* TABLE */}
       <div className="overflow-x-auto">
         {loading ? (
-          <div className="py-20 text-center">
-            <Loader2 className="animate-spin text-teal-600 mx-auto" size={32} />
-          </div>
-        ) : finances.length > 0 ? (
+          <div className="py-20 text-center"><Loader2 className="animate-spin text-teal-600 mx-auto" size={32} /></div>
+        ) : withRunning.length > 0 ? (
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-wider">
                 <th className="py-3 px-4">Tanggal</th>
                 <th className="py-3 px-4">Kategori / Keterangan</th>
                 <th className="py-3 px-4">Tipe</th>
-                <th className="py-3 px-4">Jumlah</th>
+                <th className="py-3 px-4">Debit (Masuk)</th>
+                <th className="py-3 px-4">Kredit (Keluar)</th>
+                <th className="py-3 px-4">Saldo</th>
                 <th className="py-3 px-4 text-center">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 text-xs font-bold text-slate-700">
-              {finances.map((f: any) => (
+              {withRunning.map((f: any) => (
                 <tr key={f.id} className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-3.5 px-4 text-slate-500">{new Date(f.date).toLocaleDateString("id-ID")}</td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3 px-4 text-slate-500 whitespace-nowrap">{new Date(f.date).toLocaleDateString("id-ID")}</td>
+                  <td className="py-3 px-4">
                     <div className="font-bold text-slate-800">{f.category}</div>
-                    {f.description && <div className="text-[10px] text-slate-400 mt-0.5 font-semibold">{f.description}</div>}
+                    {f.description && <div className="text-[10px] text-slate-400 mt-0.5">{f.description}</div>}
                   </td>
-                  <td className="py-3.5 px-4">
-                    {f.type === "INCOME" ? (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full uppercase">
-                        <ArrowUpRight size={12} /> Masuk
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-black text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full uppercase">
-                        <ArrowDownRight size={12} /> Keluar
-                      </span>
-                    )}
+                  <td className="py-3 px-4">
+                    {f.type === "INCOME"
+                      ? <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full uppercase"><ArrowUpRight size={11} /> Masuk</span>
+                      : <span className="inline-flex items-center gap-1 text-[10px] font-black text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full uppercase"><ArrowDownRight size={11} /> Keluar</span>}
                   </td>
-                  <td className={`py-3.5 px-4 font-black ${f.type === "INCOME" ? "text-emerald-600" : "text-rose-600"}`}>
-                    {f.type === "INCOME" ? "+" : "-"} Rp {f.amount.toLocaleString("id-ID")}
-                  </td>
-                  <td className="py-3.5 px-4">
+                  <td className="py-3 px-4 font-black text-emerald-600">{f.type === "INCOME" ? `Rp ${f.amount.toLocaleString("id-ID")}` : "-"}</td>
+                  <td className="py-3 px-4 font-black text-rose-600">{f.type === "EXPENSE" ? `Rp ${f.amount.toLocaleString("id-ID")}` : "-"}</td>
+                  <td className={`py-3 px-4 font-black ${f.running >= 0 ? "text-blue-600" : "text-rose-600"}`}>Rp {f.running.toLocaleString("id-ID")}</td>
+                  <td className="py-3 px-4">
                     <div className="flex justify-center">
-                      <button onClick={() => handleDelete(f.id)} className="p-2 hover:bg-rose-50 rounded-lg text-rose-600 transition-all">
-                        <Trash2 size={14} />
-                      </button>
+                      <button onClick={() => handleDelete(f.id)} className="p-2 hover:bg-rose-50 rounded-lg text-rose-600 transition-all"><Trash2 size={14} /></button>
                     </div>
                   </td>
                 </tr>
@@ -1113,32 +1144,58 @@ function FinanceTab({ totalKas }: { totalKas: number }) {
         )}
       </div>
 
+      {/* HIDDEN PRINT TEMPLATE */}
+      <div className="hidden">
+        <div ref={printRef}>
+          <h2>LAPORAN KAS KEUANGAN RT</h2>
+          <p className="sub">RT {userRt || "-"} / RW {userRw || "-"} &nbsp;|&nbsp; Desa Cimanggu I &nbsp;|&nbsp; Dicetak: {today}</p>
+          <table>
+            <thead>
+              <tr><th>No</th><th>Tanggal</th><th>Kategori</th><th>Keterangan</th><th>Debit (Rp)</th><th>Kredit (Rp)</th><th>Saldo (Rp)</th></tr>
+            </thead>
+            <tbody>
+              {[...withRunning].reverse().map((f: any, i: number) => (
+                <tr key={f.id}>
+                  <td>{i + 1}</td>
+                  <td>{new Date(f.date).toLocaleDateString("id-ID")}</td>
+                  <td>{f.category}</td>
+                  <td>{f.description || "-"}</td>
+                  <td className="inc">{f.type === "INCOME" ? f.amount.toLocaleString("id-ID") : ""}</td>
+                  <td className="exp">{f.type === "EXPENSE" ? f.amount.toLocaleString("id-ID") : ""}</td>
+                  <td className="saldo">{f.running.toLocaleString("id-ID")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="footer">
+            <div><label>Total Pemasukan</label><span className="inc">Rp {totalIncome.toLocaleString("id-ID")}</span></div>
+            <div><label>Total Pengeluaran</label><span className="exp">Rp {totalExpense.toLocaleString("id-ID")}</span></div>
+            <div><label>Saldo Akhir</label><span className="saldo">Rp {currentBalance.toLocaleString("id-ID")}</span></div>
+          </div>
+        </div>
+      </div>
+
+      {/* ADD TRANSACTION MODAL */}
       {showModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowModal(false)} />
           <div className="bg-white rounded-[2.5rem] w-full max-w-md relative z-10 shadow-2xl overflow-hidden flex flex-col">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h4 className="text-lg font-black text-slate-800">Catat Kas Keuangan</h4>
-                <p className="text-slate-400 text-xs">Pemasukan atau pengeluaran kas keuangan RT.</p>
-              </div>
-              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-slate-100 rounded-xl">
-                <X size={20} />
-              </button>
+              <div><h4 className="text-lg font-black text-slate-800">Catat Kas Keuangan</h4><p className="text-slate-400 text-xs">Pemasukan atau pengeluaran kas RT.</p></div>
+              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-slate-100 rounded-xl"><X size={20} /></button>
             </div>
-            
             <form onSubmit={handleSubmit} className="p-6 space-y-4 bg-slate-50/20">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Jenis Transaksi</label>
-                  <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-950">
+                  <select value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 text-slate-950">
                     <option value="INCOME">Masuk (Pemasukan)</option>
                     <option value="EXPENSE">Keluar (Pengeluaran)</option>
                   </select>
                 </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Kategori</label>
-                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-950">
+                  <select value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 text-slate-950">
                     <option value="Iuran Warga">Iuran Warga</option>
                     <option value="Bantuan Sosial">Bantuan Sosial</option>
                     <option value="Kegiatan Fisik">Kegiatan Fisik</option>
@@ -1147,18 +1204,225 @@ function FinanceTab({ totalKas }: { totalKas: number }) {
                   </select>
                 </div>
               </div>
-
               <FormGroup label="Jumlah (Nominal Rp)" type="number" value={formData.amount} onChange={v => setFormData({...formData, amount: v})} placeholder="Contoh: 50000" />
               <FormGroup label="Tanggal Transaksi" type="date" value={formData.date} onChange={v => setFormData({...formData, date: v})} />
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Keterangan</label>
+                <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Keterangan singkat..." className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 min-h-[70px] text-slate-950" />
+              </div>
+              <button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white py-4 rounded-xl text-xs font-black uppercase tracking-wider mt-4 transition-all">Simpan Transaksi Kas</button>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
+// ==========================================
+// 3.5 RUMAH WARGA TAB
+// ==========================================
+function RumahWargaTab({ session }: { session?: any }) {
+  const [rumahList, setRumahList] = useState<any[]>([]);
+  const [kkList, setKkList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [detailItem, setDetailItem] = useState<any | null>(null);
+
+  const emptyForm = { noKK: "", rt: (session?.user as any)?.rt || "", rw: (session?.user as any)?.rw || "", alamat: "", latitude: "", longitude: "", lokasiDetail: "", fotoUrl: "", statusRumah: "MILIK_SENDIRI", kondisi: "LAYAK", keterangan: "" };
+  const [formData, setFormData] = useState(emptyForm);
+
+  const loadData = async () => {
+    setLoading(true);
+    const [list, kk] = await Promise.all([getRumahWargaList(query), getKKWithoutRumah()]);
+    setRumahList(list);
+    setKkList(kk);
+    setLoading(false);
+  };
+
+  useEffect(() => { loadData(); }, []);
+
+  const handleOpenAdd = () => { setEditingId(null); setFormData(emptyForm); setShowModal(true); };
+  const handleEdit = (item: any) => {
+    setEditingId(item.id);
+    setFormData({ noKK: item.noKK, rt: item.rt, rw: item.rw, alamat: item.alamat, latitude: item.latitude?.toString() || "", longitude: item.longitude?.toString() || "", lokasiDetail: item.lokasiDetail || "", fotoUrl: item.fotoUrl || "", statusRumah: item.statusRumah, kondisi: item.kondisi, keterangan: item.keterangan || "" });
+    setShowModal(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = { ...formData, latitude: formData.latitude ? parseFloat(formData.latitude) : null, longitude: formData.longitude ? parseFloat(formData.longitude) : null };
+    try {
+      let res: any;
+      if (editingId) { res = await updateRumahWarga(editingId, payload); }
+      else { res = await addRumahWarga(payload); }
+      if (res?.success) { setShowModal(false); loadData(); }
+      else alert(res?.error || "Gagal menyimpan data");
+    } catch { alert("Terjadi kesalahan"); }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Hapus data rumah ini?")) return;
+    const res = await deleteRumahWarga(id);
+    if (res.success) loadData();
+  };
+
+  const STATUS_COLORS: Record<string, string> = { MILIK_SENDIRI: "bg-emerald-50 text-emerald-700", KONTRAK: "bg-amber-50 text-amber-700", MENUMPANG: "bg-blue-50 text-blue-700", DINAS: "bg-purple-50 text-purple-700", LAINNYA: "bg-slate-100 text-slate-600" };
+  const KONDISI_COLORS: Record<string, string> = { LAYAK: "bg-teal-50 text-teal-700", TIDAK_LAYAK: "bg-rose-50 text-rose-700", BUTUH_PERBAIKAN: "bg-orange-50 text-orange-700" };
+
+  return (
+    <div className="bg-white rounded-[2rem] p-6 border border-slate-200/60 shadow-sm space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h3 className="text-lg font-black text-slate-800">Rumah Warga</h3>
+          <p className="text-slate-500 text-xs mt-0.5">Detail rumah per KK — koordinat, foto, lokasi, status kepemilikan.</p>
+        </div>
+        <button onClick={handleOpenAdd} className="bg-teal-600 hover:bg-teal-700 text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all">
+          <Plus size={16} /> Tambah Rumah
+        </button>
+      </div>
+
+      <form onSubmit={e => { e.preventDefault(); loadData(); }} className="flex gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+          <input type="text" value={query} onChange={e => setQuery(e.target.value)} placeholder="Cari No KK atau Alamat..." className="w-full pl-11 pr-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-2 focus:ring-teal-500 text-slate-900" />
+        </div>
+        <button type="submit" className="bg-slate-950 text-white px-6 py-3 rounded-xl text-xs font-bold hover:bg-slate-800 transition-all">Cari</button>
+      </form>
+
+      {loading ? (
+        <div className="py-20 text-center"><Loader2 className="animate-spin text-teal-600 mx-auto" size={32} /></div>
+      ) : rumahList.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {rumahList.map((r: any) => (
+            <div key={r.id} className="border border-slate-100 rounded-2xl p-5 hover:border-teal-200 hover:shadow-md transition-all group">
+              <div className="flex gap-4">
+                {r.fotoUrl ? (
+                  <img src={r.fotoUrl} alt="Foto Rumah" className="w-20 h-20 rounded-xl object-cover shrink-0 border border-slate-100" onError={e => { (e.target as any).style.display = "none"; }} />
+                ) : (
+                  <div className="w-20 h-20 rounded-xl bg-slate-100 flex items-center justify-center shrink-0">
+                    <HomeIcon size={28} className="text-slate-400" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-black text-slate-800 text-sm leading-tight">{r.kepalaKeluarga?.namaLengkap || "— Kepala Keluarga Tidak Ditemukan —"}</p>
+                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">No KK: {r.noKK}</p>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <button onClick={() => setDetailItem(r)} className="p-1.5 hover:bg-teal-50 rounded-lg text-teal-600 transition-all" title="Detail"><Eye size={13} /></button>
+                      <button onClick={() => handleEdit(r)} className="p-1.5 hover:bg-slate-50 rounded-lg text-slate-500 transition-all" title="Edit"><Edit size={13} /></button>
+                      <button onClick={() => handleDelete(r.id)} className="p-1.5 hover:bg-rose-50 rounded-lg text-rose-500 transition-all" title="Hapus"><Trash2 size={13} /></button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-600 font-medium truncate">{r.alamat}</p>
+                  {r.lokasiDetail && <p className="text-[10px] text-slate-400 truncate">{r.lokasiDetail}</p>}
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${STATUS_COLORS[r.statusRumah] || "bg-slate-100 text-slate-600"}`}>{r.statusRumah?.replace(/_/g, " ")}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${KONDISI_COLORS[r.kondisi] || "bg-slate-100 text-slate-600"}`}>{r.kondisi?.replace(/_/g, " ")}</span>
+                    {r.latitude && r.longitude && (
+                      <a href={`https://maps.google.com/?q=${r.latitude},${r.longitude}`} target="_blank" rel="noreferrer" className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-blue-50 text-blue-600 flex items-center gap-1 hover:bg-blue-100 transition-colors">
+                        <MapPin size={9} /> GPS
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="py-16 text-center text-slate-400 font-bold">Belum ada data rumah warga tercatat.</div>
+      )}
+
+      {/* DETAIL MODAL */}
+      {detailItem && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setDetailItem(null)} />
+          <div className="bg-white rounded-[2.5rem] w-full max-w-lg relative z-10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <div><h4 className="text-lg font-black text-slate-800">Detail Rumah Warga</h4><p className="text-slate-400 text-xs">No KK: {detailItem.noKK}</p></div>
+              <button onClick={() => setDetailItem(null)} className="p-2 hover:bg-slate-100 rounded-xl"><X size={20} /></button>
+            </div>
+            <div className="p-6 overflow-y-auto custom-scrollbar space-y-4">
+              {detailItem.fotoUrl && <img src={detailItem.fotoUrl} alt="Foto Rumah" className="w-full h-48 object-cover rounded-2xl border border-slate-100" />}
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Kepala Keluarga</p><p className="font-black text-slate-800">{detailItem.kepalaKeluarga?.namaLengkap || "-"}</p></div>
+                <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">RT / RW</p><p className="font-bold text-slate-700">RT {detailItem.rt} / RW {detailItem.rw}</p></div>
+                <div className="col-span-2"><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Alamat</p><p className="font-bold text-slate-700">{detailItem.alamat}</p></div>
+                {detailItem.lokasiDetail && <div className="col-span-2"><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Lokasi Detail</p><p className="font-bold text-slate-700">{detailItem.lokasiDetail}</p></div>}
+                <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Status Rumah</p><p className="font-bold text-slate-700">{detailItem.statusRumah?.replace(/_/g, " ")}</p></div>
+                <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Kondisi</p><p className="font-bold text-slate-700">{detailItem.kondisi?.replace(/_/g, " ")}</p></div>
+                {detailItem.latitude && detailItem.longitude && (
+                  <div className="col-span-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Koordinat GPS</p>
+                    <p className="font-mono text-xs text-slate-700">{detailItem.latitude}, {detailItem.longitude}</p>
+                    <a href={`https://maps.google.com/?q=${detailItem.latitude},${detailItem.longitude}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 mt-2 text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full hover:bg-blue-100 transition-colors">
+                      <MapPin size={11} /> Lihat di Google Maps
+                    </a>
+                  </div>
+                )}
+                {detailItem.keterangan && <div className="col-span-2"><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Keterangan</p><p className="font-bold text-slate-700">{detailItem.keterangan}</p></div>}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADD/EDIT MODAL */}
+      {showModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowModal(false)} />
+          <div className="bg-white rounded-[2.5rem] w-full max-w-lg relative z-10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <div><h4 className="text-lg font-black text-slate-800">{editingId ? "Edit Data Rumah" : "Tambah Rumah Warga"}</h4><p className="text-slate-400 text-xs">Data fisik rumah per KK.</p></div>
+              <button onClick={() => setShowModal(false)} className="p-2 hover:bg-slate-100 rounded-xl"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto custom-scrollbar space-y-4 bg-slate-50/20">
+              {!editingId && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">No KK (Kepala Keluarga)</label>
+                  <select required value={formData.noKK} onChange={e => setFormData({...formData, noKK: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 text-slate-950">
+                    <option value="">-- Pilih KK --</option>
+                    {kkList.map((kk, idx) => <option key={`${kk.noKK}-${idx}`} value={kk.noKK}>{kk.namaLengkap} ({kk.noKK})</option>)}
+                  </select>
+                </div>
+              )}
+              <FormGroup label="Alamat Lengkap" type="text" value={formData.alamat} onChange={v => setFormData({...formData, alamat: v})} placeholder="Jl. Contoh No. 1..." />
+              <FormGroup label="Lokasi Detail (Patokan)" type="text" value={formData.lokasiDetail} onChange={v => setFormData({...formData, lokasiDetail: v})} placeholder="Misal: Sebelah kanan masjid Al-Ikhlas" />
+              <div className="grid grid-cols-2 gap-4">
+                <FormGroup label="Latitude GPS" type="text" value={formData.latitude} onChange={v => setFormData({...formData, latitude: v})} placeholder="-6.1234567" />
+                <FormGroup label="Longitude GPS" type="text" value={formData.longitude} onChange={v => setFormData({...formData, longitude: v})} placeholder="106.7654321" />
+              </div>
+              <FormGroup label="URL Foto Rumah" type="text" value={formData.fotoUrl} onChange={v => setFormData({...formData, fotoUrl: v})} placeholder="https://..." />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Status Kepemilikan</label>
+                  <select value={formData.statusRumah} onChange={e => setFormData({...formData, statusRumah: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 text-slate-950">
+                    <option value="MILIK_SENDIRI">Milik Sendiri</option>
+                    <option value="KONTRAK">Kontrak / Sewa</option>
+                    <option value="MENUMPANG">Menumpang</option>
+                    <option value="DINAS">Rumah Dinas</option>
+                    <option value="LAINNYA">Lainnya</option>
+                  </select>
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Kondisi Rumah</label>
+                  <select value={formData.kondisi} onChange={e => setFormData({...formData, kondisi: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 text-slate-950">
+                    <option value="LAYAK">Layak Huni</option>
+                    <option value="BUTUH_PERBAIKAN">Butuh Perbaikan</option>
+                    <option value="TIDAK_LAYAK">Tidak Layak Huni</option>
+                  </select>
+                </div>
+              </div>
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Keterangan Tambahan</label>
-                <textarea value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} placeholder="Keterangan singkat..." className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all min-h-[70px] text-slate-950" />
+                <textarea value={formData.keterangan} onChange={e => setFormData({...formData, keterangan: e.target.value})} placeholder="Keterangan lainnya..." className="w-full bg-white border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-teal-500 min-h-[70px] text-slate-950" />
               </div>
-
-              <button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white py-4 rounded-xl text-xs font-black uppercase tracking-wider mt-4 transition-all">
-                Simpan Transaksi Kas
-              </button>
+              <button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white py-4 rounded-xl text-xs font-black uppercase tracking-wider transition-all">Simpan Data Rumah</button>
             </form>
           </div>
         </div>
@@ -1170,6 +1434,7 @@ function FinanceTab({ totalKas }: { totalKas: number }) {
 // ==========================================
 // 4. CEK SURAT TAB
 // ==========================================
+
 function SuratTab() {
   const [suratList, setSuratList] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -3484,14 +3749,27 @@ function GeoSensusTab({ session }: { session: any }) {
 
         mapRef.current.on("pm:create", (e: any) => {
           const layer = e.layer;
-          const latlngs = layer.getLatLngs()[0];
-          const coords = latlngs.map((ll: any) => [ll.lat, ll.lng]);
-          coords.push(coords[0]);
           
-          if (confirm("Gunakan poligon ini sebagai batas RT Anda?")) {
-            handleSaveBoundary(coords);
+          if (typeof layer.getLatLngs === 'function') {
+            try {
+              const latlngs = layer.getLatLngs()[0];
+              if (latlngs && Array.isArray(latlngs)) {
+                const coords = latlngs.map((ll: any) => [ll.lat, ll.lng]);
+                coords.push(coords[0]); // Close the polygon
+                
+                if (confirm("Gunakan poligon ini sebagai batas RT Anda?")) {
+                  handleSaveBoundary(coords);
+                }
+              }
+            } catch (err) {
+              console.error("Failed to parse polygon coordinates", err);
+              alert("Gagal memproses poligon. Pastikan Anda menggambar bentuk area tertutup.");
+            }
+          } else {
+            alert("Harap gunakan alat Poligon (Polygon) untuk menggambar batas wilayah.");
           }
-          layer.remove();
+          
+          layer.remove(); // Always remove the drawn layer immediately as it's saved/handled via API
         });
       } else {
         mapRef.current.pm.removeControls();
@@ -3924,8 +4202,8 @@ function GeoSensusTab({ session }: { session: any }) {
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-semibold focus:outline-none focus:border-teal-500"
                       >
                         <option value="">-- Pilih KK --</option>
-                        {kks.map(k => (
-                          <option key={k.noKK} value={k.noKK}>{k.namaLengkap} (KK: {k.noKK})</option>
+                        {kks.map((k, index) => (
+                          <option key={`${k.noKK}-${index}`} value={k.noKK}>{k.namaLengkap} (KK: {k.noKK})</option>
                         ))}
                       </select>
                     </div>

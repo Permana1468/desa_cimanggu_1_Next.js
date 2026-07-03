@@ -53,6 +53,14 @@ model Tenant {
   rtInventoryLoans     RtInventoryLoan[]
   sensusPoints         SensusPoint[]
   bansosData           BansosData[]
+  rumahWarga           RumahWarga[]
+
+  // RW Modules
+  rwSecurityLogs       RwSecurityLog[]
+  rwPatrolSchedules    RwPatrolSchedule[]
+  rwHealthData         RwHealthData[]
+  rwInstitutions       RwInstitution[]
+  rwInstitutionMembers RwInstitutionMember[]
 }
 
 // ==============================
@@ -96,6 +104,7 @@ model User {
   
   // New Fields for Registration & Verification
   phoneNumber           String?   // WhatsApp
+  photo                 String?   // User profile photo (base64 or URL)
   whatsappVerified      Boolean   @default(false)
   isFirstLogin          Boolean   @default(true)
   position              String?   // e.g., "Kepala Desa", "Bendahara"
@@ -840,4 +849,117 @@ model ChatMessage {
 
   @@index([senderId, receiverId])
   @@index([createdAt])
+}
+
+// ==============================
+// 15. RUMAH WARGA
+// ==============================
+model RumahWarga {
+  id            String   @id @default(uuid())
+  noKK          String   // Nomor KK (linked to DataKependudukan.noKK)
+  rt            String
+  rw            String
+  alamat        String   // Alamat lengkap rumah
+  latitude      Float?   // Koordinat GPS Latitude
+  longitude     Float?   // Koordinat GPS Longitude
+  lokasiDetail  String?  // Deskripsi detail lokasi (misal: "Sebelah kanan masjid")
+  fotoUrl       String?  // URL foto rumah
+  statusRumah   String   @default("MILIK_SENDIRI") // MILIK_SENDIRI, KONTRAK, MENUMPANG, DINAS, LAINNYA
+  kondisi       String   @default("LAYAK") // LAYAK, TIDAK_LAYAK, BUTUH_PERBAIKAN
+  keterangan    String?
+
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId, rt, rw])
+  @@index([tenantId, noKK])
+}
+
+// ==============================
+// 16. RW MODULES (Keamanan, Kesehatan, Kelembagaan)
+// ==============================
+
+model RwSecurityLog {
+  id          String   @id @default(uuid())
+  rw          String
+  type        String   // TAMU, INSIDEN
+  reporter    String
+  title       String
+  description String   @db.Text
+  date        DateTime @default(now())
+  status      String   @default("LAPORAN") // LAPORAN, SELESAI
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, rw])
+}
+
+model RwPatrolSchedule {
+  id          String   @id @default(uuid())
+  rw          String
+  rt          String   // e.g. "001, 002" or just specific RT
+  date        DateTime
+  personnel   String   @db.Text // Comma separated or JSON of names
+  notes       String?  @db.Text
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, rw])
+}
+
+model RwHealthData {
+  id                  String   @id @default(uuid())
+  rw                  String
+  month               Int      // 1-12
+  year                Int
+  posyanduName        String?
+  balitaTotal         Int      @default(0)
+  balitaStunting      Int      @default(0)
+  ibuHamil            Int      @default(0)
+  lansia              Int      @default(0)
+  imunisasiPercentage Float    @default(0)
+  notes               String?  @db.Text
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, rw])
+}
+
+model RwInstitution {
+  id          String   @id @default(uuid())
+  rw          String
+  name        String   // PKK, Karang Taruna, DKM
+  description String?  @db.Text
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  members     RwInstitutionMember[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, rw])
+}
+
+model RwInstitutionMember {
+  id              String   @id @default(uuid())
+  rwInstitutionId String
+  institution     RwInstitution @relation(fields: [rwInstitutionId], references: [id], onDelete: Cascade)
+  name            String
+  position        String   // Ketua, Sekretaris, Anggota
+  phoneNumber     String?
+  isActive        Boolean  @default(true)
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([rwInstitutionId])
 }

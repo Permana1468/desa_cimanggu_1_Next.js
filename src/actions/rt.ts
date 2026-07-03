@@ -34,8 +34,8 @@ export async function buildWilayahFilterScope(role: string, userRt: string, user
     const rwClean = cleanDigits(userRw || "");
     
     if (role === "RT") {
-        filterScope.rt = { in: [userRt, rtClean, rtClean.padStart(3, '0')] };
-        filterScope.rw = { in: [userRw, rwClean, rwClean.padStart(3, '0')] };
+        filterScope.rt = { in: [userRt, rtClean, rtClean.padStart(2, '0'), rtClean.padStart(3, '0')] };
+        filterScope.rw = { in: [userRw, rwClean, rwClean.padStart(2, '0'), rwClean.padStart(3, '0')] };
         return filterScope;
     }
     
@@ -60,10 +60,10 @@ export async function buildWilayahFilterScope(role: string, userRt: string, user
         
         const matchedRts = rtScopeList.flatMap(rt => {
             const clean = cleanDigits(rt);
-            return [clean, clean.padStart(3, '0'), rt];
+            return [clean, clean.padStart(2, '0'), clean.padStart(3, '0'), rt];
         });
         
-        filterScope.rw = { in: [userRw, targetRwClean, targetRwClean.padStart(3, '0')] };
+        filterScope.rw = { in: [userRw, targetRwClean, targetRwClean.padStart(2, '0'), targetRwClean.padStart(3, '0')] };
         if (matchedRts.length > 0) {
             filterScope.rt = { in: matchedRts };
         }
@@ -87,11 +87,11 @@ export async function buildWilayahFilterScope(role: string, userRt: string, user
         
         const matchedRws = allowedRws.flatMap(rw => {
             const clean = cleanDigits(rw);
-            return [clean, clean.padStart(3, '0'), rw];
+            return [clean, clean.padStart(2, '0'), clean.padStart(3, '0'), rw];
         });
         const matchedRts = allowedRts.flatMap(rt => {
             const clean = cleanDigits(rt);
-            return [clean, clean.padStart(3, '0'), rt];
+            return [clean, clean.padStart(2, '0'), clean.padStart(3, '0'), rt];
         });
         
         filterScope.OR = [];
@@ -215,15 +215,25 @@ export async function getRtDashboardStats() {
         const { tenantId, rt, rw, role } = await getRtSession();
         const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
+        const [deathRecords, moveRecords] = await Promise.all([
+            prisma.rtDeathReport.findMany({ select: { nik: true } }),
+            prisma.rtMoveReport.findMany({ select: { nik: true } })
+        ]);
+        const inactiveNiks = [...deathRecords.map(d => d.nik), ...moveRecords.map(m => m.nik)];
+        const activeScope = { ...filterScope };
+        if (inactiveNiks.length > 0) {
+            activeScope.nik = { notIn: inactiveNiks };
+        }
+
         // Total Warga
         const totalWarga = await prisma.dataKependudukan.count({
-            where: filterScope
+            where: activeScope
         });
 
         // Total KK (Unique noKK)
         const familiesCount = await prisma.dataKependudukan.groupBy({
             by: ['noKK'],
-            where: filterScope
+            where: activeScope
         });
         const totalKK = familiesCount.length;
 
@@ -1164,16 +1174,26 @@ export async function getRwDashboardStats() {
 
         const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
+        const [deathRecords, moveRecords] = await Promise.all([
+            prisma.rtDeathReport.findMany({ select: { nik: true } }),
+            prisma.rtMoveReport.findMany({ select: { nik: true } })
+        ]);
+        const inactiveNiks = [...deathRecords.map(d => d.nik), ...moveRecords.map(m => m.nik)];
+        const activeScope = { ...filterScope };
+        if (inactiveNiks.length > 0) {
+            activeScope.nik = { notIn: inactiveNiks };
+        }
+
         const citizens = await prisma.dataKependudukan.findMany({
-            where: filterScope
+            where: activeScope
         });
 
         const rtWargaMap: Record<string, number> = {};
         const rtKkMap: Record<string, Set<string>> = {};
         const rtRwMap: Record<string, { rt: string, rw: string }> = {};
         citizens.forEach(c => {
-            const rtKey = c.rt || "000";
-            const rwKey = c.rw || "000";
+            const rtKey = cleanDigits(c.rt || "").padStart(3, '0');
+            const rwKey = cleanDigits(c.rw || "").padStart(3, '0');
             const compositeKey = `${rwKey}_${rtKey}`;
             
             rtWargaMap[compositeKey] = (rtWargaMap[compositeKey] || 0) + 1;
@@ -1187,8 +1207,8 @@ export async function getRwDashboardStats() {
         });
         const rtKasMap: Record<string, number> = {};
         finances.forEach(f => {
-            const rtKey = f.rt || "000";
-            const rwKey = f.rw || "000";
+            const rtKey = cleanDigits(f.rt || "").padStart(3, '0');
+            const rwKey = cleanDigits(f.rw || "").padStart(3, '0');
             const compositeKey = `${rwKey}_${rtKey}`;
             
             if (!rtKasMap[compositeKey]) rtKasMap[compositeKey] = 0;
@@ -1202,8 +1222,8 @@ export async function getRwDashboardStats() {
         });
         const rtActivitiesCount: Record<string, number> = {};
         activities.forEach(a => {
-            const rtKey = a.rt || "000";
-            const rwKey = a.rw || "000";
+            const rtKey = cleanDigits(a.rt || "").padStart(3, '0');
+            const rwKey = cleanDigits(a.rw || "").padStart(3, '0');
             const compositeKey = `${rwKey}_${rtKey}`;
             
             rtActivitiesCount[compositeKey] = (rtActivitiesCount[compositeKey] || 0) + 1;

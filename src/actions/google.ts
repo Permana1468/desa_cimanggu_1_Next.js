@@ -21,10 +21,17 @@ async function checkMaster() {
 
 // Generate redirect URI dynamically based on the current host header
 export async function getRedirectUri() {
-    const headersList = await headers();
-    const host = headersList.get("host") || "localhost:3000";
-    const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
-    return `${protocol}://${host}/api/auth/google/callback`;
+    if (process.env.NEXT_PHASE === 'phase-production-build') {
+        return "http://localhost:3000/api/auth/google/callback";
+    }
+    try {
+        const headersList = await headers();
+        const host = headersList.get("host") || "localhost:3000";
+        const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
+        return `${protocol}://${host}/api/auth/google/callback`;
+    } catch (error) {
+        return "http://localhost:3000/api/auth/google/callback";
+    }
 }
 
 // Get Google Integration Settings
