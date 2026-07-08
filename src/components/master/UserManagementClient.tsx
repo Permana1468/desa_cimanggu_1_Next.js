@@ -212,7 +212,13 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                                     <td className="px-10 py-8">
                                         <div className="flex items-center gap-5">
                                             <div className={`relative w-14 h-14 rounded-2xl overflow-hidden shrink-0 group-hover:scale-110 transition-transform duration-500 ${user.role === 'ADMIN_MASTER' ? 'animate-ring-master' : 'animate-ring-desa'}`}>
-                                                <Image src={`https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop&ixlib=rb-4.0.3`} alt="Avatar" fill className="object-cover" />
+                                                <Image 
+                                                    src={user.photo || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop&ixlib=rb-4.0.3`} 
+                                                    alt="Avatar" 
+                                                    fill 
+                                                    className="object-cover" 
+                                                    unoptimized={!!user.photo}
+                                                />
                                                 <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-transparent transition-colors" />
                                             </div>
                                             <div className="flex flex-col">
@@ -308,7 +314,13 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-5">
                                     <div className={`relative w-14 h-14 rounded-2xl overflow-hidden shrink-0 ${user.role === 'ADMIN_MASTER' ? 'animate-ring-master' : 'animate-ring-desa'}`}>
-                                        <Image src={`https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop&ixlib=rb-4.0.3`} alt="Avatar" fill className="object-cover" />
+                                        <Image 
+                                            src={user.photo || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop&ixlib=rb-4.0.3`} 
+                                            alt="Avatar" 
+                                            fill 
+                                            className="object-cover" 
+                                            unoptimized={!!user.photo}
+                                        />
                                     </div>
                                     <div>
                                         <p className="text-base font-black text-slate-900 leading-none mb-1">{user.fullName}</p>

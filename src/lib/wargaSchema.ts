@@ -210,16 +210,32 @@ export const DEFAULT_WARGA_FORM = {
 export function isWargaDataIncomplete(warga: any): boolean {
     if (!warga) return true;
     
-    // Core fields check
-    const requiredKeys = ["nik", "noKK", "namaLengkap", "jenisKelamin", "tempatLahir", "tanggalLahir", "agama", "alamat", "rt", "rw", "dusun"];
-    for (const key of requiredKeys) {
-        if (!warga[key]) return true;
-    }
+    const requiredKeys = [
+        "nik",
+        "noKK",
+        "namaLengkap",
+        "jenisKelamin",
+        "tempatLahir",
+        "tanggalLahir",
+        "agama",
+        "alamat",
+        "rt",
+        "rw",
+        "dusun",
+        "pendidikan",
+        "pekerjaan",
+        "golonganDarah",
+        "statusKawin",
+        "hubunganKeluarga",
+        "kewarganegaraan",
+        "namaAyah",
+        "namaIbu"
+    ];
 
-    // Checking if fields that were added later are missing (null/empty)
-    const optionalOrNewKeys = ["pendidikan", "golonganDarah", "statusKawin", "hubunganKeluarga", "kewarganegaraan"];
-    for (const key of optionalOrNewKeys) {
-        if (warga[key] === null || warga[key] === undefined || warga[key] === "") {
+    for (const key of requiredKeys) {
+        const val = warga[key];
+        // Treat null, undefined, empty spaces, or placeholder "-" as incomplete
+        if (val === null || val === undefined || String(val).trim() === "" || val === "-") {
             return true;
         }
     }

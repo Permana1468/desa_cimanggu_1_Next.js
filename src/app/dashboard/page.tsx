@@ -13,6 +13,7 @@ import { KesejahteraanDashboard } from "@/components/dashboard/roles/Kesejahtera
 import { KelembagaanDashboard } from "@/components/dashboard/roles/KelembagaanDashboard";
 import { EkonomiDashboard } from "@/components/dashboard/roles/EkonomiDashboard";
 import { OperatorDashboard } from "@/components/dashboard/roles/OperatorDashboard";
+import { PosyanduDashboard } from "@/components/dashboard/roles/PosyanduDashboard";
 
 export default async function VillageDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -68,8 +69,13 @@ export default async function VillageDashboardPage() {
   }
 
   // 5. KELEMBAGAAN MASYARAKAT
-  if (["TP_PKK", "PKK", "POSYANDU", "LPM", "BPD", "KARANG_TARUNA"].includes(role)) {
+  if (["TP_PKK", "PKK", "LPM", "BPD", "KARANG_TARUNA"].includes(role)) {
     return <KelembagaanDashboard session={session} stats={stats} />;
+  }
+
+  // 5b. POSYANDU
+  if (role === "POSYANDU") {
+    return <PosyanduDashboard session={session} stats={stats} />;
   }
 
   // 6. KEWILAYAHAN (Dusun, RT, RW)

@@ -14,6 +14,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   FileText,
   Database,
   Menu,
@@ -34,7 +35,14 @@ import {
   HeartHandshake,
   Home as HomeIcon,
   ShieldCheck,
-  HeartPulse
+  HeartPulse,
+  Baby,
+  Stethoscope,
+  CalendarClock,
+  ClipboardList,
+  UserCog,
+  SlidersHorizontal,
+  BarChart3
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -70,6 +78,12 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
   const session = propSession || clientSession;
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [openGroup, setOpenGroup] = useState<string | null>("manajemen-data");
+
+  const toggleGroup = (group: string) => {
+    setOpenGroup(prev => prev === group ? null : group);
+  };
+
 
   const email = session?.user?.email || "";
   const baseRole = session?.user?.role;
@@ -139,126 +153,357 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 space-y-1.5 mt-2 overflow-y-auto custom-scrollbar">
-          {(() => {
-            let itemsToRender = menuItems.filter(item => {
-              if (["ADMIN_DESA", "KADES", "SEKDES", "PERANGKAT_DESA", "OPERATOR_DESA", "ADMIN_MASTER"].includes(role as string)) {
-                  if (role === "ADMIN_DESA" && item.name === "Usulan Pembangunan") return false;
-                  return true;
-              }
-              
-              if (role === "KAUR_PERENCANAAN") {
-                return ["Dashboard", "Usulan Pembangunan", "Infrastruktur", "APBDes", "Peta Interaktif", "Arsip Digital", "Monitoring", "Pengaturan"].includes(item.name);
-              }
-              if (role === "KAUR_KEUANGAN") {
-                return ["Dashboard", "APBDes", "Usulan Pembangunan", "Pengaturan"].includes(item.name);
-              }
-              if (role === "KAUR_TU") {
-                return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Aparatur Desa", "Arsip Digital", "Tracking Layanan", "Pengaturan"].includes(item.name);
-              }
-              if (role === "KASI_PEMERINTAHAN") {
-                return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Peta Interaktif", "Tracking Layanan", "Pengaturan"].includes(item.name);
-              }
-              if (role === "KASI_PELAYANAN") {
-                return ["Dashboard", "Pusat Persuratan", "Tracking Layanan", "Pengaturan"].includes(item.name);
-              }
-              if (role === "KASI_KESEJAHTERAAN") {
-                return ["Dashboard", "Data Bansos", "Pengaturan"].includes(item.name);
-              }
-              
-              // Fallback for unmapped KAUR/KASI
-              if (["KAUR", "KASI"].includes(role as string)) return true;
+        <nav className="flex-1 px-3 mt-2 overflow-y-auto custom-scrollbar">
+          {role === "POSYANDU" ? (
+            // === POSYANDU ACCORDION SIDEBAR ===
+            <div className="space-y-1">
+              {/* Dashboard */}
+              <Link
+                href="/dashboard?tab=overview"
+                onClick={() => setIsOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                  (tabParam || "overview") === "overview"
+                    ? "bg-teal-600 text-white font-bold shadow-lg shadow-teal-600/20"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+              >
+                <LayoutDashboard size={20} />
+                {(!isCollapsed || isOpen) && <span className="text-sm">Dashboard</span>}
+              </Link>
 
-              if (["PKK", "TP_PKK", "POSYANDU", "BPD", "KADUS", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
-                 return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Pembangunan", "Tracking Layanan", "Peta Interaktif"].includes(item.name);
-              }
-              if (role === "BUMDES") {
-                 return ["Dashboard", "BUMDES"].includes(item.name);
-              }
-              return false;
-            });
-
-            if (role === "LPM") {
-              itemsToRender = [
-                { name: "Dashboard", icon: LayoutDashboard, href: "/kelembagaan?tab=overview" },
-                { name: "Usulan Pembangunan", icon: Banknote, href: "/kelembagaan/finance" },
-                { name: "Program Kerja", icon: Activity, href: "/kelembagaan?tab=program" },
-                { name: "Pemberdayaan", icon: Sparkles, href: "/kelembagaan?tab=pemberdayaan" },
-                { name: "Swadaya & Gotong Royong", icon: HeartHandshake, href: "/kelembagaan?tab=swadaya" },
-                { name: "Susunan Pengurus", icon: Users, href: "/kelembagaan?tab=pengurus" }
-              ];
-            }
-
-            if (role === "RT" || role === "RW") {
-              itemsToRender = [
-                { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard?tab=overview" },
-                { name: "Data Warga", icon: Users, href: "/dashboard?tab=warga" },
-                { name: "Rumah Warga", icon: HomeIcon, href: "/dashboard?tab=rumah" },
-                { name: "Kas Keuangan", icon: Banknote, href: "/dashboard?tab=finance" },
-                { name: "Cek Surat", icon: FileText, href: "/dashboard?tab=surat" },
-                { name: "Laporan Kegiatan", icon: Sparkles, href: "/dashboard?tab=kegiatan" },
-                { name: "Laporan LAMPID", icon: Milestone, href: "/dashboard?tab=lampid" },
-                { name: "Pengumuman", icon: Megaphone, href: "/dashboard?tab=announcements" },
-                { name: "Aduan Warga", icon: AlertCircle, href: "/dashboard?tab=complaints" },
-                { name: "Inventaris RT", icon: Package, href: "/dashboard?tab=inventory" },
-                { name: "GeoSENSUS", icon: Compass, href: "/dashboard?tab=geosensus" },
-                { name: "Data Bansos", icon: HeartHandshake, href: "/dashboard?tab=bansos" },
-                { name: "Keamanan Lingkungan", icon: ShieldCheck, href: "/dashboard?tab=security" }
-              ];
-              
-              if (role === "RW") {
-                itemsToRender.push(
-                  { name: "Posyandu & Kesehatan", icon: HeartPulse, href: "/dashboard?tab=health" },
-                  { name: "Kelembagaan RW", icon: Building2, href: "/dashboard?tab=institutions" }
-                );
-              }
-            }
-
-            // Ensure 'Pengaturan' is always available for all roles
-            if (!itemsToRender.find(item => item.name === 'Pengaturan')) {
-                itemsToRender.push({ name: 'Pengaturan', icon: Settings, href: '/dashboard/settings' });
-            }
-
-            return itemsToRender.map((item) => {
-              const isInstitutional = ["PKK", "TP_PKK", "POSYANDU", "LPM", "BPD", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string);
-              
-              // Map dashboard links to kelembagaan links for institutional roles
-              let href = item.href;
-              if (isInstitutional && role !== "LPM") {
-                  if (href === "/dashboard") href = "/kelembagaan";
-                  else href = href.replace("/dashboard/", "/kelembagaan/");
-              }
-
-              let isActive = false;
-              if (role === "RT" || role === "RW" || role === "LPM") {
-                const urlTab = tabParam || "overview";
-                const itemTab = item.href.split("tab=")[1] || "overview";
-                isActive = (pathname === "/dashboard" || pathname === "/kelembagaan") && urlTab === itemTab;
-                if (item.name === "Usulan Pembangunan" && role === "LPM") {
-                  isActive = pathname === "/kelembagaan/finance";
-                }
-              } else {
-                isActive = pathname === href;
-              }
-
-              return (
-                <Link
-                  key={item.name}
-                  href={href}
-                  onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                    isActive 
-                      ? "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20" 
+              {/* Group 1: Manajemen Data */}
+              <div>
+                <button
+                  onClick={() => (!isCollapsed || isOpen) && toggleGroup("manajemen-data")}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                    ["balita","ibuhamil","lansia"].includes(tabParam || "")
+                      ? "bg-teal-50 text-teal-700 font-bold"
                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
-                  } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
+                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                 >
-                  <item.icon size={20} className={isActive ? "" : "group-hover:scale-110 transition-transform"} />
-                  {(!isCollapsed || isOpen) && <span className="text-sm">{item.name}</span>}
-                </Link>
-              );
-            });
-          })()}
+                  <Database size={20} className="shrink-0" />
+                  {(!isCollapsed || isOpen) && (
+                    <>
+                      <span className="text-sm flex-1 text-left">Manajemen Data</span>
+                      <ChevronDown
+                        size={14}
+                        className={`transition-transform duration-200 ${openGroup === "manajemen-data" ? "rotate-180" : ""}`}
+                      />
+                    </>
+                  )}
+                </button>
+                <AnimatePresence>
+                  {(openGroup === "manajemen-data" && (!isCollapsed || isOpen)) && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-1 ml-3 pl-3 border-l-2 border-teal-100 space-y-1">
+                        {[
+                          { label: "Data Balita", tab: "balita", icon: Baby },
+                          { label: "Data Ibu Hamil", tab: "ibuhamil", icon: HeartPulse },
+                          { label: "Data Lansia", tab: "lansia", icon: Users },
+                        ].map(({ label, tab, icon: Icon }) => (
+                          <Link
+                            key={tab}
+                            href={`/dashboard?tab=${tab}`}
+                            onClick={() => setIsOpen(false)}
+                            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                              tabParam === tab
+                                ? "bg-teal-500 text-white font-semibold"
+                                : "text-slate-500 hover:bg-teal-50 hover:text-teal-700"
+                            }`}
+                          >
+                            <Icon size={16} />
+                            <span>{label}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Group 2: Layanan Kesehatan */}
+              <div>
+                <button
+                  onClick={() => (!isCollapsed || isOpen) && toggleGroup("layanan")}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                    ["layanan-balita","layanan-ibuhamil","layanan-lansia"].includes(tabParam || "")
+                      ? "bg-teal-50 text-teal-700 font-bold"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                >
+                  <Stethoscope size={20} className="shrink-0" />
+                  {(!isCollapsed || isOpen) && (
+                    <>
+                      <span className="text-sm flex-1 text-left">Layanan Kesehatan</span>
+                      <ChevronDown
+                        size={14}
+                        className={`transition-transform duration-200 ${openGroup === "layanan" ? "rotate-180" : ""}`}
+                      />
+                    </>
+                  )}
+                </button>
+                <AnimatePresence>
+                  {(openGroup === "layanan" && (!isCollapsed || isOpen)) && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-1 ml-3 pl-3 border-l-2 border-teal-100 space-y-1">
+                        {[
+                          { label: "Layanan Balita", tab: "layanan-balita", icon: Baby },
+                          { label: "Layanan Ibu Hamil", tab: "layanan-ibuhamil", icon: HeartPulse },
+                          { label: "Layanan Lansia", tab: "layanan-lansia", icon: Users },
+                        ].map(({ label, tab, icon: Icon }) => (
+                          <Link
+                            key={tab}
+                            href={`/dashboard?tab=${tab}`}
+                            onClick={() => setIsOpen(false)}
+                            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                              tabParam === tab
+                                ? "bg-teal-500 text-white font-semibold"
+                                : "text-slate-500 hover:bg-teal-50 hover:text-teal-700"
+                            }`}
+                          >
+                            <Icon size={16} />
+                            <span>{label}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Group 3: Jadwal & Kehadiran */}
+              <div>
+                <button
+                  onClick={() => (!isCollapsed || isOpen) && toggleGroup("jadwal")}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                    ["jadwal","kehadiran","analisis"].includes(tabParam || "")
+                      ? "bg-teal-50 text-teal-700 font-bold"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                >
+                  <CalendarClock size={20} className="shrink-0" />
+                  {(!isCollapsed || isOpen) && (
+                    <>
+                      <span className="text-sm flex-1 text-left">Jadwal & Kehadiran</span>
+                      <ChevronDown
+                        size={14}
+                        className={`transition-transform duration-200 ${openGroup === "jadwal" ? "rotate-180" : ""}`}
+                      />
+                    </>
+                  )}
+                </button>
+                <AnimatePresence>
+                  {(openGroup === "jadwal" && (!isCollapsed || isOpen)) && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-1 ml-3 pl-3 border-l-2 border-teal-100 space-y-1">
+                        {[
+                          { label: "Jadwal Posyandu", tab: "jadwal", icon: ClipboardList },
+                          { label: "Rekap Kehadiran", tab: "kehadiran", icon: Activity },
+                          { label: "Analisis Laporan", tab: "analisis", icon: BarChart3 },
+                        ].map(({ label, tab, icon: Icon }) => (
+                          <Link
+                            key={tab}
+                            href={`/dashboard?tab=${tab}`}
+                            onClick={() => setIsOpen(false)}
+                            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                              tabParam === tab
+                                ? "bg-teal-500 text-white font-semibold"
+                                : "text-slate-500 hover:bg-teal-50 hover:text-teal-700"
+                            }`}
+                          >
+                            <Icon size={16} />
+                            <span>{label}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Group 4: Manajemen Sistem */}
+              <div>
+                <button
+                  onClick={() => (!isCollapsed || isOpen) && toggleGroup("sistem")}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                >
+                  <SlidersHorizontal size={20} className="shrink-0" />
+                  {(!isCollapsed || isOpen) && (
+                    <>
+                      <span className="text-sm flex-1 text-left">Manajemen Sistem</span>
+                      <ChevronDown
+                        size={14}
+                        className={`transition-transform duration-200 ${openGroup === "sistem" ? "rotate-180" : ""}`}
+                      />
+                    </>
+                  )}
+                </button>
+                <AnimatePresence>
+                  {(openGroup === "sistem" && (!isCollapsed || isOpen)) && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-1 ml-3 pl-3 border-l-2 border-slate-100 space-y-1">
+                        <Link
+                          href="/dashboard/settings?tab=user"
+                          onClick={() => setIsOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                        >
+                          <UserCog size={16} />
+                          <span>Manajemen User</span>
+                        </Link>
+                        <Link
+                          href="/dashboard/settings"
+                          onClick={() => setIsOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                        >
+                          <Settings size={16} />
+                          <span>Pengaturan Sistem</span>
+                        </Link>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+          ) : (
+            // === ALL OTHER ROLES: Generic list ===
+            <div className="space-y-1.5">
+              {(() => {
+                let itemsToRender = menuItems.filter(item => {
+                  if (["ADMIN_DESA", "KADES", "SEKDES", "PERANGKAT_DESA", "OPERATOR_DESA", "ADMIN_MASTER"].includes(role as string)) {
+                      if (role === "ADMIN_DESA" && item.name === "Usulan Pembangunan") return false;
+                      return true;
+                  }
+                  if (role === "KAUR_PERENCANAAN") {
+                    return ["Dashboard", "Usulan Pembangunan", "Infrastruktur", "APBDes", "Peta Interaktif", "Arsip Digital", "Monitoring", "Pengaturan"].includes(item.name);
+                  }
+                  if (role === "KAUR_KEUANGAN") {
+                    return ["Dashboard", "APBDes", "Usulan Pembangunan", "Pengaturan"].includes(item.name);
+                  }
+                  if (role === "KAUR_TU") {
+                    return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Aparatur Desa", "Arsip Digital", "Tracking Layanan", "Pengaturan"].includes(item.name);
+                  }
+                  if (role === "KASI_PEMERINTAHAN") {
+                    return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Peta Interaktif", "Tracking Layanan", "Pengaturan"].includes(item.name);
+                  }
+                  if (role === "KASI_PELAYANAN") {
+                    return ["Dashboard", "Pusat Persuratan", "Tracking Layanan", "Pengaturan"].includes(item.name);
+                  }
+                  if (role === "KASI_KESEJAHTERAAN") {
+                    return ["Dashboard", "Data Bansos", "Pengaturan"].includes(item.name);
+                  }
+                  if (["KAUR", "KASI"].includes(role as string)) return true;
+                  if (["PKK", "TP_PKK", "BPD", "KADUS", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
+                     return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Pembangunan", "Tracking Layanan", "Peta Interaktif"].includes(item.name);
+                  }
+                  if (role === "BUMDES") {
+                     return ["Dashboard", "BUMDES"].includes(item.name);
+                  }
+                  return false;
+                });
+
+                if (role === "LPM") {
+                  itemsToRender = [
+                    { name: "Dashboard", icon: LayoutDashboard, href: "/kelembagaan?tab=overview" },
+                    { name: "Usulan Pembangunan", icon: Banknote, href: "/kelembagaan/finance" },
+                    { name: "Program Kerja", icon: Activity, href: "/kelembagaan?tab=program" },
+                    { name: "Pemberdayaan", icon: Sparkles, href: "/kelembagaan?tab=pemberdayaan" },
+                    { name: "Swadaya & Gotong Royong", icon: HeartHandshake, href: "/kelembagaan?tab=swadaya" },
+                    { name: "Susunan Pengurus", icon: Users, href: "/kelembagaan?tab=pengurus" }
+                  ];
+                }
+
+                if (role === "RT" || role === "RW") {
+                  itemsToRender = [
+                    { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard?tab=overview" },
+                    { name: "Data Warga", icon: Users, href: "/dashboard?tab=warga" },
+                    { name: "Rumah Warga", icon: HomeIcon, href: "/dashboard?tab=rumah" },
+                    { name: "Kas Keuangan", icon: Banknote, href: "/dashboard?tab=finance" },
+                    { name: "Cek Surat", icon: FileText, href: "/dashboard?tab=surat" },
+                    { name: "Laporan Kegiatan", icon: Sparkles, href: "/dashboard?tab=kegiatan" },
+                    { name: "Laporan LAMPID", icon: Milestone, href: "/dashboard?tab=lampid" },
+                    { name: "Pengumuman", icon: Megaphone, href: "/dashboard?tab=announcements" },
+                    { name: "Aduan Warga", icon: AlertCircle, href: "/dashboard?tab=complaints" },
+                    { name: "Inventaris RT", icon: Package, href: "/dashboard?tab=inventory" },
+                    { name: "GeoSENSUS", icon: Compass, href: "/dashboard?tab=geosensus" },
+                    { name: "Data Bansos", icon: HeartHandshake, href: "/dashboard?tab=bansos" },
+                    { name: "Keamanan Lingkungan", icon: ShieldCheck, href: "/dashboard?tab=security" }
+                  ];
+                  if (role === "RW") {
+                    itemsToRender.push(
+                      { name: "Posyandu & Kesehatan", icon: HeartPulse, href: "/dashboard?tab=health" },
+                      { name: "Kelembagaan RW", icon: Building2, href: "/dashboard?tab=institutions" }
+                    );
+                  }
+                }
+
+                if (!itemsToRender.find(item => item.name === 'Pengaturan')) {
+                    itemsToRender.push({ name: 'Pengaturan', icon: Settings, href: '/dashboard/settings' });
+                }
+
+                return itemsToRender.map((item) => {
+                  const isInstitutional = ["PKK", "TP_PKK", "LPM", "BPD", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string);
+                  let href = item.href;
+                  if (isInstitutional && role !== "LPM") {
+                      if (href === "/dashboard") href = "/kelembagaan";
+                      else href = href.replace("/dashboard/", "/kelembagaan/");
+                  }
+                  let isActive = false;
+                  if (role === "RT" || role === "RW" || role === "LPM") {
+                    const urlTab = tabParam || "overview";
+                    const itemTab = item.href.split("tab=")[1] || "overview";
+                    isActive = (pathname === "/dashboard" || pathname === "/kelembagaan") && urlTab === itemTab;
+                    if (item.name === "Usulan Pembangunan" && role === "LPM") {
+                      isActive = pathname === "/kelembagaan/finance";
+                    }
+                  } else {
+                    isActive = pathname === href;
+                  }
+
+                  return (
+                    <Link
+                      key={item.name}
+                      href={href}
+                      onClick={() => setIsOpen(false)}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                        isActive
+                          ? "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20"
+                          : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                      } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
+                    >
+                      <item.icon size={20} className={isActive ? "" : "group-hover:scale-110 transition-transform"} />
+                      {(!isCollapsed || isOpen) && <span className="text-sm">{item.name}</span>}
+                    </Link>
+                  );
+                });
+              })()}
+            </div>
+          )}
         </nav>
+
 
         {/* User Area & Logout (Compact Aesthetic Design) */}
         <div className="p-4 mt-auto">

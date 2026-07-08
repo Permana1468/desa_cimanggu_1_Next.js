@@ -64,7 +64,13 @@ export function UserMaintenanceClient({ initialUsers }: UserMaintenanceClientPro
                     <div key={user.id} className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${user.isActive ? 'bg-white border-slate-100' : 'bg-rose-50 border-rose-200 shadow-md shadow-rose-100'}`}>
                         <div className="flex items-center gap-4">
                             <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0">
-                                <Image src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop" alt="Avatar" fill className="object-cover" />
+                                <Image 
+                                    src={user.photo || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop"} 
+                                    alt="Avatar" 
+                                    fill 
+                                    className="object-cover" 
+                                    unoptimized={!!user.photo}
+                                />
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-sm font-black text-slate-900 truncate max-w-[120px]">{user.fullName}</span>

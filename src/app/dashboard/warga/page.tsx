@@ -133,6 +133,14 @@ export default function WargaManagementPage() {
         });
     }, [warga, filterIncomplete, sortBy]);
 
+    const stats = useMemo(() => {
+        const total = warga.length;
+        const male = warga.filter(w => w.jenisKelamin === "LAKI_LAKI").length;
+        const female = warga.filter(w => w.jenisKelamin === "PEREMPUAN").length;
+        const incomplete = warga.filter(isWargaDataIncomplete).length;
+        return { total, male, female, incomplete };
+    }, [warga]);
+
     useEffect(() => {
         handleSearch();
         loadTemplates();
@@ -292,6 +300,46 @@ export default function WargaManagementPage() {
                 </div>
             </div>
 
+            {/* STATS SUMMARY */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-5 rounded-[2rem] border border-slate-200/60 bg-blue-50/50 text-blue-800 flex items-center gap-4 shadow-sm">
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm shrink-0">
+                        <Users size={20} />
+                    </div>
+                    <div className="min-w-0">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">Total Warga</span>
+                        <span className="text-2xl font-black text-slate-800">{stats.total} <span className="text-xs font-semibold text-slate-500">Orang</span></span>
+                    </div>
+                </div>
+                <div className="p-5 rounded-[2rem] border border-slate-200/60 bg-emerald-50/50 text-emerald-800 flex items-center gap-4 shadow-sm">
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm shrink-0">
+                        <LucideUser size={20} />
+                    </div>
+                    <div className="min-w-0">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">Laki-Laki</span>
+                        <span className="text-2xl font-black text-slate-800">{stats.male} <span className="text-xs font-semibold text-slate-500">Orang</span></span>
+                    </div>
+                </div>
+                <div className="p-5 rounded-[2rem] border border-slate-200/60 bg-pink-50/50 text-pink-800 flex items-center gap-4 shadow-sm">
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-pink-600 shadow-sm shrink-0">
+                        <LucideUsers size={20} />
+                    </div>
+                    <div className="min-w-0">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">Perempuan</span>
+                        <span className="text-2xl font-black text-slate-800">{stats.female} <span className="text-xs font-semibold text-slate-500">Orang</span></span>
+                    </div>
+                </div>
+                <div className="p-5 rounded-[2rem] border border-slate-200/60 bg-rose-50/50 text-rose-800 flex items-center gap-4 shadow-sm">
+                    <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-rose-600 shadow-sm shrink-0">
+                        <AlertCircle size={20} />
+                    </div>
+                    <div className="min-w-0">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 block mb-0.5">Belum Lengkap</span>
+                        <span className="text-2xl font-black text-slate-800">{stats.incomplete} <span className="text-xs font-semibold text-slate-500">Orang</span></span>
+                    </div>
+                </div>
+            </div>
+
             {/* FILTERS & SEARCH */}
             <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200/60">
                 <div className="flex flex-col lg:flex-row gap-6 mb-8">
@@ -358,81 +406,139 @@ export default function WargaManagementPage() {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {loading ? (
-                        Array(6).fill(0).map((_, i) => (
-                            <div key={i} className="h-56 bg-slate-50 animate-pulse rounded-[2.5rem]" />
-                        ))
-                    ) : displayedWarga.length > 0 ? displayedWarga.map((item) => (
-                        <div key={item.id} className="p-7 rounded-[2.5rem] border border-slate-100 hover:border-blue-200 hover:shadow-2xl hover:shadow-slate-200/50 transition-all group bg-white relative overflow-hidden flex flex-col">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:bg-blue-50 transition-colors" />
-                            
-                            <div className="relative z-10 flex-1">
-                                <div className="flex items-start justify-between mb-6">
-                                    <div className="w-14 h-14 bg-white border-2 border-slate-100 rounded-2xl flex items-center justify-center text-blue-600 text-xl font-black shadow-sm">
-                                        {item.namaLengkap.charAt(0)}
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => handleEdit(item)} className="p-2.5 bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
-                                            <Edit2 size={16} />
-                                        </button>
-                                        <button onClick={() => handleDelete(item.id)} className="p-2.5 bg-slate-50 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
-                                            <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <div className="mb-6 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <h3 className="text-base font-black text-slate-800 truncate leading-tight">{item.namaLengkap}</h3>
-                                        {isWargaDataIncomplete(item) && (
-                                            <span className="px-2 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-md text-[9px] font-black uppercase tracking-tight flex items-center gap-1 shrink-0">
-                                                <AlertCircle size={10} /> Belum Lengkap
-                                            </span>
-                                        )}
-                                    </div>
-                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em]"><HoverMask value={item.nik} /></span>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-50">
-                                    <div className="space-y-1">
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Wilayah</span>
-                                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700">
-                                            <MapPin size={12} className="text-blue-500" />
-                                            RT {item.rt}/RW {item.rw}
+                <div className="overflow-x-auto -mx-8 px-8">
+                    <table className="w-full text-left border-collapse min-w-[1000px]">
+                        <thead>
+                            <tr className="text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100 bg-slate-50/30">
+                                <th className="py-5 pl-6 w-12 text-center">No</th>
+                                <th className="py-5 px-4">Nama Lengkap & NIK</th>
+                                <th className="py-5 px-4 w-44">No. KK</th>
+                                <th className="py-5 px-4 w-16 text-center">JK</th>
+                                <th className="py-5 px-4 w-44">Wilayah (RT/RW/Dusun)</th>
+                                <th className="py-5 px-4 w-44">Lahir</th>
+                                <th className="py-5 px-4 w-32 text-center">Status</th>
+                                <th className="py-5 pr-6 text-right w-44">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                            {loading ? (
+                                Array(6).fill(0).map((_, i) => (
+                                    <tr key={i} className="animate-pulse">
+                                        <td className="py-6 pl-6"><div className="h-4 w-4 bg-slate-100 rounded mx-auto" /></td>
+                                        <td className="py-6 px-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-slate-100 rounded-xl" />
+                                                <div className="space-y-2">
+                                                    <div className="h-4 w-28 bg-slate-100 rounded" />
+                                                    <div className="h-3 w-20 bg-slate-100 rounded" />
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="py-6 px-4"><div className="h-4 w-24 bg-slate-100 rounded" /></td>
+                                        <td className="py-6 px-4"><div className="h-4 w-6 bg-slate-100 rounded mx-auto" /></td>
+                                        <td className="py-6 px-4"><div className="h-4 w-24 bg-slate-100 rounded" /></td>
+                                        <td className="py-6 px-4"><div className="h-4 w-20 bg-slate-100 rounded" /></td>
+                                        <td className="py-6 px-4"><div className="h-6 w-20 bg-slate-100 rounded mx-auto" /></td>
+                                        <td className="py-6 pr-6"><div className="h-8 w-28 bg-slate-100 rounded ml-auto" /></td>
+                                    </tr>
+                                ))
+                            ) : displayedWarga.length > 0 ? displayedWarga.map((item, index) => (
+                                <tr key={item.id} className="group hover:bg-slate-50/30 transition-colors">
+                                    <td className="py-5 pl-6 text-center text-xs font-bold text-slate-400">
+                                        {index + 1}
+                                    </td>
+                                    <td className="py-5 px-4 min-w-[200px]">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-blue-600 text-sm font-black shadow-sm shrink-0">
+                                                {item.namaLengkap.charAt(0)}
+                                            </div>
+                                            <div className="min-w-0">
+                                                <div className="font-black text-slate-800 text-sm truncate leading-tight">{item.namaLengkap}</div>
+                                                <div className="text-[10px] text-slate-400 font-bold tracking-wider mt-0.5 uppercase">
+                                                    NIK: <HoverMask value={item.nik} />
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Lahir</span>
-                                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-700">
-                                            <Calendar size={12} className="text-amber-500" />
+                                    </td>
+                                    <td className="py-5 px-4 text-xs font-bold text-slate-600">
+                                        <HoverMask value={item.noKK} />
+                                    </td>
+                                    <td className="py-5 px-4 text-center">
+                                        <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider ${
+                                            item.jenisKelamin === "LAKI_LAKI" 
+                                                ? "bg-blue-50 text-blue-600 border border-blue-100" 
+                                                : "bg-pink-50 text-pink-600 border border-pink-100"
+                                        }`}>
+                                            {item.jenisKelamin === "LAKI_LAKI" ? "L" : "P"}
+                                        </span>
+                                    </td>
+                                    <td className="py-5 px-4">
+                                        <div className="text-xs font-bold text-slate-700">RT {item.rt}/RW {item.rw}</div>
+                                        <div className="text-[10px] text-slate-400 font-medium">{item.dusun}</div>
+                                    </td>
+                                    <td className="py-5 px-4">
+                                        <div className="text-xs font-bold text-slate-700">{item.tempatLahir}</div>
+                                        <div className="text-[10px] text-slate-400 font-medium">
                                             {new Date(item.tanggalLahir).toLocaleDateString('id-ID')}
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button 
-                                onClick={() => {
-                                    setSelectedWarga(item);
-                                    setShowPrintModal(true);
-                                }}
-                                className="mt-8 py-3.5 bg-slate-50 hover:bg-slate-900 hover:text-white rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all flex items-center justify-center gap-2"
-                            >
-                                <Printer size={14} /> Cetak Persuratan
-                            </button>
-                        </div>
-                    )) : (
-                        <div className="col-span-full py-32 text-center flex flex-col items-center gap-6">
-                            <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
-                                <Users size={48} />
-                            </div>
-                            <div>
-                                <p className="text-slate-800 font-black text-lg">Tidak ada data warga.</p>
-                                <p className="text-slate-400 text-sm mt-1">Coba sesuaikan filter atau kata kunci pencarian Anda.</p>
-                            </div>
-                        </div>
-                    )}
+                                    </td>
+                                    <td className="py-5 px-4 text-center">
+                                        {isWargaDataIncomplete(item) ? (
+                                            <span className="inline-flex px-2.5 py-0.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-md text-[9px] font-black uppercase tracking-tight items-center gap-1">
+                                                <AlertCircle size={10} /> Belum Lengkap
+                                            </span>
+                                        ) : (
+                                            <span className="inline-flex px-2.5 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-md text-[9px] font-black uppercase tracking-tight items-center gap-1">
+                                                Lengkap
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="py-5 pr-6 text-right">
+                                        <div className="flex items-center justify-end gap-1.5">
+                                            <button 
+                                                onClick={() => {
+                                                    setSelectedWarga(item);
+                                                    setShowPrintModal(true);
+                                                }}
+                                                className="p-2 bg-slate-50 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
+                                                title="Cetak Persuratan"
+                                            >
+                                                <Printer size={15} />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleEdit(item)} 
+                                                className="p-2 bg-slate-50 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                                title="Edit"
+                                            >
+                                                <Edit2 size={15} />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDelete(item.id)} 
+                                                className="p-2 bg-slate-50 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                title="Hapus"
+                                            >
+                                                <Trash2 size={15} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )) : (
+                                <tr>
+                                    <td colSpan={8} className="py-20 text-center">
+                                        <div className="flex flex-col items-center gap-4">
+                                            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center text-slate-200">
+                                                <Users size={32} />
+                                            </div>
+                                            <div>
+                                                <p className="text-slate-800 font-black text-base">Tidak ada data warga.</p>
+                                                <p className="text-slate-400 text-xs mt-1">Coba sesuaikan filter atau kata kunci pencarian Anda.</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
                 </div>
             </div>
 

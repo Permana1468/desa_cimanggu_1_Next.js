@@ -61,6 +61,14 @@ model Tenant {
   rwHealthData         RwHealthData[]
   rwInstitutions       RwInstitution[]
   rwInstitutionMembers RwInstitutionMember[]
+
+  // Posyandu Modules
+  posyanduBalitas      PosyanduBalita[]
+  posyanduIbuHamils    PosyanduIbuHamil[]
+  posyanduLansias      PosyanduLansia[]
+  posyanduRecords      PosyanduRecord[]
+  posyanduJadwals      PosyanduJadwal[]
+  posyanduKehadirans   PosyanduKehadiran[]
 }
 
 // ==============================
@@ -962,4 +970,136 @@ model RwInstitutionMember {
   updatedAt       DateTime @updatedAt
 
   @@index([rwInstitutionId])
+}
+
+// ==============================
+// 17. POSYANDU MODULES
+// ==============================
+
+model PosyanduBalita {
+  id          String   @id @default(uuid())
+  nik         String?  @unique
+  namaLengkap String
+  tanggalLahir DateTime
+  jenisKelamin String
+  namaOrangTua String
+  rt          String
+  rw          String
+  statusStunting Boolean @default(false)
+  posyanduName String
+  
+  records     PosyanduRecord[]
+  
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, rw])
+}
+
+model PosyanduIbuHamil {
+  id          String   @id @default(uuid())
+  nik         String   @unique
+  namaLengkap String
+  usiaKandungan Int    // Dalam bulan
+  rt          String
+  rw          String
+  risikoTinggi Boolean @default(false)
+  posyanduName String
+  
+  records     PosyanduRecord[]
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, rw])
+}
+
+model PosyanduLansia {
+  id          String   @id @default(uuid())
+  nik         String   @unique
+  namaLengkap String
+  usia        Int
+  rt          String
+  rw          String
+  memilikiPenyakitBawaan Boolean @default(false)
+  posyanduName String
+
+  records     PosyanduRecord[]
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId, rw])
+}
+
+model PosyanduRecord {
+  id          String   @id @default(uuid())
+  tanggal     DateTime @default(now())
+  beratBadan  Float?
+  tinggiBadan Float?
+  tensi       String?
+  keterangan  String?  @db.Text
+  
+  // New fields for Balita/Bumil/Lansia details
+  lingkarKepala Float?
+  gulaDarah     Float?
+  statusGizi    String?
+  imunisasi     String?
+  statusRisiko  String?
+  kondisiUmum   String?
+
+  balitaId    String?
+  balita      PosyanduBalita? @relation(fields: [balitaId], references: [id], onDelete: Cascade)
+  
+  ibuHamilId  String?
+  ibuHamil    PosyanduIbuHamil? @relation(fields: [ibuHamilId], references: [id], onDelete: Cascade)
+  
+  lansiaId    String?
+  lansia      PosyanduLansia? @relation(fields: [lansiaId], references: [id], onDelete: Cascade)
+
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([balitaId])
+  @@index([ibuHamilId])
+  @@index([lansiaId])
+}
+
+model PosyanduJadwal {
+  id            String   @id @default(uuid())
+  namaKegiatan  String
+  tanggal       DateTime
+  waktu         String
+  lokasi        String
+  petugas       String?
+  status        String   @default("Terjadwal") // Terjadwal, Berlangsung, Selesai, Dibatalkan
+
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model PosyanduKehadiran {
+  id          String   @id @default(uuid())
+  tanggal     DateTime @default(now())
+  nama        String
+  kategori    String   // Balita, Ibu Hamil, Lansia
+  hadir       Boolean  @default(true)
+  keterangan  String?
+
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId])
 }
