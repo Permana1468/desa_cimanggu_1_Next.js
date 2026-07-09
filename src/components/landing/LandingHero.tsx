@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import ScrollReveal from '../ScrollReveal';
 
 interface HeroProps {
@@ -53,9 +54,20 @@ export const LandingHero = ({ siteData, heroImages }: HeroProps) => {
                     <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 leading-tight">
                         {siteData?.hero_title || "Pemerintah Desa"}
                     </h1>
-                    <h1 className="text-4xl md:text-6xl font-black text-yellow-400 mb-6 leading-tight drop-shadow-lg uppercase">
+                    <motion.h1 
+                        animate={{ 
+                            y: [0, -8, 0],
+                            filter: ["drop-shadow(0px 2px 8px rgba(250, 204, 21, 0.2))", "drop-shadow(0px 8px 16px rgba(250, 204, 21, 0.4))", "drop-shadow(0px 2px 8px rgba(250, 204, 21, 0.2))"]
+                        }}
+                        transition={{ 
+                            duration: 5, 
+                            repeat: Infinity, 
+                            ease: "easeInOut" 
+                        }}
+                        className="text-4xl md:text-6xl font-black text-yellow-400 mb-6 leading-tight drop-shadow-lg uppercase select-none cursor-default"
+                    >
                         {siteData?.title || "CIMANGGU I"}
-                    </h1>
+                    </motion.h1>
 
                     <p className="text-gray-300 text-sm md:text-base mb-10 leading-relaxed max-w-lg drop-shadow-md">
                         {siteData?.hero_subtitle || "Platform digital terpadu untuk mengelola, memonitor, dan menganalisis data pemberdayaan masyarakat."}
