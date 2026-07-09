@@ -175,6 +175,8 @@ function ModalTambahIbuHamil({ onClose, onRefresh, session }: any) {
       nik: fd.get("nik")?.toString(),
       namaLengkap: fd.get("namaLengkap"),
       usiaKandungan: parseInt(fd.get("usiaKandungan") as string) || 1,
+      beratBadan: fd.get("beratBadan") ? parseFloat(fd.get("beratBadan") as string) : null,
+      noHp: fd.get("noHp")?.toString() || null,
       rt: fd.get("rt"),
       rw: fd.get("rw"),
       posyanduName: session?.user?.fullName || "Posyandu"
@@ -203,9 +205,19 @@ function ModalTambahIbuHamil({ onClose, onRefresh, session }: any) {
             <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nama Lengkap *</label>
             <input name="namaLengkap" required type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 outline-none" />
           </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Usia Kandungan (Bulan) *</label>
+              <input name="usiaKandungan" required type="number" min="1" max="9" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 outline-none" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Berat Badan (kg)</label>
+              <input name="beratBadan" type="number" step="0.1" placeholder="50.0" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 outline-none" />
+            </div>
+          </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Usia Kandungan (Bulan) *</label>
-            <input name="usiaKandungan" required type="number" min="1" max="9" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 outline-none" />
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nomor HP / WhatsApp</label>
+            <input name="noHp" type="text" placeholder="08xxxxxxxxxx" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 outline-none" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>

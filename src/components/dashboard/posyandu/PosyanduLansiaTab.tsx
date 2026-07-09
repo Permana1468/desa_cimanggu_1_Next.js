@@ -176,10 +176,18 @@ function ModalTambahLansia({ onClose, onRefresh, session }: any) {
     e.preventDefault();
     setLoading(true);
     const fd = new FormData(e.target);
+    const birthDateStr = fd.get("tanggalLahir") as string;
+    const tanggalLahir = birthDateStr ? new Date(birthDateStr) : null;
+    const usia = tanggalLahir 
+      ? new Date().getFullYear() - tanggalLahir.getFullYear()
+      : (parseInt(fd.get("usia") as string) || 60);
+
     await addPosyanduLansia({
       nik: fd.get("nik")?.toString(),
       namaLengkap: fd.get("namaLengkap"),
-      usia: parseInt(fd.get("usia") as string) || 60,
+      jenisKelamin: fd.get("jenisKelamin")?.toString(),
+      tanggalLahir,
+      usia,
       rt: fd.get("rt"),
       rw: fd.get("rw"),
       memilikiPenyakitBawaan: fd.get("memilikiPenyakitBawaan") === "true",
@@ -192,7 +200,7 @@ function ModalTambahLansia({ onClose, onRefresh, session }: any) {
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h3 className="text-lg font-bold text-slate-800">Tambah Data Lansia</h3>
@@ -209,9 +217,18 @@ function ModalTambahLansia({ onClose, onRefresh, session }: any) {
             <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nama Lengkap *</label>
             <input name="namaLengkap" required type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Usia (Tahun) *</label>
-            <input name="usia" required type="number" min="45" max="150" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Jenis Kelamin *</label>
+              <select name="jenisKelamin" required className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+                <option value="L">Laki-laki</option>
+                <option value="P">Perempuan</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tanggal Lahir *</label>
+              <input name="tanggalLahir" required type="date" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
