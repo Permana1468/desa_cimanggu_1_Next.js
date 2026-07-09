@@ -214,7 +214,7 @@ export function FloatingChat({ session }: { session: any }) {
     const totalUnread = contacts.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
 
     return (
-        <div className="fixed bottom-6 right-6 z-[9999] flex flex-col items-end font-sans">
+        <div className="fixed bottom-24 lg:bottom-6 right-6 z-[9999] flex flex-col items-end font-sans">
             {isOpen && (
                 <div className="w-[380px] sm:w-[400px] h-[580px] bg-white/95 backdrop-blur-md rounded-3xl border border-slate-200/80 shadow-2xl overflow-hidden flex flex-col mb-4 transition-all duration-300 animate-in slide-in-from-bottom-5">
                     <div className="bg-slate-900 text-white p-4 flex items-center justify-between shadow-md shrink-0">
