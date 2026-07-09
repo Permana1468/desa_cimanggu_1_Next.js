@@ -38,6 +38,16 @@ export function KesraStuntingTab({ session, onTabChange }: any) {
 
   // Simple Z-Score WHO Standard approximations (0-60 months)
   const evaluateGizi = (ageInMonths: number, height: number, weight: number, gender: string) => {
+    if (height <= 0 || weight <= 0) {
+      return {
+        status: "Belum Diukur",
+        color: "text-slate-500 bg-slate-50 border border-slate-200",
+        heightZ: 0,
+        weightZ: 0,
+        recommendation: "Lengkapi data tinggi badan dan berat badan balita pada posyandu."
+      };
+    }
+
     // Height Z-score WHO approximation
     // At birth: 50cm, moves up.
     const expectedHeight = 50 + (ageInMonths * 1.2); 

@@ -71,7 +71,7 @@ function KesejahteraanDashboardContent({ session, stats }: { session: any, stats
         // Count stunting balitas from EWS algorithm
         const stuntingBalitas = stunting.filter((b: any) => {
           const lastRec = b.records?.[b.records.length - 1];
-          if (!lastRec) return false;
+          if (!lastRec || !lastRec.tinggiBadan || lastRec.tinggiBadan <= 0) return false;
           // Simple standard stunting indicator check
           const age = Math.floor((new Date().getTime() - new Date(b.tanggalLahir).getTime()) / (1000 * 60 * 60 * 24 * 30.4));
           const expectedHeight = 50 + (age * 1.2);

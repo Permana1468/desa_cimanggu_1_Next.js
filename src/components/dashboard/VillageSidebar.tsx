@@ -95,6 +95,14 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
         { label: "Tambah Jadwal", href: "/dashboard?tab=jadwal", color: "bg-amber-500" },
       ];
     }
+    if (role === "KASI_KESEJAHTERAAN" || role === "PUSKESOS") {
+      return [
+        { label: "Cleansing DTKS", href: "/dashboard?tab=dtks", color: "bg-rose-500" },
+        { label: "Peta GIS", href: "/dashboard?tab=gis-kemiskinan", color: "bg-indigo-500" },
+        { label: "EWS Stunting", href: "/dashboard?tab=ews-stunting", color: "bg-emerald-500" },
+        { label: "Insentif Guru", href: "/dashboard?tab=insentif", color: "bg-amber-500" },
+      ];
+    }
     if (role === "RT" || role === "RW") {
       return [
         { label: "Kas RT/RW", href: "/dashboard?tab=finance", color: "bg-emerald-600" },
