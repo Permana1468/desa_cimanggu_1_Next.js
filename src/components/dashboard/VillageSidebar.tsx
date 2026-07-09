@@ -428,6 +428,216 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                 </AnimatePresence>
               </div>
             </div>
+          ) : role === "KASI_KESEJAHTERAAN" || role === "PUSKESOS" ? (
+             // === KASI KESEJAHTERAAN ACCORDION SIDEBAR ===
+             <div className="space-y-1">
+               {/* Dashboard */}
+               <Link
+                 href="/dashboard?tab=overview"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   (tabParam || "overview") === "overview"
+                     ? "bg-rose-600 text-white font-bold shadow-lg shadow-rose-600/20"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <LayoutDashboard size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Dashboard</span>}
+               </Link>
+
+               {/* Group 1: Kemiskinan & Sosial */}
+               <div>
+                 <button
+                   onClick={() => (!isCollapsed || isOpen) && toggleGroup("kemiskinan-sosial")}
+                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                     ["dtks", "gis-kemiskinan"].includes(tabParam || "")
+                       ? "bg-rose-50 text-rose-700 font-bold"
+                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                   } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                 >
+                   <HeartHandshake size={20} className="shrink-0" />
+                   {(!isCollapsed || isOpen) && (
+                     <>
+                       <span className="text-sm flex-1 text-left">Kemiskinan & Sosial</span>
+                       <ChevronDown
+                         size={14}
+                         className={`transition-transform duration-200 ${openGroup === "kemiskinan-sosial" ? "rotate-180" : ""}`}
+                       />
+                     </>
+                   )}
+                 </button>
+                 <AnimatePresence>
+                   {(openGroup === "kemiskinan-sosial" && (!isCollapsed || isOpen)) && (
+                     <motion.div
+                       initial={{ height: 0, opacity: 0 }}
+                       animate={{ height: "auto", opacity: 1 }}
+                       exit={{ height: 0, opacity: 0 }}
+                       transition={{ duration: 0.2 }}
+                       className="overflow-hidden"
+                     >
+                       <div className="mt-1 ml-3 pl-3 border-l-2 border-rose-100 space-y-1">
+                         {[
+                           { label: "Cleansing DTKS", tab: "dtks", icon: Database },
+                           { label: "Peta Kerentanan GIS", tab: "gis-kemiskinan", icon: Map },
+                         ].map(({ label, tab, icon: Icon }) => (
+                           <Link
+                             key={tab}
+                             href={`/dashboard?tab=${tab}`}
+                             onClick={() => setIsOpen(false)}
+                             className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                               tabParam === tab
+                                 ? "bg-rose-500 text-white font-bold"
+                                 : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                             }`}
+                           >
+                             <Icon size={16} />
+                             <span>{label}</span>
+                           </Link>
+                         ))}
+                       </div>
+                     </motion.div>
+                   )}
+                 </AnimatePresence>
+               </div>
+
+               {/* Group 2: Kesehatan & Stunting */}
+               <div>
+                 <button
+                   onClick={() => (!isCollapsed || isOpen) && toggleGroup("kesehatan-stunting")}
+                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                     ["ews-stunting", "pmt"].includes(tabParam || "")
+                       ? "bg-rose-50 text-rose-700 font-bold"
+                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                   } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                 >
+                   <Activity size={20} className="shrink-0" />
+                   {(!isCollapsed || isOpen) && (
+                     <>
+                       <span className="text-sm flex-1 text-left">Kesehatan & Stunting</span>
+                       <ChevronDown
+                         size={14}
+                         className={`transition-transform duration-200 ${openGroup === "kesehatan-stunting" ? "rotate-180" : ""}`}
+                       />
+                     </>
+                   )}
+                 </button>
+                 <AnimatePresence>
+                   {(openGroup === "kesehatan-stunting" && (!isCollapsed || isOpen)) && (
+                     <motion.div
+                       initial={{ height: 0, opacity: 0 }}
+                       animate={{ height: "auto", opacity: 1 }}
+                       exit={{ height: 0, opacity: 0 }}
+                       transition={{ duration: 0.2 }}
+                       className="overflow-hidden"
+                     >
+                       <div className="mt-1 ml-3 pl-3 border-l-2 border-rose-100 space-y-1">
+                         {[
+                           { label: "EWS Stunting Balita", tab: "ews-stunting", icon: HeartPulse },
+                           { label: "Logistik & PMT", tab: "pmt", icon: Package },
+                         ].map(({ label, tab, icon: Icon }) => (
+                           <Link
+                             key={tab}
+                             href={`/dashboard?tab=${tab}`}
+                             onClick={() => setIsOpen(false)}
+                             className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                               tabParam === tab
+                                 ? "bg-rose-500 text-white font-bold"
+                                 : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                             }`}
+                           >
+                             <Icon size={16} />
+                             <span>{label}</span>
+                           </Link>
+                         ))}
+                       </div>
+                     </motion.div>
+                   )}
+                 </AnimatePresence>
+               </div>
+
+               {/* Group 3: Pendidikan & Agama */}
+               <div>
+                 <button
+                   onClick={() => (!isCollapsed || isOpen) && toggleGroup("pendidikan-agama")}
+                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                     ["ats", "insentif"].includes(tabParam || "")
+                       ? "bg-rose-50 text-rose-700 font-bold"
+                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                   } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                 >
+                   <Compass size={20} className="shrink-0" />
+                   {(!isCollapsed || isOpen) && (
+                     <>
+                       <span className="text-sm flex-1 text-left">Pendidikan & Agama</span>
+                       <ChevronDown
+                         size={14}
+                         className={`transition-transform duration-200 ${openGroup === "pendidikan-agama" ? "rotate-180" : ""}`}
+                       />
+                     </>
+                   )}
+                 </button>
+                 <AnimatePresence>
+                   {(openGroup === "pendidikan-agama" && (!isCollapsed || isOpen)) && (
+                     <motion.div
+                       initial={{ height: 0, opacity: 0 }}
+                       animate={{ height: "auto", opacity: 1 }}
+                       exit={{ height: 0, opacity: 0 }}
+                       transition={{ duration: 0.2 }}
+                       className="overflow-hidden"
+                     >
+                       <div className="mt-1 ml-3 pl-3 border-l-2 border-rose-100 space-y-1">
+                         {[
+                           { label: "Anak Putus Sekolah", tab: "ats", icon: Milestone },
+                           { label: "Insentif Guru Ngaji", tab: "insentif", icon: Banknote },
+                         ].map(({ label, tab, icon: Icon }) => (
+                           <Link
+                             key={tab}
+                             href={`/dashboard?tab=${tab}`}
+                             onClick={() => setIsOpen(false)}
+                             className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                               tabParam === tab
+                                 ? "bg-rose-500 text-white font-bold"
+                                 : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                             }`}
+                           >
+                             <Icon size={16} />
+                             <span>{label}</span>
+                           </Link>
+                         ))}
+                       </div>
+                     </motion.div>
+                   )}
+                 </AnimatePresence>
+               </div>
+
+               {/* Laporan LPJ */}
+               <Link
+                 href="/dashboard?tab=report"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "report"
+                     ? "bg-rose-600 text-white font-bold shadow-lg shadow-rose-600/20"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <FileText size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Laporan LPJ Kesra</span>}
+               </Link>
+
+               {/* Pengaturan */}
+               <Link
+                 href="/dashboard/settings"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   pathname === "/dashboard/settings"
+                     ? "bg-rose-600 text-white font-bold shadow-lg shadow-rose-600/20"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <Settings size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Pengaturan</span>}
+               </Link>
+             </div>
           ) : (
             // === ALL OTHER ROLES: Generic list ===
             <div className="space-y-1.5">

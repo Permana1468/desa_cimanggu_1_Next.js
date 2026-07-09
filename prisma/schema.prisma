@@ -69,6 +69,15 @@ model Tenant {
   posyanduRecords      PosyanduRecord[]
   posyanduJadwals      PosyanduJadwal[]
   posyanduKehadirans   PosyanduKehadiran[]
+
+  // Kesra Modules
+  kesraDtks             KesraDtks[]
+  kesraGisWargas        KesraGisWarga[]
+  kesraPmtLogistiks     KesraPmtLogistik[]
+  kesraPmtDistribusis   KesraPmtDistribusi[]
+  kesraAts              KesraAts[]
+  kesraInsentifs        KesraInsentif[]
+  kesraInsentifPayments KesraInsentifPayment[]
 }
 
 // ==============================
@@ -1107,3 +1116,125 @@ model PosyanduKehadiran {
 
   @@index([tenantId])
 }
+
+model KesraDtks {
+  id                String   @id @default(uuid())
+  nik               String   @unique
+  namaKepalaKeluarga String
+  jumlahTanggungan  Int
+  penghasilan       Float
+  jenisBantuan      String   // PKH, BPNT, BLT-DD, dll
+  statusKelayakan   String   @default("LAYAK") // LAYAK, TIDAK_LAYAK
+  isFlagged         Boolean  @default(false)   // flagged for anomaly / unfit
+
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model KesraGisWarga {
+  id                String   @id @default(uuid())
+  nik               String   @unique
+  nama              String
+  latitude          Float
+  longitude         Float
+  fotoRumah         String?  @db.Text
+  kategoriKerentanan String   // MISKIN_EKSTREM, RENTAN, MAMPU
+  kontak            String?
+
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model KesraPmtLogistik {
+  id        String   @id @default(uuid())
+  namaItem  String   @unique
+  stok      Int
+  anggaran  Float
+
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model KesraPmtDistribusi {
+  id                String   @id @default(uuid())
+  namaItem          String
+  jumlah            Int
+  posyanduPenerima  String
+  tanggalDistribusi DateTime @default(now())
+  status            String   @default("BELUM_DIKIRIM") // BELUM_DIKIRIM, PROSES, DITERIMA
+
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model KesraAts {
+  id                String   @id @default(uuid())
+  nik               String   @unique
+  nama              String
+  usia              Int
+  pendidikanTerakhir String
+  alasanPutusSekolah String
+  minatKejarPaket   Boolean  @default(false)
+  statusBantuan     String   @default("PENDING") // PENDING, DISETUJUI, DITOLAK
+  terakhirDikunjungi DateTime?
+
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model KesraInsentif {
+  id                String   @id @default(uuid())
+  namaPetugas       String
+  jenisPetugas      String   // GURU_NGAJI, MARBOT, PENDETA, dll
+  tempatIbadah      String
+  noRekening        String
+  namaBank          String
+  statusKeaktifan   String   @default("AKTIF") // AKTIF, NON_AKTIF
+
+  payments          KesraInsentifPayment[]
+  tenantId          String
+  tenant            Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model KesraInsentifPayment {
+  id            String   @id @default(uuid())
+  insentifId    String
+  insentif      KesraInsentif @relation(fields: [insentifId], references: [id], onDelete: Cascade)
+  bulan         String
+  tahun         String
+  jumlah        Float
+  status        String   @default("SUKSES") // SUKSES, PENDING
+
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([insentifId])
+}
+
