@@ -43,7 +43,9 @@ import {
   UserCog,
   SlidersHorizontal,
   BarChart3,
-  Plus
+  Plus,
+  Award,
+  Briefcase
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -458,7 +460,7 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                  <button
                    onClick={() => (!isCollapsed || isOpen) && toggleGroup("kemiskinan-sosial")}
                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                     ["dtks", "gis-kemiskinan"].includes(tabParam || "")
+                     ["dtks", "warga-bansos", "gis-kemiskinan", "uhc"].includes(tabParam || "")
                        ? "bg-rose-50 text-rose-700 font-bold"
                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                    } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
@@ -486,7 +488,9 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                        <div className="mt-1 ml-3 pl-3 border-l-2 border-rose-100 space-y-1">
                          {[
                            { label: "Cleansing DTKS", tab: "dtks", icon: Database },
+                           { label: "Data Bansos Warga", tab: "warga-bansos", icon: Award },
                            { label: "Peta Kerentanan GIS", tab: "gis-kemiskinan", icon: Map },
+                           { label: "Monitoring UHC / KIS", tab: "uhc", icon: HeartPulse },
                          ].map(({ label, tab, icon: Icon }) => (
                            <Link
                              key={tab}
@@ -568,7 +572,7 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                  <button
                    onClick={() => (!isCollapsed || isOpen) && toggleGroup("pendidikan-agama")}
                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                     ["ats", "insentif"].includes(tabParam || "")
+                     ["ats", "insentif", "pengangguran"].includes(tabParam || "")
                        ? "bg-rose-50 text-rose-700 font-bold"
                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                    } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
@@ -597,6 +601,7 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                          {[
                            { label: "Anak Putus Sekolah", tab: "ats", icon: Milestone },
                            { label: "Insentif Guru Ngaji", tab: "insentif", icon: Banknote },
+                           { label: "Data Pengangguran", tab: "pengangguran", icon: Briefcase },
                          ].map(({ label, tab, icon: Icon }) => (
                            <Link
                              key={tab}

@@ -28,6 +28,10 @@ import { KesraPmtTab } from "../kesra/KesraPmtTab";
 import { KesraAtsTab } from "../kesra/KesraAtsTab";
 import { KesraInsentifTab } from "../kesra/KesraInsentifTab";
 import { KesraReportTab } from "../kesra/KesraReportTab";
+import { KesraPengangguranTab } from "../kesra/KesraPengangguranTab";
+import { KesraUhcTab } from "../kesra/KesraUhcTab";
+import { KesraWargaBansosTab } from "../kesra/KesraWargaBansosTab";
+
 
 export function KesejahteraanDashboard({ session, stats }: { session: any, stats: any }) {
   return (
@@ -101,6 +105,8 @@ function KesejahteraanDashboardContent({ session, stats }: { session: any, stats
     switch (activeTab) {
       case "dtks":
         return <KesraDtksTab session={session} />;
+      case "warga-bansos":
+        return <KesraWargaBansosTab session={session} />;
       case "gis-kemiskinan":
         return <KesraGisTab session={session} />;
       case "ews-stunting":
@@ -111,6 +117,10 @@ function KesejahteraanDashboardContent({ session, stats }: { session: any, stats
         return <KesraAtsTab session={session} />;
       case "insentif":
         return <KesraInsentifTab session={session} />;
+      case "pengangguran":
+        return <KesraPengangguranTab session={session} />;
+      case "uhc":
+        return <KesraUhcTab session={session} />;
       case "report":
         return <KesraReportTab session={session} />;
       default:

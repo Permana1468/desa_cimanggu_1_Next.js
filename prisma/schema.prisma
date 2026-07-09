@@ -78,6 +78,8 @@ model Tenant {
   kesraAts              KesraAts[]
   kesraInsentifs        KesraInsentif[]
   kesraInsentifPayments KesraInsentifPayment[]
+  kesraPenganggurans    KesraPengangguran[]
+  kesraUhcs             KesraUhc[]
 }
 
 // ==============================
@@ -1237,4 +1239,41 @@ model KesraInsentifPayment {
   @@index([tenantId])
   @@index([insentifId])
 }
+
+model KesraPengangguran {
+  id              String   @id @default(uuid())
+  nik             String   @unique
+  nama            String
+  usia            Int
+  pendidikan      String?
+  keahlian        String?
+  lamaMenganggur  Int      // Dalam bulan
+  minatPelatihan  Boolean  @default(false)
+  status          String   @default("MENCARI_KERJA") // MENCARI_KERJA, PELATIHAN, SUDAH_KERJA
+
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model KesraUhc {
+  id              String   @id @default(uuid())
+  nik             String   @unique
+  nama            String
+  noBpjs          String?
+  jenisPeserta    String   // PBI, NON_PBI, MANDIRI
+  statusUhc       String   @default("AKTIF") // AKTIF, NON_AKTIF, PENDING
+  keterangan      String?
+
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
 

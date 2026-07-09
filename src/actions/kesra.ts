@@ -415,3 +415,120 @@ export async function getKesraReportData(filterType: string, dateRange: { start:
 
     return summary;
 }
+
+// =======================
+// WARGA KEPENDUDUKAN & BANSOS SINKRONISASI
+// =======================
+
+export async function getKesraKependudukanList() {
+    const { tenantId } = await verifyKesraAccess();
+    return await prisma.dataKependudukan.findMany({
+        where: { tenantId },
+        include: { bansosData: true },
+        orderBy: { namaLengkap: "asc" }
+    });
+}
+
+export async function updateKesraWargaBansos(data: { wargaId: string, desil: number, jenisBantuan: string[], status: string, keterangan: string }) {
+    const { tenantId } = await verifyKesraAccess();
+    
+    await prisma.bansosData.upsert({
+        where: { wargaId: data.wargaId },
+        update: {
+            desil: data.desil,
+            jenisBantuan: data.jenisBantuan,
+            status: data.status,
+            keterangan: data.keterangan
+        },
+        create: {
+            wargaId: data.wargaId,
+            desil: data.desil,
+            jenisBantuan: data.jenisBantuan,
+            status: data.status,
+            keterangan: data.keterangan,
+            tenantId
+        }
+    });
+
+    revalidatePath("/dashboard");
+    return { success: true };
+}
+
+// =======================
+// DATA PENGANGGURAN
+// =======================
+
+export async function getKesraPengangguranList() {
+    const { tenantId } = await verifyKesraAccess();
+    return await prisma.kesraPengangguran.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: "desc" }
+    });
+}
+
+export async function addKesraPengangguran(data: any) {
+    const { tenantId } = await verifyKesraAccess();
+    const pengangguran = await prisma.kesraPengangguran.create({
+        data: {
+            nik: data.nik,
+            nama: data.nama,
+            usia: parseInt(data.usia) || 0,
+            pendidikan: data.pendidikan,
+            keahlian: data.keahlian,
+            lamaMenganggur: parseInt(data.lamaMenganggur) || 0,
+            minatPelatihan: data.minatPelatihan === "true" || data.minatPelatihan === true,
+            status: data.status || "MENCARI_KERJA",
+            tenantId
+        }
+    });
+    revalidatePath("/dashboard");
+    return { success: true, pengangguran };
+}
+
+export async function deleteKesraPengangguran(id: string) {
+    const { tenantId } = await verifyKesraAccess();
+    await prisma.kesraPengangguran.deleteMany({
+        where: { id, tenantId }
+    });
+    revalidatePath("/dashboard");
+    return { success: true };
+}
+
+// =======================
+// FITUR UHC (BPJS / KIS)
+// =======================
+
+export async function getKesraUhcList() {
+    const { tenantId } = await verifyKesraAccess();
+    return await prisma.kesraUhc.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: "desc" }
+    });
+}
+
+export async function addKesraUhc(data: any) {
+    const { tenantId } = await verifyKesraAccess();
+    const uhc = await prisma.kesraUhc.create({
+        data: {
+            nik: data.nik,
+            nama: data.nama,
+            noBpjs: data.noBpjs || null,
+            jenisPeserta: data.jenisPeserta,
+            statusUhc: data.statusUhc || "AKTIF",
+            keterangan: data.keterangan || null,
+            tenantId
+        }
+    });
+    revalidatePath("/dashboard");
+    return { success: true, uhc };
+}
+
+export async function deleteKesraUhc(id: string) {
+    const { tenantId } = await verifyKesraAccess();
+    await prisma.kesraUhc.deleteMany({
+        where: { id, tenantId }
+    });
+    revalidatePath("/dashboard");
+    return { success: true };
+}
+
