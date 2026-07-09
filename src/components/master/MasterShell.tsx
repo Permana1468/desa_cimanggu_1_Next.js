@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { MasterSidebar } from "./MasterSidebar";
 import { NotificationPanel } from "./NotificationPanel";
-import { Menu, LayoutDashboard, Settings } from "lucide-react";
-import { motion } from "framer-motion";
+import { Menu, LayoutDashboard, Settings, Plus, Home as HomeIcon, BarChart3 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { FloatingChat } from "../dashboard/FloatingChat";
 
@@ -19,6 +19,16 @@ export function MasterShell({
 }) {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
+    const [showPlusMenu, setShowPlusMenu] = useState(false);
+
+    const getQuickActions = () => {
+        return [
+            { label: "Konfigurasi Sistem", href: "/master-admin/config", color: "bg-blue-600" },
+            { label: "Manajemen Data", href: "/master-admin/data", color: "bg-teal-600" },
+            { label: "Integrasi & API", href: "/master-admin/integrasi", color: "bg-indigo-600" },
+            { label: "Log Aktivitas", href: "/master-admin/logs", color: "bg-amber-500" },
+        ];
+    };
 
     return (
         <div className="flex h-screen bg-slate-50 bg-grid-pattern overflow-hidden font-sans text-slate-900 relative">
@@ -40,37 +50,105 @@ export function MasterShell({
                 <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
                 <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-amber-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-                {/* MOBILE BOTTOM NAVIGATION DOCK */}
-                <div className="lg:hidden fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[85%] max-w-[320px]">
-                    <div className="bg-[#0f172a]/95 backdrop-blur-2xl border border-white/10 p-2.5 rounded-[2.5rem] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)] flex items-center justify-between">
-                        
-                        {/* MENU BUTTON */}
-                        <button 
-                            onClick={() => setIsSidebarOpen(true)}
-                            className="w-12 h-12 flex flex-col items-center justify-center gap-1 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
-                        >
-                            <Menu size={20} className="group-hover:scale-110 transition-transform" />
-                            <span className="text-[9px] font-bold tracking-widest uppercase">Menu</span>
-                        </button>
+                {/* MOBILE BOTTOM NAVIGATION DOCK (CURVED DESIGN WITH DYNAMIC MODALS) */}
+                <div className="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-[420px] h-[75px] select-none">
+                    {/* SVG Background with Notch */}
+                    <div className="absolute inset-0 z-0">
+                        <svg className="w-full h-full text-[#0f172a]/95 backdrop-blur-xl fill-current filter drop-shadow-[0_-15px_30px_rgba(0,0,0,0.5)]" viewBox="0 0 400 80" preserveAspectRatio="none">
+                            <path d="M 20 10 L 165 10 C 180 10, 182 48, 200 48 C 218 48, 220 10, 235 10 L 380 10 A 20 20 0 0 1 400 30 L 400 70 A 10 10 0 0 1 390 80 L 10 80 A 10 10 0 0 1 0 70 L 0 30 A 20 20 0 0 1 20 10 Z" />
+                        </svg>
+                    </div>
 
-                        {/* CENTER DASHBOARD BUTTON */}
+                    {/* Plus Menu Quick Actions Overlay */}
+                    <AnimatePresence>
+                        {showPlusMenu && (
+                            <>
+                                {/* Click outside backdrop for quick actions */}
+                                <motion.div 
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    onClick={() => setShowPlusMenu(false)}
+                                    className="fixed inset-0 -z-10 bg-slate-950/20 backdrop-blur-[2px]"
+                                />
+                                <motion.div
+                                    initial={{ opacity: 0, y: 15, scale: 0.95, x: "-50%" }}
+                                    animate={{ opacity: 1, y: 0, scale: 1, x: "-50%" }}
+                                    exit={{ opacity: 0, y: 15, scale: 0.95, x: "-50%" }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                    className="absolute bottom-[90px] left-1/2 w-[90%] max-w-[280px] bg-slate-900 p-4 rounded-3xl shadow-[0_15px_30px_rgba(0,0,0,0.3)] border border-white/10 z-10 space-y-2.5"
+                                >
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center mb-1">Akses Master Admin</p>
+                                    {getQuickActions().map((action: any) => (
+                                        <Link
+                                            key={action.label}
+                                            href={action.href}
+                                            onClick={() => setShowPlusMenu(false)}
+                                            className="flex items-center gap-3 p-3 rounded-2xl hover:bg-white/5 transition-colors group"
+                                        >
+                                            <div className={`w-8 h-8 rounded-xl ${action.color} flex items-center justify-center text-white text-sm font-bold shadow-md`}>
+                                                +
+                                            </div>
+                                            <span className="text-xs font-bold text-slate-300 group-hover:text-blue-400 transition-colors">{action.label}</span>
+                                        </Link>
+                                    ))}
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Interactive Navigation Elements */}
+                    <div className="relative z-10 w-full h-full flex items-center justify-between px-6 pt-[6px]">
+                        
+                        {/* BUTTON 1: HOME */}
                         <Link 
                             href="/master-admin"
-                            className="relative group -mt-10"
+                            className="w-12 h-12 flex flex-col items-center justify-center rounded-full transition-all text-slate-400 hover:text-white"
                         >
-                            <div className="absolute inset-0 bg-blue-500 rounded-full blur-md opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
-                            <div className="relative w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-400 text-white border-[6px] border-[#f8fafc] shadow-xl group-hover:-translate-y-1 transition-transform duration-300">
-                                <LayoutDashboard size={24} className="group-hover:scale-110 transition-transform" />
-                            </div>
+                            <HomeIcon size={20} className="stroke-[1.8]" />
+                            <span className="text-[9px] font-bold mt-0.5 tracking-tight">Beranda</span>
                         </Link>
 
-                        {/* SETTINGS BUTTON */}
+                        {/* BUTTON 2: ALL MENU / GRID */}
+                        <button 
+                            onClick={() => setIsSidebarOpen(true)}
+                            className="w-12 h-12 flex flex-col items-center justify-center rounded-full transition-all text-slate-400 hover:text-white"
+                        >
+                            <Menu size={20} className="stroke-[1.8]" />
+                            <span className="text-[9px] font-bold mt-0.5 tracking-tight">Menu</span>
+                        </button>
+
+                        {/* BUTTON 3: CENTER FLOATING ACTION "+" BUTTON */}
+                        <div className="relative w-16 h-12 flex items-center justify-center">
+                            <button 
+                                onClick={() => setShowPlusMenu(!showPlusMenu)}
+                                className="absolute -top-6 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(59,130,246,0.4)] transition-all z-20 active:scale-95 border-4 border-slate-50"
+                            >
+                                <motion.div
+                                    animate={{ rotate: showPlusMenu ? 135 : 0 }}
+                                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                                >
+                                    <Plus size={24} className="stroke-[2.5]" />
+                                </motion.div>
+                            </button>
+                        </div>
+
+                        {/* BUTTON 4: STATS / CHARTS */}
+                        <Link 
+                            href="/master-admin/stats"
+                            className="w-12 h-12 flex flex-col items-center justify-center rounded-full transition-all text-slate-400 hover:text-white"
+                        >
+                            <BarChart3 size={20} className="stroke-[1.8]" />
+                            <span className="text-[9px] font-bold mt-0.5 tracking-tight">Statistik</span>
+                        </Link>
+
+                        {/* BUTTON 5: PROFILE / SETTINGS */}
                         <Link 
                             href="/master-admin/config"
-                            className="w-12 h-12 flex flex-col items-center justify-center gap-1 rounded-full text-slate-400 hover:text-white hover:bg-white/5 transition-all group"
+                            className="w-12 h-12 flex flex-col items-center justify-center rounded-full transition-all text-slate-400 hover:text-white"
                         >
-                            <Settings size={20} className="group-hover:rotate-45 transition-transform" />
-                            <span className="text-[9px] font-bold tracking-widest uppercase">Set</span>
+                            <Settings size={20} className="stroke-[1.8]" />
+                            <span className="text-[9px] font-bold mt-0.5 tracking-tight">Config</span>
                         </Link>
 
                     </div>
