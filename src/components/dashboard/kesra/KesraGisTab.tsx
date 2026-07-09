@@ -35,7 +35,7 @@ export function KesraGisTab({ session }: any) {
 
   // Initialize Map
   useEffect(() => {
-    if (loading || wargas.length === 0) return;
+    if (loading) return;
 
     let isMounted = true;
     let mapInstance: any = null;
@@ -70,8 +70,10 @@ export function KesraGisTab({ session }: any) {
 
       markersGroupRef.current = L.layerGroup().addTo(mapInstance);
 
-      // Render markers
-      renderMarkers();
+      // Render markers if any
+      if (wargas.length > 0) {
+        renderMarkers();
+      }
     }
 
     initLeaflet();
@@ -80,6 +82,8 @@ export function KesraGisTab({ session }: any) {
       isMounted = false;
       if (mapInstance) {
         mapInstance.remove();
+        mapRef.current = null;
+        markersGroupRef.current = null;
       }
     };
   }, [loading, wargas, filterKerentanan]);
