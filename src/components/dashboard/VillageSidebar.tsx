@@ -600,12 +600,12 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
         </div>
       </aside>
 
-      {/* MOBILE BOTTOM NAVIGATION DOCK (CURVED DESIGN WITH DYNAMIC MODALS) */}
-      <div className="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-[420px] h-[75px] select-none">
+      {/* MOBILE BOTTOM NAVIGATION DOCK (CURVED DESIGN WITH DYNAMIC MODALS - FULL WIDTH) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 w-full h-[75px] select-none">
           {/* SVG Background with Notch */}
           <div className="absolute inset-0 z-0">
               <svg className="w-full h-full text-white/95 dark:text-slate-900/95 backdrop-blur-xl fill-current filter drop-shadow-[0_-15px_30px_rgba(0,0,0,0.12)]" viewBox="0 0 400 80" preserveAspectRatio="none">
-                  <path d="M 20 10 L 165 10 C 180 10, 182 48, 200 48 C 218 48, 220 10, 235 10 L 380 10 A 20 20 0 0 1 400 30 L 400 70 A 10 10 0 0 1 390 80 L 10 80 A 10 10 0 0 1 0 70 L 0 30 A 20 20 0 0 1 20 10 Z" />
+                  <path d="M 0 10 L 165 10 C 180 10, 182 48, 200 48 C 218 48, 220 10, 235 10 L 400 10 L 400 80 L 0 80 Z" />
               </svg>
           </div>
 

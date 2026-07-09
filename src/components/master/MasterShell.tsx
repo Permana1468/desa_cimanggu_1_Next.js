@@ -50,12 +50,12 @@ export function MasterShell({
                 <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
                 <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-amber-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-                {/* MOBILE BOTTOM NAVIGATION DOCK (CURVED DESIGN WITH DYNAMIC MODALS) */}
-                <div className="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-[420px] h-[75px] select-none">
+                {/* MOBILE BOTTOM NAVIGATION DOCK (CURVED DESIGN WITH DYNAMIC MODALS - FULL WIDTH) */}
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 w-full h-[75px] select-none">
                     {/* SVG Background with Notch */}
                     <div className="absolute inset-0 z-0">
                         <svg className="w-full h-full text-[#0f172a]/95 backdrop-blur-xl fill-current filter drop-shadow-[0_-15px_30px_rgba(0,0,0,0.5)]" viewBox="0 0 400 80" preserveAspectRatio="none">
-                            <path d="M 20 10 L 165 10 C 180 10, 182 48, 200 48 C 218 48, 220 10, 235 10 L 380 10 A 20 20 0 0 1 400 30 L 400 70 A 10 10 0 0 1 390 80 L 10 80 A 10 10 0 0 1 0 70 L 0 30 A 20 20 0 0 1 20 10 Z" />
+                            <path d="M 0 10 L 165 10 C 180 10, 182 48, 200 48 C 218 48, 220 10, 235 10 L 400 10 L 400 80 L 0 80 Z" />
                         </svg>
                     </div>
 
@@ -122,7 +122,7 @@ export function MasterShell({
                         <div className="relative w-16 h-12 flex items-center justify-center">
                             <button 
                                 onClick={() => setShowPlusMenu(!showPlusMenu)}
-                                className="absolute -top-6 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(59,130,246,0.4)] transition-all z-20 active:scale-95 border-4 border-slate-50"
+                                className="absolute -top-6 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(59,130,246,0.4)] transition-all z-20 active:scale-95 border-4 border-[#0f172a]"
                             >
                                 <motion.div
                                     animate={{ rotate: showPlusMenu ? 135 : 0 }}
