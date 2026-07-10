@@ -222,7 +222,7 @@ export function FloatingChat({ session }: { session: any }) {
     return (
         <div className="fixed bottom-24 lg:bottom-6 right-6 z-[9999] flex flex-col items-end font-sans">
             {isOpen && (
-                <div className="fixed top-0 left-0 right-0 bottom-[75px] z-[10000] lg:static lg:z-auto w-full lg:w-[380px] sm:lg:w-[400px] lg:h-[580px] bg-white lg:bg-white/95 backdrop-blur-md lg:rounded-3xl border-0 lg:border border-slate-200/80 shadow-2xl overflow-hidden flex flex-col lg:mb-4 transition-all duration-300 animate-in slide-in-from-bottom-5 pointer-events-auto">
+                <div className="fixed inset-0 z-[10000] lg:static lg:z-auto w-full h-full lg:w-[380px] sm:lg:w-[400px] lg:h-[580px] bg-white lg:bg-white/95 backdrop-blur-md lg:rounded-3xl border-0 lg:border border-slate-200/80 shadow-2xl overflow-hidden flex flex-col lg:mb-4 transition-all duration-300 animate-in slide-in-from-bottom-5 pointer-events-auto">
                     <div className="bg-slate-900 text-white p-4 pt-6 lg:pt-4 flex items-center justify-between shadow-md shrink-0">
                         {activeContact ? (
                             <div className="flex items-center gap-3">
@@ -242,7 +242,14 @@ export function FloatingChat({ session }: { session: any }) {
                                 </div>
                                 <div>
                                     <h4 className="text-xs font-black truncate max-w-[180px]">{activeContact.fullName}</h4>
-                                    <p className="text-[10px] text-teal-400 font-bold uppercase tracking-tight">{activeContact.role}</p>
+                                    <div className="flex items-center gap-1.5 mt-0.5">
+                                        <p className="text-[10px] text-teal-400 font-bold uppercase tracking-tight">{activeContact.role}</p>
+                                        {activeContact.isOnline && (
+                                            <span className="text-[9px] text-emerald-400 font-bold bg-emerald-400/10 px-1.5 py-0.5 rounded-sm">
+                                                Aktif
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ) : (
@@ -362,7 +369,10 @@ export function FloatingChat({ session }: { session: any }) {
                                                     </div>
                                                     <div className="min-w-0">
                                                         <div className="flex items-center gap-1.5">
-                                                            <h5 className="text-xs font-black text-slate-800 truncate max-w-[160px]">{contact.fullName}</h5>
+                                                            <h5 className="text-xs font-black text-slate-800 truncate max-w-[140px]">{contact.fullName}</h5>
+                                                            {contact.isOnline && (
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" title="Sedang Aktif"></span>
+                                                            )}
                                                             <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 rounded text-[8px] font-bold uppercase tracking-tight shrink-0">{contact.role}</span>
                                                         </div>
                                                         <p className="text-[10px] text-slate-400 truncate mt-0.5">
