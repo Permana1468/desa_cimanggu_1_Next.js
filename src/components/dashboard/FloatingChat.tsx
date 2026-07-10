@@ -136,6 +136,12 @@ export function FloatingChat({ session }: { session: any }) {
         return () => clearInterval(interval);
     }, [isOpen]);
 
+    useEffect(() => {
+        const handleOpenChat = () => setIsOpen(true);
+        window.addEventListener('open-chat-mobile', handleOpenChat);
+        return () => window.removeEventListener('open-chat-mobile', handleOpenChat);
+    }, []);
+
     const fetchMessages = async (showLoading = false) => {
         if (!activeContact) return;
         if (showLoading) setLoadingMessages(true);
@@ -413,7 +419,7 @@ export function FloatingChat({ session }: { session: any }) {
 
             <button 
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-14 h-14 rounded-full flex items-center justify-center text-slate-900 border border-white/20 shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 relative group overflow-hidden ${
+                className={`w-14 h-14 rounded-full flex items-center justify-center text-slate-900 border border-white/20 shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 relative group overflow-hidden hidden lg:flex ${
                     isOpen 
                         ? "bg-slate-900 text-white" 
                         : "bg-white/20 hover:bg-white/40 backdrop-blur-md"

@@ -46,7 +46,8 @@ import {
   Plus,
   Award,
   Briefcase,
-  Globe
+  Globe,
+  MessageSquare
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -932,18 +933,14 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                   </button>
               </div>
 
-              {/* BUTTON 4: STATS / CHARTS */}
-              <Link 
-                  href={role === "POSYANDU" ? "/dashboard?tab=analisis" : (role === "RT" || role === "RW" ? "/dashboard?tab=finance" : "/dashboard")}
-                  className={`w-12 h-12 flex flex-col items-center justify-center rounded-full transition-all ${
-                      getIsActive("stats") 
-                          ? "text-emerald-600 dark:text-emerald-400 scale-105" 
-                          : "text-slate-400 hover:text-slate-600"
-                  }`}
+              {/* BUTTON 4: CHAT (formerly Laporan) */}
+              <button 
+                  onClick={() => window.dispatchEvent(new Event('open-chat-mobile'))}
+                  className="w-12 h-12 flex flex-col items-center justify-center rounded-full transition-all text-slate-400 hover:text-slate-600"
               >
-                  <BarChart3 size={20} className={getIsActive("stats") ? "stroke-[2.5]" : "stroke-[1.8]"} />
-                  <span className="text-[9px] font-bold mt-0.5 tracking-tight">Laporan</span>
-              </Link>
+                  <MessageSquare size={20} className="stroke-[1.8]" />
+                  <span className="text-[9px] font-bold mt-0.5 tracking-tight">Pesan</span>
+              </button>
 
               {/* BUTTON 5: PROFILE / SETTINGS */}
               <Link 
