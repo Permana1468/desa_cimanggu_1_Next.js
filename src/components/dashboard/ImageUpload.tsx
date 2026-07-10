@@ -9,13 +9,15 @@ interface ImageUploadProps {
     defaultValue?: string;
     label?: string;
     bucket?: string;
+    localOnly?: boolean;
 }
 
 export function ImageUpload({ 
     onUploadSuccess, 
     defaultValue = "", 
     label = "Upload Gambar",
-    bucket = "village-assets" 
+    bucket = "village-assets",
+    localOnly = false
 }: ImageUploadProps) {
     const [uploading, setUploading] = useState(false);
     const [previewUrl, setPreviewUrl] = useState(defaultValue);
@@ -26,6 +28,48 @@ export function ImageUpload({
             if (!e.target.files || e.target.files.length === 0) return;
 
             const file = e.target.files[0];
+
+            if (localOnly) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const img = new window.Image();
+                    img.onload = () => {
+                        const canvas = document.createElement("canvas");
+                        const MAX_WIDTH = 1000;
+                        const MAX_HEIGHT = 1000;
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > height) {
+                            if (width > MAX_WIDTH) {
+                                height *= MAX_WIDTH / width;
+                                width = MAX_WIDTH;
+                            }
+                        } else {
+                            if (height > MAX_HEIGHT) {
+                                width *= MAX_HEIGHT / height;
+                                height = MAX_HEIGHT;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext("2d");
+                        ctx?.drawImage(img, 0, 0, width, height);
+
+                        // Compress to JPEG with 0.8 quality for crisp images
+                        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.8);
+                        
+                        setPreviewUrl(compressedBase64);
+                        onUploadSuccess(compressedBase64);
+                        setUploading(false);
+                    };
+                    img.src = reader.result as string;
+                };
+                reader.readAsDataURL(file);
+                return;
+            }
+
             const fileExt = file.name.split(".").pop();
             const fileName = `${Math.random()}.${fileExt}`;
             const filePath = `${fileName}`;
@@ -47,7 +91,7 @@ export function ImageUpload({
         } catch (error) {
             alert("Gagal mengunggah gambar. Pastikan bucket 'village-assets' sudah ada di Supabase.");
         } finally {
-            setUploading(false);
+            if (!localOnly) setUploading(false);
         }
     };
 

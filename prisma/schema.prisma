@@ -69,6 +69,10 @@ model Tenant {
   posyanduRecords      PosyanduRecord[]
   posyanduJadwals      PosyanduJadwal[]
   posyanduKehadirans   PosyanduKehadiran[]
+  posyanduRegisters    PosyanduRegisterFormat[]
+  posyanduAnggarans    PosyanduAnggaran[]
+  posyanduInventories  PosyanduInventory[]
+  posyanduAbsensis     PosyanduAbsensi[]
 
   // Kesra Modules
   kesraDtks             KesraDtks[]
@@ -80,6 +84,7 @@ model Tenant {
   kesraInsentifPayments KesraInsentifPayment[]
   kesraPenganggurans    KesraPengangguran[]
   kesraUhcs             KesraUhc[]
+  kesraUsulanUhcs       KesraUsulanUhc[]
 }
 
 // ==============================
@@ -1276,4 +1281,122 @@ model KesraUhc {
   @@index([tenantId])
 }
 
+model KesraUsulanUhc {
+  id              String   @id @default(uuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  // Data Pemohon & Pasien
+  kecamatan       String   @default("CIBUNGBULANG")
+  desaKelurahan   String   @default("CIMANGGU I")
+  namaPemohon     String
+  alamatPemohon   String
+  namaPasien      String
+  nomorKk         String
+  nik             String   @unique
+  alamatPasien    String
 
+  // 14 Parameter
+  param1          String   
+  param2          String   
+  param3          String   
+  param4          String   
+  param5          String   
+  param6          String   
+  param7          String   
+  param8          String   
+  param9          String   
+  param10         String   
+  param11         String   
+  param12         String   
+  param13         String   
+  param14         String   
+
+  // Hasil
+  hasilVerifikasi String   
+  keterangan      String?
+  rujukan         String?
+
+  // Foto Rumah
+  fotoDepan       String?
+  fotoSamping     String?
+  fotoDalam       String?
+  fotoKamarMandi  String?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+// ==============================
+// 10. NEW POSYANDU MODULES
+// ==============================
+
+model PosyanduRegisterFormat {
+  id              String   @id @default(uuid())
+  formatNumber    Int      // 1 to 7
+  posyanduName    String
+  dataString      String   @db.Text // JSON string to store the specific format's data
+  recordedDate    DateTime @default(now())
+  
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model PosyanduAnggaran {
+  id              String   @id @default(uuid())
+  posyanduName    String
+  jenisDana       String   // OPERASIONAL, PMT, INSENTIF_KADER
+  tipe            String   // PEMASUKAN, PENGELUARAN
+  jumlah          Float
+  tanggal         DateTime
+  keterangan      String?
+  buktiNotaUrl    String?
+
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model PosyanduInventory {
+  id              String   @id @default(uuid())
+  posyanduName    String
+  namaBarang      String
+  kategori        String   // ANTROPOMETRI, UMUM, MEDIS, DLL
+  jumlah          Int
+  kondisi         String   // BAIK, RUSAK
+  tanggalMasuk    DateTime
+  sumberDana      String?
+
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId])
+}
+
+model PosyanduAbsensi {
+  id              String   @id @default(uuid())
+  posyanduName    String
+  namaKader       String
+  peran           String   // KADER_POSYANDU, BIDAN, dll
+  tanggal         DateTime
+  status          String   // HADIR, IZIN, SAKIT, ALPA
+  keterangan      String?
+
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([tenantId])
+}

@@ -31,6 +31,10 @@ import { KesraReportTab } from "../kesra/KesraReportTab";
 import { KesraPengangguranTab } from "../kesra/KesraPengangguranTab";
 import { KesraUhcTab } from "../kesra/KesraUhcTab";
 import { KesraWargaBansosTab } from "../kesra/KesraWargaBansosTab";
+import { KesraUsulanUhcTab } from "../kesra/KesraUsulanUhcTab";
+import { PosyanduRegisterTab } from "../kesra/PosyanduRegisterTab";
+import { PosyanduJadwalAbsensiTab } from "../kesra/PosyanduJadwalAbsensiTab";
+import { PosyanduInventarisTab } from "../kesra/PosyanduInventarisTab";
 
 
 export function KesejahteraanDashboard({ session, stats }: { session: any, stats: any }) {
@@ -121,6 +125,14 @@ function KesejahteraanDashboardContent({ session, stats }: { session: any, stats
         return <KesraPengangguranTab session={session} />;
       case "uhc":
         return <KesraUhcTab session={session} />;
+      case "usulan-uhc":
+        return <KesraUsulanUhcTab session={session} />;
+      case "posyandu-register":
+        return <PosyanduRegisterTab session={session} />;
+      case "posyandu-jadwal":
+        return <PosyanduJadwalAbsensiTab session={session} />;
+      case "posyandu-inventaris":
+        return <PosyanduInventarisTab session={session} />;
       case "report":
         return <KesraReportTab session={session} />;
       default:
@@ -186,7 +198,8 @@ function KesejahteraanDashboardContent({ session, stats }: { session: any, stats
               {[
                 { title: "Modul Kemiskinan & Sosial", text: "Lakukan sinkronisasi data DTKS Kemensos, cleansing bansos ganda, serta pemetaan GIS titik koordinat rumah warga rentan sosial.", tab: "dtks", color: "from-rose-500 to-pink-600" },
                 { title: "Kesehatan & Stunting Balita", text: "Pantau tumbuh kembang balita dengan EWS Z-score WHO, grafik antropometri, serta kelola manifest stok pengiriman logistik PMT.", tab: "ews-stunting", color: "from-emerald-500 to-teal-600" },
-                { title: "Pendidikan & Keagamaan", text: "Advokasi beasiswa kejar paket PKBM untuk anak putus sekolah (ATS) serta bayar massal insentif guru ngaji digital.", tab: "ats", color: "from-amber-500 to-orange-600" }
+                { title: "Pendidikan & Keagamaan", text: "Advokasi beasiswa kejar paket PKBM untuk anak putus sekolah (ATS) serta bayar massal insentif guru ngaji digital.", tab: "ats", color: "from-amber-500 to-orange-600" },
+                { title: "Usulan UHC & KIS", text: "Kelola formulir usulan UHC dengan 14 parameter kemiskinan dan cetak dokumen verifikasi standar Dinas Sosial.", tab: "usulan-uhc", color: "from-indigo-500 to-blue-600" }
               ].map(tile => (
                 <div key={tile.title} className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm flex flex-col justify-between hover:shadow-md transition-all group">
                   <div className="space-y-3">

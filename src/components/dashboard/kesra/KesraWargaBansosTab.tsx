@@ -8,6 +8,9 @@ export function KesraWargaBansosTab({ session }: any) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [filterRT, setFilterRT] = useState("ALL");
+  const [filterRW, setFilterRW] = useState("ALL");
+  const [sortBy, setSortBy] = useState("NONE");
   const [selectedWarga, setSelectedWarga] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
@@ -44,8 +47,8 @@ export function KesraWargaBansosTab({ session }: any) {
     // --- Auto tanggal tanda tangan ---
     const now = new Date();
     const BULAN_ID = [
-      "Januari","Februari","Maret","April","Mei","Juni",
-      "Juli","Agustus","September","Oktober","November","Desember"
+      "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+      "Juli", "Agustus", "September", "Oktober", "November", "Desember"
     ];
     const autoDate = `Cimanggu I, ${now.getDate()} ${BULAN_ID[now.getMonth()]} ${now.getFullYear()}`;
 
@@ -99,7 +102,7 @@ export function KesraWargaBansosTab({ session }: any) {
       <rect x="156" y="4" width="1" height="42" fill="#000"/><rect x="160" y="4" width="3" height="42" fill="#000"/>
       <rect x="166" y="4" width="4" height="42" fill="#000"/><rect x="173" y="4" width="2" height="42" fill="#000"/>
       <rect x="178" y="4" width="1" height="42" fill="#000"/><rect x="182" y="4" width="3" height="42" fill="#000"/>
-      <text x="100" y="54" font-family="monospace" font-size="7" text-anchor="middle" fill="#000">KSR-${warga.nik.substring(0,6)}-${warga.id.substring(0,8).toUpperCase()}</text>
+      <text x="100" y="54" font-family="monospace" font-size="7" text-anchor="middle" fill="#000">KSR-${warga.nik.substring(0, 6)}-${warga.id.substring(0, 8).toUpperCase()}</text>
     </svg>`;
 
     // --- Logo Kabupaten Bogor (inline SVG representasi) ---
@@ -226,7 +229,7 @@ export function KesraWargaBansosTab({ session }: any) {
       <div class="kop-logo">${logoBogorSvg}</div>
       <div class="kop-text">
         <div class="kop-gov">Pemerintahan Kabupaten Bogor</div>
-        <div class="kop-kec">Kecamatan Cibungbulang &mdash; Desa Cimanggu I</div>
+        <div class="kop-kec">Kecamatan Cibungbulang Desa Cimanggu I</div>
         <div class="kop-addr">Alamat&nbsp;: Jl. Gardu Seri Kp. Ciaruteun Rt. 004 Rw. 008 Desa Cimanggu I Kec. Cibungbulang Kab. Bogor &mdash; 16630</div>
       </div>
     </div>
@@ -239,7 +242,7 @@ export function KesraWargaBansosTab({ session }: any) {
 
     <!-- OPENING -->
     <p class="opening">
-      Yang bertanda tangan di bawah ini, Kasi Kesejahteraan Desa Cimanggu I, Kecamatan Cibungbulang, Kabupaten Bogor,
+      Yang bertanda tangan di bawah ini, Kasi Kesejahteraan Desa Cimanggu I Kecamatan Cibungbulang Kabupaten Bogor,
       dengan ini menerangkan bahwa warga yang tercatat di bawah ini merupakan penerima resmi program jaminan sosial
       masyarakat di lingkungan wilayah Desa Cimanggu I:
     </p>
@@ -300,9 +303,9 @@ export function KesraWargaBansosTab({ session }: any) {
       </div>
       <div class="sig-block">
         <div class="sig-date">${autoDate}</div>
-        <div class="sig-title">Kasi Kesejahteraan<br>Desa Cimanggu I</div>
-        <div class="sig-name">${session?.user?.name || "KASI KESEJAHTERAAN"}</div>
-        <div class="sig-nip">NIPD. 19890412.2026.0710</div>
+        <div class="sig-title">Kasi Kesejahteraan</div>
+        <div class="sig-name">${session?.user?.name || "ABDUL AZIZ"}</div>
+        <div class="sig-nip">NIPD. -</div>
       </div>
     </div>
 
@@ -318,10 +321,23 @@ export function KesraWargaBansosTab({ session }: any) {
     setShowEditModal(true);
   };
 
-  const filteredData = data.filter(d =>
-    d.namaLengkap.toLowerCase().includes(search.toLowerCase()) ||
-    d.nik.includes(search)
-  );
+  let filteredData = data.filter(d => {
+    const matchSearch = d.namaLengkap.toLowerCase().includes(search.toLowerCase()) || d.nik.includes(search);
+    const matchRT = filterRT === "ALL" || d.rt === filterRT;
+    const matchRW = filterRW === "ALL" || d.rw === filterRW;
+    return matchSearch && matchRT && matchRW;
+  });
+
+  if (sortBy === "KK") {
+    filteredData.sort((a, b) => {
+      const aKK = a.hubunganKeluarga === "KEPALA KELUARGA" ? 0 : 1;
+      const bKK = b.hubunganKeluarga === "KEPALA KELUARGA" ? 0 : 1;
+      if (aKK !== bKK) return aKK - bKK;
+      return (a.noKk || "").localeCompare(b.noKk || "") || a.namaLengkap.localeCompare(b.namaLengkap);
+    });
+  } else if (sortBy === "NIK") {
+    filteredData.sort((a, b) => a.nik.localeCompare(b.nik));
+  }
 
   return (
     <div className="space-y-6">
@@ -338,15 +354,49 @@ export function KesraWargaBansosTab({ session }: any) {
 
       {/* Main Table */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <div className="relative mb-5">
-          <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Cari NIK atau Nama warga..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-          />
+        <div className="flex flex-col md:flex-row gap-3 mb-5">
+          <div className="relative flex-1">
+            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Cari NIK atau Nama warga..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+            />
+          </div>
+          
+          <select 
+            value={filterRW} 
+            onChange={e => { setFilterRW(e.target.value); setFilterRT("ALL"); }}
+            className="py-2.5 px-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white"
+          >
+            <option value="ALL">Semua RW</option>
+            {Array.from({ length: 9 }, (_, i) => String(i + 1).padStart(3, '0')).map(rw => (
+              <option key={rw} value={rw}>RW {rw}</option>
+            ))}
+          </select>
+          
+          <select 
+            value={filterRT} 
+            onChange={e => setFilterRT(e.target.value)}
+            className="py-2.5 px-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white"
+          >
+            <option value="ALL">Semua RT</option>
+            {Array.from({ length: 5 }, (_, i) => String(i + 1).padStart(3, '0')).map(rt => (
+              <option key={rt} value={rt}>RT {rt}</option>
+            ))}
+          </select>
+
+          <select 
+            value={sortBy} 
+            onChange={e => setSortBy(e.target.value)}
+            className="py-2.5 px-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-white"
+          >
+            <option value="NONE">Urutkan: Normal</option>
+            <option value="KK">Urutkan: Kepala Keluarga</option>
+            <option value="NIK">Urutkan: NIK</option>
+          </select>
         </div>
 
         <div className="overflow-x-auto">
@@ -381,7 +431,7 @@ export function KesraWargaBansosTab({ session }: any) {
                       const parsed = typeof bansos.jenisBantuan === "string" ? JSON.parse(bansos.jenisBantuan) : bansos.jenisBantuan;
                       if (Array.isArray(parsed)) bantuanStr = parsed.join(", ");
                     }
-                  } catch (e) {}
+                  } catch (e) { }
 
                   const desilNum = bansos?.desil ? parseInt(bansos.desil) : null;
                   const canPrint = desilNum !== null && desilNum >= 1 && desilNum <= 5;
@@ -394,11 +444,10 @@ export function KesraWargaBansosTab({ session }: any) {
                       <td className="px-4 py-3">RT {w.rt} / RW {w.rw}</td>
                       <td className="px-4 py-3">
                         {bansos?.desil ? (
-                          <span className={`font-bold text-xs px-2 py-0.5 rounded-full border ${
-                            canPrint
-                              ? "text-emerald-700 bg-emerald-50 border-emerald-200"
-                              : "text-slate-500 bg-slate-100 border-slate-200"
-                          }`}>
+                          <span className={`font-bold text-xs px-2 py-0.5 rounded-full border ${canPrint
+                            ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+                            : "text-slate-500 bg-slate-100 border-slate-200"
+                            }`}>
                             Desil {bansos.desil}
                           </span>
                         ) : <span className="text-slate-400">—</span>}
@@ -410,11 +459,10 @@ export function KesraWargaBansosTab({ session }: any) {
                       </td>
                       <td className="px-4 py-3">
                         {bansos ? (
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            bansos.status === "AKTIF"
-                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                              : "bg-slate-100 text-slate-500 border border-slate-200"
-                          }`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${bansos.status === "AKTIF"
+                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            : "bg-slate-100 text-slate-500 border border-slate-200"
+                            }`}>
                             {bansos.status}
                           </span>
                         ) : (
@@ -433,11 +481,10 @@ export function KesraWargaBansosTab({ session }: any) {
                             <button
                               onClick={() => handlePrintCertificate(w)}
                               title={!canPrint ? "Hanya Desil 1–5 yang dapat dicetak sertifikatnya" : "Cetak Sertifikat"}
-                              className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1 font-semibold text-[10px] shadow-sm ${
-                                canPrint
-                                  ? "bg-blue-500 hover:bg-blue-600 text-white"
-                                  : "bg-slate-200 text-slate-400 cursor-not-allowed"
-                              }`}
+                              className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1 font-semibold text-[10px] shadow-sm ${canPrint
+                                ? "bg-blue-500 hover:bg-blue-600 text-white"
+                                : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                                }`}
                             >
                               <Printer size={11} /> {canPrint ? "Cetak Sertifikat" : "Tidak Layak Cetak"}
                             </button>
@@ -475,7 +522,7 @@ function ModalEditBansos({ warga, onClose, onRefresh }: any) {
       try {
         const parsed = typeof bansos.jenisBantuan === "string" ? JSON.parse(bansos.jenisBantuan) : bansos.jenisBantuan;
         if (Array.isArray(parsed)) setSelectedBantuan(parsed);
-      } catch (e) {}
+      } catch (e) { }
     }
   }, [bansos]);
 
@@ -539,11 +586,10 @@ function ModalEditBansos({ warga, onClose, onRefresh }: any) {
                     key={b}
                     type="button"
                     onClick={() => toggleBantuan(b)}
-                    className={`px-2 py-1.5 rounded-lg border text-center font-bold text-[10px] transition-all ${
-                      isSelected
-                        ? "bg-blue-500 border-blue-500 text-white shadow-sm"
-                        : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
-                    }`}
+                    className={`px-2 py-1.5 rounded-lg border text-center font-bold text-[10px] transition-all ${isSelected
+                      ? "bg-blue-500 border-blue-500 text-white shadow-sm"
+                      : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                      }`}
                   >
                     {b}
                   </button>

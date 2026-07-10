@@ -138,7 +138,8 @@ export function KesraGisTab({ session }: any) {
         </div>
       `;
       
-      marker.bindPopup(popupHtml);
+      marker.bindTooltip(popupHtml, { direction: 'top', className: 'gis-tooltip' });
+      marker.bindPopup(popupHtml); // keep click functionality as fallback
       marker.addTo(group);
     });
   };

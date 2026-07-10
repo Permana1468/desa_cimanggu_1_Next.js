@@ -13,6 +13,10 @@ import { PosyanduLayananLansiaTab } from "../posyandu/PosyanduLayananLansiaTab";
 import { PosyanduJadwalTab } from "../posyandu/PosyanduJadwalTab";
 import { PosyanduKehadiranTab } from "../posyandu/PosyanduKehadiranTab";
 import { PosyanduAnalisisTab } from "../posyandu/PosyanduAnalisisTab";
+import { PosyanduRegisterTab } from "../kesra/PosyanduRegisterTab";
+import { PosyanduJadwalAbsensiTab } from "../kesra/PosyanduJadwalAbsensiTab";
+import { PosyanduInventarisTab } from "../kesra/PosyanduInventarisTab";
+import { KesraPmtTab } from "../kesra/KesraPmtTab";
 import {
   Activity, AlertTriangle, Baby, Calendar, HeartPulse, Plus,
   FileText, Users, Stethoscope, ClipboardList, CheckCircle2,
@@ -705,6 +709,10 @@ function PosyanduDashboardContent({ session }: any) {
           {activeTab === "jadwal" && <PosyanduJadwalTab session={session} />}
           {activeTab === "kehadiran" && <PosyanduKehadiranTab session={session} />}
           {activeTab === "analisis" && <PosyanduAnalisisTab session={session} />}
+          {activeTab === "posyandu-register" && <PosyanduRegisterTab session={session} />}
+          {activeTab === "posyandu-jadwal" && <PosyanduJadwalAbsensiTab session={session} />}
+          {activeTab === "posyandu-inventaris" && <PosyanduInventarisTab session={session} />}
+          {activeTab === "pmt" && <KesraPmtTab session={session} />}
         </motion.div>
       </AnimatePresence>
     </div>

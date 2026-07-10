@@ -45,7 +45,8 @@ import {
   BarChart3,
   Plus,
   Award,
-  Briefcase
+  Briefcase,
+  Globe
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -460,7 +461,7 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                  <button
                    onClick={() => (!isCollapsed || isOpen) && toggleGroup("kemiskinan-sosial")}
                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                     ["dtks", "warga-bansos", "gis-kemiskinan", "uhc"].includes(tabParam || "")
+                     ["warga-bansos", "gis-kemiskinan", "uhc"].includes(tabParam || "")
                        ? "bg-rose-50 text-rose-700 font-bold"
                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                    } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
@@ -487,25 +488,43 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                      >
                        <div className="mt-1 ml-3 pl-3 border-l-2 border-rose-100 space-y-1">
                          {[
-                           { label: "Cleansing DTKS", tab: "dtks", icon: Database },
+                           { label: "Login SIKS-NG", href: "https://siks.kemensos.go.id/login", isExternal: true, icon: Globe },
                            { label: "Data Bansos Warga", tab: "warga-bansos", icon: Award },
                            { label: "Peta Kerentanan GIS", tab: "gis-kemiskinan", icon: Map },
                            { label: "Monitoring UHC / KIS", tab: "uhc", icon: HeartPulse },
-                         ].map(({ label, tab, icon: Icon }) => (
-                           <Link
-                             key={tab}
-                             href={`/dashboard?tab=${tab}`}
-                             onClick={() => setIsOpen(false)}
-                             className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
-                               tabParam === tab
-                                 ? "bg-rose-500 text-white font-bold"
-                                 : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-                             }`}
-                           >
-                             <Icon size={16} />
-                             <span>{label}</span>
-                           </Link>
-                         ))}
+                           { label: "Usulan UHC", tab: "usulan-uhc", icon: FileText },
+                         ].map((item) => {
+                           const Icon = item.icon;
+                           if (item.isExternal) {
+                             return (
+                               <a
+                                 key={item.label}
+                                 href={item.href}
+                                 target="_blank"
+                                 rel="noopener noreferrer"
+                                 className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                               >
+                                 <Icon size={16} />
+                                 <span>{item.label}</span>
+                               </a>
+                             );
+                           }
+                           return (
+                             <Link
+                               key={item.tab}
+                               href={`/dashboard?tab=${item.tab}`}
+                               onClick={() => setIsOpen(false)}
+                               className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                                 tabParam === item.tab
+                                   ? "bg-rose-500 text-white font-bold"
+                                   : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                               }`}
+                             >
+                               <Icon size={16} />
+                               <span>{item.label}</span>
+                             </Link>
+                           );
+                         })}
                        </div>
                      </motion.div>
                    )}
@@ -517,7 +536,7 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                  <button
                    onClick={() => (!isCollapsed || isOpen) && toggleGroup("kesehatan-stunting")}
                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                     ["ews-stunting", "pmt"].includes(tabParam || "")
+                     ["ews-stunting", "pmt", "posyandu-register", "posyandu-jadwal", "posyandu-inventaris"].includes(tabParam || "")
                        ? "bg-rose-50 text-rose-700 font-bold"
                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                    } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
@@ -544,8 +563,11 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                      >
                        <div className="mt-1 ml-3 pl-3 border-l-2 border-rose-100 space-y-1">
                          {[
-                           { label: "EWS Stunting Balita", tab: "ews-stunting", icon: HeartPulse },
-                           { label: "Logistik & PMT", tab: "pmt", icon: Package },
+                            { label: "Buku Register Digital", tab: "posyandu-register", icon: ClipboardList },
+                            { label: "EWS Stunting Balita", tab: "ews-stunting", icon: HeartPulse },
+                            { label: "Jadwal & Absensi", tab: "posyandu-jadwal", icon: CalendarClock },
+                            { label: "Modul Manajemen Anggaran", tab: "pmt", icon: Package },
+                            { label: "Manajemen Inventaris", tab: "posyandu-inventaris", icon: Archive },
                          ].map(({ label, tab, icon: Icon }) => (
                            <Link
                              key={tab}

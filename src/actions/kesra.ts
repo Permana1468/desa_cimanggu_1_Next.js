@@ -532,3 +532,50 @@ export async function deleteKesraUhc(id: string) {
     return { success: true };
 }
 
+// =======================
+// FITUR USULAN UHC (14 Parameter)
+// =======================
+
+export async function getKesraUsulanUhcList() {
+    const { tenantId } = await verifyKesraAccess();
+    return await prisma.kesraUsulanUhc.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: "desc" }
+    });
+}
+
+export async function addKesraUsulanUhc(data: any) {
+    const { tenantId } = await verifyKesraAccess();
+    const usulan = await prisma.kesraUsulanUhc.create({
+        data: {
+            ...data,
+            tenantId
+        }
+    });
+    revalidatePath("/dashboard");
+    return { success: true, usulan };
+}
+
+export async function updateKesraUsulanUhc(id: string, data: any) {
+    const { tenantId } = await verifyKesraAccess();
+    
+    // Remove fields that shouldn't be updated
+    const { id: _id, createdAt, updatedAt, tenantId: _tenantId, ...updateData } = data;
+
+    const usulan = await prisma.kesraUsulanUhc.updateMany({
+        where: { id, tenantId },
+        data: updateData
+    });
+    revalidatePath("/dashboard");
+    return { success: true, usulan };
+}
+
+export async function deleteKesraUsulanUhc(id: string) {
+    const { tenantId } = await verifyKesraAccess();
+    await prisma.kesraUsulanUhc.deleteMany({
+        where: { id, tenantId }
+    });
+    revalidatePath("/dashboard");
+    return { success: true };
+}
+
