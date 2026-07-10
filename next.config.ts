@@ -33,9 +33,6 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
-  serverActions: {
-    bodySizeLimit: '20mb',
-  },
   experimental: {
     serverActions: {
       bodySizeLimit: '20mb',
