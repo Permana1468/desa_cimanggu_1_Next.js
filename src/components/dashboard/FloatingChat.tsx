@@ -222,7 +222,7 @@ export function FloatingChat({ session }: { session: any }) {
     return (
         <div className="fixed bottom-24 lg:bottom-6 right-6 z-[9999] flex flex-col items-end font-sans">
             {isOpen && (
-                <div className="fixed inset-0 z-[10000] lg:static lg:z-auto w-full h-full lg:w-[380px] sm:lg:w-[400px] lg:h-[580px] bg-white lg:bg-white/95 backdrop-blur-md lg:rounded-3xl border-0 lg:border border-slate-200/80 shadow-2xl overflow-hidden flex flex-col lg:mb-4 transition-all duration-300 animate-in slide-in-from-bottom-5 pointer-events-auto">
+                <div className="fixed top-0 left-0 right-0 bottom-[75px] z-[10000] lg:static lg:z-auto w-full lg:w-[380px] sm:lg:w-[400px] lg:h-[580px] bg-white lg:bg-white/95 backdrop-blur-md lg:rounded-3xl border-0 lg:border border-slate-200/80 shadow-2xl overflow-hidden flex flex-col lg:mb-4 transition-all duration-300 animate-in slide-in-from-bottom-5 pointer-events-auto">
                     <div className="bg-slate-900 text-white p-4 pt-6 lg:pt-4 flex items-center justify-between shadow-md shrink-0">
                         {activeContact ? (
                             <div className="flex items-center gap-3">
