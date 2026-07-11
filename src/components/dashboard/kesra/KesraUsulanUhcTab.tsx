@@ -354,7 +354,7 @@ function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }: any) 
                         <option value="">Pilih Rujukan...</option>
                         <option value="PUSKESMAS CIBUNGBULANG">PUSKESMAS CIBUNGBULANG</option>
                         <option value="RSUD. LEUWILIANG">RSUD. LEUWILIANG</option>
-                        <option value="RS. ASYSYFAA">RS. ASYSYFAA</option>
+                        <option value="RS. ASYSYIFAA">RS. ASYSYIFAA</option>
                         <option value="RS. KARYA BHAKTI PRATIWI">RS. KARYA BHAKTI PRATIWI</option>
                         <option value="RS. MEDIKA DRAMAGA">RS. MEDIKA DRAMAGA</option>
                         <option value="RSUD. KOTA BOGOR">RSUD. KOTA BOGOR</option>
