@@ -460,15 +460,23 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
               <tr>
                 <td className="border border-black p-2 h-[40px] align-top text-[11px]" colSpan={9}>
                   {data.rujukan ? (
-                    <>
-                      <span className="font-bold uppercase">RUJUKAN : {data.rujukan}</span>
-                      {RUJUKAN_HOSPITALS[data.rujukan] && (
-                        <>
-                          <br />
-                          <span className="font-normal">{RUJUKAN_HOSPITALS[data.rujukan]}</span>
-                        </>
-                      )}
-                    </>
+                    data.rujukan.startsWith("CUSTOM|") ? (
+                      <>
+                        <span className="font-bold uppercase">RUJUKAN : {data.rujukan.split("|")[1]}</span>
+                        <br />
+                        <span className="font-normal">{data.rujukan.split("|")[2]}</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-bold uppercase">RUJUKAN : {data.rujukan}</span>
+                        {RUJUKAN_HOSPITALS[data.rujukan] && (
+                          <>
+                            <br />
+                            <span className="font-normal">{RUJUKAN_HOSPITALS[data.rujukan]}</span>
+                          </>
+                        )}
+                      </>
+                    )
                   ) : (
                     <span className="font-bold">RUJUKAN : -</span>
                   )}

@@ -198,7 +198,15 @@ export function KesraUsulanUhcTab({ session }: any) {
 
 function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }: any) {
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState<any>(initialData || {
+  const isCustomInitial = initialData?.rujukan?.startsWith("CUSTOM|");
+  const initialRujukan = isCustomInitial ? "LAINNYA" : (initialData?.rujukan || "");
+  const initialCustomNama = isCustomInitial ? initialData.rujukan.split("|")[1] : "";
+  const initialCustomAlamat = isCustomInitial ? initialData.rujukan.split("|")[2] : "";
+
+  const [customNama, setCustomNama] = useState(initialCustomNama);
+  const [customAlamat, setCustomAlamat] = useState(initialCustomAlamat);
+
+  const [formData, setFormData] = useState<any>(initialData ? { ...initialData, rujukan: initialRujukan } : {
     kecamatan: "CIBUNGBULANG",
     desaKelurahan: "CIMANGGU I",
     namaPemohon: "",
@@ -237,11 +245,16 @@ function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }: any) 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
+    const submitData = { ...formData };
+    if (submitData.rujukan === "LAINNYA") {
+        submitData.rujukan = `CUSTOM|${customNama}|${customAlamat}`;
+    }
+
     try {
         if (initialData) {
-            await updateKesraUsulanUhc(initialData.id, formData);
+            await updateKesraUsulanUhc(initialData.id, submitData);
         } else {
-            await addKesraUsulanUhc(formData);
+            await addKesraUsulanUhc(submitData);
         }
         onRefresh();
         onClose();
@@ -358,7 +371,21 @@ function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }: any) 
                         <option value="RS. KARYA BHAKTI PRATIWI">RS. KARYA BHAKTI PRATIWI</option>
                         <option value="RS. MEDIKA DRAMAGA">RS. MEDIKA DRAMAGA</option>
                         <option value="RSUD. KOTA BOGOR">RSUD. KOTA BOGOR</option>
+                        <option value="LAINNYA">LAINNYA</option>
                     </select>
+
+                    {formData.rujukan === "LAINNYA" && (
+                        <div className="mt-3 space-y-3 p-4 bg-slate-50 border border-slate-100 rounded-xl">
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nama Rumah Sakit/Rujukan</label>
+                                <input value={customNama} onChange={e => setCustomNama(e.target.value)} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Contoh: RS. MARJUKI MAHDI" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-semibold text-slate-600 mb-1.5">Alamat Rujukan</label>
+                                <input value={customAlamat} onChange={e => setCustomAlamat(e.target.value)} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Isi alamat lengkap..." />
+                            </div>
+                        </div>
+                    )}
                   </div>
               </div>
           </div>
