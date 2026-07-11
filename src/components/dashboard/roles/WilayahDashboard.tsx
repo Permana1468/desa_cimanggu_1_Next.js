@@ -674,7 +674,7 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
               <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-wider">
                 <th className="py-3 px-4">Nama / NIK</th>
                 <th className="py-3 px-4">No KK</th>
-                {(session?.user?.role === "RW" || session?.user?.role === "KADUS") && <th className="py-3 px-4">RT / RW</th>}
+                {(session?.user?.role === "RW" || session?.user?.role === "KADUS") && <th className="py-3 px-4">WILAYAH (RT/RW/DUSUN)</th>}
                 <th className="py-3 px-4">Hub. Keluarga</th>
                 <th className="py-3 px-4">Pekerjaan</th>
                 <th className="py-3 px-4 text-center">Aksi</th>
@@ -697,7 +697,7 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
                   <td className="py-3.5 px-4 text-slate-500 font-mono"><HoverMask value={w.noKK} /></td>
                   {(session?.user?.role === "RW" || session?.user?.role === "KADUS") && (
                     <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg text-[10px] font-black">RT {w.rt} / RW {w.rw}</span>
+                      <span className="px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg text-[10px] font-black uppercase">{w.alamat ? `${w.alamat} ` : ""}RT {w.rt} / RW {w.rw}{w.dusun ? ` DUSUN ${w.dusun}` : ""}</span>
                     </td>
                   )}
                   <td className="py-3.5 px-4">

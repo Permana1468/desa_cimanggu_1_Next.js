@@ -429,7 +429,16 @@ export async function getKesraKependudukanList() {
     });
 }
 
-export async function updateKesraWargaBansos(data: { wargaId: string, desil: number, jenisBantuan: string[], status: string, keterangan: string }) {
+export async function updateKesraWargaBansos(data: { 
+  wargaId: string, 
+  desil: number, 
+  jenisBantuan: string[], 
+  status: string, 
+  keterangan: string,
+  nomorRegister?: string,
+  namaPenandatangan?: string,
+  nipdPenandatangan?: string
+}) {
     const { tenantId } = await verifyKesraAccess();
     
     await prisma.bansosData.upsert({
@@ -438,7 +447,10 @@ export async function updateKesraWargaBansos(data: { wargaId: string, desil: num
             desil: data.desil,
             jenisBantuan: data.jenisBantuan,
             status: data.status,
-            keterangan: data.keterangan
+            keterangan: data.keterangan,
+            nomorRegister: data.nomorRegister,
+            namaPenandatangan: data.namaPenandatangan,
+            nipdPenandatangan: data.nipdPenandatangan
         },
         create: {
             wargaId: data.wargaId,
@@ -446,6 +458,9 @@ export async function updateKesraWargaBansos(data: { wargaId: string, desil: num
             jenisBantuan: data.jenisBantuan,
             status: data.status,
             keterangan: data.keterangan,
+            nomorRegister: data.nomorRegister,
+            namaPenandatangan: data.namaPenandatangan,
+            nipdPenandatangan: data.nipdPenandatangan,
             tenantId
         }
     });
@@ -577,5 +592,15 @@ export async function deleteKesraUsulanUhc(id: string) {
     });
     revalidatePath("/dashboard");
     return { success: true };
+}
+
+export async function updateKesraUsulanUhcStatus(id: string, statusTracking: string) {
+    const { tenantId } = await verifyKesraAccess();
+    const usulan = await prisma.kesraUsulanUhc.updateMany({
+        where: { id, tenantId },
+        data: { statusTracking }
+    });
+    revalidatePath("/dashboard");
+    return { success: true, usulan };
 }
 

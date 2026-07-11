@@ -141,6 +141,7 @@ function KesejahteraanDashboardContent({ session, stats }: { session: any, stats
         return <PosyanduInventarisTab session={session} />;
       case "report":
         return <KesraReportTab session={session} />;
+      default:
         const trendData = [
           { name: 'Jan', dtks: Math.floor((dtksCount || 10) * 0.4), ats: Math.floor((atsCount || 5) * 0.3) },
           { name: 'Feb', dtks: Math.floor((dtksCount || 10) * 0.5), ats: Math.floor((atsCount || 5) * 0.4) },

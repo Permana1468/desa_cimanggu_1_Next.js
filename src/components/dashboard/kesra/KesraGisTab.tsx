@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Plus, Search, Map, Trash2, MapPin, Phone, User, Home, Loader2, AlertCircle } from "lucide-react";
 import { getKesraGisList, addKesraGis, deleteKesraGis } from "@/actions/kesra";
+import { getBoundaries } from "@/actions/gis";
 import "leaflet/dist/leaflet.css";
 
 export function KesraGisTab({ session }: any) {
@@ -12,6 +13,7 @@ export function KesraGisTab({ session }: any) {
   const [showModal, setShowModal] = useState(false);
   const [filterKerentanan, setFilterKerentanan] = useState("ALL");
   const [selectedWarga, setSelectedWarga] = useState<any>(null);
+  const [boundaries, setBoundaries] = useState<any[]>([]);
 
   const LRef = useRef<any>(null);
   const mapRef = useRef<any>(null);
@@ -25,8 +27,15 @@ export function KesraGisTab({ session }: any) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await getKesraGisList();
+      const tenantId = session?.user?.tenantId || "";
+      const [res, boundsRes] = await Promise.all([
+        getKesraGisList(),
+        tenantId ? getBoundaries(tenantId) : { success: false, data: [] }
+      ]);
       setWargas(res);
+      if (boundsRes.success && boundsRes.data) {
+        setBoundaries(boundsRes.data);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -67,6 +76,28 @@ export function KesraGisTab({ session }: any) {
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(mapInstance);
+
+      // Draw DESA mask
+      const desaBoundary = boundaries.find((b: any) => b.type === "DESA");
+      if (desaBoundary) {
+        let desaCoords: [number, number][] = [];
+        try {
+          desaCoords = typeof desaBoundary.coordinates === "string" ? JSON.parse(desaBoundary.coordinates) : desaBoundary.coordinates;
+        } catch (e) {}
+
+        if (desaCoords && desaCoords.length >= 3) {
+          const outerBounds = [[-90, -180], [90, -180], [90, 180], [-90, 180]];
+          L.polygon([outerBounds, desaCoords] as any, {
+            color: "transparent",
+            fillColor: "#0f172a",
+            fillOpacity: 0.65,
+            interactive: false 
+          }).addTo(mapInstance);
+
+          // Focus on desa boundary
+          mapInstance.fitBounds(L.polygon(desaCoords).getBounds(), { padding: [50, 50] });
+        }
+      }
 
       markersGroupRef.current = L.layerGroup().addTo(mapInstance);
 

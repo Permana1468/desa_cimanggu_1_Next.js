@@ -229,6 +229,7 @@ model DataKependudukan {
   namaIbu           String?
   
   alamat            String
+  kampung           String?
   rt                String
   rw                String
   dusun             String
@@ -261,6 +262,9 @@ model BansosData {
   jenisBantuan    Json?    // Array of strings, e.g. ["PKH", "BPNT", "BLT-DD"]
   status          String   @default("AKTIF") // AKTIF, NON-AKTIF, USULAN_RT
   keterangan      String?
+  nomorRegister   String?
+  namaPenandatangan String?
+  nipdPenandatangan String?
   
   tenantId        String
   tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -1316,6 +1320,7 @@ model KesraUsulanUhc {
   hasilVerifikasi String   
   keterangan      String?
   rujukan         String?
+  statusTracking  String   @default("Proses Verifikasi") // Proses Verifikasi, AKTIF
 
   // Foto Rumah
   fotoDepan       String?

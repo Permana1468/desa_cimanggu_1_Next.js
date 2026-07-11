@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Search, HeartPulse, ShieldAlert, Loader2, FileText, Printer, Edit2 } from "lucide-react";
-import { getKesraUsulanUhcList, addKesraUsulanUhc, deleteKesraUsulanUhc, getKesraKependudukanList, updateKesraUsulanUhc } from "@/actions/kesra";
+import { Search, Plus, FileText, Download, Loader2, Printer, Trash2, Edit2, Activity, CheckCircle } from "lucide-react";
+import { getKesraUsulanUhcList, addKesraUsulanUhc, updateKesraUsulanUhc, deleteKesraUsulanUhc, updateKesraUsulanUhcStatus, getKesraKependudukanList } from "@/actions/kesra";
 import { CetakUsulanUhc } from "./CetakUsulanUhc";
 import { ImageUpload } from "@/components/dashboard/ImageUpload";
 
@@ -53,10 +53,18 @@ export function KesraUsulanUhcTab({ session }: any) {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Hapus data Usulan UHC ini?")) {
-      await deleteKesraUsulanUhc(id);
-      fetchData();
-    }
+    if (!confirm("Hapus usulan UHC ini?")) return;
+    setLoading(true);
+    await deleteKesraUsulanUhc(id);
+    fetchData();
+  };
+
+  const handleUpdateStatus = async (id: string, currentStatus: string) => {
+    const newStatus = currentStatus === "AKTIF" ? "Proses Verifikasi" : "AKTIF";
+    if (!confirm(`Ubah status BPJS menjadi ${newStatus}?`)) return;
+    setLoading(true);
+    await updateKesraUsulanUhcStatus(id, newStatus);
+    fetchData();
   };
 
   const handleEdit = (d: any) => {
@@ -166,6 +174,17 @@ export function KesraUsulanUhcTab({ session }: any) {
                           title="Update"
                         >
                           <Edit2 size={13} />
+                        </button>
+                        <button
+                          onClick={() => handleUpdateStatus(d.id, d.statusTracking)}
+                          className={`w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${
+                            d.statusTracking === 'AKTIF'
+                              ? 'text-emerald-500 hover:text-emerald-700 hover:bg-emerald-50'
+                              : 'text-amber-500 hover:text-amber-700 hover:bg-amber-50'
+                          }`}
+                          title={d.statusTracking === 'AKTIF' ? 'Ubah ke Proses' : 'Aktifkan BPJS'}
+                        >
+                          {d.statusTracking === 'AKTIF' ? <CheckCircle size={13} /> : <Activity size={13} />}
                         </button>
                         <button
                           onClick={() => handleDelete(d.id)}

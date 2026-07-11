@@ -473,8 +473,8 @@ export default function WargaManagementPage() {
                                         </span>
                                     </td>
                                     <td className="py-5 px-4">
-                                        <div className="text-xs font-bold text-slate-700">RT {item.rt}/RW {item.rw}</div>
-                                        <div className="text-[10px] text-slate-400 font-medium">{item.dusun}</div>
+                                        <div className="text-xs font-bold text-slate-700 uppercase">{item.alamat} RT {item.rt}/RW {item.rw}</div>
+                                        <div className="text-[10px] text-slate-400 font-medium uppercase">Dusun {item.dusun}</div>
                                     </td>
                                     <td className="py-5 px-4">
                                         <div className="text-xs font-bold text-slate-700">{item.tempatLahir}</div>

@@ -52,8 +52,14 @@ export function KesraWargaBansosTab({ session }: any) {
     ];
     const autoDate = `Cimanggu I, ${now.getDate()} ${BULAN_ID[now.getMonth()]} ${now.getFullYear()}`;
 
-    // --- Nomor surat ---
-    const nomorRegister = `${warga.nik.substring(12)}${warga.id.substring(0, 4).toUpperCase()}`;
+    // --- Load Print Settings ---
+    let savedNoRegister = typeof window !== "undefined" ? localStorage.getItem('bansos_print_noRegister') || "000213EA" : "000213EA";
+    let savedNamaTTD = typeof window !== "undefined" ? localStorage.getItem('bansos_print_namaTTD') || "KASI Kesejahteraan" : "KASI Kesejahteraan";
+    let savedNipd = typeof window !== "undefined" ? localStorage.getItem('bansos_print_nipd') || "-" : "-";
+
+    const nomorRegister = savedNoRegister;
+    const namaTTD = savedNamaTTD;
+    const nipd = savedNipd;
 
     // --- Desil label ---
     const desilDescMap: Record<number, string> = {
@@ -105,39 +111,7 @@ export function KesraWargaBansosTab({ session }: any) {
       <text x="100" y="54" font-family="monospace" font-size="7" text-anchor="middle" fill="#000">KSR-${warga.nik.substring(0, 6)}-${warga.id.substring(0, 8).toUpperCase()}</text>
     </svg>`;
 
-    // --- Logo Kabupaten Bogor (inline SVG representasi) ---
-    const logoBogorSvg = `<svg width="82" height="82" viewBox="0 0 400 420" xmlns="http://www.w3.org/2000/svg">
-      <!-- Shield shape -->
-      <path d="M200 10 L380 80 L380 250 C380 340 200 410 200 410 C200 410 20 340 20 250 L20 80 Z" fill="#FFD700" stroke="#333" stroke-width="8"/>
-      <!-- Green inner pentagon -->
-      <polygon points="200,55 310,120 310,270 200,340 90,270 90,120" fill="#228B22" stroke="#111" stroke-width="5"/>
-      <!-- Black circle -->
-      <circle cx="200" cy="195" r="115" fill="#111" stroke="#eee" stroke-width="6"/>
-      <!-- Dark green inner -->
-      <circle cx="200" cy="195" r="105" fill="#1a6b2a"/>
-      <!-- Gold triangle -->
-      <polygon points="200,105 290,280 110,280" fill="#FFD700" stroke="#111" stroke-width="5"/>
-      <!-- Waves -->
-      <path d="M125,265 Q145,250 165,265 Q185,280 205,265 Q225,250 245,265 Q265,280 278,265" fill="none" stroke="#111" stroke-width="3.5"/>
-      <path d="M130,248 Q150,235 170,248 Q190,261 210,248 Q230,235 250,248 Q265,260 273,248" fill="none" stroke="#111" stroke-width="3"/>
-      <!-- Kujang/leaf center -->
-      <ellipse cx="200" cy="190" rx="24" ry="45" fill="white" stroke="#228B22" stroke-width="4"/>
-      <path d="M200,152 Q218,172 218,192 Q218,218 200,232 Q182,218 182,192 Q182,172 200,152Z" fill="#228B22"/>
-      <!-- Text top arc -->
-      <path id="a1" d="M100,195 A100,100 0 0,1 300,195" fill="none"/>
-      <text font-family="Arial" font-size="18" font-weight="bold" fill="white" letter-spacing="4">
-        <textPath href="#a1" startOffset="5%">PRAYOGA TOHAGA</textPath>
-      </text>
-      <!-- SAYAGA -->
-      <text x="200" y="302" font-family="Arial" font-size="16" font-weight="bold" fill="white" text-anchor="middle" letter-spacing="3">SAYAGA</text>
-      <!-- Bottom arc text -->
-      <path id="a2" d="M110,280 A100,100 0 0,0 290,280" fill="none"/>
-      <text font-family="Arial" font-size="11" fill="white" letter-spacing="1">
-        <textPath href="#a2" startOffset="8%">KUTA UDAYA WANGSA</textPath>
-      </text>
-      <!-- TEGAR BERIMAN bottom -->
-      <text x="200" y="390" font-family="Arial" font-size="30" font-weight="900" fill="#333" text-anchor="middle" letter-spacing="1">TEGAR BERIMAN</text>
-    </svg>`;
+    const logoBogorHtml = `<img src="/images/logo-bogor.png" style="width:75px;height:auto;" />`;
 
     certWindow.document.write(`<!DOCTYPE html>
 <html lang="id">
@@ -178,8 +152,8 @@ export function KesraWargaBansosTab({ session }: any) {
     .dtable td.lbl{font-weight:bold;width:38%;color:#111;white-space:nowrap;}
     .dtable td.sep{width:3%;text-align:center;font-weight:bold;}
     .dtable td.val{border-bottom:1px dashed #aaa;}
-    .desil-badge{display:inline-block;background:#dbeafe;color:#1e3a8f;padding:2px 10px;border-radius:4px;font-weight:900;font-size:10.5pt;}
-    .bantuan-badge{display:inline-block;background:#dcfce7;color:#14532d;padding:1px 8px;border-radius:4px;font-weight:bold;font-size:9.5pt;margin:1px 2px;}
+    .desil-badge{display:inline-block;background:#dbeafe;color:#1e3a8f;padding:2px 10px;border-radius:4px;font-weight:900;font-size:10.5pt;margin-left:-10px;}
+    .bantuan-badge{display:inline-block;background:#dcfce7;color:#14532d;padding:1px 8px;border-radius:4px;font-weight:bold;font-size:9.5pt;margin:1px 4px 1px -8px;}
 
     /* CLOSING */
     .statement{font-size:9.5pt;font-style:italic;color:#444;text-align:center;margin:7px 0 12px 0;line-height:1.65;}
@@ -226,7 +200,7 @@ export function KesraWargaBansosTab({ session }: any) {
 
     <!-- KOP SURAT -->
     <div class="kop">
-      <div class="kop-logo">${logoBogorSvg}</div>
+      <div class="kop-logo">${logoBogorHtml}</div>
       <div class="kop-text">
         <div class="kop-gov">Pemerintahan Kabupaten Bogor</div>
         <div class="kop-kec">Kecamatan Cibungbulang Desa Cimanggu I</div>
@@ -267,15 +241,12 @@ export function KesraWargaBansosTab({ session }: any) {
       <tr>
         <td class="lbl">Alamat / Wilayah</td>
         <td class="sep">:</td>
-        <td class="val">RT ${warga.rt} / RW ${warga.rw}${warga.dusun ? ", Dusun " + warga.dusun : ""}, Desa Cimanggu I</td>
+        <td class="val">${warga.alamat ? "Kp. " + warga.alamat + " " : ""}RT ${warga.rt} / RW ${warga.rw}${warga.dusun ? ", Dusun " + warga.dusun : ""}, Desa Cimanggu I</td>
       </tr>
       <tr>
         <td class="lbl">Desil Kesejahteraan</td>
         <td class="sep">:</td>
-        <td class="val">
-          <span class="desil-badge">Desil ${desil}</span>
-          &nbsp;<i style="font-size:9.5pt;color:#555;">(${desilDesc})</i>
-        </td>
+        <td class="val"><span class="desil-badge">Desil ${desil}</span>&nbsp; <i style="font-size:9.5pt;color:#555;">(${desilDesc})</i></td>
       </tr>
       <tr>
         <td class="lbl">Kategori Program Bantuan</td>
@@ -302,10 +273,10 @@ export function KesraWargaBansosTab({ session }: any) {
         <div class="barcode-label">VERIFIKASI RESMI DIGITAL</div>
       </div>
       <div class="sig-block">
-        <div class="sig-date">${autoDate}</div>
+        <div class="sig-date">Cimanggu I, ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
         <div class="sig-title">Kasi Kesejahteraan</div>
-        <div class="sig-name">${session?.user?.name || "ABDUL AZIZ"}</div>
-        <div class="sig-nip">NIPD. -</div>
+        <div class="sig-name">${namaTTD}</div>
+        <div class="sig-nip">NIPD. ${nipd}</div>
       </div>
     </div>
 
@@ -439,7 +410,7 @@ export function KesraWargaBansosTab({ session }: any) {
                   return (
                     <tr key={w.id} className="hover:bg-slate-50/50">
                       <td className="px-4 py-3 text-slate-400 font-medium">{idx + 1}</td>
-                      <td className="px-4 py-3 font-mono">{w.nik}</td>
+                      <td className="px-4 py-3 font-mono"><HoverMask value={w.nik} /></td>
                       <td className="px-4 py-3 font-bold text-slate-800">{w.namaLengkap}</td>
                       <td className="px-4 py-3">RT {w.rt} / RW {w.rw}</td>
                       <td className="px-4 py-3">
@@ -536,6 +507,13 @@ function ModalEditBansos({ warga, onClose, onRefresh }: any) {
     e.preventDefault();
     setLoading(true);
     const fd = new FormData(e.target);
+    
+    if (typeof window !== "undefined") {
+      localStorage.setItem('bansos_print_noRegister', fd.get("noRegister") as string);
+      localStorage.setItem('bansos_print_namaTTD', fd.get("namaTTD") as string);
+      localStorage.setItem('bansos_print_nipd', fd.get("nipd") as string);
+    }
+
     await updateKesraWargaBansos({
       wargaId: warga.id,
       desil: parseInt(fd.get("desil") as string) || 1,
@@ -603,6 +581,24 @@ function ModalEditBansos({ warga, onClose, onRefresh }: any) {
             <input name="keterangan" defaultValue={bansos?.keterangan || ""} placeholder="Kondisi ekonomi / catatan bansos" type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none" />
           </div>
 
+          <div className="border-t border-slate-100 pt-4 mt-4">
+            <h4 className="text-xs font-bold text-slate-800 mb-3">Pengaturan Cetak (Tersimpan Lokal)</h4>
+            <div className="grid grid-cols-2 gap-4 mb-3">
+              <div>
+                <label className="block text-[10px] font-semibold text-slate-600 mb-1">No Register</label>
+                <input name="noRegister" defaultValue={typeof window !== "undefined" ? localStorage.getItem('bansos_print_noRegister') || "000213EA" : "000213EA"} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold text-slate-600 mb-1">Nama TTD</label>
+                <input name="namaTTD" defaultValue={typeof window !== "undefined" ? localStorage.getItem('bansos_print_namaTTD') || "KASI Kesejahteraan" : "KASI Kesejahteraan"} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[10px] font-semibold text-slate-600 mb-1">NIPD TTD</label>
+              <input name="nipd" defaultValue={typeof window !== "undefined" ? localStorage.getItem('bansos_print_nipd') || "-" : "-"} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none" />
+            </div>
+          </div>
+
           <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
             <button type="button" onClick={onClose} className="px-4 py-2 text-xs text-slate-600 hover:bg-slate-50 rounded-xl border border-slate-200">Batal</button>
             <button type="submit" disabled={loading} className="px-5 py-2 text-xs bg-blue-500 hover:bg-blue-600 text-white rounded-xl disabled:opacity-50 font-semibold">
@@ -612,5 +608,22 @@ function ModalEditBansos({ warga, onClose, onRefresh }: any) {
         </form>
       </div>
     </div>
+  );
+}
+
+function HoverMask({ value }: { value: string }) {
+  const [visible, setVisible] = useState(false);
+  if (!value) return <span>-</span>;
+  const getMasked = (val: string) => {
+    if (val.length <= 6) return "*".repeat(val.length);
+    return val.substring(0, 6) + "*".repeat(val.length - 6);
+  };
+  return (
+    <span 
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+    >
+      {visible ? value : getMasked(value)}
+    </span>
   );
 }

@@ -129,9 +129,14 @@ export function KesraUhcTab({ session }: any) {
                         {d.hasilVerifikasi}
                       </span>
                     </td>
-                    <td className="px-3 py-3">
-                       {/* Nanti bisa disambung dengan fungsi Update Status */}
-                       <span className="text-slate-400 italic print:text-black">Tracking...</span>
+                    <td className="px-3 py-3 font-bold">
+                       <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] uppercase tracking-wider ${
+                         d.statusTracking === 'AKTIF' 
+                           ? 'bg-emerald-100 text-emerald-700 print:bg-transparent print:border print:text-black' 
+                           : 'bg-amber-100 text-amber-700 print:bg-transparent print:border print:text-black'
+                       }`}>
+                         {d.statusTracking || 'Proses Verifikasi'}
+                       </span>
                     </td>
                   </tr>
                 ))
