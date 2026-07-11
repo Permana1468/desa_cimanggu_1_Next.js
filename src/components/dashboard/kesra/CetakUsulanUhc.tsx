@@ -4,6 +4,15 @@ import { useEffect } from "react";
 import { ArrowLeft, Printer } from "lucide-react";
 import Image from "next/image";
 
+const RUJUKAN_HOSPITALS: Record<string, string> = {
+  "PUSKESMAS CIBUNGBULANG": "Jl. Kapten Dasuki Bakri Rt.002 Rw.003 Cibatok I Kecamatan Cibungbulang, 16630",
+  "RSUD. LEUWILIANG": "Jl. Raya Cibeber No.1 Cibeber, Kecamatan Leuwiliang, Kabupaten bogor, 16640",
+  "RS. ASYSYFAA": "Jl. Raya Leuwiliang, Cibeber I, Kecamatan Leuwiliang, Kabupaten bogor, 16640",
+  "RS. KARYA BHAKTI PRATIWI": "Jl. Raya Dramaga Km.7 Dramaga, Kecamatan Dramaga, Kab. Bogor, 16880",
+  "RS. MEDIKA DRAMAGA": "Jl. Raya Dramaga Km.7 Rt.01/07 , Margajaya, Kec. Bogor Barat Kota Bogor, 16680",
+  "RSUD. KOTA BOGOR": "Jl. DR.Semeru No.120, Rt.03/20, Menteng, Kec. Bogor barat, Kota Bogor, 16112",
+};
+
 const PARAM_OPTIONS = {
     param1: ["> Rp6.000.000,-", "<= Rp6.000.000,-", "<= Rp5.000.000", "<= Rp4.000.000", "<= Rp3.000.000", "<= Rp2.000.000", "< Rp1.000.000"],
     param2: ["Tidak Ada", "1 (satu) Jiwa", "2 (dua) Jiwa", "3 (tiga) Jiwa", "4 (empat) Jiwa", "5 (lima) Jiwa", "> 5 (lima) Jiwa"],
@@ -448,8 +457,20 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
               </td>
             </tr>
             <tr>
-              <td className="border border-black p-2 h-[40px] align-top font-bold text-[11px]" colSpan={9}>
-                RUJUKAN : <span className="font-normal uppercase">{data.rujukan || ""}</span>
+              <td className="border border-black p-2 h-[40px] align-top text-[11px]" colSpan={9}>
+                {data.rujukan ? (
+                  <>
+                    <span className="font-bold uppercase">RUJUKAN : {data.rujukan}</span>
+                    {RUJUKAN_HOSPITALS[data.rujukan] && (
+                      <>
+                        <br />
+                        <span className="font-normal">{RUJUKAN_HOSPITALS[data.rujukan]}</span>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <span className="font-bold">RUJUKAN : -</span>
+                )}
               </td>
             </tr>
           </tbody>

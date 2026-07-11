@@ -350,7 +350,15 @@ function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }: any) 
                   </div>
                   <div className="md:col-span-2">
                     <label className="block text-xs font-semibold text-slate-600 mb-1.5">Rujukan</label>
-                    <input name="rujukan" value={formData.rujukan || ""} onChange={handleChange} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Isi rujukan bila ada" />
+                    <select name="rujukan" value={formData.rujukan || ""} onChange={handleChange} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                        <option value="">Pilih Rujukan...</option>
+                        <option value="PUSKESMAS CIBUNGBULANG">PUSKESMAS CIBUNGBULANG</option>
+                        <option value="RSUD. LEUWILIANG">RSUD. LEUWILIANG</option>
+                        <option value="RS. ASYSYFAA">RS. ASYSYFAA</option>
+                        <option value="RS. KARYA BHAKTI PRATIWI">RS. KARYA BHAKTI PRATIWI</option>
+                        <option value="RS. MEDIKA DRAMAGA">RS. MEDIKA DRAMAGA</option>
+                        <option value="RSUD. KOTA BOGOR">RSUD. KOTA BOGOR</option>
+                    </select>
                   </div>
               </div>
           </div>
