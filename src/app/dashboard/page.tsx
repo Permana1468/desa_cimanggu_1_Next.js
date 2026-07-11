@@ -14,6 +14,7 @@ import { KelembagaanDashboard } from "@/components/dashboard/roles/KelembagaanDa
 import { EkonomiDashboard } from "@/components/dashboard/roles/EkonomiDashboard";
 import { OperatorDashboard } from "@/components/dashboard/roles/OperatorDashboard";
 import { PosyanduDashboard } from "@/components/dashboard/roles/PosyanduDashboard";
+import { PuskesosDashboard } from "@/components/dashboard/roles/PuskesosDashboard";
 
 export default async function VillageDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -64,8 +65,13 @@ export default async function VillageDashboardPage() {
   }
 
   // 4. KESEJAHTERAAN SOSIAL
-  if (["KASI_KESEJAHTERAAN", "PUSKESOS"].includes(role)) {
+  if (role === "KASI_KESEJAHTERAAN") {
     return <KesejahteraanDashboard session={session} stats={stats} />;
+  }
+
+  // 4b. PUSKESOS (SLRT)
+  if (role === "PUSKESOS") {
+    return <PuskesosDashboard session={session} stats={stats} />;
   }
 
   // 5. KELEMBAGAAN MASYARAKAT

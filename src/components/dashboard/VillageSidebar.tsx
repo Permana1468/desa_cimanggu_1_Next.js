@@ -99,12 +99,20 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
         { label: "Tambah Jadwal", href: "/dashboard?tab=jadwal", color: "bg-amber-500" },
       ];
     }
-    if (role === "KASI_KESEJAHTERAAN" || role === "PUSKESOS") {
+    if (role === "KASI_KESEJAHTERAAN") {
       return [
         { label: "Cleansing DTKS", href: "/dashboard?tab=dtks", color: "bg-rose-500" },
         { label: "Peta GIS", href: "/dashboard?tab=gis-kemiskinan", color: "bg-indigo-500" },
         { label: "EWS Stunting", href: "/dashboard?tab=ews-stunting", color: "bg-emerald-500" },
         { label: "Insentif Guru", href: "/dashboard?tab=insentif", color: "bg-amber-500" },
+      ];
+    }
+    if (role === "PUSKESOS") {
+      return [
+        { label: "Pengaduan", href: "/dashboard?tab=pengaduan", color: "bg-blue-500" },
+        { label: "Rujukan SLRT", href: "/dashboard?tab=rujukan", color: "bg-indigo-500" },
+        { label: "Data PPKS", href: "/dashboard?tab=ppks", color: "bg-emerald-500" },
+        { label: "Pengurus", href: "/dashboard?tab=pengurus", color: "bg-amber-500" },
       ];
     }
     if (role === "RT" || role === "RW") {
@@ -440,7 +448,7 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                 </AnimatePresence>
               </div>
             </div>
-          ) : role === "KASI_KESEJAHTERAAN" || role === "PUSKESOS" ? (
+          ) : role === "KASI_KESEJAHTERAAN" ? (
              // === KASI KESEJAHTERAAN ACCORDION SIDEBAR ===
              <div className="space-y-1">
                {/* Dashboard */}
@@ -667,6 +675,121 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
                    pathname === "/dashboard/settings"
                      ? "bg-rose-600 text-white font-bold shadow-lg shadow-rose-600/20"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <Settings size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Pengaturan</span>}
+               </Link>
+             </div>
+          ) : role === "PUSKESOS" ? (
+             // === PUSKESOS ACCORDION SIDEBAR ===
+             <div className="space-y-1">
+               {/* Dashboard */}
+               <Link
+                 href="/dashboard?tab=overview"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   (tabParam || "overview") === "overview"
+                     ? "bg-blue-600 text-white font-bold shadow-lg shadow-blue-600/20"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <LayoutDashboard size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Dashboard Utama</span>}
+               </Link>
+
+               {/* Layanan Pengaduan */}
+               <Link
+                 href="/dashboard?tab=pengaduan"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "pengaduan"
+                     ? "bg-blue-50 text-blue-700 font-bold"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <MessageSquare size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Layanan Pengaduan</span>}
+               </Link>
+
+               {/* Manajemen Rujukan */}
+               <Link
+                 href="/dashboard?tab=rujukan"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "rujukan"
+                     ? "bg-blue-50 text-blue-700 font-bold"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <FileText size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Manajemen Rujukan (SLRT)</span>}
+               </Link>
+
+               {/* Data PPKS & Penjangkauan */}
+               <Link
+                 href="/dashboard?tab=ppks"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "ppks"
+                     ? "bg-blue-50 text-blue-700 font-bold"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <HeartHandshake size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">PPKS & Penjangkauan</span>}
+               </Link>
+
+               {/* Usulan UHC */}
+               <Link
+                 href="/dashboard?tab=uhc"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "uhc"
+                     ? "bg-blue-50 text-blue-700 font-bold"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <HeartPulse size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Usulan UHC</span>}
+               </Link>
+
+               {/* Data Warga */}
+               <Link
+                 href="/dashboard?tab=warga"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "warga"
+                     ? "bg-blue-50 text-blue-700 font-bold"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <Users size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Data Warga</span>}
+               </Link>
+
+               {/* Data Pengurus */}
+               <Link
+                 href="/dashboard?tab=pengurus"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "pengurus"
+                     ? "bg-blue-50 text-blue-700 font-bold"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <Users size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Data Pengurus</span>}
+               </Link>
+
+               {/* Pengaturan */}
+               <Link
+                 href="/dashboard/settings"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   pathname === "/dashboard/settings"
+                     ? "bg-blue-600 text-white font-bold shadow-lg shadow-blue-600/20"
                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                >

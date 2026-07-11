@@ -215,7 +215,7 @@ export function KesraUsulanUhcTab({ session }: any) {
   );
 }
 
-function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }: any) {
+export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }: any) {
   const [loading, setLoading] = useState(false);
   const isCustomInitial = initialData?.rujukan?.startsWith("CUSTOM|");
   const initialRujukan = isCustomInitial ? "LAINNYA" : (initialData?.rujukan || "");
