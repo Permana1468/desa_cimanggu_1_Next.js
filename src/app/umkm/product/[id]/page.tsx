@@ -4,9 +4,10 @@ import ProductDetailClient from "./ProductDetailClient";
 import Link from "next/link";
 import { ArrowLeft, ShoppingCart, MessageSquare, Share2 } from "lucide-react";
 
-export default async function ProductDetailPage({ params }: { params: { id: string } }) {
+export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const resolvedParams = await params;
     const product = await prisma.umkmProduct.findUnique({
-        where: { id: params.id },
+        where: { id: resolvedParams.id },
         include: { store: true }
     });
 

@@ -2,12 +2,6 @@ import { getVillageStructure } from "@/actions/master";
 import { WilayahManagementClient } from "@/components/master/WilayahManagementClient";
 import { Suspense } from "react";
 
-export const unstable_instant = {
-    prefetch: "static",
-    samples: [
-        { searchParams: { tenantId: null } }
-    ]
-};
 
 export default async function WilayahPage() {
     return (

@@ -146,12 +146,12 @@ export default function WargaManagementPage() {
         loadTemplates();
     }, []);
 
-    const loadTemplates = async () => {
+    async function loadTemplates() {
         const data = await getLetterTemplates();
         setTemplates(data);
-    };
+    }
 
-    const handleSearch = async () => {
+    async function handleSearch() {
         setLoading(true);
         // Combine query with filters if needed in the future
         const data = await searchWarga(query);
@@ -163,7 +163,7 @@ export default function WargaManagementPage() {
 
         setWarga(filtered);
         setLoading(false);
-    };
+    }
 
     const handleExportExcel = async () => {
         setExporting(true);

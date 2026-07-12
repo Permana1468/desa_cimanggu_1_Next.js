@@ -5,12 +5,6 @@ import { authOptions } from "@/lib/auth";
 import GisManagementWrapper from "@/components/master/GisManagementWrapper";
 import { Suspense } from "react";
 
-export const unstable_instant = {
-    prefetch: "static",
-    samples: [
-        { searchParams: { tenantId: null } }
-    ]
-};
 
 export default async function GisManagementPage() {
     return (

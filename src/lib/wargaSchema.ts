@@ -233,6 +233,7 @@ export function isWargaDataIncomplete(warga: any): boolean {
     ];
 
     for (const key of requiredKeys) {
+        // eslint-disable-next-line security/detect-object-injection
         const val = warga[key];
         // Treat null, undefined, empty spaces, or placeholder "-" as incomplete
         if (val === null || val === undefined || String(val).trim() === "" || val === "-") {

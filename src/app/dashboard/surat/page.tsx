@@ -30,7 +30,7 @@ export default function SuratManagementPage() {
         loadData();
     }, [timeFilter]);
 
-    const loadData = async () => {
+    async function loadData() {
         setLoading(true);
         const [suratData, realtimeStats] = await Promise.all([
             getSuratList(),
@@ -54,7 +54,7 @@ export default function SuratManagementPage() {
         setSurat(filteredSurat);
         setStats(realtimeStats);
         setLoading(false);
-    };
+    }
 
     const handleVerify = async (id: string, currentStatus: StatusSurat) => {
         if (currentStatus === StatusSurat.TERTUNDA) {

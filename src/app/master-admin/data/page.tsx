@@ -3,12 +3,6 @@ import { ResidentManagementGlobal } from "@/components/master/ResidentManagement
 import { Users, Database, Activity } from "lucide-react";
 import { Suspense } from "react";
 
-export const unstable_instant = {
-    prefetch: "static",
-    samples: [
-        { searchParams: { tenantId: null } }
-    ]
-};
 
 export default async function GlobalDataPage() {
     return (

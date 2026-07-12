@@ -11,7 +11,7 @@ const securityHeaders = [
   },
   {
     key: 'X-Frame-Options',
-    value: 'SAMEORIGIN'
+    value: 'DENY'
   },
   {
     key: 'X-Content-Type-Options',
@@ -33,7 +33,12 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  reactCompiler: true, // Auto-memoization for much faster rendering
+  compiler: {
+    removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
+  },
   experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion", "recharts", "date-fns"],
     serverActions: {
       bodySizeLimit: '20mb',
     },

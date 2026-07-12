@@ -2,12 +2,6 @@ import { getAllUsers, getAllTenantsMinimal } from "@/actions/master";
 import WargaUsersClient from "@/components/master/WargaUsersClient";
 import { Suspense } from "react";
 
-export const unstable_instant = {
-    prefetch: "static",
-    samples: [
-        { searchParams: { tenantId: null } }
-    ]
-};
 
 export default async function WargaUsersPage() {
     return (

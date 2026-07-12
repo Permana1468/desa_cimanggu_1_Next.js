@@ -2,12 +2,6 @@ import { getAllUsers, getAllTenantsMinimal } from "@/actions/master";
 import UserManagementClient from "@/components/master/UserManagementClient";
 import { Suspense } from "react";
 
-export const unstable_instant = {
-    prefetch: "static",
-    samples: [
-        { searchParams: { tenantId: null } }
-    ]
-};
 
 export default async function UserManagementPage() {
     return (

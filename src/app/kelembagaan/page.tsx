@@ -71,7 +71,7 @@ function KelembagaanDashboardContent() {
         }
     }, [status, session]);
 
-    const fetchLembagaData = async () => {
+    async function fetchLembagaData() {
         setLoading(true);
         try {
             const role = (session?.user as any)?.role || "";
@@ -91,7 +91,7 @@ function KelembagaanDashboardContent() {
         } finally {
             setLoading(false);
         }
-    };
+    }
 
     const handleAddProgram = async (e: React.FormEvent) => {
         e.preventDefault();

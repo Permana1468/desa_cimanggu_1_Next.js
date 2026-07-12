@@ -57,12 +57,12 @@ export default function TemplateRepositoryPage() {
         loadTemplates();
     }, []);
 
-    const loadTemplates = async () => {
+    async function loadTemplates() {
         setLoading(true);
         const data = await getLetterTemplates();
         setTemplates(data);
         setLoading(false);
-    };
+    }
 
     const handleScanAI = async () => {
         if (!fileBase64) {

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getAllTenantsMinimal } from "@/actions/master";
 import { MasterShell } from "@/components/master/MasterShell";
 
-export const unstable_instant = false;
+
 
 export default async function MasterLayout({
   children,

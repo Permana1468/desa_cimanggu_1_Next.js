@@ -39,21 +39,6 @@ export default function LandingCMSPage() {
     const [activeTab, setActiveTab] = useState(tabParam || "landing");
 
     const isAdmin = ["ADMIN_DESA", "KADES", "SEKDES", "OPERATOR_DESA", "ADMIN_MASTER"].includes(session?.user?.role as string);
-
-    if (session && !isAdmin) {
-        return (
-            <div className="flex flex-col items-center justify-center h-96 gap-4">
-                <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center">
-                    <ShieldCheck size={32} />
-                </div>
-                <h1 className="text-2xl font-black text-slate-800">Akses Dibatasi</h1>
-                <p className="text-slate-500 max-w-md text-center">Anda tidak memiliki izin untuk mengakses pengaturan website desa. Silakan hubungi Admin Desa jika ini adalah kesalahan.</p>
-                <Link href="/dashboard" className="mt-4 px-6 py-2 bg-slate-900 text-white rounded-xl font-bold text-sm">
-                    Kembali ke Dashboard
-                </Link>
-            </div>
-        );
-    }
     
     // Landing State
     const [formData, setFormData] = useState({
@@ -89,6 +74,21 @@ export default function LandingCMSPage() {
     useEffect(() => {
         if (tabParam) setActiveTab(tabParam);
     }, [tabParam]);
+
+    if (session && !isAdmin) {
+        return (
+            <div className="flex flex-col items-center justify-center h-96 gap-4">
+                <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center">
+                    <ShieldCheck size={32} />
+                </div>
+                <h1 className="text-2xl font-black text-slate-800">Akses Dibatasi</h1>
+                <p className="text-slate-500 max-w-md text-center">Anda tidak memiliki izin untuk mengakses pengaturan website desa. Silakan hubungi Admin Desa jika ini adalah kesalahan.</p>
+                <Link href="/dashboard" className="mt-4 px-6 py-2 bg-slate-900 text-white rounded-xl font-bold text-sm">
+                    Kembali ke Dashboard
+                </Link>
+            </div>
+        );
+    }
 
     useEffect(() => {
         async function load() {

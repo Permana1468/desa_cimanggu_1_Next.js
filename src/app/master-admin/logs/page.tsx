@@ -4,12 +4,7 @@ import { formatRelativeTime } from "@/lib/utils";
 import Link from "next/link";
 import { Suspense } from "react";
 
-export const unstable_instant = {
-    prefetch: "static",
-    samples: [
-        { searchParams: { category: null, tenantId: null } }
-    ]
-};
+
 
 export default async function AuditLogsPage({
     searchParams

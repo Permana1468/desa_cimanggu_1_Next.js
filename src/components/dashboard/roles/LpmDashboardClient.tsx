@@ -73,7 +73,7 @@ export function LpmDashboardClient() {
         }
     }, [status, session]);
 
-    const fetchLembagaData = async () => {
+    async function fetchLembagaData() {
         setLoading(true);
         try {
             // Fetch LPM data explicitly
@@ -92,7 +92,7 @@ export function LpmDashboardClient() {
         } finally {
             setLoading(false);
         }
-    };
+    }
 
     const handleAddProgram = async (e: React.FormEvent) => {
         e.preventDefault();

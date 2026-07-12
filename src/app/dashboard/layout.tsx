@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { FloatingChat } from "@/components/dashboard/FloatingChat";
 import { Suspense } from "react";
 
-export const unstable_instant = false;
+
 
 export default async function VillageAdminLayout({
   children,

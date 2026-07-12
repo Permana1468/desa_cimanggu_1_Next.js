@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-export const unstable_instant = false;
+
 
 export default async function KelembagaanLayout({
   children,

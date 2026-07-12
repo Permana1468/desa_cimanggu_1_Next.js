@@ -5,12 +5,6 @@ import {
 import { VisualStats } from "@/components/master/VisualStatsWrapper";
 import { Suspense } from "react";
 
-export const unstable_instant = {
-    prefetch: "static",
-    samples: [
-        { searchParams: { tenantId: null } }
-    ]
-};
 
 export default async function StatisticsPage({
     searchParams

@@ -2,15 +2,7 @@ import { getGoogleIntegration, getRedirectUri } from "@/actions/google";
 import { GoogleIntegrationClient } from "@/components/master/GoogleIntegrationClient";
 import { Suspense } from "react";
 
-export const unstable_instant = {
-    prefetch: "static",
-    samples: [
-        { 
-            headers: [],
-            searchParams: { tenantId: null }
-        }
-    ]
-};
+
 
 export default async function GoogleIntegrationPage() {
     return (

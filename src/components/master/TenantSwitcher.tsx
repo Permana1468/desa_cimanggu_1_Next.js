@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { Building2, ChevronDown, Check } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -8,7 +8,7 @@ interface TenantSwitcherProps {
   tenants: { id: string; name: string }[];
 }
 
-export const TenantSwitcher = ({ tenants }: TenantSwitcherProps) => {
+function TenantSwitcherContent({ tenants }: TenantSwitcherProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -69,5 +69,13 @@ export const TenantSwitcher = ({ tenants }: TenantSwitcherProps) => {
         </div>
       </div>
     </div>
+  );
+}
+
+export const TenantSwitcher = ({ tenants }: TenantSwitcherProps) => {
+  return (
+    <Suspense fallback={<div className="w-full h-12 bg-white/5 rounded-2xl animate-pulse" />}>
+      <TenantSwitcherContent tenants={tenants} />
+    </Suspense>
   );
 };
