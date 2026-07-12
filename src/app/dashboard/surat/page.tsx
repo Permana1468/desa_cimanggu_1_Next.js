@@ -73,6 +73,33 @@ export default function SuratManagementPage() {
         }
     };
 
+    const [isPrinting, setIsPrinting] = useState<string | null>(null);
+
+    const handlePrint = async (id: string, jenisSurat: string, namaWarga: string) => {
+        setIsPrinting(id);
+        try {
+            const { generateSuratDocx } = await import("@/actions/surat-generate");
+            const res = await generateSuratDocx(id);
+            if (!res.success) {
+                alert("Gagal mencetak surat: " + res.error);
+                return;
+            }
+            
+            // Download the file
+            const link = document.createElement("a");
+            link.href = `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${res.base64}`;
+            link.download = res.filename || `${jenisSurat} - ${namaWarga}.docx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+        } catch (error) {
+            alert("Terjadi kesalahan saat mencetak surat.");
+        } finally {
+            setIsPrinting(null);
+        }
+    };
+
     if (loading) return (
         <div className="flex items-center justify-center h-96">
             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -214,8 +241,17 @@ export default function SuratManagementPage() {
                                             </button>
                                         )}
                                         {item.status === StatusSurat.DISETUJUI && (
-                                            <button className="p-2.5 text-slate-400 hover:bg-slate-100 rounded-xl transition-colors">
-                                                <MoreHorizontal size={20} />
+                                            <button 
+                                                onClick={() => handlePrint(item.id, item.jenisSurat, item.warga.namaLengkap)}
+                                                disabled={isPrinting === item.id}
+                                                className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xl shadow-slate-900/20 active:scale-95 disabled:opacity-50"
+                                            >
+                                                {isPrinting === item.id ? (
+                                                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                ) : (
+                                                    <FileText size={14} /> 
+                                                )}
+                                                Cetak Surat
                                             </button>
                                         )}
                                     </td>

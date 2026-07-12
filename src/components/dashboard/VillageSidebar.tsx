@@ -49,7 +49,8 @@ import {
   Globe,
   MessageSquare,
   Folder,
-  ShoppingBag
+  ShoppingBag,
+  FolderArchive
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -119,6 +120,14 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
         { label: "Rujukan SLRT", href: "/dashboard?tab=rujukan", color: "bg-indigo-500" },
         { label: "Data PPKS", href: "/dashboard?tab=ppks", color: "bg-emerald-500" },
         { label: "Pengurus", href: "/dashboard?tab=pengurus", color: "bg-amber-500" },
+      ];
+    }
+    if (role === "KARANG_TARUNA") {
+      return [
+        { label: "Data Pemuda", href: "/kelembagaan?tab=anggota", color: "bg-blue-600" },
+        { label: "Kegiatan", href: "/kelembagaan?tab=kegiatan", color: "bg-indigo-600" },
+        { label: "Wirausaha", href: "/kelembagaan?tab=wirausaha", color: "bg-amber-500" },
+        { label: "Pengurus", href: "/kelembagaan?tab=pengurus", color: "bg-slate-700" },
       ];
     }
     if (role === "RT" || role === "RW") {
@@ -200,7 +209,7 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
         <div className={`p-6 flex items-center ${isCollapsed && !isOpen ? 'justify-center' : 'justify-between'} h-24`}>
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="relative w-10 h-10 shrink-0">
-              <Image src="/images/logo-bogor.png" alt="Logo" fill className="object-contain" />
+              <Image src={role === "KARANG_TARUNA" ? "/images/logo-katar.png" : "/images/logo-bogor.png"} alt="Logo" fill sizes="40px" className="object-contain" />
             </div>
             {(!isCollapsed || isOpen) && (
               <div className="flex flex-col">
@@ -860,7 +869,7 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                     return ["Dashboard", "Data Bansos", "Pengaturan"].includes(item.name);
                   }
                   if (["KAUR", "KASI"].includes(role as string)) return true;
-                  if (["PKK", "TP_PKK", "BPD", "KADUS", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
+                  if (["PKK", "TP_PKK", "BPD", "KADUS", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
                      return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Pembangunan", "Tracking Layanan", "Peta Interaktif"].includes(item.name);
                   }
                   if (role === "BUMDES") {
@@ -877,6 +886,19 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                     { name: "Pemberdayaan", icon: Sparkles, href: "/kelembagaan?tab=pemberdayaan" },
                     { name: "Swadaya & Gotong Royong", icon: HeartHandshake, href: "/kelembagaan?tab=swadaya" },
                     { name: "Susunan Pengurus", icon: Users, href: "/kelembagaan?tab=pengurus" }
+                  ];
+                }
+
+                if (role === "KARANG_TARUNA") {
+                  itemsToRender = [
+                    { name: "Dashboard Utama", icon: LayoutDashboard, href: "/kelembagaan?tab=overview" },
+                    { name: "Database Keanggotaan", icon: Users, href: "/kelembagaan?tab=anggota" },
+                    { name: "Manajemen Keuangan", icon: Banknote, href: "/kelembagaan?tab=finance" },
+                    { name: "Administrasi & E-Office", icon: FileText, href: "/kelembagaan?tab=eoffice" },
+                    { name: "Sistem Inventaris", icon: Package, href: "/kelembagaan?tab=inventory" },
+                    { name: "Program & Kegiatan", icon: Activity, href: "/kelembagaan?tab=kegiatan" },
+                    { name: "Pemberdayaan UEP", icon: Briefcase, href: "/kelembagaan?tab=wirausaha" },
+                    { name: "Galeri & Arsip LPJ", icon: FolderArchive, href: "/kelembagaan?tab=gallery" },
                   ];
                 }
 
@@ -913,7 +935,7 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                   let href = item.href;
                   if (isInstitutional && role !== "LPM") {
                       if (href === "/dashboard") href = "/kelembagaan";
-                      else href = href.replace("/dashboard/", "/kelembagaan/");
+                      else if (!href.includes("/settings")) href = href.replace("/dashboard/", "/kelembagaan/");
                   }
                   let isActive = false;
                   if (role === "RT" || role === "RW" || role === "LPM") {
@@ -1007,7 +1029,7 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
       {/* MOBILE BOTTOM NAVIGATION DOCK (CURVED DESIGN WITH DYNAMIC MODALS - FULL WIDTH) */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 w-full h-[75px] select-none">
           {/* SVG Background with Notch */}
-          <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 z-0 pointer-events-none">
               <svg className="w-full h-full text-white/95 dark:text-slate-900/95 backdrop-blur-xl fill-current filter drop-shadow-[0_-15px_30px_rgba(0,0,0,0.12)]" viewBox="0 0 400 80" preserveAspectRatio="none">
                   <path d="M 0 10 L 165 10 C 180 10, 182 48, 200 48 C 218 48, 220 10, 235 10 L 400 10 L 400 80 L 0 80 Z" />
               </svg>
@@ -1056,7 +1078,7 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
               
               {/* BUTTON 1: HOME */}
               <Link 
-                  href="/dashboard?tab=overview"
+                  href={["TP_PKK", "PKK", "LPM", "BPD", "KARANG_TARUNA"].includes(role) ? "/kelembagaan?tab=overview" : "/dashboard?tab=overview"}
                   className={`w-12 h-12 flex flex-col items-center justify-center rounded-full transition-all ${
                       getIsActive("home") 
                           ? "text-emerald-600 dark:text-emerald-400 scale-105" 

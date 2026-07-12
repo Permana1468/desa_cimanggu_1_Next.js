@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 
 import { LpmDashboardClient } from "@/components/dashboard/roles/LpmDashboardClient";
+import { KarangTarunaDashboardClient } from "@/components/dashboard/roles/KarangTarunaDashboardClient";
 
 function KelembagaanDashboardContent() {
     const { data: session, status } = useSession();
@@ -478,6 +479,10 @@ export default function KelembagaanDashboard() {
 
     if (role === "LPM") {
         return <LpmDashboardClient />;
+    }
+
+    if (role === "KARANG_TARUNA") {
+        return <KarangTarunaDashboardClient />;
     }
 
     return <KelembagaanDashboardContent />;

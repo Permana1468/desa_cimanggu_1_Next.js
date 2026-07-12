@@ -223,3 +223,22 @@ export async function uploadTemplateFile(code: string, base64Data: string) {
         return { success: false, error: error.message || "Gagal mengunggah file template." };
     }
 }
+
+export async function deleteLetterTemplate(id: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        await prisma.letterTemplate.delete({
+            where: {
+                id,
+                tenantId
+            }
+        });
+
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Gagal menghapus template." };
+    }
+}

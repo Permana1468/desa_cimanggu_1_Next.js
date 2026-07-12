@@ -2,6 +2,7 @@ import { VillageSidebar } from "@/components/dashboard/VillageSidebar";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { FloatingChat } from "@/components/dashboard/FloatingChat";
 import { Suspense } from "react";
 
 
@@ -28,6 +29,9 @@ export default async function KelembagaanLayout({
           </div>
         </main>
       </div>
+      
+      {/* Floating Transparent Chat for Kelembagaan Users */}
+      <FloatingChat session={session} />
     </div>
   );
 }

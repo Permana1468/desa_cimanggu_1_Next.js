@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getLetterTemplates, createLetterTemplate, uploadTemplateFile } from "@/actions/documents";
+import { getLetterTemplates, createLetterTemplate, uploadTemplateFile, deleteLetterTemplate } from "@/actions/documents";
 import { generateTemplateWithAI } from "@/actions/ai-template";
 import { 
     FileText, 
@@ -17,7 +17,9 @@ import {
     Loader2,
     Settings,
     History,
-    Sparkles
+    Sparkles,
+    Play,
+    Trash2
 } from "lucide-react";
 
 export default function TemplateRepositoryPage() {
@@ -31,8 +33,12 @@ export default function TemplateRepositoryPage() {
         name: "",
         code: "",
         fileUrl: "",
-        variables: ""
+        variables: "",
+        instruction: ""
     });
+    const [showTestModal, setShowTestModal] = useState<string | null>(null);
+    const [testData, setTestData] = useState<any>({});
+    const [isTesting, setIsTesting] = useState(false);
     const [fileBase64, setFileBase64] = useState<string>("");
     const [fileName, setFileName] = useState<string>("");
 
@@ -71,7 +77,7 @@ export default function TemplateRepositoryPage() {
         }
         setIsScanning(true);
         try {
-            const res = await generateTemplateWithAI(fileBase64);
+            const res = await generateTemplateWithAI(fileBase64, formData.instruction);
             if (!res.success || !res.data) {
                 alert(res.error || "Gagal melakukan scan dengan AI.");
                 return;
@@ -117,13 +123,29 @@ export default function TemplateRepositoryPage() {
             setShowModal(false);
             setFileName("");
             setFileBase64("");
-            setFormData({ name: "", code: "", fileUrl: "", variables: "" });
+            setFormData({ name: "", code: "", fileUrl: "", variables: "", instruction: "" });
             loadTemplates();
             alert("Template berhasil ditambahkan ke repository.");
         } catch (error) {
-            alert("Gagal menambahkan template.");
+            alert("Terjadi kesalahan.");
         } finally {
-            setSaving(false);
+            setLoading(false);
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!confirm("Apakah Anda yakin ingin menghapus template ini?")) return;
+        
+        try {
+            const res = await deleteLetterTemplate(id);
+            if (!res.success) {
+                alert("Gagal menghapus template: " + res.error);
+                return;
+            }
+            alert("Template berhasil dihapus.");
+            loadTemplates();
+        } catch (error) {
+            alert("Terjadi kesalahan saat menghapus template.");
         }
     };
 
@@ -195,8 +217,27 @@ export default function TemplateRepositoryPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
+                                            <button 
+                                                onClick={() => {
+                                                    setShowTestModal(tpl.id);
+                                                    const initData: any = {};
+                                                    (tpl.variables || []).forEach((v: string) => initData[v] = "");
+                                                    setTestData(initData);
+                                                }}
+                                                className="p-2.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
+                                                title="Uji Coba Form"
+                                            >
+                                                <Play size={18} />
+                                            </button>
                                             <button className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
                                                 <Settings size={18} />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDelete(tpl.id)}
+                                                className="p-2.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                                                title="Hapus Template"
+                                            >
+                                                <Trash2 size={18} />
                                             </button>
                                             <button className="p-2.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all">
                                                 <ChevronRight size={18} />
@@ -293,6 +334,15 @@ export default function TemplateRepositoryPage() {
                                     className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all text-slate-950" 
                                 />
                             </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Instruksi Khusus AI (Opsional)</label>
+                                <textarea 
+                                    placeholder="Contoh: Tolong cari juga isian yang menggunakan format Titik Dua lalu digarisbawahi."
+                                    value={formData.instruction} 
+                                    onChange={e => setFormData({...formData, instruction: e.target.value})} 
+                                    className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all text-slate-950 resize-none h-24" 
+                                />
+                            </div>
                             
                             <label className="border-2 border-dashed border-slate-200 rounded-[2rem] p-10 text-center flex flex-col items-center gap-4 hover:border-blue-400 hover:bg-blue-50 transition-all cursor-pointer relative">
                                 <input 
@@ -333,6 +383,73 @@ export default function TemplateRepositoryPage() {
                                 {saving ? <Loader2 className="animate-spin" size={24} /> : "Simpan Template"}
                             </button>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* TEST TEMPLATE MODAL */}
+            {showTestModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowTestModal(null)} />
+                    <div className="bg-white rounded-[3rem] w-full max-w-xl relative z-10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-10 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-2xl font-black text-slate-800">Uji Coba Form</h2>
+                                <p className="text-slate-500 text-xs font-medium">Input data acak untuk melihat hasil generate.</p>
+                            </div>
+                            <button onClick={() => setShowTestModal(null)} className="p-2 hover:bg-slate-200 rounded-xl transition-all">
+                                <X size={24} />
+                            </button>
+                        </div>
+                        
+                        <div className="p-10 space-y-6 overflow-y-auto">
+                            {Object.keys(testData).length === 0 ? (
+                                <p className="text-sm text-slate-500 text-center py-4">Tidak ada variabel dinamis yang dideteksi.</p>
+                            ) : (
+                                Object.keys(testData).map((key) => (
+                                    <div key={key} className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{key}</label>
+                                        <input 
+                                            placeholder={`Isi ${key}...`}
+                                            value={testData[key]} 
+                                            onChange={e => setTestData({...testData, [key]: e.target.value})} 
+                                            className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all text-slate-950" 
+                                        />
+                                    </div>
+                                ))
+                            )}
+
+                            <button 
+                                type="button" 
+                                onClick={async () => {
+                                    setIsTesting(true);
+                                    try {
+                                        const { generateTestTemplate } = await import("@/actions/template-test");
+                                        const res = await generateTestTemplate(showTestModal, testData);
+                                        if (!res.success) {
+                                            alert("Gagal uji coba: " + res.error);
+                                            return;
+                                        }
+                                        
+                                        const link = document.createElement("a");
+                                        link.href = `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${res.base64}`;
+                                        link.download = res.filename || "Uji_Coba.docx";
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                        
+                                    } catch (err) {
+                                        alert("Gagal mengunduh hasil uji coba.");
+                                    } finally {
+                                        setIsTesting(false);
+                                    }
+                                }}
+                                disabled={isTesting} 
+                                className="w-full bg-amber-500 hover:bg-amber-600 text-white py-5 rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-2xl shadow-amber-500/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50 mt-4"
+                            >
+                                {isTesting ? <Loader2 className="animate-spin" size={24} /> : "Generate Uji Coba"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
