@@ -7,7 +7,7 @@ import { getBoundaries } from "@/actions/gis";
 import { ImageUpload } from "@/components/dashboard/ImageUpload";
 import "leaflet/dist/leaflet.css";
 
-export function KesraGisTab({ session }: any) {
+export function PuskesosGisTab({ session }: any) {
   const [wargas, setWargas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

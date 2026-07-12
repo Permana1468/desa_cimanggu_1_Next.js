@@ -161,7 +161,7 @@ export async function disconnectGoogle() {
 }
 
 // Test Connection Helper: refreshes token if needed and returns client
-async function getAuthenticatedClient(googleIntegration: any) {
+export async function getAuthenticatedClient(googleIntegration: any) {
     if (googleIntegration.type === "service_account") {
         if (!googleIntegration.serviceAccountJson) {
             throw new Error("Service Account JSON tidak ditemukan.");

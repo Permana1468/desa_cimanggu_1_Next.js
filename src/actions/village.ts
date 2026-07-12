@@ -757,3 +757,32 @@ export async function getLembagaByName(name: string) {
     }
 }
 
+
+export async function updateLembaga(id: string, data: any) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.lembaga.update({
+            where: { id, tenantId },
+            data
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function deleteLembaga(id: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.lembaga.delete({
+            where: { id, tenantId }
+        });
+    } catch (error) {
+        throw error;
+    }
+}

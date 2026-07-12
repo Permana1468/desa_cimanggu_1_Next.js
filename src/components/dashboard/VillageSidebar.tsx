@@ -47,7 +47,8 @@ import {
   Award,
   Briefcase,
   Globe,
-  MessageSquare
+  MessageSquare,
+  Folder
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -65,6 +66,8 @@ const menuItems = [
   { name: "APBDes", icon: PieChart, href: "/dashboard/apbdes" },
   { name: "Peta Interaktif", icon: Map, href: "/dashboard/map" },
   { name: "Arsip Digital", icon: Archive, href: "/dashboard/arsip" },
+  { name: "Arsip Laporan", icon: Folder, href: "/dashboard/arsip-laporan" },
+  { name: "Format Dokumen", icon: FileText, href: "/dashboard/format-dokumen" },
   { name: "Data Bansos", icon: HeartHandshake, href: "/dashboard/bansos" },
   { name: "Monitoring", icon: Activity, href: "/dashboard/monitoring" },
   { name: "Tracking Layanan", icon: Clock, href: "/dashboard/tracking" },
@@ -733,12 +736,40 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                  onClick={() => setIsOpen(false)}
                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
                    tabParam === "ppks"
-                     ? "bg-blue-50 text-blue-700 font-bold"
+                     ? "bg-emerald-50 text-emerald-700 font-bold"
                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                >
                  <HeartHandshake size={20} />
-                 {(!isCollapsed || isOpen) && <span className="text-sm">PPKS & Penjangkauan</span>}
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Data PPKS</span>}
+               </Link>
+
+               {/* Peta Kerentanan GIS */}
+               <Link
+                 href="/dashboard?tab=gis-kemiskinan"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "gis-kemiskinan"
+                     ? "bg-amber-50 text-amber-700 font-bold"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <Map size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Peta Kerentanan GIS</span>}
+               </Link>
+
+               {/* Laporan Kegiatan & LPJ */}
+               <Link
+                 href="/dashboard?tab=laporan"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "laporan"
+                     ? "bg-purple-50 text-purple-700 font-bold"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <Sparkles size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Laporan Kegiatan & LPJ</span>}
                </Link>
 
                {/* Usulan UHC */}
@@ -802,10 +833,11 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
             <div className="space-y-1.5">
               {(() => {
                 let itemsToRender = menuItems.filter(item => {
-                  if (["ADMIN_DESA", "KADES", "SEKDES", "PERANGKAT_DESA", "OPERATOR_DESA", "ADMIN_MASTER"].includes(role as string)) {
-                      if (role === "ADMIN_DESA" && item.name === "Usulan Pembangunan") return false;
-                      return true;
-                  }
+                    if (["ADMIN_DESA", "KADES", "SEKDES", "PERANGKAT_DESA", "OPERATOR_DESA", "ADMIN_MASTER"].includes(role as string)) {
+                        if (role === "ADMIN_DESA" && item.name === "Usulan Pembangunan") return false;
+                        if (item.name === "Arsip Laporan" && !["ADMIN_DESA", "ADMIN_MASTER", "KADES"].includes(role as string)) return false;
+                        return true;
+                    }
                   if (role === "KAUR_PERENCANAAN") {
                     return ["Dashboard", "Usulan Pembangunan", "Infrastruktur", "APBDes", "Peta Interaktif", "Arsip Digital", "Monitoring", "Pengaturan"].includes(item.name);
                   }

@@ -89,6 +89,7 @@ model Tenant {
   puskesosRujukans      PuskesosRujukan[]
   puskesosKegiatans     PuskesosKegiatan[]
   puskesosPenguruses    PuskesosPengurus[]
+  arsipLaporans         ArsipLaporan[]
 }
 
 // ==============================
@@ -163,6 +164,7 @@ model User {
   apbdesFinances        ApbdesFinance[]
   villageDocuments      VillageDocument[]
   puskesosPengaduans    PuskesosPengaduan[]
+  arsipLaporans         ArsipLaporan[]
 
   @@index([tenantId, role])
   @@index([tenantId, isActive])
@@ -1489,3 +1491,29 @@ model PuskesosPengurus {
   @@index([tenantId])
 }
 
+// ==============================
+// 11. ARSIP LAPORAN & DOKUMEN CETAK
+// ==============================
+model ArsipLaporan {
+  id           String  @id @default(uuid())
+  templateId   String?
+  templateName String
+  kategori     String // e.g., PUSKESOS, SEKDES, KASI, etc
+
+  generatedByUserId String
+  generatedBy       User   @relation(fields: [generatedByUserId], references: [id], onDelete: Cascade)
+  generatedByName   String
+
+  fileUrl  String? // Link to the generated Google Doc / PDF / Output
+  formData String? @db.Text // JSON string of the form data they inputted
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([kategori])
+  @@index([generatedByUserId])
+}

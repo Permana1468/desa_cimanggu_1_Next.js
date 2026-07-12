@@ -6,7 +6,7 @@ export const unstable_instant = {
     prefetch: "static",
     samples: [
         { 
-            headers: [["host", null]],
+            headers: [],
             searchParams: { tenantId: null }
         }
     ]

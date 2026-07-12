@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react";
 
 interface ImageUploadProps {
@@ -70,26 +69,26 @@ export function ImageUpload({
                 return;
             }
 
-            const fileExt = file.name.split(".").pop();
-            const fileName = `${Math.random()}.${fileExt}`;
-            const filePath = `${fileName}`;
+            const formData = new FormData();
+            formData.append('file', file);
 
-            const { error: uploadError } = await supabase.storage
-                .from(bucket)
-                .upload(filePath, file);
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData,
+            });
 
-            if (uploadError) throw uploadError;
+            const data = await response.json();
 
-            const { data } = supabase.storage
-                .from(bucket)
-                .getPublicUrl(filePath);
-
-            if (data?.publicUrl) {
-                setPreviewUrl(data.publicUrl);
-                onUploadSuccess(data.publicUrl);
+            if (!response.ok) {
+                throw new Error(data.error || "Gagal mengunggah");
             }
-        } catch (error) {
-            alert("Gagal mengunggah gambar. Pastikan bucket 'village-assets' sudah ada di Supabase.");
+
+            if (data?.url) {
+                setPreviewUrl(data.url);
+                onUploadSuccess(data.url);
+            }
+        } catch (error: any) {
+            alert(`Gagal mengunggah gambar: ${error.message}`);
         } finally {
             if (!localOnly) setUploading(false);
         }

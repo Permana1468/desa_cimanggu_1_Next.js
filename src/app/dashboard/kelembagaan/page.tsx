@@ -7,7 +7,9 @@ import {
     getLembagaMembers,
     addLembagaMember,
     deleteLembagaMember,
-    getLembagaPrograms
+    getLembagaPrograms,
+    updateLembaga,
+    deleteLembaga
 } from "@/actions/village";
 import { ImageUpload } from "@/components/dashboard/ImageUpload";
 import { 
@@ -25,7 +27,8 @@ import {
     Calendar, 
     DollarSign,
     Briefcase,
-    ShieldAlert
+    ShieldAlert,
+    Pencil
 } from "lucide-react";
 
 export default function KelembagaanPage() {
@@ -45,6 +48,15 @@ export default function KelembagaanPage() {
 
     // Form data for new Lembaga
     const [formData, setFormData] = useState({
+        name: "",
+        fullName: "",
+        memberCount: 0,
+        description: ""
+    });
+
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editFormData, setEditFormData] = useState({
+        id: "",
         name: "",
         fullName: "",
         memberCount: 0,
@@ -158,6 +170,46 @@ export default function KelembagaanPage() {
         }
     };
 
+    const handleEditLembagaClick = (lembaga: any) => {
+        setEditFormData({
+            id: lembaga.id,
+            name: lembaga.name,
+            fullName: lembaga.fullName,
+            memberCount: lembaga.memberCount,
+            description: lembaga.description
+        });
+        setShowEditModal(true);
+    };
+
+    const handleEditSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSaving(true);
+        try {
+            await updateLembaga(editFormData.id, {
+                name: editFormData.name,
+                fullName: editFormData.fullName,
+                memberCount: Number(editFormData.memberCount),
+                description: editFormData.description
+            });
+            setShowEditModal(false);
+            fetchLembagas();
+        } catch (error) {
+            alert("Gagal menyimpan perubahan.");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleDeleteLembagaClick = async (id: string) => {
+        if (!confirm("Apakah Anda yakin ingin menghapus lembaga ini?")) return;
+        try {
+            await deleteLembaga(id);
+            fetchLembagas();
+        } catch (error) {
+            alert("Gagal menghapus lembaga.");
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
@@ -181,44 +233,90 @@ export default function KelembagaanPage() {
                 </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {lembagas.length > 0 ? lembagas.map((item) => (
-                    <div key={item.id} className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200/60 flex flex-col md:flex-row gap-8 group hover:border-amber-200 transition-all">
-                        <div className="w-24 h-24 rounded-3xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0 group-hover:scale-110 transition-transform">
-                            <Building2 size={40} />
-                        </div>
-                        <div className="flex-1 space-y-4">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-2xl font-black text-slate-800">{item.name}</h3>
-                                <div className="px-3 py-1 bg-slate-50 text-slate-500 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                                    <Users size={12} /> {item.memberCount} Anggota
-                                </div>
-                            </div>
-                            <p className="text-xs font-black text-amber-600 uppercase tracking-widest">{item.fullName}</p>
-                            <p className="text-slate-500 text-sm font-medium leading-relaxed">{item.description}</p>
-                            
-                            <div className="pt-4 flex gap-4 border-t border-slate-100">
-                                <button 
-                                    onClick={() => handleShowMembers(item)}
-                                    className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5 hover:text-amber-600 transition-colors"
-                                >
-                                    Lihat Pengurus <Target size={14} className="text-amber-500" />
-                                </button>
-                                <button 
-                                    onClick={() => handleShowPrograms(item)}
-                                    className="text-[10px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-1.5 hover:text-blue-600 transition-colors"
-                                >
-                                    Program Kerja <Shield size={14} className="text-blue-500" />
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )) : (
-                    <div className="col-span-2 py-20 text-center flex flex-col items-center gap-4 border-2 border-dashed border-slate-200 rounded-[2.5rem]">
-                        <Building2 size={48} className="text-slate-200" />
-                        <p className="text-slate-400 font-medium">Belum ada lembaga yang terdaftar.</p>
-                    </div>
-                )}
+            <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-200/60 overflow-hidden">
+                <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50/50">
+                                <th className="p-4 rounded-tl-xl">Lembaga</th>
+                                <th className="p-4">Anggota</th>
+                                <th className="p-4">Deskripsi</th>
+                                <th className="p-4 text-center">Kelola</th>
+                                <th className="p-4 text-center rounded-tr-xl">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {lembagas.length > 0 ? lembagas.map((item) => (
+                                <tr key={item.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
+                                    <td className="p-4 min-w-[200px]">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600 shrink-0">
+                                                <Building2 size={24} />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-base font-black text-slate-800">{item.name}</h3>
+                                                <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">{item.fullName}</p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="p-4">
+                                        <div className="px-3 py-1 bg-slate-50 text-slate-500 rounded-full text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-1.5">
+                                            <Users size={12} /> {item.memberCount} Anggota
+                                        </div>
+                                    </td>
+                                    <td className="p-4 max-w-xs">
+                                        <p className="text-slate-500 text-xs font-medium leading-relaxed truncate" title={item.description}>
+                                            {item.description}
+                                        </p>
+                                    </td>
+                                    <td className="p-4 text-center">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <button 
+                                                onClick={() => handleShowMembers(item)}
+                                                className="px-3 py-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                                            >
+                                                <Target size={12} /> Pengurus
+                                            </button>
+                                            <button 
+                                                onClick={() => handleShowPrograms(item)}
+                                                className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                                            >
+                                                <Shield size={12} /> Program
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td className="p-4 text-center">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <button 
+                                                onClick={() => handleEditLembagaClick(item)}
+                                                className="p-2 bg-slate-50 text-slate-500 hover:bg-slate-200 hover:text-slate-800 rounded-lg transition-colors"
+                                                title="Edit Lembaga"
+                                            >
+                                                <Pencil size={16} />
+                                            </button>
+                                            <button 
+                                                onClick={() => handleDeleteLembagaClick(item.id)}
+                                                className="p-2 bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition-colors"
+                                                title="Hapus Lembaga"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )) : (
+                                <tr>
+                                    <td colSpan={5} className="py-20 text-center">
+                                        <div className="flex flex-col items-center gap-4">
+                                            <Building2 size={48} className="text-slate-200" />
+                                            <p className="text-slate-400 font-medium">Belum ada lembaga yang terdaftar.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             {/* ADD MODAL */}
@@ -260,6 +358,51 @@ export default function KelembagaanPage() {
 
                             <button type="submit" disabled={saving} className="w-full bg-[#0f172a] hover:bg-slate-800 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
                                 {saving ? <Loader2 className="animate-spin" size={18} /> : <><Save size={18} /> Simpan Lembaga</>}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* EDIT MODAL */}
+            {showEditModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowEditModal(false)} />
+                    <div className="bg-white rounded-[2.5rem] w-full max-w-xl relative z-10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                        <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                            <div>
+                                <h2 className="text-2xl font-black text-slate-800">Edit Lembaga</h2>
+                                <p className="text-slate-500 text-xs font-medium">Perbarui data lembaga kemasyarakatan desa.</p>
+                            </div>
+                            <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-slate-200 rounded-xl transition-all">
+                                <X size={20} />
+                            </button>
+                        </div>
+                        
+                        <form onSubmit={handleEditSubmit} className="p-8 overflow-y-auto space-y-6 custom-scrollbar">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Singkatan</label>
+                                    <input required placeholder="Contoh: LPM" value={editFormData.name} onChange={e => setEditFormData({...editFormData, name: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-amber-500/20" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Jumlah Anggota</label>
+                                    <input type="number" required value={editFormData.memberCount} onChange={e => setEditFormData({...editFormData, memberCount: Number(e.target.value)})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-amber-500/20" />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Lengkap Lembaga</label>
+                                <input required placeholder="Contoh: Lembaga Pemberdayaan Masyarakat" value={editFormData.fullName} onChange={e => setEditFormData({...editFormData, fullName: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-amber-500/20" />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Deskripsi / Tugas</label>
+                                <textarea required value={editFormData.description} onChange={e => setEditFormData({...editFormData, description: e.target.value})} className="w-full bg-slate-50 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-950 focus:ring-2 focus:ring-amber-500/20 min-h-[100px]" />
+                            </div>
+
+                            <button type="submit" disabled={saving} className="w-full bg-amber-500 hover:bg-amber-400 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-amber-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                                {saving ? <Loader2 className="animate-spin" size={18} /> : <><Save size={18} /> Perbarui Lembaga</>}
                             </button>
                         </form>
                     </div>

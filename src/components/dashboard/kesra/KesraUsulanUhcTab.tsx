@@ -417,7 +417,7 @@ export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                       <ImageUpload 
-                          localOnly={true}
+                          localOnly={false}
                           label="Foto Tampak Depan" 
                           defaultValue={formData.fotoDepan} 
                           onUploadSuccess={(url) => setFormData({ ...formData, fotoDepan: url })} 
@@ -425,7 +425,7 @@ export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }
                   </div>
                   <div>
                       <ImageUpload 
-                          localOnly={true}
+                          localOnly={false}
                           label="Foto Tampak Samping" 
                           defaultValue={formData.fotoSamping} 
                           onUploadSuccess={(url) => setFormData({ ...formData, fotoSamping: url })} 
@@ -433,7 +433,7 @@ export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }
                   </div>
                   <div>
                       <ImageUpload 
-                          localOnly={true}
+                          localOnly={false}
                           label="Foto Tampak Dalam" 
                           defaultValue={formData.fotoDalam} 
                           onUploadSuccess={(url) => setFormData({ ...formData, fotoDalam: url })} 
@@ -441,7 +441,7 @@ export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }
                   </div>
                   <div>
                       <ImageUpload 
-                          localOnly={true}
+                          localOnly={false}
                           label="Foto Kamar Mandi" 
                           defaultValue={formData.fotoKamarMandi} 
                           onUploadSuccess={(url) => setFormData({ ...formData, fotoKamarMandi: url })} 

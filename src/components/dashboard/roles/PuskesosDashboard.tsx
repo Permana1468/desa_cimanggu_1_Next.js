@@ -11,6 +11,7 @@ import { PuskesosPpksTab } from "../puskesos/PuskesosPpksTab";
 import { PuskesosPengurusTab } from "../puskesos/PuskesosPengurusTab";
 import { PuskesosWargaTab } from "../puskesos/PuskesosWargaTab";
 import { PuskesosUhcTab } from "../puskesos/PuskesosUhcTab";
+import { PuskesosGisTab } from "../puskesos/PuskesosGisTab";
 
 export function PuskesosDashboard({ session, stats }: any) {
   const searchParams = useSearchParams();
@@ -206,6 +207,18 @@ export function PuskesosDashboard({ session, stats }: any) {
       {/* OTHER TABS */}
       {activeTab === "WARGA" && <PuskesosWargaTab session={session} />}
       {activeTab === "UHC" && <PuskesosUhcTab session={session} />}
+      {activeTab === "GIS-KEMISKINAN" && <PuskesosGisTab session={session} />}
+      {activeTab === "LAPORAN" && (
+        <div className="bg-white rounded-3xl p-10 border border-slate-100 shadow-sm text-center">
+          <div className="w-20 h-20 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+          </div>
+          <h2 className="text-2xl font-black text-slate-800 mb-2">Fitur Dalam Proses Pengembangan</h2>
+          <p className="text-slate-500 max-w-md mx-auto">
+            Sistem Laporan Kegiatan & LPJ otomatis dari Excel/Word sedang dibangun. Nantinya, Anda dapat menginput atau mengunggah data secara otomatis untuk dicetak oleh Kasi Kesejahteraan dengan format yang sesuai standar.
+          </p>
+        </div>
+      )}
       {activeTab === "PENGADUAN" && <PuskesosPengaduanTab session={session} />}
       {activeTab === "RUJUKAN" && <PuskesosRujukanTab session={session} />}
       {activeTab === "PPKS" && <PuskesosPpksTab session={session} />}

@@ -26,6 +26,7 @@ export function MasterShell({
             { label: "Konfigurasi Sistem", href: "/master-admin/config", color: "bg-blue-600" },
             { label: "Manajemen Data", href: "/master-admin/data", color: "bg-teal-600" },
             { label: "Integrasi & API", href: "/master-admin/integrasi", color: "bg-indigo-600" },
+            { label: "Kecerdasan Buatan", href: "/master-admin/ai", color: "bg-purple-600" },
             { label: "Log Aktivitas", href: "/master-admin/logs", color: "bg-amber-500" },
         ];
     };

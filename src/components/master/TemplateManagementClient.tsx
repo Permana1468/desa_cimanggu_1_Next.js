@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { 
     FileText, FileSpreadsheet, Plus, Trash2, ExternalLink, 
-    Save, Loader2, Search, Settings, HelpCircle, Layers, CheckCircle2 
+    Save, Loader2, Search, Settings, HelpCircle, Layers, CheckCircle2,
+    Brain, Upload, ScanLine
 } from "lucide-react";
 import { saveOfficialTemplates } from "@/actions/master";
 
@@ -14,7 +15,9 @@ interface Template {
     googleId: string;
     range?: string;
     description?: string;
+    category?: string;
     createdAt: string;
+    aiSchema?: any[];
 }
 
 interface TemplateManagementClientProps {
@@ -33,6 +36,40 @@ export function TemplateManagementClient({ initialTemplates }: TemplateManagemen
     const [googleId, setGoogleId] = useState("");
     const [range, setRange] = useState("");
     const [description, setDescription] = useState("");
+    const [category, setCategory] = useState("UMUM");
+    const [aiSchema, setAiSchema] = useState<any[]>([]);
+    const [scanning, setScanning] = useState(false);
+
+    const handleAiScan = async (e: any) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setScanning(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const res = await fetch('/api/ai/scan-template', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            
+            if (!res.ok) throw new Error(data.error || "Gagal scan template.");
+            
+            if (data.schema && data.schema.length > 0) {
+                setAiSchema(data.schema);
+                alert("Berhasil mengekstrak " + data.schema.length + " kolom isian otomatis!");
+            } else {
+                alert("AI tidak mendeteksi titik kosong/isian pada file tersebut.");
+            }
+        } catch (err: any) {
+            alert(err.message || "Gagal menghubungi Gemini AI.");
+        } finally {
+            setScanning(false);
+            e.target.value = null; // reset input
+        }
+    };
 
     const handleAddTemplate = () => {
         if (!name || !googleId) {
@@ -47,6 +84,8 @@ export function TemplateManagementClient({ initialTemplates }: TemplateManagemen
             googleId,
             range: type === "SPREADSHEET" ? range : undefined,
             description,
+            category,
+            aiSchema,
             createdAt: new Date().toISOString()
         };
 
@@ -60,6 +99,8 @@ export function TemplateManagementClient({ initialTemplates }: TemplateManagemen
         setGoogleId("");
         setRange("");
         setDescription("");
+        setCategory("UMUM");
+        setAiSchema([]);
     };
 
     const handleDelete = (id: string) => {
@@ -161,9 +202,14 @@ export function TemplateManagementClient({ initialTemplates }: TemplateManagemen
                                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${item.type === "SPREADSHEET" ? "bg-emerald-50 text-emerald-600" : "bg-blue-50 text-blue-600"}`}>
                                         {item.type === "SPREADSHEET" ? <FileSpreadsheet size={24} /> : <FileText size={24} />}
                                     </div>
-                                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${item.type === "SPREADSHEET" ? "bg-emerald-100 text-emerald-800" : "bg-blue-100 text-blue-800"}`}>
-                                        {item.type}
-                                    </span>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${item.type === "SPREADSHEET" ? "bg-emerald-100 text-emerald-800" : "bg-blue-100 text-blue-800"}`}>
+                                            {item.type}
+                                        </span>
+                                        <span className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-slate-100 text-slate-600">
+                                            {item.category || "UMUM"}
+                                        </span>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-2">
@@ -260,14 +306,62 @@ export function TemplateManagementClient({ initialTemplates }: TemplateManagemen
                             </div>
 
                             <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Kategori Pengguna / Sub-Bagian</label>
+                                <select 
+                                    value={category}
+                                    onChange={e => setCategory(e.target.value)}
+                                    className="w-full bg-slate-50 border-none rounded-xl py-4.5 px-6 text-xs font-bold text-slate-950 focus:ring-2 focus:ring-blue-600/20"
+                                >
+                                    <option value="UMUM">UMUM (Semua Pengguna)</option>
+                                    <option value="SEKDES">SEKRETARIS DESA (SEKDES)</option>
+                                    <option value="KASI">KASI (Pemerintahan, Kesejahteraan, Pelayanan)</option>
+                                    <option value="KAUR">KAUR (TU, Perencanaan, Keuangan)</option>
+                                    <option value="KADUS">KEPALA DUSUN (1 - 4)</option>
+                                    <option value="PUSKESOS">PUSKESOS / SLRT</option>
+                                    <option value="POSYANDU">POSYANDU</option>
+                                    <option value="BUMDES">BUMDES</option>
+                                    <option value="LEMBAGA_LAIN">Lembaga Lain (LPM, TP-PKK, Karang Taruna)</option>
+                                </select>
+                            </div>
+
+                            <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Google Spreadsheet / Doc ID</label>
                                 <input 
                                     type="text" 
-                                    placeholder="Ketik Google ID atau link URL lengkap" 
+                                    placeholder="Contoh: 1BxiMVs0XRYHgEE..." 
                                     value={googleId}
                                     onChange={e => setGoogleId(e.target.value)}
                                     className="w-full bg-slate-50 border-none rounded-xl py-4.5 px-6 text-xs font-bold text-slate-950 focus:ring-2 focus:ring-blue-600/20"
                                 />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                    <Brain size={14} className="text-purple-500" /> Analisa Kolom Isian dengan AI
+                                </label>
+                                <div className="flex items-center gap-3">
+                                    <label className="flex-1 cursor-pointer">
+                                        <input type="file" className="hidden" accept=".docx,.xlsx" onChange={handleAiScan} disabled={scanning} />
+                                        <div className={`w-full py-4 px-6 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-2 ${scanning ? "bg-slate-100 text-slate-400 border-slate-200" : "bg-purple-50 text-purple-600 hover:bg-purple-100 border-purple-100 hover:border-purple-200"}`}>
+                                            {scanning ? <Loader2 size={16} className="animate-spin" /> : <ScanLine size={16} />}
+                                            {scanning ? "AI Sedang Membaca Dokumen..." : "Unggah & Scan Dokumen Asli (.docx / .xlsx)"}
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                {aiSchema && aiSchema.length > 0 && (
+                                    <div className="mt-3 p-4 bg-purple-50 border border-purple-100 rounded-xl space-y-2 max-h-40 overflow-y-auto">
+                                        <div className="text-[10px] font-black uppercase text-purple-500 tracking-widest flex items-center gap-2 mb-2">
+                                            <CheckCircle2 size={12} /> Ditemukan {aiSchema.length} Kolom Isian Otomatis
+                                        </div>
+                                        {aiSchema.map((field, idx) => (
+                                            <div key={idx} className="flex justify-between items-center bg-white px-3 py-2 rounded-lg text-[10px] font-bold border border-purple-50 shadow-sm">
+                                                <span className="text-slate-700">{field.label || field.name}</span>
+                                                <span className="text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">{field.type}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-2">

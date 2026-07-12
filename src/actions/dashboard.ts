@@ -249,3 +249,21 @@ export async function getDashboardRealtimeStats() {
         };
     }
 }
+
+export async function saveApbdesBatch(dataArray: any[], tenantId: string) {
+    const session = await checkAdminDesa();
+    try {
+        const createData = dataArray.map((item) => ({
+            ...item,
+            tenantId,
+            userId: session.user.id
+        }));
+
+        await prisma.apbdesFinance.createMany({
+            data: createData
+        });
+        return { success: true };
+    } catch (error) {
+        throw error;
+    }
+}

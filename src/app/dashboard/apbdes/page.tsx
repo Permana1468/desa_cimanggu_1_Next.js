@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
-import { getApbdesFinances, upsertApbdesFinance, deleteApbdesFinance } from "@/actions/dashboard";
+import { useEffect, useState, Suspense, useRef } from "react";
+import { getApbdesFinances, upsertApbdesFinance, deleteApbdesFinance, saveApbdesBatch } from "@/actions/dashboard";
 import { useSession } from "next-auth/react";
-import { PieChart, Plus, Trash2, ArrowUpRight, ArrowDownRight, Wallet } from "lucide-react";
+import { PieChart, Plus, Trash2, ArrowUpRight, ArrowDownRight, Wallet, Sparkles, UploadCloud, X, Loader2, Save } from "lucide-react";
 
 export default function ApbdesPage() {
     const { data: session } = useSession();
     const role = (session?.user as any)?.role;
     const email = session?.user?.email || "";
     const isKaurKeuangan = role === "KAUR_KEUANGAN" || (role === "KAUR" && email.includes("keuangan"));
-    const canEdit = ["ADMIN_MASTER", "SEKDES"].includes(role) || isKaurKeuangan;
+    const canEdit = ["ADMIN_MASTER", "ADMIN_DESA", "SEKDES"].includes(role) || isKaurKeuangan;
     const [finances, setFinances] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -18,6 +18,13 @@ export default function ApbdesPage() {
     const [formData, setFormData] = useState<any>({
         kategori: "PENDAPATAN", sumberDana: "", anggaranTotal: "", realisasi: "", keterangan: ""
     });
+
+    // AI Scan States
+    const [showScanModal, setShowScanModal] = useState(false);
+    const [isScanning, setIsScanning] = useState(false);
+    const [scanFile, setScanFile] = useState<File | null>(null);
+    const [scanPreview, setScanPreview] = useState<any[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (session?.user?.tenantId) {
@@ -62,6 +69,54 @@ export default function ApbdesPage() {
         }
     };
 
+    const handleScanFile = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!scanFile) return;
+
+        setIsScanning(true);
+        const data = new FormData();
+        data.append("file", scanFile);
+
+        try {
+            const res = await fetch("/api/ai/scan-apbdes", {
+                method: "POST",
+                body: data
+            });
+            const result = await res.json();
+
+            if (!res.ok) {
+                alert(result.error || "Gagal memindai file");
+            } else {
+                setScanPreview(result);
+            }
+        } catch (error) {
+            alert("Terjadi kesalahan jaringan.");
+        } finally {
+            setIsScanning(false);
+        }
+    };
+
+    const handleSavePreview = async () => {
+        if (scanPreview.length === 0) return;
+        setIsScanning(true);
+        try {
+            // Include tahunAnggaran for all items
+            const finalData = scanPreview.map(item => ({
+                ...item,
+                tahunAnggaran: tahun
+            }));
+            await saveApbdesBatch(finalData, session?.user?.tenantId || "");
+            setShowScanModal(false);
+            setScanPreview([]);
+            setScanFile(null);
+            loadData();
+        } catch (error) {
+            alert("Gagal menyimpan data hasil scan.");
+        } finally {
+            setIsScanning(false);
+        }
+    };
+
     const totalPendapatan = finances.filter(f => f.kategori === "PENDAPATAN").reduce((a, b) => a + b.anggaranTotal, 0);
     const totalBelanja = finances.filter(f => f.kategori === "BELANJA").reduce((a, b) => a + b.anggaranTotal, 0);
     const realisasiPendapatan = finances.filter(f => f.kategori === "PENDAPATAN").reduce((a, b) => a + b.realisasi, 0);
@@ -90,9 +145,14 @@ export default function ApbdesPage() {
                             {[2023, 2024, 2025, 2026, 2027].map(y => <option key={y} value={y} className="text-slate-900">Tahun {y}</option>)}
                         </select>
                         {canEdit && (
-                            <button onClick={() => setShowModal(true)} className="px-6 py-3 bg-emerald-500 text-white rounded-xl text-sm font-bold hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/30 flex items-center gap-2">
-                                <Plus size={16}/> Input Realisasi
-                            </button>
+                            <div className="flex gap-2">
+                                <button onClick={() => setShowScanModal(true)} className="px-5 py-3 bg-white text-slate-900 rounded-xl text-sm font-bold hover:bg-slate-100 transition-all flex items-center gap-2 border-2 border-white/20 hover:border-white/50">
+                                    <UploadCloud size={16} className="text-amber-500" /> Upload
+                                </button>
+                                <button onClick={() => setShowModal(true)} className="px-6 py-3 bg-emerald-500 text-white rounded-xl text-sm font-bold hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/30 flex items-center gap-2">
+                                    <Plus size={16}/> Input Manual
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -199,6 +259,103 @@ export default function ApbdesPage() {
                                     <button type="submit" className="px-6 py-3 bg-emerald-600 text-white rounded-xl font-bold">Simpan APBDes</button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* MODAL SCAN AI */}
+                {showScanModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => !isScanning && setShowScanModal(false)} />
+                        <div className="bg-white rounded-[2.5rem] w-full max-w-4xl relative z-10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                            <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                                <div>
+                                    <h2 className="text-2xl font-black text-slate-800 flex items-center gap-2"><UploadCloud className="text-amber-500"/> Upload Dokumen</h2>
+                                    <p className="text-slate-500 text-xs font-medium">Unggah file Excel, Word, atau Gambar (JPG/PNG) laporan APBDes.</p>
+                                </div>
+                                <button onClick={() => !isScanning && setShowScanModal(false)} className="p-2 hover:bg-slate-200 rounded-xl transition-all" disabled={isScanning}>
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            
+                            <div className="p-8 overflow-y-auto custom-scrollbar flex-1">
+                                {scanPreview.length === 0 ? (
+                                    <form onSubmit={handleScanFile} className="flex flex-col items-center justify-center py-10">
+                                        <div 
+                                            className="w-full max-w-md border-2 border-dashed border-slate-300 rounded-3xl p-10 flex flex-col items-center text-center cursor-pointer hover:bg-slate-50 transition-colors"
+                                            onClick={() => fileInputRef.current?.click()}
+                                        >
+                                            <UploadCloud size={48} className="text-slate-400 mb-4" />
+                                            <p className="font-bold text-slate-700 mb-2">
+                                                {scanFile ? scanFile.name : "Klik untuk Memilih File"}
+                                            </p>
+                                            <p className="text-xs text-slate-500">Mendukung: .xlsx, .docx, .jpg, .png</p>
+                                            <input 
+                                                type="file" 
+                                                className="hidden" 
+                                                ref={fileInputRef}
+                                                accept=".xlsx,.xls,.docx,.jpg,.jpeg,.png"
+                                                onChange={(e) => setScanFile(e.target.files?.[0] || null)}
+                                            />
+                                        </div>
+
+                                        <button 
+                                            type="submit" 
+                                            disabled={!scanFile || isScanning}
+                                            className="mt-8 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50 flex items-center gap-2"
+                                        >
+                                            {isScanning ? (
+                                                <><Loader2 size={18} className="animate-spin" /> Memindai Dokumen...</>
+                                            ) : (
+                                                <><UploadCloud size={18} /> Ekstrak Dokumen</>
+                                            )}
+                                        </button>
+                                    </form>
+                                ) : (
+                                    <div className="space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="font-bold text-slate-700">Pratinjau Hasil Ekstraksi AI</h3>
+                                            <button onClick={() => setScanPreview([])} className="text-xs text-blue-600 font-bold hover:underline">Scan Ulang</button>
+                                        </div>
+                                        <div className="border border-slate-200 rounded-2xl overflow-hidden">
+                                            <table className="w-full text-left text-sm">
+                                                <thead className="bg-slate-50 text-slate-500">
+                                                    <tr>
+                                                        <th className="p-3 font-bold">Kategori</th>
+                                                        <th className="p-3 font-bold">Sumber Dana</th>
+                                                        <th className="p-3 text-right font-bold">Anggaran (Rp)</th>
+                                                        <th className="p-3 text-right font-bold">Realisasi (Rp)</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-100">
+                                                    {scanPreview.map((item, idx) => (
+                                                        <tr key={idx}>
+                                                            <td className="p-3">
+                                                                <span className={`px-2 py-1 rounded text-[10px] font-bold ${item.kategori === 'PENDAPATAN' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                                                    {item.kategori}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-3 font-medium text-slate-700">{item.sumberDana}</td>
+                                                            <td className="p-3 text-right text-slate-600">{Number(item.anggaranTotal).toLocaleString('id-ID')}</td>
+                                                            <td className="p-3 text-right text-slate-600">{Number(item.realisasi).toLocaleString('id-ID')}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+
+                                        <div className="flex justify-end pt-4">
+                                            <button 
+                                                onClick={handleSavePreview} 
+                                                disabled={isScanning}
+                                                className="px-8 py-4 bg-emerald-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-lg flex items-center gap-2"
+                                            >
+                                                {isScanning ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />} Simpan Semua ke Database
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 )}
