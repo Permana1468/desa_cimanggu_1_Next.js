@@ -23,7 +23,8 @@ import {
   Map as MapIcon,
   Cloud,
   FileText,
-  Brain
+  Brain,
+  Store
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,6 +32,8 @@ import { motion, AnimatePresence } from "framer-motion";
 const menuItems = [
   { name: "Overview", icon: LayoutDashboard, href: "/master-admin" },
   { name: "User Management", icon: Users, href: "/master-admin/pengguna-sistem" },
+  { name: "Manajemen Warga", icon: Users, href: "/master-admin/warga-users" },
+  { name: "Verifikasi UMKM", icon: Store, href: "/master-admin/umkm" },
   { name: "Pemetaan GIS", icon: MapIcon, href: "/master-admin/gis" },
   { name: "Audit Logs", icon: History, href: "/master-admin/logs" },
   { name: "Data Kependudukan", icon: Database, href: "/master-admin/data" },

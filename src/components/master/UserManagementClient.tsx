@@ -46,11 +46,11 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
     });
 
 
-    // Filtered users
     const filteredUsers = useMemo(() => {
         return users.filter(u => 
-            u.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase()))
+            u.role !== 'WARGA' &&
+            (u.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (u.email && u.email.toLowerCase().includes(searchQuery.toLowerCase())))
         );
     }, [users, searchQuery]);
 

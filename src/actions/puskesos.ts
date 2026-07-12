@@ -12,7 +12,7 @@ export async function getPuskesosPengaduan(tenantId: string) {
         select: { namaLengkap: true, nik: true, rt: true, rw: true, alamat: true }
       },
       petugas: {
-        select: { name: true }
+        select: { fullName: true }
       }
     },
     orderBy: { tanggalMasuk: 'desc' }

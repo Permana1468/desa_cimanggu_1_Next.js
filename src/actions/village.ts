@@ -40,7 +40,15 @@ export async function getSuratList() {
         const userRw = (session.user as any).rw;
 
         let filterScope: any = { tenantId };
-        if (role === "RT") {
+        if (role === "WARGA") {
+            const user = await prisma.user.findUnique({ where: { id: (session.user as any).id } });
+            if (user?.residentId) {
+                filterScope.wargaId = user.residentId;
+            } else {
+                // Return empty if not linked to a resident
+                return [];
+            }
+        } else if (role === "RT") {
             const rtClean = cleanDigits(userRt || "");
             const rwClean = cleanDigits(userRw || "");
             filterScope.warga = {

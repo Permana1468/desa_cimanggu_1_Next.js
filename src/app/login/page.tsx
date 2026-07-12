@@ -23,6 +23,7 @@ export default function LoginPage() {
     
     // Register specific state
     const [regNik, setRegNik] = useState("");
+    const [regFullName, setRegFullName] = useState("");
     const [regPhone, setRegPhone] = useState("");
     const [regPass, setRegPass] = useState("");
     const [regConfirmPass, setRegConfirmPass] = useState("");
@@ -119,6 +120,7 @@ export default function LoginPage() {
         try {
             const res = await registerWarga({
                 nik: regNik,
+                fullName: regFullName,
                 phoneNumber: regPhone,
                 password: regPass
             });
@@ -126,10 +128,10 @@ export default function LoginPage() {
             if (res.error) {
                 setError(res.error);
             } else {
-                setSuccess(`Registrasi Berhasil! Selamat datang, ${res.name}. Silakan login.`);
+                setSuccess(`Registrasi Berhasil! Selamat datang. Silakan login.`);
                 setIsLogin(true);
                 setIdentifier(regNik);
-                setRegNik(""); setRegPhone(""); setRegPass(""); setRegConfirmPass("");
+                setRegNik(""); setRegFullName(""); setRegPhone(""); setRegPass(""); setRegConfirmPass("");
             }
         } catch (err) {
             setError("Terjadi kesalahan sistem saat registrasi");
@@ -239,6 +241,9 @@ export default function LoginPage() {
                             <h1 className="text-2xl md:text-4xl font-black text-slate-800 mb-2">Daftar</h1>
                             <p className="text-slate-500 font-medium text-xs md:text-sm mb-6">Registrasi khusus warga menggunakan NIK.</p>
 
+                            {error && !isLogin && <div className="bg-red-50 text-red-600 text-[10px] font-bold p-3 rounded-xl mb-6">{error}</div>}
+                            {success && !isLogin && <div className="bg-emerald-50 text-emerald-600 text-[10px] font-bold p-3 rounded-xl mb-6">{success}</div>}
+
                             <form onSubmit={handleRegister} className="space-y-4">
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">NIK (KTP)</label>
@@ -247,6 +252,17 @@ export default function LoginPage() {
                                         value={regNik}
                                         onChange={(e) => setRegNik(e.target.value)}
                                         placeholder="16 Digit NIK"
+                                        className="w-full bg-slate-50 border-2 border-transparent focus:bg-white focus:border-emerald-600 rounded-xl py-3 px-4 text-sm text-slate-700 outline-none transition-all font-semibold shadow-sm"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nama Lengkap</label>
+                                    <input
+                                        type="text"
+                                        value={regFullName}
+                                        onChange={(e) => setRegFullName(e.target.value)}
+                                        placeholder="Nama Sesuai KTP"
                                         className="w-full bg-slate-50 border-2 border-transparent focus:bg-white focus:border-emerald-600 rounded-xl py-3 px-4 text-sm text-slate-700 outline-none transition-all font-semibold shadow-sm"
                                         required
                                     />
@@ -294,8 +310,8 @@ export default function LoginPage() {
                             <h1 className="text-2xl md:text-4xl font-black text-slate-800 mb-2">Masuk</h1>
                             <p className="text-slate-500 font-medium text-xs md:text-sm mb-8">Selamat datang kembali di sistem desa.</p>
 
-                            {error && <div className="bg-red-50 text-red-600 text-[10px] font-bold p-3 rounded-xl mb-6">{error}</div>}
-                            {success && <div className="bg-emerald-50 text-emerald-600 text-[10px] font-bold p-3 rounded-xl mb-6">{success}</div>}
+                            {error && isLogin && <div className="bg-red-50 text-red-600 text-[10px] font-bold p-3 rounded-xl mb-6">{error}</div>}
+                            {success && isLogin && <div className="bg-emerald-50 text-emerald-600 text-[10px] font-bold p-3 rounded-xl mb-6">{success}</div>}
 
                             <form onSubmit={handleLogin} className="space-y-5">
                                 <div className="space-y-1.5">

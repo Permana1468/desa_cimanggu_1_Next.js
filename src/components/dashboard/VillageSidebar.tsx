@@ -48,13 +48,15 @@ import {
   Briefcase,
   Globe,
   MessageSquare,
-  Folder
+  Folder,
+  ShoppingBag
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { name: "Verifikasi Warga", icon: UserCog, href: "/dashboard/verifikasi-warga" },
   { name: "Pusat Persuratan", icon: FileText, href: "/dashboard/surat" },
   { name: "Data Kependudukan", icon: Database, href: "/dashboard/warga" },
   { name: "Profil Desa", icon: UserCircle, href: "/dashboard/profil" },
@@ -72,6 +74,7 @@ const menuItems = [
   { name: "Monitoring", icon: Activity, href: "/dashboard/monitoring" },
   { name: "Tracking Layanan", icon: Clock, href: "/dashboard/tracking" },
   { name: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
+  { name: 'Marketplace UMKM', icon: ShoppingBag, href: '/umkm' },
 ];
 
 interface VillageSidebarProps {

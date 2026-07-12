@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getLetterTemplates, createLetterTemplate, uploadTemplateFile } from "@/actions/documents";
+import { generateTemplateWithAI } from "@/actions/ai-template";
 import { 
     FileText, 
     Plus, 
@@ -15,7 +16,8 @@ import {
     ChevronRight,
     Loader2,
     Settings,
-    History
+    History,
+    Sparkles
 } from "lucide-react";
 
 export default function TemplateRepositoryPage() {
@@ -23,6 +25,7 @@ export default function TemplateRepositoryPage() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [isScanning, setIsScanning] = useState(false);
     const [query, setQuery] = useState("");
     const [formData, setFormData] = useState({
         name: "",
@@ -59,6 +62,35 @@ export default function TemplateRepositoryPage() {
         const data = await getLetterTemplates();
         setTemplates(data);
         setLoading(false);
+    };
+
+    const handleScanAI = async () => {
+        if (!fileBase64) {
+            alert("Harap unggah file template .docx terlebih dahulu untuk di-scan.");
+            return;
+        }
+        setIsScanning(true);
+        try {
+            const res = await generateTemplateWithAI(fileBase64);
+            if (!res.success || !res.data) {
+                alert(res.error || "Gagal melakukan scan dengan AI.");
+                return;
+            }
+            // Update formData with AI results
+            setFormData({
+                ...formData,
+                name: res.data.name,
+                code: res.data.code,
+                variables: res.data.variables
+            });
+            // Update the file base64 with the modified XML version
+            setFileBase64(res.data.modifiedBase64);
+            alert("AI berhasil mengidentifikasi dan menyisipkan variabel ke dalam dokumen!");
+        } catch (error) {
+            alert("Gagal menghubungi AI.");
+        } finally {
+            setIsScanning(false);
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -282,7 +314,22 @@ export default function TemplateRepositoryPage() {
                                 </div>
                             </label>
 
-                            <button type="submit" disabled={saving} className="w-full bg-blue-600 text-white py-5 rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-2xl shadow-blue-500/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50 mt-4">
+                            {fileBase64 && (
+                                <button 
+                                    type="button" 
+                                    onClick={handleScanAI} 
+                                    disabled={isScanning || saving} 
+                                    className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white py-4 rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-xl shadow-indigo-500/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                                >
+                                    {isScanning ? (
+                                        <><Loader2 className="animate-spin" size={20} /> AI SEDANG MEMINDAI DOKUMEN...</>
+                                    ) : (
+                                        <><Sparkles size={20} /> SCAN OTOMATIS DENGAN AI</>
+                                    )}
+                                </button>
+                            )}
+
+                            <button type="submit" disabled={saving || isScanning} className="w-full bg-blue-600 text-white py-5 rounded-[2rem] font-black text-sm uppercase tracking-widest shadow-2xl shadow-blue-500/20 transition-all flex items-center justify-center gap-3 disabled:opacity-50 mt-4">
                                 {saving ? <Loader2 className="animate-spin" size={24} /> : "Simpan Template"}
                             </button>
                         </form>

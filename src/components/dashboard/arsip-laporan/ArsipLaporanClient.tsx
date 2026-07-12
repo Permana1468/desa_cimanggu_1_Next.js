@@ -99,7 +99,7 @@ export function ArsipLaporanClient({ initialReports }: { initialReports: any[] }
                                     Belum ada arsip dokumen untuk folder ini.
                                 </div>
                             ) : (
-                                groupedReports[selectedCategory].map(report => (
+                                groupedReports[selectedCategory].map((report: any) => (
                                     <div key={report.id} className="flex flex-col md:flex-row md:items-center justify-between gap-6 p-6 rounded-2xl border border-slate-100 hover:bg-slate-50/50 transition-colors group">
                                         <div className="flex items-start gap-4">
                                             <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shrink-0">

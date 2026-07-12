@@ -116,7 +116,10 @@ export async function upsertMasterUser(data: {
 
         revalidatePath("/master-admin/users");
         return result;
-    } catch (error) {
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            throw new Error("Email atau NIK tersebut sudah digunakan oleh pengguna lain. Silakan gunakan yang berbeda.");
+        }
         throw error;
     }
 }

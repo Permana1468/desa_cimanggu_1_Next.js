@@ -63,19 +63,21 @@ export function WargaDashboard({ session, stats, latestSurat }: { session: any, 
                 </div>
 
                 <div className="space-y-4">
-                    {/* Dummy Data for Warga */}
-                    <UserRequestCard 
-                        jenis="Surat Keterangan Usaha"
-                        tanggal="12 Mei 2026"
-                        status="TERTUNDA"
-                        step="Menunggu Tanda Tangan RT"
-                    />
-                    <UserRequestCard 
-                        jenis="Surat Pengantar Pembuatan KTP"
-                        tanggal="05 April 2026"
-                        status="DISETUJUI"
-                        step="Selesai. Silakan ambil di Balai Desa."
-                    />
+                    {latestSurat && latestSurat.length > 0 ? (
+                        latestSurat.map((surat: any, index: number) => (
+                            <UserRequestCard 
+                                key={surat.id || index}
+                                jenis={surat.type || "Surat Keterangan"}
+                                tanggal={new Date(surat.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                status={surat.status}
+                                step={surat.status === 'DISETUJUI' ? "Selesai. Silakan ambil di Balai Desa." : "Sedang diproses"}
+                            />
+                        ))
+                    ) : (
+                        <div className="text-center p-6 text-slate-500 bg-slate-50 rounded-2xl border border-slate-100">
+                            Belum ada riwayat pengajuan surat.
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

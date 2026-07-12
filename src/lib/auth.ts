@@ -1,8 +1,110 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import FacebookProvider from "next-auth/providers/facebook";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+
+const providers: any[] = [
+  CredentialsProvider({
+    name: "credentials",
+    credentials: {
+      identifier: { label: "Email atau NIK", type: "text" },
+      password: { label: "Password", type: "password" },
+    },
+    async authorize(credentials) {
+      if (!credentials?.identifier || !credentials?.password) {
+        throw new Error("Email/NIK dan password wajib diisi");
+      }
+
+      // Cari user berdasarkan email, NIK, atau No HP
+      const user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: credentials.identifier },
+            { nik: credentials.identifier },
+            { phoneNumber: credentials.identifier }
+          ]
+        },
+        include: {
+          tenant: true
+        }
+      });
+
+      if (!user || !user.passwordHash) {
+        // Log failed attempt - User not found
+        const systemTenant = await prisma.tenant.findFirst();
+        if (systemTenant) {
+          await prisma.auditLog.create({
+            data: {
+              action: "LOGIN_FAILED",
+              entity: "Security",
+              details: { identifier: credentials.identifier, reason: "User not found" },
+              category: "SECURITY",
+              tenantId: systemTenant.id
+            }
+          });
+        }
+        throw new Error("Akun tidak ditemukan atau belum terdaftar");
+      }
+
+      const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
+
+      if (!isValid) {
+        // Log failed attempt - Wrong password
+        await prisma.auditLog.create({
+          data: {
+            action: "LOGIN_FAILED",
+            entity: "Security",
+            userId: user.id,
+            details: { identifier: credentials.identifier, reason: "Wrong password" },
+            category: "SECURITY",
+            tenantId: user.tenantId
+          }
+        });
+        throw new Error("Kata sandi salah");
+      }
+
+      if (!user.isActive) {
+        if (user.role === "WARGA") {
+            throw new Error("Akun Warga Anda sedang menunggu verifikasi oleh Admin Desa. Silakan tunggu atau hubungi Kantor Desa.");
+        }
+        throw new Error("Akun Anda dinonaktifkan atau sedang dalam proses pengembangan.");
+      }
+
+      // Commenting this out because UMKM and normal users need to be able to login 
+      // to the marketplace even if their store/tenant is pending.
+      // if (user.role !== "ADMIN_MASTER" && user.tenant && !user.tenant.isActive) {
+      //   throw new Error("Sistem sedang dalam proses pengembangan. Akses ditutup sementara.");
+      // }
+
+      return {
+        id: user.id,
+        email: user.email,
+        name: user.fullName,
+        role: user.role,
+        tenantId: user.tenantId,
+        rt: (user as any).rt,
+        rw: (user as any).rw,
+      };
+    },
+  })
+];
+
+if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+  providers.push(GoogleProvider({
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  }));
+}
+
+if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
+  providers.push(FacebookProvider({
+    clientId: process.env.FACEBOOK_CLIENT_ID,
+    clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+  }));
+}
 
 export const authOptions: NextAuthOptions = {
   session: {
@@ -12,85 +114,7 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
-  providers: [
-    CredentialsProvider({
-      name: "credentials",
-      credentials: {
-        identifier: { label: "Email atau NIK", type: "text" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.identifier || !credentials?.password) {
-          throw new Error("Email/NIK dan password wajib diisi");
-        }
-
-        // Cari user berdasarkan email ATAU NIK
-        const user = await prisma.user.findFirst({
-          where: {
-            OR: [
-              { email: credentials.identifier },
-              { nik: credentials.identifier }
-            ]
-          },
-          include: {
-            tenant: true
-          }
-        });
-
-        if (!user || !user.passwordHash) {
-          // Log failed attempt - User not found
-          const systemTenant = await prisma.tenant.findFirst();
-          if (systemTenant) {
-            await prisma.auditLog.create({
-              data: {
-                action: "LOGIN_FAILED",
-                entity: "Security",
-                details: { identifier: credentials.identifier, reason: "User not found" },
-                category: "SECURITY",
-                tenantId: systemTenant.id
-              }
-            });
-          }
-          throw new Error("Akun tidak ditemukan atau belum terdaftar");
-        }
-
-        const isValid = await bcrypt.compare(credentials.password, user.passwordHash);
-
-        if (!isValid) {
-          // Log failed attempt - Wrong password
-          await prisma.auditLog.create({
-            data: {
-              action: "LOGIN_FAILED",
-              entity: "Security",
-              userId: user.id,
-              details: { identifier: credentials.identifier, reason: "Wrong password" },
-              category: "SECURITY",
-              tenantId: user.tenantId
-            }
-          });
-          throw new Error("Kata sandi salah");
-        }
-
-        if (!user.isActive) {
-          throw new Error("Akun Anda dinonaktifkan atau sedang dalam proses pengembangan.");
-        }
-
-        if (user.role !== "ADMIN_MASTER" && user.tenant && !user.tenant.isActive) {
-          throw new Error("Sistem sedang dalam proses pengembangan. Akses ditutup sementara.");
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.fullName,
-          role: user.role,
-          tenantId: user.tenantId,
-          rt: (user as any).rt,
-          rw: (user as any).rw,
-        };
-      },
-    }),
-  ],
+  providers,
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
