@@ -18,7 +18,7 @@ export function PosyanduInventarisTab({ session }: any) {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  async function fetchData() {
     setLoading(true);
     try {
       const res = await getPosyanduInventaris();

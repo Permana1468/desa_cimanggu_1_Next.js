@@ -25,7 +25,7 @@ export function PosyanduRegisterTab({ session }: any) {
     fetchData(activeFormat);
   }, [activeFormat]);
 
-  const fetchData = async (formatNumber: number) => {
+  async function fetchData(formatNumber: number) {
     setLoading(true);
     try {
       const res = await getPosyanduRegisters(formatNumber);

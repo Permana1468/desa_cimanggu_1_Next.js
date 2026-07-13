@@ -9,11 +9,7 @@ export function KesraUhcTab({ session }: any) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  async function fetchData() {
     setLoading(true);
     try {
       const list = await getKesraUsulanUhcList();
@@ -22,7 +18,11 @@ export function KesraUhcTab({ session }: any) {
       console.error(e);
     }
     setLoading(false);
-  };
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const handlePrintTable = () => {
     window.print();

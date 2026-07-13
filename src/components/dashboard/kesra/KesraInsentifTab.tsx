@@ -21,7 +21,7 @@ export function KesraInsentifTab({ session }: any) {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  async function fetchData() {
     setLoading(true);
     try {
       const res = await getKesraInsentifList();

@@ -37,7 +37,7 @@ export function KesraUsulanUhcTab({ session }: any) {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  async function fetchData() {
     setLoading(true);
     try {
       const [list, kep] = await Promise.all([

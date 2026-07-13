@@ -18,7 +18,7 @@ export function KesraWargaBansosTab({ session }: any) {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  async function fetchData() {
     setLoading(true);
     try {
       const res = await getKesraKependudukanList();
@@ -53,9 +53,9 @@ export function KesraWargaBansosTab({ session }: any) {
     const autoDate = `Cimanggu I, ${now.getDate()} ${BULAN_ID[now.getMonth()]} ${now.getFullYear()}`;
 
     // --- Load Print Settings ---
-    let savedNoRegister = typeof window !== "undefined" ? localStorage.getItem('bansos_print_noRegister') || "000213EA" : "000213EA";
-    let savedNamaTTD = typeof window !== "undefined" ? localStorage.getItem('bansos_print_namaTTD') || "KASI Kesejahteraan" : "KASI Kesejahteraan";
-    let savedNipd = typeof window !== "undefined" ? localStorage.getItem('bansos_print_nipd') || "-" : "-";
+    const savedNoRegister = typeof window !== "undefined" ? localStorage.getItem('bansos_print_noRegister') || "000213EA" : "000213EA";
+    const savedNamaTTD = typeof window !== "undefined" ? localStorage.getItem('bansos_print_namaTTD') || "KASI Kesejahteraan" : "KASI Kesejahteraan";
+    const savedNipd = typeof window !== "undefined" ? localStorage.getItem('bansos_print_nipd') || "-" : "-";
 
     const nomorRegister = savedNoRegister;
     const namaTTD = savedNamaTTD;
@@ -292,7 +292,7 @@ export function KesraWargaBansosTab({ session }: any) {
     setShowEditModal(true);
   };
 
-  let filteredData = data.filter(d => {
+  const filteredData = data.filter(d => {
     const matchSearch = d.namaLengkap.toLowerCase().includes(search.toLowerCase()) || d.nik.includes(search);
     const matchRT = filterRT === "ALL" || d.rt === filterRT;
     const matchRW = filterRW === "ALL" || d.rw === filterRW;

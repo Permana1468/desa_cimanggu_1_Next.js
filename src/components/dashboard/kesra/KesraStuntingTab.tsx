@@ -11,11 +11,7 @@ export function KesraStuntingTab({ session, onTabChange }: any) {
   const [search, setSearch] = useState("");
   const [selectedChild, setSelectedChild] = useState<any>(null);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  async function fetchData() {
     setLoading(true);
     try {
       const res = await getKesraStuntingList();
@@ -27,7 +23,11 @@ export function KesraStuntingTab({ session, onTabChange }: any) {
       console.error(e);
     }
     setLoading(false);
-  };
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   // Helper: calculate age in months
   const getAgeInMonths = (birthDateStr: string, measureDateStr?: string) => {

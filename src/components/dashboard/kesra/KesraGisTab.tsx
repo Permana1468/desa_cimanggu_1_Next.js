@@ -25,7 +25,7 @@ export function KesraGisTab({ session }: any) {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  async function fetchData() {
     setLoading(true);
     try {
       const tenantId = session?.user?.tenantId || "";
