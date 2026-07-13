@@ -55,7 +55,7 @@ export function CetakSkkm({ data, onBack }: { data: any; onBack: () => void }) {
             display: none !important;
           }
           @page {
-            size: A4 portrait;
+            size: 215.9mm 330.2mm portrait; /* F4 Size */
             margin: 20mm;
           }
         }
@@ -67,17 +67,17 @@ export function CetakSkkm({ data, onBack }: { data: any; onBack: () => void }) {
           <ArrowLeft size={18} /> Kembali
         </button>
         <button onClick={() => window.print()} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm">
-          <Printer size={18} /> Cetak SKKM (A4)
+          <Printer size={18} /> Cetak SKKM (F4)
         </button>
       </div>
 
-      {/* Print Area - A4 Layout */}
-      <div id="print-area" className="text-black text-[13px] leading-[1.5]" style={{ fontFamily: "Arial, sans-serif" }}>
+      {/* Print Area - F4 Layout */}
+      <div id="print-area" className="text-black text-[13px] leading-[1.5]" style={{ fontFamily: "'Arial Narrow', Arial, sans-serif" }}>
 
-        <div className="max-w-[210mm] mx-auto bg-white shadow-xl min-h-[297mm] print:min-h-0 p-[15mm] print:p-0 mb-8 print:mb-0 print:shadow-none relative">
+        <div className="max-w-[215.9mm] mx-auto bg-white shadow-xl min-h-[330.2mm] print:min-h-0 p-[15mm] print:p-0 mb-8 print:mb-0 print:shadow-none relative">
           
           {/* Header/Kop Surat */}
-          <div className="flex items-center justify-between border-b-[3px] border-black pb-2 mb-6">
+          <div className="flex items-center justify-between border-b-[3px] border-black pb-2 mb-6" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
             <div className="w-[100px] flex items-center justify-center">
               <img src="/images/logo-bogor.png" alt="Logo Bogor" className="w-[90px] h-auto object-contain" />
             </div>

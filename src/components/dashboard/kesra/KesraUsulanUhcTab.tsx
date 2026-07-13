@@ -501,6 +501,8 @@ export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }
 export function ModalSkkm({ onClose, onRefresh, onPrint, initialData }: any) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<any>({
+    nik: initialData?.nik || "",
+    namaPasien: initialData?.namaPasien || "",
     skkmNoRegister: initialData?.skkmNoRegister || "",
     skkmRtRwPengantar: initialData?.skkmRtRwPengantar || "",
     skkmTanggalPengantar: initialData?.skkmTanggalPengantar ? new Date(initialData.skkmTanggalPengantar).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
@@ -592,6 +594,14 @@ export function ModalSkkm({ onClose, onRefresh, onPrint, initialData }: any) {
             <div className="space-y-4">
               <h4 className="font-bold text-slate-700 text-sm">Detail Pasien UHC</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">NIK (Pasien)</label>
+                  <input name="nik" value={formData.nik} onChange={handleChange} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nama Lengkap (Pasien)</label>
+                  <input name="namaPasien" value={formData.namaPasien} onChange={handleChange} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none uppercase" required />
+                </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5">Jenis Kelamin</label>
                   <select name="skkmJenisKelamin" value={formData.skkmJenisKelamin} onChange={handleChange} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
