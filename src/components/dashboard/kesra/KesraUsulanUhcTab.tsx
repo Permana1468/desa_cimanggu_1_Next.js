@@ -228,8 +228,8 @@ export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }
   const [formData, setFormData] = useState<any>(initialData ? { ...initialData, rujukan: initialRujukan } : {
     kecamatan: "CIBUNGBULANG",
     desaKelurahan: "CIMANGGU I",
-    namaPemohon: "",
-    alamatPemohon: "",
+    namaPemohon: "ABDUL AZIZ",
+    alamatPemohon: "KP. CIARUTEUN RT.001 RW.008",
     namaPasien: "",
     nomorKk: "",
     nik: "",
@@ -258,7 +258,7 @@ export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }
   });
 
   const handleChange = (e: any) => {
-      setFormData({ ...formData, [e.target.name]: e.target.value });
+      setFormData({ ...formData, [e.target.name]: e.target.value.toUpperCase() });
   };
 
   const handleSubmit = async (e: any) => {
@@ -397,11 +397,11 @@ export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }
                         <div className="mt-3 space-y-3 p-4 bg-slate-50 border border-slate-100 rounded-xl">
                             <div>
                                 <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nama Rumah Sakit/Rujukan</label>
-                                <input value={customNama} onChange={e => setCustomNama(e.target.value)} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Contoh: RS. MARJUKI MAHDI" />
+                                <input value={customNama} onChange={e => setCustomNama(e.target.value.toUpperCase())} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Contoh: RS. MARJUKI MAHDI" />
                             </div>
                             <div>
                                 <label className="block text-xs font-semibold text-slate-600 mb-1.5">Alamat Rujukan</label>
-                                <input value={customAlamat} onChange={e => setCustomAlamat(e.target.value)} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Isi alamat lengkap..." />
+                                <input value={customAlamat} onChange={e => setCustomAlamat(e.target.value.toUpperCase())} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Isi alamat lengkap..." />
                             </div>
                         </div>
                     )}
