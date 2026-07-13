@@ -55,7 +55,7 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
             position: absolute;
             left: 0;
             top: 0;
-            width: 215.9mm;
+            width: 100%;
             height: auto !important;
             padding: 0;
             background: white;
@@ -66,7 +66,7 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
           }
           @page {
             size: 215.9mm 330.2mm portrait; /* F4 Size */
-            margin: 10mm;
+            margin: 15mm;
           }
         }
       `}} />
@@ -85,7 +85,7 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
       <div id="print-area" className="text-black font-serif text-[11px] leading-tight">
 
         {/* Lembar Formulir */}
-        <div className="max-w-[215.9mm] mx-auto bg-white shadow-xl min-h-[330.2mm] p-[10mm] mb-8 print:mb-0 print:shadow-none relative">
+        <div className="max-w-[215.9mm] mx-auto bg-white shadow-xl min-h-[330.2mm] p-[10mm] print:p-0 mb-8 print:mb-0 print:shadow-none relative">
 
           {/* Header */}
           <div className="flex items-center justify-between border-b-[3px] border-black pb-4 mb-4">
@@ -438,7 +438,8 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
             </tbody>
           </table>
 
-          {/* Hasil Verifikasi Section */}
+          {/* Hasil Verifikasi Section - Dipisah ke Halaman 2 */}
+          <div style={{ pageBreakBefore: "always", paddingTop: "20px" }}></div>
           <table className="w-full border-collapse border border-black mb-1 table-fixed">
             <tbody>
               <tr>
@@ -498,7 +499,7 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
 
         {/* Halaman Lampiran Foto */}
         {data.fotoDepan && (
-          <div style={{ pageBreakBefore: "always" }} className="max-w-[215.9mm] mx-auto bg-white p-[10mm] shadow-lg print:shadow-none min-h-[330mm] mb-8 print:mb-0">
+          <div style={{ pageBreakBefore: "always" }} className="max-w-[215.9mm] mx-auto bg-white p-[10mm] print:p-0 shadow-lg print:shadow-none min-h-[330mm] mb-8 print:mb-0">
             <div className="text-center font-bold text-lg mb-4">-1-</div>
             <div className="border border-black h-[280mm] flex flex-col">
               <div className="border-b border-black p-2 text-center text-[13px] font-semibold">
@@ -512,7 +513,7 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
         )}
 
         {data.fotoSamping && (
-          <div style={{ pageBreakBefore: "always" }} className="max-w-[215.9mm] mx-auto bg-white p-[10mm] shadow-lg print:shadow-none min-h-[330mm] mb-8 print:mb-0">
+          <div style={{ pageBreakBefore: "always" }} className="max-w-[215.9mm] mx-auto bg-white p-[10mm] print:p-0 shadow-lg print:shadow-none min-h-[330mm] mb-8 print:mb-0">
             <div className="text-center font-bold text-lg mb-4">-2-</div>
             <div className="border border-black h-[280mm] flex flex-col">
               <div className="border-b border-black p-2 text-center text-[13px] font-semibold">
@@ -526,7 +527,7 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
         )}
 
         {data.fotoDalam && (
-          <div style={{ pageBreakBefore: "always" }} className="max-w-[215.9mm] mx-auto bg-white p-[10mm] shadow-lg print:shadow-none min-h-[330mm] mb-8 print:mb-0">
+          <div style={{ pageBreakBefore: "always" }} className="max-w-[215.9mm] mx-auto bg-white p-[10mm] print:p-0 shadow-lg print:shadow-none min-h-[330mm] mb-8 print:mb-0">
             <div className="text-center font-bold text-lg mb-4">-3-</div>
             <div className="border border-black h-[280mm] flex flex-col">
               <div className="border-b border-black p-2 text-center text-[13px] font-semibold">
@@ -540,7 +541,7 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
         )}
 
         {data.fotoKamarMandi && (
-          <div style={{ pageBreakBefore: "always" }} className="max-w-[215.9mm] mx-auto bg-white p-[10mm] shadow-lg print:shadow-none min-h-[330mm] mb-8 print:mb-0">
+          <div style={{ pageBreakBefore: "always" }} className="max-w-[215.9mm] mx-auto bg-white p-[10mm] print:p-0 shadow-lg print:shadow-none min-h-[330mm] mb-8 print:mb-0">
             <div className="text-center font-bold text-lg mb-4">-4-</div>
             <div className="border border-black h-[280mm] flex flex-col">
               <div className="border-b border-black p-2 text-center text-[13px] font-semibold">
