@@ -43,53 +43,27 @@ export function PuskesosDashboard({ session, stats }: any) {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* HEADER */}
-      <div className="bg-gradient-to-r from-blue-900 to-indigo-900 p-8 rounded-3xl text-white shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4 opacity-80">
-            <span className="bg-white/20 p-2 rounded-xl border border-white/10">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-            </span>
-            <span className="text-sm font-semibold tracking-wider">PANEL KOORDINASI PUSKESOS</span>
-          </div>
-          <h1 className="text-4xl font-black mb-3">Pusat Kesejahteraan Sosial</h1>
-          <p className="text-blue-100 max-w-xl leading-relaxed">
-            Sistem Layanan Rujukan Terpadu (SLRT), pusat pengaduan masyarakat miskin/rentan, dan penjangkauan (Outreach) DTKS.
-          </p>
-        </div>
-      </div>
-
-      {/* TABS NAVIGATION */}
-      <div className="flex flex-wrap gap-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-100 sticky top-4 z-20">
-        {[
-          { id: "DASHBOARD", label: "Statistik Real-time", icon: "📊" },
-          { id: "WARGA", label: "Data Warga", icon: "👥" },
-          { id: "PENGADUAN", label: "Layanan Pengaduan", icon: "💬" },
-          { id: "RUJUKAN", label: "Manajemen Rujukan", icon: "📄" },
-          { id: "UHC", label: "Usulan UHC", icon: "🏥" },
-          { id: "PPKS", label: "Penjangkauan PPKS", icon: "🤝" },
-          { id: "PENGURUS", label: "Data Pengurus", icon: "📋" },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2 ${
-              activeTab === tab.id 
-                ? "bg-blue-600 text-white shadow-md shadow-blue-600/20 scale-105" 
-                : "text-slate-600 hover:bg-slate-50 hover:text-blue-600"
-            }`}
-          >
-            <span>{tab.icon}</span>
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
       {/* TAB CONTENT: DASHBOARD */}
       {activeTab === "DASHBOARD" && (
+        <>
+          {/* HEADER */}
+          <div className="bg-gradient-to-r from-blue-900 to-indigo-900 p-8 rounded-3xl text-white shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-4 opacity-80">
+                <span className="bg-white/20 p-2 rounded-xl border border-white/10">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </span>
+                <span className="text-sm font-semibold tracking-wider">PANEL KOORDINASI PUSKESOS</span>
+              </div>
+              <h1 className="text-4xl font-black mb-3">Pusat Kesejahteraan Sosial</h1>
+              <p className="text-blue-100 max-w-xl leading-relaxed">
+                Sistem Layanan Rujukan Terpadu (SLRT), pusat pengaduan masyarakat miskin/rentan, dan penjangkauan (Outreach) DTKS.
+              </p>
+            </div>
+          </div>
         <div className="space-y-6">
           {/* TOP METRICS */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -202,6 +176,7 @@ export function PuskesosDashboard({ session, stats }: any) {
             </div>
           </div>
         </div>
+        </>
       )}
 
       {/* OTHER TABS */}

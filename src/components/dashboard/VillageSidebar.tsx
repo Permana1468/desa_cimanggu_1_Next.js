@@ -209,7 +209,7 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
         <div className={`p-6 flex items-center ${isCollapsed && !isOpen ? 'justify-center' : 'justify-between'} h-24`}>
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="relative w-10 h-10 shrink-0">
-              <Image src={role === "KARANG_TARUNA" ? "/images/logo-katar.png" : "/images/logo-bogor.png"} alt="Logo" fill sizes="40px" className="object-contain" />
+              <Image src={role === "KARANG_TARUNA" ? "/images/logo-katar.png" : role === "PUSKESOS" ? "/images/PUSKESOS-1.png" : "/images/logo-bogor.png"} alt="Logo" fill sizes="40px" className="object-contain" />
             </div>
             {(!isCollapsed || isOpen) && (
               <div className="flex flex-col">
@@ -902,6 +902,18 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                   ];
                 }
 
+                if (role === "PUSKESOS") {
+                  itemsToRender = [
+                    { name: "Statistik Real-time", icon: LayoutDashboard, href: "/dashboard?tab=overview" },
+                    { name: "Data Warga", icon: Users, href: "/dashboard?tab=warga" },
+                    { name: "Layanan Pengaduan", icon: MessageSquare, href: "/dashboard?tab=pengaduan" },
+                    { name: "Manajemen Rujukan", icon: FileText, href: "/dashboard?tab=rujukan" },
+                    { name: "Usulan UHC", icon: HeartPulse, href: "/dashboard?tab=uhc" },
+                    { name: "Penjangkauan PPKS", icon: HeartHandshake, href: "/dashboard?tab=ppks" },
+                    { name: "Data Pengurus", icon: Users, href: "/dashboard?tab=pengurus" }
+                  ];
+                }
+
                 if (role === "RT" || role === "RW") {
                   itemsToRender = [
                     { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard?tab=overview" },
@@ -931,14 +943,14 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                 }
 
                 return itemsToRender.map((item) => {
-                  const isInstitutional = ["PKK", "TP_PKK", "LPM", "BPD", "KARANG_TARUNA", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string);
+                  const isInstitutional = ["PKK", "TP_PKK", "LPM", "BPD", "KARANG_TARUNA", "PETUGAS_SENSUS"].includes(role as string);
                   let href = item.href;
                   if (isInstitutional && role !== "LPM") {
                       if (href === "/dashboard") href = "/kelembagaan";
                       else if (!href.includes("/settings")) href = href.replace("/dashboard/", "/kelembagaan/");
                   }
                   let isActive = false;
-                  if (role === "RT" || role === "RW" || role === "LPM") {
+                  if (role === "RT" || role === "RW" || role === "LPM" || role === "PUSKESOS") {
                     const urlTab = tabParam || "overview";
                     const itemTab = item.href.split("tab=")[1] || "overview";
                     isActive = (pathname === "/dashboard" || pathname === "/kelembagaan") && urlTab === itemTab;
