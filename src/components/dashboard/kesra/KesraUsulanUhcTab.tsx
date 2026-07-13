@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Search, Plus, FileText, Download, Loader2, Printer, Trash2, Edit2, Activity, CheckCircle } from "lucide-react";
 import { getKesraUsulanUhcList, addKesraUsulanUhc, updateKesraUsulanUhc, deleteKesraUsulanUhc, updateKesraUsulanUhcStatus, getKesraKependudukanList } from "@/actions/kesra";
 import { CetakUsulanUhc } from "./CetakUsulanUhc";
+import { CetakSkkm } from "./CetakSkkm";
 import { ImageUpload } from "@/components/dashboard/ImageUpload";
 
 const PARAM_OPTIONS = {
@@ -32,6 +33,11 @@ export function KesraUsulanUhcTab({ session }: any) {
   const [selectedData, setSelectedData] = useState<any>(null);
   const [showPrint, setShowPrint] = useState(false);
   const [printData, setPrintData] = useState<any>(null);
+  
+  const [showSkkmModal, setShowSkkmModal] = useState(false);
+  const [selectedSkkmData, setSelectedSkkmData] = useState<any>(null);
+  const [showPrintSkkm, setShowPrintSkkm] = useState(false);
+  const [printSkkmData, setPrintSkkmData] = useState<any>(null);
 
   useEffect(() => {
     fetchData();
@@ -85,6 +91,10 @@ export function KesraUsulanUhcTab({ session }: any) {
 
   if (showPrint && printData) {
       return <CetakUsulanUhc data={printData} onBack={() => setShowPrint(false)} />;
+  }
+
+  if (showPrintSkkm && printSkkmData) {
+    return <CetakSkkm data={printSkkmData} onBack={() => setShowPrintSkkm(false)} />;
   }
 
   return (
@@ -164,9 +174,19 @@ export function KesraUsulanUhcTab({ session }: any) {
                         <button
                           onClick={() => handlePrint(d)}
                           className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                          title="Cetak Form"
+                          title="Cetak Form UHC"
                         >
                           <Printer size={13} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedSkkmData(d);
+                            setShowSkkmModal(true);
+                          }}
+                          className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Lengkapi & Cetak SKKM"
+                        >
+                          <FileText size={13} />
                         </button>
                         <button
                           onClick={() => handleEdit(d)}
@@ -209,6 +229,19 @@ export function KesraUsulanUhcTab({ session }: any) {
           onRefresh={fetchData} 
           kependudukan={kependudukan} 
           initialData={selectedData} 
+        />
+      )}
+
+      {showSkkmModal && (
+        <ModalSkkm 
+          onClose={() => setShowSkkmModal(false)} 
+          onRefresh={fetchData} 
+          onPrint={(data: any) => {
+            setShowSkkmModal(false);
+            setPrintSkkmData(data);
+            setShowPrintSkkm(true);
+          }}
+          initialData={selectedSkkmData} 
         />
       )}
     </div>
@@ -460,6 +493,160 @@ export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+export function ModalSkkm({ onClose, onRefresh, onPrint, initialData }: any) {
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<any>({
+    skkmNoRegister: initialData?.skkmNoRegister || "",
+    skkmRtRwPengantar: initialData?.skkmRtRwPengantar || "",
+    skkmTanggalPengantar: initialData?.skkmTanggalPengantar ? new Date(initialData.skkmTanggalPengantar).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    skkmTanggalKk: initialData?.skkmTanggalKk ? new Date(initialData.skkmTanggalKk).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    skkmNamaKepalaKeluarga: initialData?.skkmNamaKepalaKeluarga || "",
+    skkmJenisKelamin: initialData?.skkmJenisKelamin || "Laki-laki",
+    skkmTempatTanggalLahir: initialData?.skkmTempatTanggalLahir || "Kabupaten Bogor, ",
+    skkmAgamaKewarganegaraan: initialData?.skkmAgamaKewarganegaraan || "Islam / Indonesia",
+    skkmStatusPerkawinan: initialData?.skkmStatusPerkawinan || "Belum Kawin",
+    skkmAlamatJalan: initialData?.skkmAlamatJalan || "Kp. Ciaruteun RT.001 RW.008",
+    skkmTerdaftarDtks: initialData?.skkmTerdaftarDtks || "TIDAK",
+    skkmNamaPenandatangan: initialData?.skkmNamaPenandatangan || "FAJAR TRI APRIANA"
+  });
+
+  const handleChange = (e: any) => setFormData({ ...formData, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      // Parse dates back to Date object strings or ISO
+      const payload = {
+        ...formData,
+        skkmTanggalPengantar: new Date(formData.skkmTanggalPengantar).toISOString(),
+        skkmTanggalKk: new Date(formData.skkmTanggalKk).toISOString()
+      };
+      await updateKesraUsulanUhc(initialData.id, payload);
+      
+      const mergedData = { ...initialData, ...payload };
+      onRefresh();
+      onPrint(mergedData);
+    } catch (error) {
+      console.error(error);
+      alert("Terjadi kesalahan saat menyimpan data SKKM.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl flex flex-col max-h-[90vh]">
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl z-10">
+          <h3 className="font-bold text-lg text-slate-800">Lengkapi Data SKKM</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200">
+            &times;
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto">
+          <form id="skkmForm" onSubmit={handleSubmit} className="space-y-6">
+            
+            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-4">
+              <h4 className="font-bold text-blue-800 text-sm">Data Pengantar & Register</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">No Register (misal: 123)</label>
+                  <input name="skkmNoRegister" value={formData.skkmNoRegister} onChange={handleChange} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none uppercase" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Pengantar RT/RW</label>
+                  <input name="skkmRtRwPengantar" value={formData.skkmRtRwPengantar} onChange={handleChange} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none uppercase" placeholder="RT.001 RW.008 Kp.Ciaruteun" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tanggal Pengantar</label>
+                  <input name="skkmTanggalPengantar" value={formData.skkmTanggalPengantar} onChange={handleChange} type="date" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nama Penandatangan (Sekdes)</label>
+                  <input name="skkmNamaPenandatangan" value={formData.skkmNamaPenandatangan} onChange={handleChange} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none uppercase" required />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-4">
+              <h4 className="font-bold text-slate-700 text-sm">Data Pemohon (Keluarga)</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nama Kepala Keluarga (di KK)</label>
+                  <input name="skkmNamaKepalaKeluarga" value={formData.skkmNamaKepalaKeluarga} onChange={handleChange} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none uppercase" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tanggal KK Diterbitkan</label>
+                  <input name="skkmTanggalKk" value={formData.skkmTanggalKk} onChange={handleChange} type="date" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" required />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h4 className="font-bold text-slate-700 text-sm">Detail Pasien UHC</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Jenis Kelamin</label>
+                  <select name="skkmJenisKelamin" value={formData.skkmJenisKelamin} onChange={handleChange} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                    <option value="Laki-laki">Laki-laki</option>
+                    <option value="Perempuan">Perempuan</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tempat/Tanggal Lahir</label>
+                  <input name="skkmTempatTanggalLahir" value={formData.skkmTempatTanggalLahir} onChange={handleChange} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Kabupaten Bogor, 01-01-2000" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Agama / Kewarganegaraan</label>
+                  <select name="skkmAgamaKewarganegaraan" value={formData.skkmAgamaKewarganegaraan} onChange={handleChange} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                    <option value="Islam / Indonesia">Islam / Indonesia</option>
+                    <option value="Kristen / Indonesia">Kristen / Indonesia</option>
+                    <option value="Katolik / Indonesia">Katolik / Indonesia</option>
+                    <option value="Hindu / Indonesia">Hindu / Indonesia</option>
+                    <option value="Buddha / Indonesia">Buddha / Indonesia</option>
+                    <option value="Konghucu / Indonesia">Konghucu / Indonesia</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Status Perkawinan</label>
+                  <select name="skkmStatusPerkawinan" value={formData.skkmStatusPerkawinan} onChange={handleChange} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                    <option value="Belum Kawin">Belum Kawin</option>
+                    <option value="Kawin">Kawin</option>
+                    <option value="Cerai Hidup">Cerai Hidup</option>
+                    <option value="Cerai Mati">Cerai Mati</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Alamat Lengkap Pasien (Jalan/RT/RW)</label>
+                  <input name="skkmAlamatJalan" value={formData.skkmAlamatJalan} onChange={handleChange} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" placeholder="Kp. Ciaruteun RT.001 RW.008" required />
+                  <p className="text-[10px] text-slate-400 mt-1">*Desa, Kecamatan & Kabupaten otomatis tertulis di sistem.</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Terdaftar dalam DTKS?</label>
+                  <select name="skkmTerdaftarDtks" value={formData.skkmTerdaftarDtks} onChange={handleChange} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none bg-white">
+                    <option value="YA">YA</option>
+                    <option value="TIDAK">TIDAK</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+        <div className="p-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/50 rounded-b-2xl sticky bottom-0">
+          <button type="button" onClick={onClose} className="px-4 py-2 text-xs text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl font-medium">Batal</button>
+          <button type="submit" form="skkmForm" disabled={loading} className="px-5 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-xl disabled:opacity-50 font-bold flex items-center gap-2 shadow-sm">
+            {loading ? "Menyimpan..." : "Simpan & Cetak SKKM"}
+          </button>
+        </div>
       </div>
     </div>
   );

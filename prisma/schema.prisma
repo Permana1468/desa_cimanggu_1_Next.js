@@ -1348,6 +1348,20 @@ model KesraUsulanUhc {
   fotoDalam      String?
   fotoKamarMandi String?
 
+  // SKKM Fields
+  skkmNoRegister          String?
+  skkmRtRwPengantar       String?
+  skkmTanggalPengantar    DateTime?
+  skkmTanggalKk           DateTime?
+  skkmNamaKepalaKeluarga  String?
+  skkmJenisKelamin        String?
+  skkmTempatTanggalLahir  String?
+  skkmAgamaKewarganegaraan String?
+  skkmStatusPerkawinan    String?
+  skkmAlamatJalan         String?
+  skkmTerdaftarDtks       String?
+  skkmNamaPenandatangan   String? @default("FAJAR TRI APRIANA")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
