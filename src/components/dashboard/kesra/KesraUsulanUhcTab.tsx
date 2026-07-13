@@ -523,20 +523,27 @@ export function ModalSkkm({ onClose, onRefresh, onPrint, initialData }: any) {
     e.preventDefault();
     setLoading(true);
     try {
-      // Parse dates back to Date object strings or ISO
+      // Pass as ISO strings to avoid React serialization bugs with Date objects
       const payload = {
         ...formData,
-        skkmTanggalPengantar: new Date(formData.skkmTanggalPengantar),
-        skkmTanggalKk: new Date(formData.skkmTanggalKk)
+        skkmTanggalPengantar: formData.skkmTanggalPengantar ? new Date(formData.skkmTanggalPengantar).toISOString() : null,
+        skkmTanggalKk: formData.skkmTanggalKk ? new Date(formData.skkmTanggalKk).toISOString() : null
       };
-      await updateKesraUsulanUhc(initialData.id, payload);
+      
+      const result = await updateKesraUsulanUhc(initialData.id, payload);
+      
+      if (result && !result.success) {
+        alert("Gagal menyimpan SKKM: " + result.error);
+        setLoading(false);
+        return;
+      }
       
       const mergedData = { ...initialData, ...payload };
       onRefresh();
       onPrint(mergedData);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("Terjadi kesalahan saat menyimpan data SKKM.");
+      alert("Terjadi kesalahan sistem: " + error.message);
     } finally {
       setLoading(false);
     }

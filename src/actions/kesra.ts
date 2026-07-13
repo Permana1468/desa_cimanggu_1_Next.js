@@ -572,17 +572,30 @@ export async function addKesraUsulanUhc(data: any) {
 }
 
 export async function updateKesraUsulanUhc(id: string, data: any) {
-    const { tenantId } = await verifyKesraAccess();
-    
-    // Remove fields that shouldn't be updated
-    const { id: _id, createdAt, updatedAt, tenantId: _tenantId, ...updateData } = data;
+    try {
+        const { tenantId } = await verifyKesraAccess();
+        
+        // Remove fields that shouldn't be updated
+        const { id: _id, createdAt, updatedAt, tenantId: _tenantId, ...updateData } = data;
 
-    const usulan = await prisma.kesraUsulanUhc.updateMany({
-        where: { id, tenantId },
-        data: updateData
-    });
-    revalidatePath("/dashboard");
-    return { success: true, usulan };
+        // Convert SKKM dates back to Date objects for Prisma
+        if (updateData.skkmTanggalPengantar) {
+            updateData.skkmTanggalPengantar = new Date(updateData.skkmTanggalPengantar);
+        }
+        if (updateData.skkmTanggalKk) {
+            updateData.skkmTanggalKk = new Date(updateData.skkmTanggalKk);
+        }
+
+        const usulan = await prisma.kesraUsulanUhc.updateMany({
+            where: { id, tenantId },
+            data: updateData
+        });
+        revalidatePath("/dashboard");
+        return { success: true, usulan };
+    } catch (error: any) {
+        console.error("updateKesraUsulanUhc Error:", error);
+        return { success: false, error: error.message || "Unknown error" };
+    }
 }
 
 export async function deleteKesraUsulanUhc(id: string) {
