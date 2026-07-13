@@ -438,9 +438,9 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
             </tbody>
           </table>
 
-          {/* Hasil Verifikasi Section - Dipisah ke Halaman 2 */}
-          <div style={{ pageBreakBefore: "always", paddingTop: "20px" }}></div>
-          <table className="w-full border-collapse border border-black mb-1 table-fixed">
+          {/* Hasil Verifikasi Section */}
+          <div className="break-inside-avoid mt-4">
+            <table className="w-full border-collapse border border-black mb-1 table-fixed">
             <tbody>
               <tr>
                 <td className="border border-black p-1 font-bold text-[10px]" style={{ width: "33%" }}>HASIL VERIFIKASI</td>
@@ -494,6 +494,7 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
               <p className="font-bold text-[12px] underline">( ABDUL AZIZ )</p>
             </div>
           </div>
+        </div> {/* Tutup wrapper break-inside-avoid */}
 
         </div> {/* Tutup Lembar Formulir */}
 
