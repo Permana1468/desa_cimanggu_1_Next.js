@@ -82,7 +82,7 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
       </div>
 
       {/* Print Area - F4 Layout */}
-      <div id="print-area" className="text-black font-serif text-[11px] leading-tight">
+      <div id="print-area" className="text-black text-[11px] leading-tight" style={{ fontFamily: "Cambria, serif" }}>
 
         {/* Lembar Formulir */}
         <div className="max-w-[215.9mm] mx-auto bg-white shadow-xl min-h-[330.2mm] print:min-h-0 p-[10mm] print:p-0 mb-8 print:mb-0 print:shadow-none relative">
