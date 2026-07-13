@@ -526,8 +526,8 @@ export function ModalSkkm({ onClose, onRefresh, onPrint, initialData }: any) {
       // Parse dates back to Date object strings or ISO
       const payload = {
         ...formData,
-        skkmTanggalPengantar: new Date(formData.skkmTanggalPengantar).toISOString(),
-        skkmTanggalKk: new Date(formData.skkmTanggalKk).toISOString()
+        skkmTanggalPengantar: new Date(formData.skkmTanggalPengantar),
+        skkmTanggalKk: new Date(formData.skkmTanggalKk)
       };
       await updateKesraUsulanUhc(initialData.id, payload);
       
