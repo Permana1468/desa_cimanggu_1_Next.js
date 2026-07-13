@@ -34,8 +34,8 @@ export function ImageUpload({
                     const img = new window.Image();
                     img.onload = () => {
                         const canvas = document.createElement("canvas");
-                        const MAX_WIDTH = 1000;
-                        const MAX_HEIGHT = 1000;
+                        const MAX_WIDTH = 1920;
+                        const MAX_HEIGHT = 1920;
                         let width = img.width;
                         let height = img.height;
 
@@ -56,8 +56,8 @@ export function ImageUpload({
                         const ctx = canvas.getContext("2d");
                         ctx?.drawImage(img, 0, 0, width, height);
 
-                        // Compress to JPEG with 0.8 quality for crisp images
-                        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.8);
+                        // Compress to JPEG with 0.95 quality for high-res images
+                        const compressedBase64 = canvas.toDataURL("image/jpeg", 0.95);
                         
                         setPreviewUrl(compressedBase64);
                         onUploadSuccess(compressedBase64);
