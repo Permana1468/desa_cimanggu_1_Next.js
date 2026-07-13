@@ -258,7 +258,10 @@ export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }
   });
 
   const handleChange = (e: any) => {
-      setFormData({ ...formData, [e.target.name]: e.target.value.toUpperCase() });
+      const { name, value, type } = e.target;
+      // Jangan kapitalisasi opsi dropdown (select), hanya text input
+      const finalValue = type === "select-one" ? value : value.toUpperCase();
+      setFormData({ ...formData, [name]: finalValue });
   };
 
   const handleSubmit = async (e: any) => {
