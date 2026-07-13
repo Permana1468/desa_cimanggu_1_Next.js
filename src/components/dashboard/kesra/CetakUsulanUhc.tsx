@@ -542,7 +542,7 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
         )}
 
         {data.fotoKamarMandi && (
-          <div style={{ pageBreakBefore: "always" }} className="max-w-[215.9mm] mx-auto bg-white p-[10mm] print:p-0 shadow-lg print:shadow-none min-h-[330mm] mb-8 print:mb-0">
+          <div style={{ pageBreakBefore: "always" }} className="max-w-[215.9mm] mx-auto bg-white p-[10mm] print:p-0 shadow-lg print:shadow-none min-h-[330mm] print:min-h-0 mb-8 print:mb-0">
             <div className="text-center font-bold text-lg mb-4">-4-</div>
             <div className="border border-black h-[280mm] flex flex-col">
               <div className="border-b border-black p-2 text-center text-[13px] font-semibold">
