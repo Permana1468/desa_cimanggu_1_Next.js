@@ -120,16 +120,16 @@ export function KesraWargaBansosTab({ session }: any) {
   <title>Sertifikat Penerima Bansos - ${warga.namaLengkap}</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Times New Roman',Times,serif;background:#fff;color:#111;font-size:11.5pt;}
+    html, body { height:100%; font-family:'Times New Roman',Times,serif;background:#fff;color:#111;font-size:11.5pt; }
 
     /* Default: A4 Landscape */
-    @page{size:A4 landscape;margin:14mm 18mm;}
+    @page{size:A4 landscape;margin:10mm 15mm;}
 
     /* Size switch style tag */
     #pgsize{display:none;}
 
     /* Outer double border */
-    .outer{border:10px double #1a3a8f;padding:16px 22px;min-height:auto;display:flex;flex-direction:column;gap:0;}
+    .outer{border:10px double #1a3a8f;padding:16px 22px;height:100%;display:flex;flex-direction:column;gap:0;box-sizing:border-box;}
 
     /* KOP SURAT */
     .kop{display:flex;align-items:center;gap:16px;border-bottom:3.5px double #111;padding-bottom:10px;margin-bottom:0;}
@@ -174,7 +174,7 @@ export function KesraWargaBansosTab({ session }: any) {
     .pcontrols button:hover,.pcontrols button.on{background:#1a3a8f;color:white;border-color:#1a3a8f;}
     @media print{.pcontrols{display:none!important;}}
   </style>
-  <style id="pgsize">@page{size:A4 landscape;margin:14mm 18mm;}</style>
+  <style id="pgsize">@page{size:A4 landscape;margin:10mm 15mm;}</style>
 </head>
 <body>
 
@@ -189,7 +189,7 @@ export function KesraWargaBansosTab({ session }: any) {
 
   <script>
     function setSize(sz,btnId){
-      document.getElementById('pgsize').textContent='@page{size:'+sz+';margin:14mm 18mm;}';
+      document.getElementById('pgsize').textContent='@page{size:'+sz+';margin:10mm 15mm;}';
       document.querySelectorAll('.pcontrols button').forEach(function(b){b.classList.remove('on');});
       var el=document.getElementById(btnId);if(el)el.classList.add('on');
     }
