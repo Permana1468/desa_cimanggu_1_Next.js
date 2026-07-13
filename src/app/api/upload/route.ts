@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { uploadToGoogleDrive } from '@/lib/gdrive';
+import { writeFile, mkdir } from 'fs/promises';
+import path from 'path';
 
 export async function POST(req: Request) {
   try {
@@ -11,16 +12,23 @@ export async function POST(req: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const fileName = `${Date.now()}-${file.name}`;
-    const mimeType = file.type || 'application/octet-stream';
-
-    const result = await uploadToGoogleDrive(buffer, fileName, mimeType);
-
-    if (result.success) {
-      return NextResponse.json({ url: result.url });
-    } else {
-      return NextResponse.json({ error: result.error }, { status: 500 });
+    const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+    const fileName = `${Date.now()}-${safeName}`;
+    
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    
+    try {
+      await mkdir(uploadDir, { recursive: true });
+    } catch (e) {
+      // ignore
     }
+
+    const filePath = path.join(uploadDir, fileName);
+    await writeFile(filePath, buffer);
+
+    const fileUrl = `/uploads/${fileName}`;
+
+    return NextResponse.json({ url: fileUrl });
   } catch (error: any) {
     console.error('API Upload Error:', error);
     return NextResponse.json({ error: 'Terjadi kesalahan saat upload' }, { status: 500 });
