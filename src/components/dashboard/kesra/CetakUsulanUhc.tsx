@@ -439,7 +439,7 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
           </table>
 
           {/* Hasil Verifikasi Section */}
-          <div className="break-inside-avoid mt-4">
+          <div className="break-inside-avoid">
             <table className="w-full border-collapse border border-black mb-1 table-fixed">
             <tbody>
               <tr>
