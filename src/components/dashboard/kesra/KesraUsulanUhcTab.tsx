@@ -507,6 +507,7 @@ export function ModalSkkm({ onClose, onRefresh, onPrint, initialData }: any) {
     skkmRtRwPengantar: initialData?.skkmRtRwPengantar || "",
     skkmTanggalPengantar: initialData?.skkmTanggalPengantar ? new Date(initialData.skkmTanggalPengantar).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     skkmTanggalKk: initialData?.skkmTanggalKk ? new Date(initialData.skkmTanggalKk).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    skkmTanggalKtp: initialData?.skkmTanggalKtp ? new Date(initialData.skkmTanggalKtp).toISOString().split('T')[0] : "",
     skkmNamaKepalaKeluarga: initialData?.skkmNamaKepalaKeluarga || "",
     skkmJenisKelamin: initialData?.skkmJenisKelamin || "Laki-laki",
     skkmTempatTanggalLahir: initialData?.skkmTempatTanggalLahir || "Kabupaten Bogor, ",
@@ -527,7 +528,8 @@ export function ModalSkkm({ onClose, onRefresh, onPrint, initialData }: any) {
       const payload = {
         ...formData,
         skkmTanggalPengantar: formData.skkmTanggalPengantar ? new Date(formData.skkmTanggalPengantar).toISOString() : null,
-        skkmTanggalKk: formData.skkmTanggalKk ? new Date(formData.skkmTanggalKk).toISOString() : null
+        skkmTanggalKk: formData.skkmTanggalKk ? new Date(formData.skkmTanggalKk).toISOString() : null,
+        skkmTanggalKtp: formData.skkmTanggalKtp ? new Date(formData.skkmTanggalKtp).toISOString() : null
       };
       
       const result = await updateKesraUsulanUhc(initialData.id, payload);
@@ -594,6 +596,10 @@ export function ModalSkkm({ onClose, onRefresh, onPrint, initialData }: any) {
                 <div>
                   <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tanggal KK Diterbitkan</label>
                   <input name="skkmTanggalKk" value={formData.skkmTanggalKk} onChange={handleChange} type="date" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" required />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tanggal KTP-el Diterbitkan</label>
+                  <input name="skkmTanggalKtp" value={formData.skkmTanggalKtp} onChange={handleChange} type="date" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none" />
                 </div>
               </div>
             </div>

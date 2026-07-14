@@ -41,6 +41,8 @@ import { KesraUsulanUhcTab } from "../kesra/KesraUsulanUhcTab";
 import { PosyanduRegisterTab } from "../kesra/PosyanduRegisterTab";
 import { PosyanduJadwalAbsensiTab } from "../kesra/PosyanduJadwalAbsensiTab";
 import { PosyanduInventarisTab } from "../kesra/PosyanduInventarisTab";
+import { KesraKependudukanTab } from "../kesra/KesraKependudukanTab";
+import { KesraCloudTab } from "../kesra/KesraCloudTab";
 
 
 export function KesejahteraanDashboard({ session, stats }: { session: any, stats: any }) {
@@ -141,6 +143,10 @@ function KesejahteraanDashboardContent({ session, stats }: { session: any, stats
         return <PosyanduInventarisTab session={session} />;
       case "report":
         return <KesraReportTab session={session} />;
+      case "kependudukan":
+        return <KesraKependudukanTab session={session} />;
+      case "cloud":
+        return <KesraCloudTab session={session} />;
       default:
         const trendData = [
           { name: 'Jan', dtks: Math.floor((dtksCount || 10) * 0.4), ats: Math.floor((atsCount || 5) * 0.3) },

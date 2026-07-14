@@ -12,7 +12,8 @@ export function CetakSkkm({ data, onBack }: { data: any; onBack: () => void }) {
   // Use the recorded dates or fallback to current date
   const tglPengantar = data.skkmTanggalPengantar ? new Date(data.skkmTanggalPengantar) : new Date();
   const tglKk = data.skkmTanggalKk ? new Date(data.skkmTanggalKk) : new Date();
-  
+  const tglKtp = data.skkmTanggalKtp ? new Date(data.skkmTanggalKtp) : null;
+
   // Custom format date "02 Juni 2026"
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("id-ID", {
@@ -75,7 +76,7 @@ export function CetakSkkm({ data, onBack }: { data: any; onBack: () => void }) {
       <div id="print-area" className="text-black text-[13px] leading-[1.5]" style={{ fontFamily: "'Arial Narrow', Arial, sans-serif" }}>
 
         <div className="max-w-[215.9mm] mx-auto bg-white shadow-xl min-h-[330.2mm] print:min-h-0 p-[15mm] print:p-0 mb-8 print:mb-0 print:shadow-none relative">
-          
+
           {/* Header/Kop Surat */}
           <div className="flex items-center justify-between border-b-[3px] border-black pb-2 mb-6" style={{ fontFamily: "'Times New Roman', Times, serif" }}>
             <div className="w-[100px] flex items-center justify-center">
@@ -85,7 +86,7 @@ export function CetakSkkm({ data, onBack }: { data: any; onBack: () => void }) {
               <h1 className="text-[20px] font-bold tracking-wider leading-tight">PEMERINTAHAN KABUPATEN BOGOR</h1>
               <h2 className="text-[20px] font-bold tracking-wider leading-tight">KECAMATAN CIBUNGBULANG</h2>
               <h3 className="text-[22px] font-bold tracking-wider leading-tight mb-1">DESA CIMANGGU I</h3>
-              <p className="text-[11px]">Raya Gardu Seri Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Kecamatan Cibungbulang 16630 - Bogor</p>
+              <p className="text-[11px]">Jl. Raya Gardu Seri Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Kecamatan Cibungbulang 16630 - Bogor</p>
             </div>
           </div>
 
@@ -116,17 +117,17 @@ export function CetakSkkm({ data, onBack }: { data: any; onBack: () => void }) {
             </table>
           </div>
 
-          <div className="mb-2 font-bold underline text-blue-800">Berdasarkan :</div>
+          <div className="mb-2 font">Berdasarkan :</div>
           <div className="mb-6 pl-2 text-justify">
             <ol className="list-decimal pl-6 space-y-2">
               <li>
                 Surat Pengantar dari ketua {data.skkmRtRwPengantar || "RT.001 RW.008 Kp.Ciaruteun"} Desa Cimanggu I Kecamatan Cibungbulang Kabupaten Bogor, tanggal {formatDate(tglPengantar)}, Perihal BPJS PBI APBD.
               </li>
               <li>
-                Kartu Tanda Penduduk Elektronik (KTP-el) Nomor <span className="underline text-blue-800 font-bold">{data.nik}</span>, yang diterbitkan oleh Dinas Kependudukan dan Pencatatan Sipil Kabupaten Bogor, atas Nama <span className="font-bold">{data.namaPasien?.toUpperCase()}</span>
+                Kartu Tanda Penduduk Elektronik (KTP-el) Nomor <span className="font">{data.nik}</span>, yang diterbitkan oleh Dinas Kependudukan dan Pencatatan Sipil Kabupaten Bogor{tglKtp ? ` Tanggal, ${formatShortDate(tglKtp)}` : ""}, atas Nama <span className="font-bold">{data.namaPasien?.toUpperCase()}</span>
               </li>
               <li>
-                Kartu Keluarga (KK) <span className="underline text-blue-800 font-bold">Nomor:</span> {data.nomorKk} yang diterbitkan oleh Dinas Kependudukan dan Pencatatan Sipil Kabupaten Bogor, Tgl. {formatShortDate(tglKk)}, atas nama {data.skkmNamaKepalaKeluarga?.toUpperCase() || ""}
+                Kartu Keluarga (KK) Nomor: {data.nomorKk} yang diterbitkan oleh Dinas Kependudukan dan Pencatatan Sipil Kabupaten Bogor, Tgl. {formatShortDate(tglKk)}, atas Nama <span className="font-bold">{data.skkmNamaKepalaKeluarga?.toUpperCase() || ""}</span>
               </li>
             </ol>
           </div>
@@ -151,7 +152,7 @@ export function CetakSkkm({ data, onBack }: { data: any; onBack: () => void }) {
                 <tr>
                   <td className="align-top py-0.5">Nama Lengkap</td>
                   <td className="align-top py-0.5">:</td>
-                  <td className="align-top py-0.5 font-bold uppercase">{data.namaPasien}</td>
+                  <td className="align-top py-0.5 uppercase">{data.namaPasien}</td>
                 </tr>
                 <tr>
                   <td className="align-top py-0.5">Jenis Kelamin</td>
@@ -177,7 +178,7 @@ export function CetakSkkm({ data, onBack }: { data: any; onBack: () => void }) {
                   <td className="align-top py-0.5">Alamat</td>
                   <td className="align-top py-0.5">:</td>
                   <td className="align-top py-0.5">
-                    {data.skkmAlamatJalan || ""}<br/>
+                    {data.skkmAlamatJalan || ""}<br />
                     Kecamatan Cibungbulang Kabupaten Bogor
                   </td>
                 </tr>
@@ -185,8 +186,7 @@ export function CetakSkkm({ data, onBack }: { data: any; onBack: () => void }) {
                   <td className="align-top py-0.5">Terdaftar dalam DTKS</td>
                   <td className="align-top py-0.5">:</td>
                   <td className="align-top py-0.5">
-                    {data.skkmTerdaftarDtks === "YA" ? "YA / " : <span className="line-through">YA</span>}
-                    {data.skkmTerdaftarDtks === "TIDAK" ? "TIDAK" : <span className="line-through"> / TIDAK</span>}
+                    {data.skkmTerdaftarDtks || "TIDAK"}
                   </td>
                 </tr>
               </tbody>
@@ -206,13 +206,13 @@ export function CetakSkkm({ data, onBack }: { data: any; onBack: () => void }) {
           <div className="mt-8 flex justify-end">
             <div className="text-center w-[250px]">
               <p className="mb-1">Cimanggu I, {formatDate(new Date())}</p>
-              <p className="mb-[80px]">A/n Sekretaris</p>
+              <p className="mb-[60px]">A/n Sekretaris</p>
               <p className="font-bold uppercase underline">{data.skkmNamaPenandatangan || "FAJAR TRI APRIANA"}</p>
             </div>
           </div>
 
-          <div className="mt-8 pt-8">
-            <p className="font-bold underline text-blue-800 text-[11px] mb-1">Tembusan :</p>
+          <div className="mt-4 pt-2">
+            <p className="font-bold text-[11px] mb-1">Tembusan :</p>
             <ol className="list-decimal pl-6 text-[11px]">
               <li>Yth. Camat Cibungbulang</li>
             </ol>

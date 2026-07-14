@@ -683,6 +683,35 @@ export const VillageSidebar = ({ session: propSession }: VillageSidebarProps) =>
                  {(!isCollapsed || isOpen) && <span className="text-sm">Laporan LPJ Kesra</span>}
                </Link>
 
+               {/* Data Kependudukan */}
+               <Link
+                 href="/dashboard?tab=kependudukan"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "kependudukan"
+                     ? "bg-rose-600 text-white font-bold shadow-lg shadow-rose-600/20"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <Users size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Data Kependudukan</span>}
+               </Link>
+
+               {/* Cloud / Penyimpanan */}
+               <Link
+                 href="/dashboard?tab=cloud"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "cloud"
+                     ? "bg-rose-600 text-white font-bold shadow-lg shadow-rose-600/20"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <FolderArchive size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Cloud / Penyimpanan</span>}
+               </Link>
+
+
                {/* Pengaturan */}
                <Link
                  href="/dashboard/settings"

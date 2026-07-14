@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { UserCircle, Phone, Image as ImageIcon, CheckCircle, Search, ShieldCheck, Lock, Check } from "lucide-react";
+import { UserCircle, Phone, Image as ImageIcon, CheckCircle, Search, ShieldCheck, Lock, Check, Cloud, Mail, Key, FolderArchive, Save, Link as LinkIcon } from "lucide-react";
 import { updateProfile, linkResidentData, changePassword } from "@/actions/settings";
 import Image from "next/image";
 
 export default function SettingsClient({ user }: { user: any }) {
-    const [activeSection, setActiveSection] = useState<"profil" | "kependudukan" | "keamanan">("profil");
+    const [activeSection, setActiveSection] = useState<"profil" | "kependudukan" | "keamanan" | "integrasi-cloud">("profil");
 
     // Profile State
     const [phone, setPhone] = useState(user.phoneNumber || "");
@@ -22,6 +22,71 @@ export default function SettingsClient({ user }: { user: any }) {
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [changingPassword, setChangingPassword] = useState(false);
+
+    // Integrasi Cloud State
+    const [cloudConfig, setCloudConfig] = useState({
+        folderId: "",
+        clientEmail: "",
+        privateKey: "",
+        hasPrivateKey: false,
+        connected: false
+    });
+    const [loadingConfig, setLoadingConfig] = useState(false);
+    const [savingConfig, setSavingConfig] = useState(false);
+    const [configError, setConfigError] = useState("");
+    const [configSuccess, setConfigSuccess] = useState("");
+
+    React.useEffect(() => {
+        if (activeSection === "integrasi-cloud") {
+            fetchCloudConfig();
+        }
+    }, [activeSection]);
+
+    const fetchCloudConfig = async () => {
+        setLoadingConfig(true);
+        try {
+            const res = await fetch("/api/drive/config");
+            const data = await res.json();
+            if (res.ok) {
+                setCloudConfig(prev => ({
+                    ...prev,
+                    folderId: data.folderId || "",
+                    clientEmail: data.clientEmail || "",
+                    hasPrivateKey: data.hasPrivateKey || false,
+                    connected: data.connected || false
+                }));
+            }
+        } catch (err) {
+            console.error(err);
+        }
+        setLoadingConfig(false);
+    };
+
+    const handleSaveCloudConfig = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setConfigError("");
+        setConfigSuccess("");
+        setSavingConfig(true);
+        try {
+            const res = await fetch("/api/drive/config", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    folderId: cloudConfig.folderId,
+                    clientEmail: cloudConfig.clientEmail,
+                    privateKey: cloudConfig.privateKey || undefined
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Gagal menyimpan konfigurasi");
+            
+            setConfigSuccess("Konfigurasi Integrasi Google Drive berhasil disimpan!");
+            await fetchCloudConfig();
+        } catch (err: any) {
+            setConfigError(err.message);
+        }
+        setSavingConfig(false);
+    };
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -102,6 +167,12 @@ export default function SettingsClient({ user }: { user: any }) {
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeSection === "keamanan" ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
                 >
                     <Lock size={18} /> Keamanan & Password
+                </button>
+                <button 
+                    onClick={() => setActiveSection("integrasi-cloud")}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeSection === "integrasi-cloud" ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
+                >
+                    <Cloud size={18} /> Integrasi Cloud
                 </button>
             </div>
 
@@ -300,6 +371,104 @@ export default function SettingsClient({ user }: { user: any }) {
                             >
                                 {changingPassword ? "Menyimpan..." : "Update Password"}
                             </button>
+                        </form>
+                    </div>
+                )}
+
+                {activeSection === "integrasi-cloud" && (
+                    <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-200/60 shadow-sm animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
+                                <LinkIcon size={24} />
+                            </div>
+                            <div>
+                                <h2 className="text-xl font-bold text-slate-800">Pengaturan Integrasi Google Drive</h2>
+                                <p className="text-sm text-slate-500 mt-1">Masukkan Service Account Credentials & Folder ID Anda</p>
+                            </div>
+                        </div>
+
+                        {configError && (
+                            <div className="bg-red-50 text-red-700 p-4 rounded-xl flex items-start gap-3 border border-red-100 shadow-sm mb-6">
+                                <div className="text-sm">
+                                    <p className="font-bold mb-1">Terjadi Kesalahan</p>
+                                    <p>{configError}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {configSuccess && (
+                            <div className="bg-emerald-50 text-emerald-700 p-4 rounded-xl flex items-start gap-3 border border-emerald-100 shadow-sm mb-6">
+                                <Check size={20} className="shrink-0 mt-0.5 text-emerald-500" />
+                                <div className="text-sm font-medium">
+                                    <p>{configSuccess}</p>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {cloudConfig.connected && !loadingConfig && (
+                            <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-3">
+                                <div className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="font-bold text-emerald-800 text-sm">Status: Terhubung ke Google Drive</span>
+                            </div>
+                        )}
+
+                        <form onSubmit={handleSaveCloudConfig} className="space-y-5">
+                            <div>
+                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-2">
+                                    <Mail size={14} /> Service Account Email
+                                </label>
+                                <input 
+                                    type="email" 
+                                    value={cloudConfig.clientEmail}
+                                    onChange={(e) => setCloudConfig({...cloudConfig, clientEmail: e.target.value})}
+                                    placeholder="Contoh: my-app@project.iam.gserviceaccount.com"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 font-mono"
+                                    required
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-2">
+                                    <Key size={14} /> Private Key
+                                </label>
+                                <textarea 
+                                    value={cloudConfig.privateKey}
+                                    onChange={(e) => setCloudConfig({...cloudConfig, privateKey: e.target.value})}
+                                    placeholder={cloudConfig.hasPrivateKey ? "Private key sudah tersimpan (Isi kembali jika ingin mengubahnya)" : "-----BEGIN PRIVATE KEY-----\nMIIEvgIB...-----END PRIVATE KEY-----\n"}
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 font-mono h-28 resize-none"
+                                    required={!cloudConfig.hasPrivateKey}
+                                />
+                                <p className="text-xs text-slate-400 mt-1.5">
+                                    Salin seluruh isi file private_key secara utuh termasuk blok BEGIN/END.
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 mb-2">
+                                    <FolderArchive size={14} /> Google Drive Folder ID
+                                </label>
+                                <input 
+                                    type="text" 
+                                    value={cloudConfig.folderId}
+                                    onChange={(e) => setCloudConfig({...cloudConfig, folderId: e.target.value})}
+                                    placeholder="Contoh: 1A2B3c4D5e6F7g8H9i0J_kLmNoP"
+                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 font-mono"
+                                    required
+                                />
+                                <p className="text-xs text-slate-400 mt-1.5">
+                                    Pastikan folder ini sudah di-Share ke alamat Service Account Email Anda dengan akses "Editor" agar file dapat terunggah.
+                                </p>
+                            </div>
+
+                            <div className="pt-2 flex justify-end">
+                                <button 
+                                    type="submit"
+                                    disabled={savingConfig || loadingConfig}
+                                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2"
+                                >
+                                    <Save size={18} /> {savingConfig ? "Menyimpan..." : "Simpan & Koneksikan"}
+                                </button>
+                            </div>
                         </form>
                     </div>
                 )}
