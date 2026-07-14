@@ -13,6 +13,7 @@ import { KesejahteraanDashboard } from "@/components/dashboard/roles/Kesejahtera
 import { KelembagaanDashboard } from "@/components/dashboard/roles/KelembagaanDashboard";
 import { EkonomiDashboard } from "@/components/dashboard/roles/EkonomiDashboard";
 import { OperatorDashboard } from "@/components/dashboard/roles/OperatorDashboard";
+import { PerencanaanDashboard } from "@/components/dashboard/roles/PerencanaanDashboard";
 import { PosyanduDashboard } from "@/components/dashboard/roles/PosyanduDashboard";
 import { PuskesosDashboard } from "@/components/dashboard/roles/PuskesosDashboard";
 
@@ -59,8 +60,13 @@ export default async function VillageDashboardPage() {
     return <PelayananDashboard session={session} stats={stats} />;
   }
 
-  // 3. PERENCANAAN & KEUANGAN
-  if (["KAUR_PERENCANAAN", "KAUR_KEUANGAN"].includes(role)) {
+  // 3. PERENCANAAN
+  if (role === "KAUR_PERENCANAAN") {
+    return <PerencanaanDashboard session={session} stats={stats} />;
+  }
+
+  // 3b. KEUANGAN
+  if (role === "KAUR_KEUANGAN") {
     return <KeuanganDashboard session={session} stats={stats} />;
   }
 
