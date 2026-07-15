@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, Edit, Users, X } from "lucide-react";
 import { getWargaList, addWarga, updateWarga } from "@/actions/village";
+import { getVillageStructure } from "@/actions/master";
 import { WARGA_FIELDS, DEFAULT_WARGA_FORM } from "@/lib/wargaSchema";
 
 export function KesraKependudukanTab({ session }: any) {
@@ -15,10 +16,21 @@ export function KesraKependudukanTab({ session }: any) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>(DEFAULT_WARGA_FORM);
   const [saving, setSaving] = useState(false);
+  const [villageStructure, setVillageStructure] = useState<{ dusun: { name: string, rw: { name: string, rt: string[] }[] }[] } | null>(null);
 
   useEffect(() => {
     fetchData();
+    fetchVillageStructure();
   }, []);
+
+  async function fetchVillageStructure() {
+    try {
+      const data = await getVillageStructure();
+      setVillageStructure(data);
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
   async function fetchData() {
     setLoading(true);
@@ -185,7 +197,65 @@ export function KesraKependudukanTab({ session }: any) {
             
             <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 custom-scrollbar">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {WARGA_FIELDS.map((field) => (
+                {WARGA_FIELDS.map((field) => {
+                  if (field.key === "dusun") {
+                    return (
+                      <div key={field.key} className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">{field.label}</label>
+                        <select
+                          required={field.required}
+                          value={formData.dusun}
+                          onChange={e => setFormData({...formData, dusun: e.target.value, rw: "", rt: ""})}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none"
+                        >
+                          <option value="">- Pilih Dusun -</option>
+                          {villageStructure?.dusun?.map(d => (
+                            <option key={d.name} value={d.name}>{d.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  }
+                  if (field.key === "rw") {
+                    return (
+                      <div key={field.key} className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">{field.label}</label>
+                        <select
+                          required={field.required}
+                          value={formData.rw}
+                          onChange={e => setFormData({...formData, rw: e.target.value, rt: ""})}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none"
+                          disabled={!formData.dusun}
+                        >
+                          <option value="">- Pilih RW -</option>
+                          {villageStructure?.dusun?.find(d => d.name === formData.dusun)?.rw.map(r => (
+                            <option key={r.name} value={r.name}>{r.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  }
+                  if (field.key === "rt") {
+                    return (
+                      <div key={field.key} className="space-y-1">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">{field.label}</label>
+                        <select
+                          required={field.required}
+                          value={formData.rt}
+                          onChange={e => setFormData({...formData, rt: e.target.value})}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 appearance-none"
+                          disabled={!formData.rw}
+                        >
+                          <option value="">- Pilih RT -</option>
+                          {villageStructure?.dusun?.find(d => d.name === formData.dusun)?.rw.find(r => r.name === formData.rw)?.rt.map(rt => (
+                            <option key={rt} value={rt}>{rt}</option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  }
+
+                  return (
                   <div key={field.key} className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">{field.label}</label>
                     {field.type === "select" ? (
@@ -219,7 +289,7 @@ export function KesraKependudukanTab({ session }: any) {
                       />
                     )}
                   </div>
-                ))}
+                )})}
               </div>
               
               <div className="pt-6 mt-6 border-t border-slate-100 flex justify-end gap-3">
