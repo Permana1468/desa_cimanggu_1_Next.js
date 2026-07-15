@@ -20,7 +20,7 @@ import {
   ShieldCheck, 
   Activity as ActivityIcon
 } from "lucide-react";
-import { formatWilayah } from "@/lib/formatters";
+import { formatWilayah, formatDusun } from "@/lib/formatters";
 import { WARGA_FIELDS, DEFAULT_WARGA_FORM, isWargaDataIncomplete } from "@/lib/wargaSchema";
 import { 
   getRtDashboardStats, getRtFinance, addRtFinanceTransaction, deleteRtFinanceTransaction,
@@ -901,7 +901,7 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
                           >
                             <option value="">Pilih Dusun</option>
                             {fullStructure.dusun?.map((d: any) => (
-                              <option key={d.name} value={d.name}>{d.name}</option>
+                              <option key={d.name} value={d.name}>{formatDusun(d.name)}</option>
                             ))}
                           </select>
                         </div>

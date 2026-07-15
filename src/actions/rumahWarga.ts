@@ -23,7 +23,7 @@ export async function getRumahWargaList(query = "", filterRt = "", filterRw = ""
   const tenantId = user.tenantId;
 
   // For RT/RW role, it uses their session RT/RW. For others, it uses the provided filters.
-  let filterScope = await buildWilayahFilterScope(user.role, user.rt || filterRt, user.rw || filterRw, tenantId);
+  let { filterScope } = await buildWilayahFilterScope(user.role, user.rt || filterRt, user.rw || filterRw, tenantId);
 
   const list = await prisma.rumahWarga.findMany({
     where: {
@@ -100,7 +100,7 @@ export async function getKKWithoutRumah() {
   const user = session.user as any;
   const tenantId = user.tenantId;
 
-  let filterScope = await buildWilayahFilterScope(user.role, user.rt, user.rw, tenantId);
+  let { filterScope } = await buildWilayahFilterScope(user.role, user.rt, user.rw, tenantId);
 
   const allKK = await prisma.dataKependudukan.findMany({
     where: {

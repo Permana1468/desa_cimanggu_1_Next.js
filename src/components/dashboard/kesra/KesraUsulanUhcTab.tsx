@@ -5,6 +5,8 @@ import { Search, Plus, FileText, Download, Loader2, Printer, Trash2, Edit2, Acti
 import { getKesraUsulanUhcList, addKesraUsulanUhc, updateKesraUsulanUhc, deleteKesraUsulanUhc, updateKesraUsulanUhcStatus, getKesraKependudukanList } from "@/actions/kesra";
 import { CetakUsulanUhc } from "./CetakUsulanUhc";
 import { CetakSkkm } from "./CetakSkkm";
+import { CetakSptjm } from "./CetakSptjm";
+import { CetakBundle } from "./CetakBundle";
 import { ImageUpload } from "@/components/dashboard/ImageUpload";
 
 const PARAM_OPTIONS = {
@@ -38,6 +40,15 @@ export function KesraUsulanUhcTab({ session }: any) {
   const [selectedSkkmData, setSelectedSkkmData] = useState<any>(null);
   const [showPrintSkkm, setShowPrintSkkm] = useState(false);
   const [printSkkmData, setPrintSkkmData] = useState<any>(null);
+
+  const [showSptjmModal, setShowSptjmModal] = useState(false);
+  const [selectedSptjmData, setSelectedSptjmData] = useState<any>(null);
+  const [showPrintSptjm, setShowPrintSptjm] = useState(false);
+  const [printSptjmData, setPrintSptjmData] = useState<any>(null);
+
+  const [showPrintBundle, setShowPrintBundle] = useState(false);
+  const [bundleData, setBundleData] = useState<any>(null);
+  const [isBundleMode, setIsBundleMode] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -95,6 +106,14 @@ export function KesraUsulanUhcTab({ session }: any) {
 
   if (showPrintSkkm && printSkkmData) {
     return <CetakSkkm data={printSkkmData} onBack={() => setShowPrintSkkm(false)} />;
+  }
+
+  if (showPrintSptjm && printSptjmData) {
+    return <CetakSptjm data={printSptjmData} onBack={() => setShowPrintSptjm(false)} />;
+  }
+
+  if (showPrintBundle && bundleData) {
+    return <CetakBundle data={bundleData.main} sptjmData={bundleData.sptjm} onBack={() => setShowPrintBundle(false)} />;
   }
 
   return (
@@ -172,6 +191,23 @@ export function KesraUsulanUhcTab({ session }: any) {
                     <td className="px-3 py-3">
                       <div className="flex justify-center gap-1">
                         <button
+                          onClick={() => {
+                            const useSptjm = window.confirm("Apakah Anda ingin menyertakan form SPTJM ke dalam cetakan PDF gabungan?");
+                            if (useSptjm) {
+                              setSelectedSptjmData(d);
+                              setIsBundleMode(true);
+                              setShowSptjmModal(true);
+                            } else {
+                              setBundleData({ main: d, sptjm: null });
+                              setShowPrintBundle(true);
+                            }
+                          }}
+                          className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          title="Download PDF (Gabungan)"
+                        >
+                          <Download size={13} />
+                        </button>
+                        <button
                           onClick={() => handlePrint(d)}
                           className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                           title="Cetak Form UHC"
@@ -185,6 +221,16 @@ export function KesraUsulanUhcTab({ session }: any) {
                           }}
                           className="w-7 h-7 flex items-center justify-center text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Lengkapi & Cetak SKKM"
+                        >
+                          <FileText size={13} />
+                        </button>
+                        <button
+                          onClick={() => {
+                            setSelectedSptjmData(d);
+                            setShowSptjmModal(true);
+                          }}
+                          className="w-7 h-7 flex items-center justify-center text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Cetak SPTJM"
                         >
                           <FileText size={13} />
                         </button>
@@ -242,6 +288,27 @@ export function KesraUsulanUhcTab({ session }: any) {
             setShowPrintSkkm(true);
           }}
           initialData={selectedSkkmData} 
+        />
+      )}
+
+      {showSptjmModal && selectedSptjmData && (
+        <ModalSptjm 
+          onClose={() => {
+            setShowSptjmModal(false);
+            setIsBundleMode(false);
+          }}
+          onPrint={(data: any) => {
+            setShowSptjmModal(false);
+            if (isBundleMode) {
+              setBundleData({ main: selectedSptjmData, sptjm: data });
+              setShowPrintBundle(true);
+              setIsBundleMode(false);
+            } else {
+              setPrintSptjmData(data);
+              setShowPrintSptjm(true);
+            }
+          }}
+          initialData={selectedSptjmData} 
         />
       )}
     </div>
@@ -668,6 +735,103 @@ export function ModalSkkm({ onClose, onRefresh, onPrint, initialData }: any) {
           <button type="button" onClick={onClose} className="px-4 py-2 text-xs text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl font-medium">Batal</button>
           <button type="submit" form="skkmForm" disabled={loading} className="px-5 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-xl disabled:opacity-50 font-bold flex items-center gap-2 shadow-sm">
             {loading ? "Menyimpan..." : "Simpan & Cetak SKKM"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ModalSptjm({ onClose, onPrint, initialData }: any) {
+  const [noRegister, setNoRegister] = useState("");
+  const [members, setMembers] = useState([{ nik: initialData?.nik || "", nama: initialData?.namaPasien || "" }]);
+
+  const handleAddMember = () => {
+    setMembers([...members, { nik: "", nama: "" }]);
+  };
+
+  const handleMemberChange = (index: number, field: string, value: string) => {
+    const newMembers = [...members];
+    newMembers[index] = { ...newMembers[index], [field]: value };
+    setMembers(newMembers);
+  };
+
+  const handleRemoveMember = (index: number) => {
+    if (members.length > 1) {
+      const newMembers = [...members];
+      newMembers.splice(index, 1);
+      setMembers(newMembers);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const printData = {
+      nomorKk: initialData?.nomorKk || "",
+      alamat: initialData?.alamatPasien || "",
+      noRegister: noRegister,
+      members: members
+    };
+    onPrint(printData);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh]">
+        <div className="p-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl z-10">
+          <h3 className="font-bold text-lg text-slate-800">Lengkapi Data SPTJM</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200">
+            &times;
+          </button>
+        </div>
+
+        <div className="p-6 overflow-y-auto">
+          <form id="sptjmForm" onSubmit={handleSubmit} className="space-y-6">
+            
+            <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-4">
+              <h4 className="font-bold text-blue-800 text-sm">Data Pengantar & Register</h4>
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1.5">No Register SPTJM (misal: 123)</label>
+                  <input value={noRegister} onChange={(e) => setNoRegister(e.target.value)} type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 outline-none uppercase" required />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-4">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="font-bold text-slate-700 text-sm">Daftar Warga (Anggota Keluarga)</h4>
+                <button type="button" onClick={handleAddMember} className="flex items-center gap-1 bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-indigo-200 transition-colors">
+                  <Plus className="w-3 h-3" /> Tambah Jiwa
+                </button>
+              </div>
+              
+              {members.map((member, idx) => (
+                <div key={idx} className="p-3 bg-white border border-slate-200 rounded-lg flex items-end gap-3">
+                  <div className="flex-1">
+                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">NIK</label>
+                    <input value={member.nik} onChange={(e) => handleMemberChange(idx, "nik", e.target.value)} type="text" className="w-full border border-slate-200 rounded-md px-2 py-1.5 text-xs outline-none focus:border-indigo-500" required />
+                  </div>
+                  <div className="flex-1">
+                    <label className="block text-[10px] font-semibold text-slate-500 mb-1">NAMA LENGKAP</label>
+                    <input value={member.nama} onChange={(e) => handleMemberChange(idx, "nama", e.target.value)} type="text" className="w-full border border-slate-200 rounded-md px-2 py-1.5 text-xs outline-none focus:border-indigo-500 uppercase" required />
+                  </div>
+                  {members.length > 1 && (
+                    <button type="button" onClick={() => handleRemoveMember(idx)} className="h-8 w-8 shrink-0 flex items-center justify-center text-rose-500 bg-rose-50 hover:bg-rose-100 rounded-md">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+          </form>
+        </div>
+
+        <div className="p-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/50 rounded-b-2xl sticky bottom-0">
+          <button type="button" onClick={onClose} className="px-4 py-2 text-xs text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl font-medium">Batal</button>
+          <button type="submit" form="sptjmForm" className="px-5 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center gap-2 shadow-sm">
+            Cetak SPTJM
           </button>
         </div>
       </div>

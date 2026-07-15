@@ -595,9 +595,12 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                  <button
                    onClick={() => (!isCollapsed || isOpen) && toggleGroup("kemiskinan-sosial")}
                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                     ["warga-bansos", "gis-kemiskinan", "uhc"].includes(tabParam || "")
-                       ? "bg-rose-50 text-rose-700 font-bold"
-                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                     (() => {
+                       const isActiveGisGroup = ["warga-bansos", "gis-kemiskinan", "uhc", "usulan-uhc"].includes(tabParam || "");
+                       return isActiveGisGroup
+                         ? "bg-rose-50 text-rose-700 font-bold"
+                         : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium";
+                     })()
                    } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                  >
                    <HeartHandshake size={20} className="shrink-0" />
@@ -627,6 +630,8 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                            { label: "Peta Kerentanan GIS", tab: "gis-kemiskinan", icon: Map },
                            { label: "Monitoring UHC / KIS", tab: "uhc", icon: HeartPulse },
                            { label: "Usulan UHC", tab: "usulan-uhc", icon: FileText },
+                           { label: "Portal UHC Kab. Bogor", href: "https://linktr.ee/UHCKABBOGOR", isExternal: true, icon: Globe },
+                           { label: "Edabu - BPJS Kesehatan", href: "https://edabu.bpjs-kesehatan.go.id/Edabu/Home/Login", isExternal: true, icon: Activity },
                          ].map((item) => {
                            const Icon = item.icon;
                            if (item.isExternal) {
@@ -1005,8 +1010,11 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                     return ["Dashboard", "Data Bansos", "Pengaturan"].includes(item.name);
                   }
                   if (["KAUR", "KASI"].includes(role as string)) return true;
-                  if (["PKK", "TP_PKK", "BPD", "KADUS", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
+                  if (["PKK", "TP_PKK", "BPD", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
                      return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Pembangunan", "Tracking Layanan", "Peta Interaktif"].includes(item.name);
+                  }
+                  if (role === "KADUS") {
+                     return ["Dashboard", "Data Kependudukan", "Data Bansos", "Pusat Persuratan", "Infrastruktur", "Peta Interaktif", "Pengaturan"].includes(item.name);
                   }
                   if (role === "BUMDES") {
                      return ["Dashboard", "BUMDES"].includes(item.name);

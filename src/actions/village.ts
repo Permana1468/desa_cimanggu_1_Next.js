@@ -120,7 +120,7 @@ export async function getWargaList(query?: string, rtFilter?: string, rwFilter?:
         const userRt = (session.user as any).rt;
         const userRw = (session.user as any).rw;
 
-        let filterScope = await buildWilayahFilterScope(role, userRt, userRw, tenantId);
+        let { filterScope } = await buildWilayahFilterScope(role, userRt, userRw, tenantId);
 
         // Using global cleanDigits helper
 

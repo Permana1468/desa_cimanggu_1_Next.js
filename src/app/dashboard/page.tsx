@@ -6,6 +6,7 @@ import { getDashboardRealtimeStats } from "@/actions/dashboard";
 // Role Components
 import { ExecutiveDashboard } from "@/components/dashboard/roles/ExecutiveDashboard";
 import { WilayahDashboard } from "@/components/dashboard/roles/WilayahDashboard";
+import { KadusDashboard } from "@/components/dashboard/roles/KadusDashboard";
 import { WargaDashboard } from "@/components/dashboard/roles/WargaDashboard";
 import { PelayananDashboard } from "@/components/dashboard/roles/PelayananDashboard";
 import { KeuanganDashboard } from "@/components/dashboard/roles/KeuanganDashboard";
@@ -91,7 +92,10 @@ export default async function VillageDashboardPage() {
   }
 
   // 6. KEWILAYAHAN (Dusun, RT, RW)
-  if (["KADUS", "RT", "RW"].includes(role)) {
+  if (role === "KADUS") {
+    return <KadusDashboard session={session} stats={stats} />;
+  }
+  if (["RT", "RW"].includes(role)) {
     return <WilayahDashboard session={session} stats={stats} />;
   }
 

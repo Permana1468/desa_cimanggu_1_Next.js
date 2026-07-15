@@ -19,16 +19,19 @@ async function getRtSession() {
     return { session, tenantId, rt, rw, role };
 }
 
-function cleanDigits(val: string): string {
+function cleanDigits(val: string | undefined | null): string {
+    if (!val) return '0';
     return val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0';
 }
 
-function cleanName(val: string): string {
+function cleanName(val: string | undefined | null): string {
+    if (!val) return "";
     return val.toString().toLowerCase().replace(/[^a-z0-9]/g, '');
 }
 
 export async function buildWilayahFilterScope(role: string, userRt: string, userRw: string, tenantId: string) {
     let filterScope: any = { tenantId };
+    let allowedRws: string[] = [];
     
     const rtClean = cleanDigits(userRt || "");
     const rwClean = cleanDigits(userRw || "");
@@ -36,7 +39,7 @@ export async function buildWilayahFilterScope(role: string, userRt: string, user
     if (role === "RT") {
         filterScope.rt = { in: [userRt, rtClean, rtClean.padStart(2, '0'), rtClean.padStart(3, '0')] };
         filterScope.rw = { in: [userRw, rwClean, rwClean.padStart(2, '0'), rwClean.padStart(3, '0')] };
-        return filterScope;
+        return { filterScope, allowedRws };
     }
     
     const config = await prisma.systemSetting.findUnique({
@@ -69,7 +72,7 @@ export async function buildWilayahFilterScope(role: string, userRt: string, user
         }
     } else if (role === "KADUS") {
         let allowedRts: string[] = [];
-        let allowedRws: string[] = [];
+        let kaduAllowedRws: string[] = [];
         let dusunName = "";
         
         const targetDusunClean = cleanName(userRw || "");
@@ -78,14 +81,15 @@ export async function buildWilayahFilterScope(role: string, userRt: string, user
         if (matchedDusun) {
             dusunName = matchedDusun.name;
             matchedDusun.rw?.forEach((rw: any) => {
-                allowedRws.push(rw.name);
+                kaduAllowedRws.push(rw.name);
                 rw.rt?.forEach((rt: any) => {
                     allowedRts.push(rt);
                 });
             });
         }
+        allowedRws = kaduAllowedRws;
         
-        const matchedRws = allowedRws.flatMap(rw => {
+        const matchedRws = kaduAllowedRws.flatMap(rw => {
             const clean = cleanDigits(rw);
             return [clean, clean.padStart(2, '0'), clean.padStart(3, '0'), rw];
         });
@@ -109,7 +113,7 @@ export async function buildWilayahFilterScope(role: string, userRt: string, user
         }
     }
     
-    return filterScope;
+    return { filterScope, allowedRws };
 }
 
 export async function getWilayahStrukturOptions() {
@@ -184,7 +188,11 @@ export async function getWilayahStrukturOptions() {
                 rwList: rwOptions
             };
         }
-        return {};
+
+        // Return full structure for Admin Master, Kaur Perencanaan, etc.
+        return {
+            fullStructure: structure.dusun
+        };
     } catch (error) {
         return {};
     }
@@ -213,7 +221,7 @@ export async function getFullVillageStructure() {
 export async function getRtDashboardStats() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         const [deathRecords, moveRecords] = await Promise.all([
             prisma.rtDeathReport.findMany({ select: { nik: true } }),
@@ -292,7 +300,7 @@ export async function getRtDashboardStats() {
 export async function getRtFinance() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtFinance.findMany({
             where: filterScope,
@@ -346,7 +354,7 @@ export async function deleteRtFinanceTransaction(id: string) {
 export async function getRtActivities() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtActivity.findMany({
             where: filterScope,
@@ -402,7 +410,7 @@ export async function deleteRtActivity(id: string) {
 export async function getRtBirthReports() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtBirthReport.findMany({
             where: filterScope,
@@ -457,7 +465,7 @@ export async function deleteRtBirthReport(id: string) {
 export async function getRtDeathReports() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtDeathReport.findMany({
             where: filterScope,
@@ -511,7 +519,7 @@ export async function deleteRtDeathReport(id: string) {
 export async function getRtMoveReports() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtMoveReport.findMany({
             where: filterScope,
@@ -565,7 +573,7 @@ export async function deleteRtMoveReport(id: string) {
 export async function getRtIncomingReports() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtIncomingReport.findMany({
             where: filterScope,
@@ -620,7 +628,7 @@ export async function deleteRtIncomingReport(id: string) {
 export async function getRtAnnouncements() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtAnnouncement.findMany({
             where: filterScope,
@@ -673,7 +681,7 @@ export async function deleteRtAnnouncement(id: string) {
 export async function getRtComplaints() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtComplaint.findMany({
             where: filterScope,
@@ -748,7 +756,7 @@ export async function deleteRtComplaint(id: string) {
 export async function getRtInventories() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtInventory.findMany({
             where: filterScope,
@@ -802,7 +810,7 @@ export async function getRtInventoryLoans() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
         let filterScope: any = { tenantId };
-        const innerScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope: innerScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
         delete innerScope.tenantId;
         filterScope.inventory = innerScope;
 
@@ -882,7 +890,7 @@ export async function returnRtInventoryLoan(id: string) {
 export async function getResidentKks() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         const residents = await prisma.dataKependudukan.findMany({
             where: {
@@ -904,7 +912,7 @@ export async function getResidentKks() {
 export async function getSensusPoints() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         return await prisma.sensusPoint.findMany({
             where: filterScope
@@ -1172,7 +1180,7 @@ export async function getRwDashboardStats() {
             throw new Error("Unauthorized");
         }
 
-        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         const [deathRecords, moveRecords] = await Promise.all([
             prisma.rtDeathReport.findMany({ select: { nik: true } }),
@@ -1289,7 +1297,7 @@ export async function getRwMapBoundaries() {
 export async function getRtDemographicReport(month: number, year: number) {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const filterScope = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
 
         // Fetch all residents
         const residents = await prisma.dataKependudukan.findMany({

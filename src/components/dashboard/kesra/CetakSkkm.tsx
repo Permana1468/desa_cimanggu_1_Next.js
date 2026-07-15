@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { ArrowLeft, Printer } from "lucide-react";
 
-export function CetakSkkm({ data, onBack }: { data: any; onBack: () => void }) {
+export function CetakSkkm({ data, onBack, isBundle }: { data: any; onBack?: () => void; isBundle?: boolean }) {
   useEffect(() => {
     // Optionally trigger print on load
     // window.print();

@@ -41,48 +41,52 @@ export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void
   }, []);
 
   return (
-    <div className="bg-slate-100 min-h-screen py-8">
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @media print {
-          body * {
-            visibility: hidden;
+    <div className={isBundle ? "" : "bg-slate-100 min-h-screen py-8"}>
+      {!isBundle && (
+        <style dangerouslySetInnerHTML={{
+          __html: `
+          @media print {
+            body * {
+              visibility: hidden;
+            }
+            #print-area, #print-area * {
+              visibility: visible;
+            }
+            #print-area {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 100%;
+              height: auto !important;
+              padding: 0;
+              background: white;
+              color: black;
+            }
+            .no-print {
+              display: none !important;
+            }
+            @page {
+              size: 215.9mm 330.2mm portrait; /* F4 Size */
+              margin: 15mm;
+            }
           }
-          #print-area, #print-area * {
-            visibility: visible;
-          }
-          #print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: auto !important;
-            padding: 0;
-            background: white;
-            color: black;
-          }
-          .no-print {
-            display: none !important;
-          }
-          @page {
-            size: 215.9mm 330.2mm portrait; /* F4 Size */
-            margin: 15mm;
-          }
-        }
-      `}} />
+        `}} />
+      )}
 
       {/* Toolbar */}
-      <div className="max-w-4xl mx-auto mb-6 flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200 no-print">
-        <button onClick={onBack} className="flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-colors font-medium">
-          <ArrowLeft size={18} /> Kembali
-        </button>
-        <button onClick={() => window.print()} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm">
-          <Printer size={18} /> Cetak Form (F4)
-        </button>
-      </div>
+      {!isBundle && (
+        <div className="max-w-4xl mx-auto mb-6 flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200 no-print">
+          <button onClick={onBack} className="flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-colors font-medium">
+            <ArrowLeft size={18} /> Kembali
+          </button>
+          <button onClick={() => window.print()} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm">
+            <Printer size={18} /> Cetak Form (F4)
+          </button>
+        </div>
+      )}
 
       {/* Print Area - F4 Layout */}
-      <div id="print-area" className="text-black text-[11px] leading-tight" style={{ fontFamily: "Cambria, serif" }}>
+      <div id={isBundle ? "print-area-uhc" : "print-area"} className={`text-black text-[11px] leading-tight ${isBundle ? "" : "mx-auto bg-white overflow-hidden"}`} style={{ fontFamily: "Cambria, serif", maxWidth: isBundle ? "100%" : "215.9mm", padding: isBundle ? "0" : "10mm" }}>
 
         {/* Lembar Formulir */}
         <div className="max-w-[215.9mm] mx-auto bg-white shadow-xl min-h-[330.2mm] print:min-h-0 p-[10mm] print:p-0 mb-8 print:mb-0 print:shadow-none relative">

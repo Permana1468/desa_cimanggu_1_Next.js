@@ -408,6 +408,7 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                                         <option value={RoleType.KADES}>Kepala Desa</option>
                                         <option value={RoleType.SEKDES}>Sekretaris Desa</option>
                                         <option value={RoleType.PERANGKAT_DESA}>Perangkat Desa Lainnya</option>
+                                        <option value="KADUS">Kepala Dusun (KADUS)</option>
                                         <option value={RoleType.KARANG_TARUNA}>Karang Taruna</option>
                                         <option value={RoleType.RT}>Ketua RT</option>
                                         <option value={RoleType.RW}>Ketua RW</option>
@@ -430,18 +431,27 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                                     </select>
                                 </FormGroup>
 
-                                {(formData.role === "RT" || formData.role === "RW") && (
+                                {(formData.role === "RT" || formData.role === "RW" || formData.role === "KADUS") && (
                                     <>
-                                        <FormGroup label="Wilayah RW" icon={MapPin}>
+                                        <FormGroup label={formData.role === "KADUS" ? "Wilayah Dusun" : "Wilayah RW"} icon={MapPin}>
                                             <select 
                                                 value={formData.rw}
                                                 onChange={e => setFormData({...formData, rw: e.target.value})}
                                                 className="w-full bg-white border border-slate-100 rounded-2xl px-6 py-5 text-sm font-bold text-slate-900 focus:ring-4 focus:ring-blue-500/5 transition-all appearance-none shadow-sm"
                                             >
-                                                <option value="">Pilih RW</option>
-                                                {Array.from({length: 9}, (_, i) => String(i + 1).padStart(3, '0')).map(rw => (
-                                                    <option key={rw} value={rw}>RW {rw}</option>
-                                                ))}
+                                                <option value="">{formData.role === "KADUS" ? "Pilih Dusun" : "Pilih RW"}</option>
+                                                {formData.role === "KADUS" ? (
+                                                    <>
+                                                        <option value="Dusun I">Dusun I</option>
+                                                        <option value="Dusun II">Dusun II</option>
+                                                        <option value="Dusun III">Dusun III</option>
+                                                        <option value="Dusun IV">Dusun IV</option>
+                                                    </>
+                                                ) : (
+                                                    Array.from({length: 9}, (_, i) => String(i + 1).padStart(3, '0')).map(rw => (
+                                                        <option key={rw} value={rw}>RW {rw}</option>
+                                                    ))
+                                                )}
                                             </select>
                                         </FormGroup>
 
