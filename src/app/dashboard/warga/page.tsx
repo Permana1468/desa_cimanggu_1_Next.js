@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { searchWarga, addWarga, updateWarga, deleteWarga } from "@/actions/village";
 import { exportWargaExcel, getLetterTemplates, generateSurat } from "@/actions/documents";
 import { getFullVillageStructure as getVillageStructure } from "@/actions/rt";
+import { formatWilayah, formatDusun } from "@/lib/formatters";
 import { 
     Users, 
     Search, 
@@ -40,8 +41,8 @@ function HoverMask({ value }: { value: string }) {
     const [visible, setVisible] = useState(false);
     if (!value) return <span>-</span>;
     const getMasked = (val: string) => {
-        if (val.length <= 10) return "*".repeat(val.length);
-        return val.substring(0, 6) + "*".repeat(val.length - 10) + val.substring(val.length - 4);
+        if (val.length <= 6) return "*".repeat(val.length);
+        return val.substring(0, 6) + "*".repeat(val.length - 6);
     };
     return (
         <span 
@@ -382,10 +383,10 @@ export default function WargaManagementPage() {
                             className="bg-slate-50 border-none rounded-2xl px-4 py-2 text-[10px] font-black uppercase focus:ring-0"
                         >
                             <option value="">Semua Dusun</option>
-                            <option value="Dusun 1">Dusun 1</option>
-                            <option value="Dusun 2">Dusun 2</option>
-                            <option value="Dusun 3">Dusun 3</option>
-                            <option value="Dusun 4">Dusun 4</option>
+                            <option value="Dusun 1">DUSUN I</option>
+                            <option value="Dusun 2">DUSUN II</option>
+                            <option value="Dusun 3">DUSUN III</option>
+                            <option value="Dusun 4">DUSUN IV</option>
                         </select>
                         <select 
                             value={sortBy}
@@ -485,8 +486,10 @@ export default function WargaManagementPage() {
                                         </span>
                                     </td>
                                     <td className="py-5 px-4">
-                                        <div className="text-xs font-bold text-slate-700 uppercase">{item.alamat} RT {item.rt}/RW {item.rw}</div>
-                                        <div className="text-[10px] text-slate-400 font-medium uppercase">{item.dusun}</div>
+                                        <div className="text-xs font-bold text-slate-700 uppercase">{item.alamat}</div>
+                                        <div className="text-[10px] text-slate-400 font-medium uppercase mt-0.5">
+                                            {formatWilayah(item.rt, item.rw, item.dusun)}
+                                        </div>
                                     </td>
                                     <td className="py-5 px-4">
                                         <div className="text-xs font-bold text-slate-700">{item.tempatLahir}</div>
@@ -676,7 +679,7 @@ export default function WargaManagementPage() {
                                                 >
                                                     <option value="">- Pilih Dusun -</option>
                                                     {villageStructure?.dusun?.map(d => (
-                                                        <option key={d.name} value={d.name}>{d.name}</option>
+                                                        <option key={d.name} value={d.name}>{formatDusun(d.name)}</option>
                                                     ))}
                                                 </select>
                                             </div>

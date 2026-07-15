@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { getBansosList, updateBansosData, getBansosStats } from "@/actions/bansos";
 import { Loader2, HeartHandshake, Search, Filter, Edit, Check, X } from "lucide-react";
+import { formatWilayah } from "@/lib/formatters";
 
 function HoverMask({ value }: { value: string }) {
     const [visible, setVisible] = useState(false);
@@ -156,7 +157,7 @@ export function BansosClient({ session }: { session: any }) {
                                         <tr key={warga.id} className="hover:bg-slate-50/50 transition-colors">
                                             <td className="p-4">
                                                 <div className="font-bold text-slate-800">{warga.namaLengkap}</div>
-                                                <div className="text-[10px] text-slate-400 font-bold tracking-wider uppercase mt-1">NIK: <HoverMask value={warga.nik} /> | RT {warga.rt}/RW {warga.rw}</div>
+                                                <div className="text-[10px] text-slate-400 font-bold tracking-wider uppercase mt-1">NIK: <HoverMask value={warga.nik} /> | {formatWilayah(warga.rt, warga.rw, warga.dusun)}</div>
                                             </td>
                                             
                                             <td className="p-4">

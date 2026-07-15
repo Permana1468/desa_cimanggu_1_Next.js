@@ -20,6 +20,7 @@ import {
   ShieldCheck, 
   Activity as ActivityIcon
 } from "lucide-react";
+import { formatWilayah } from "@/lib/formatters";
 import { WARGA_FIELDS, DEFAULT_WARGA_FORM, isWargaDataIncomplete } from "@/lib/wargaSchema";
 import { 
   getRtDashboardStats, getRtFinance, addRtFinanceTransaction, deleteRtFinanceTransaction,
@@ -341,8 +342,8 @@ function HoverMask({ value }: { value: string }) {
   const [visible, setVisible] = useState(false);
   if (!value) return <span>-</span>;
   const getMasked = (val: string) => {
-    if (val.length <= 10) return "*".repeat(val.length);
-    return val.substring(0, 6) + "*".repeat(val.length - 10) + val.substring(val.length - 4);
+    if (val.length <= 6) return "*".repeat(val.length);
+    return val.substring(0, 6) + "*".repeat(val.length - 6);
   };
   return (
     <span 
@@ -697,7 +698,7 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
                   <td className="py-3.5 px-4 text-slate-500 font-mono"><HoverMask value={w.noKK} /></td>
                   {(session?.user?.role === "RW" || session?.user?.role === "KADUS") && (
                     <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg text-[10px] font-black uppercase">{w.alamat ? `${w.alamat} ` : ""}RT {w.rt} / RW {w.rw}{w.dusun ? ` DUSUN ${w.dusun}` : ""}</span>
+                      <span className="px-2.5 py-1 bg-teal-50 text-teal-700 rounded-lg text-[10px] font-black uppercase">{w.alamat ? `${w.alamat} ` : ""}{formatWilayah(w.rt, w.rw, w.dusun)}</span>
                     </td>
                   )}
                   <td className="py-3.5 px-4">

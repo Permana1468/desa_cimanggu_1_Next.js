@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Search, Award, Printer, Edit3 } from "lucide-react";
 import { getKesraKependudukanList, updateKesraWargaBansos } from "@/actions/kesra";
+import { formatWilayah } from "@/lib/formatters";
 
 export function KesraWargaBansosTab({ session }: any) {
   const [data, setData] = useState<any[]>([]);
@@ -241,7 +242,7 @@ export function KesraWargaBansosTab({ session }: any) {
       <tr>
         <td class="lbl">Alamat / Wilayah</td>
         <td class="sep">:</td>
-        <td class="val">${warga.alamat ? "Kp. " + warga.alamat + " " : ""}RT ${warga.rt} / RW ${warga.rw}${warga.dusun ? ", Dusun " + warga.dusun : ""}, Desa Cimanggu I</td>
+        <td class="val">${warga.alamat ? "Kp. " + warga.alamat + " " : ""}${formatWilayah(warga.rt, warga.rw, warga.dusun)}, Desa Cimanggu I</td>
       </tr>
       <tr>
         <td class="lbl">Desil Kesejahteraan</td>
@@ -412,7 +413,7 @@ export function KesraWargaBansosTab({ session }: any) {
                       <td className="px-4 py-3 text-slate-400 font-medium">{idx + 1}</td>
                       <td className="px-4 py-3 font-mono"><HoverMask value={w.nik} /></td>
                       <td className="px-4 py-3 font-bold text-slate-800">{w.namaLengkap}</td>
-                      <td className="px-4 py-3">RT {w.rt} / RW {w.rw}</td>
+                      <td className="px-4 py-3 text-xs uppercase font-medium">{formatWilayah(w.rt, w.rw, w.dusun)}</td>
                       <td className="px-4 py-3">
                         {bansos?.desil ? (
                           <span className={`font-bold text-xs px-2 py-0.5 rounded-full border ${canPrint

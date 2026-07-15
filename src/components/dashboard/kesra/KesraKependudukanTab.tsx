@@ -5,13 +5,14 @@ import { Plus, Search, Edit, Users, X } from "lucide-react";
 import { getWargaList, addWarga, updateWarga } from "@/actions/village";
 import { getFullVillageStructure as getVillageStructure } from "@/actions/rt";
 import { WARGA_FIELDS, DEFAULT_WARGA_FORM } from "@/lib/wargaSchema";
+import { formatWilayah, formatDusun } from "@/lib/formatters";
 
 function HoverMask({ value }: { value: string }) {
   const [visible, setVisible] = useState(false);
   if (!value) return <span>-</span>;
   const getMasked = (val: string) => {
-      if (val.length <= 10) return "*".repeat(val.length);
-      return val.substring(0, 6) + "*".repeat(val.length - 10) + val.substring(val.length - 4);
+      if (val.length <= 6) return "*".repeat(val.length);
+      return val.substring(0, 6) + "*".repeat(val.length - 6);
   };
   return (
       <span 
@@ -176,7 +177,7 @@ export function KesraKependudukanTab({ session }: any) {
                     <td className="px-6 py-4">
                       <div className="text-sm text-slate-700">{w.alamat || w.kampung || "-"}</div>
                       <div className="text-xs font-bold text-emerald-600 mt-0.5">
-                        RT {w.rt || "-"} / RW {w.rw || "-"} {w.dusun ? `- ${w.dusun}` : ""}
+                        {formatWilayah(w.rt, w.rw, w.dusun)}
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -228,7 +229,7 @@ export function KesraKependudukanTab({ session }: any) {
                         >
                           <option value="">- Pilih Dusun -</option>
                           {villageStructure?.dusun?.map(d => (
-                            <option key={d.name} value={d.name}>{d.name}</option>
+                            <option key={d.name} value={d.name}>{formatDusun(d.name)}</option>
                           ))}
                         </select>
                       </div>
