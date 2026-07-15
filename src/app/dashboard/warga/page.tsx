@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { searchWarga, addWarga, updateWarga, deleteWarga } from "@/actions/village";
 import { exportWargaExcel, getLetterTemplates, generateSurat } from "@/actions/documents";
+import { getVillageStructure } from "@/actions/master";
 import { 
     Users, 
     Search, 
@@ -69,6 +70,7 @@ export default function WargaManagementPage() {
     const [printing, setPrinting] = useState<string | null>(null);
     const [selectedTemplate, setSelectedTemplate] = useState<any>(null);
     const [customVariables, setCustomVariables] = useState<Record<string, string>>({});
+    const [villageStructure, setVillageStructure] = useState<{ dusun: { name: string, rw: { name: string, rt: string[] }[] }[] } | null>(null);
 
     // Filters
     const [filters, setFilters] = useState({
@@ -144,7 +146,17 @@ export default function WargaManagementPage() {
     useEffect(() => {
         handleSearch();
         loadTemplates();
+        loadVillageStructure();
     }, []);
+
+    async function loadVillageStructure() {
+        try {
+            const data = await getVillageStructure();
+            setVillageStructure(data);
+        } catch (e) {
+            console.error("Failed to load village structure", e);
+        }
+    }
 
     async function loadTemplates() {
         const data = await getLetterTemplates();
@@ -652,6 +664,63 @@ export default function WargaManagementPage() {
                         <form onSubmit={handleSubmit} className="p-10 overflow-y-auto space-y-8 custom-scrollbar bg-slate-50/30">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {WARGA_FIELDS.map((field) => {
+                                    if (field.key === "dusun") {
+                                        return (
+                                            <div key={field.key} className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{field.label}</label>
+                                                <select 
+                                                    required={field.required}
+                                                    value={formData.dusun} 
+                                                    onChange={e => setFormData({...formData, dusun: e.target.value, rw: "", rt: ""})} 
+                                                    className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all text-slate-950 appearance-none"
+                                                >
+                                                    <option value="">- Pilih Dusun -</option>
+                                                    {villageStructure?.dusun?.map(d => (
+                                                        <option key={d.name} value={d.name}>{d.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        );
+                                    }
+                                    if (field.key === "rw") {
+                                        return (
+                                            <div key={field.key} className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{field.label}</label>
+                                                <select 
+                                                    required={field.required}
+                                                    value={formData.rw} 
+                                                    onChange={e => setFormData({...formData, rw: e.target.value, rt: ""})} 
+                                                    className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all text-slate-950 appearance-none"
+                                                    disabled={!formData.dusun}
+                                                >
+                                                    <option value="">- Pilih RW -</option>
+                                                    {villageStructure?.dusun?.find(d => d.name === formData.dusun)?.rw.map(r => (
+                                                        <option key={r.name} value={r.name}>{r.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        );
+                                    }
+                                    if (field.key === "rt") {
+                                        return (
+                                            <div key={field.key} className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{field.label}</label>
+                                                <select 
+                                                    required={field.required}
+                                                    value={formData.rt} 
+                                                    onChange={e => setFormData({...formData, rt: e.target.value})} 
+                                                    className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all text-slate-950 appearance-none"
+                                                    disabled={!formData.rw}
+                                                >
+                                                    <option value="">- Pilih RT -</option>
+                                                    {villageStructure?.dusun?.find(d => d.name === formData.dusun)?.rw.find(r => r.name === formData.rw)?.rt.map(rt => (
+                                                        <option key={rt} value={rt}>{rt}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        );
+                                    }
+
                                     if (field.type === "select") {
                                         return (
                                             <div key={field.key} className="space-y-2">
@@ -659,7 +728,7 @@ export default function WargaManagementPage() {
                                                 <select 
                                                     value={formData[field.key as keyof typeof formData] || ""} 
                                                     onChange={e => setFormData({...formData, [field.key]: e.target.value})} 
-                                                    className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all text-slate-950"
+                                                    className="w-full bg-white border border-slate-200 rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-blue-500/5 transition-all text-slate-950 appearance-none"
                                                 >
                                                     {field.options?.map(opt => (
                                                         <option key={opt.value} value={opt.value}>{opt.label}</option>
