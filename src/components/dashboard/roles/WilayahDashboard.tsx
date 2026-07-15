@@ -341,8 +341,8 @@ function HoverMask({ value }: { value: string }) {
   const [visible, setVisible] = useState(false);
   if (!value) return <span>-</span>;
   const getMasked = (val: string) => {
-    if (val.length <= 6) return "*".repeat(val.length);
-    return val.substring(0, 6) + "*".repeat(val.length - 6);
+    if (val.length <= 10) return "*".repeat(val.length);
+    return val.substring(0, 6) + "*".repeat(val.length - 10) + val.substring(val.length - 4);
   };
   return (
     <span 
@@ -2197,7 +2197,7 @@ function LampidTab({
                     <>
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-slate-800">{d.namaLengkap}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">{d.nik}</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5"><HoverMask value={d.nik} /></div>
                       </td>
                       <td className="py-3.5 px-4 text-slate-500">{new Date(d.tanggalMeninggal).toLocaleDateString("id-ID")}</td>
                       <td className="py-3.5 px-4 text-slate-500">{d.penyebab || "-"}</td>
@@ -2208,7 +2208,7 @@ function LampidTab({
                     <>
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-slate-800">{d.namaLengkap}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">{d.nik}</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5"><HoverMask value={d.nik} /></div>
                       </td>
                       <td className="py-3.5 px-4 text-slate-500">{new Date(d.tanggalPindah).toLocaleDateString("id-ID")}</td>
                       <td className="py-3.5 px-4 text-slate-500">{d.alamatTujuan}</td>
@@ -2219,9 +2219,9 @@ function LampidTab({
                     <>
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-slate-800">{d.namaLengkap}</div>
-                        <div className="text-[10px] text-slate-400 mt-0.5">{d.nik}</div>
+                        <div className="text-[10px] text-slate-400 mt-0.5"><HoverMask value={d.nik} /></div>
                       </td>
-                      <td className="py-3.5 px-4 text-slate-500">{d.noKK}</td>
+                      <td className="py-3.5 px-4 text-slate-500"><HoverMask value={d.noKK} /></td>
                       <td className="py-3.5 px-4 text-slate-500">{new Date(d.tanggalDatang).toLocaleDateString("id-ID")}</td>
                       <td className="py-3.5 px-4 text-slate-500">{d.alamatAsal}</td>
                     </>

@@ -6,6 +6,24 @@ import { getWargaList, addWarga, updateWarga } from "@/actions/village";
 import { getFullVillageStructure as getVillageStructure } from "@/actions/rt";
 import { WARGA_FIELDS, DEFAULT_WARGA_FORM } from "@/lib/wargaSchema";
 
+function HoverMask({ value }: { value: string }) {
+  const [visible, setVisible] = useState(false);
+  if (!value) return <span>-</span>;
+  const getMasked = (val: string) => {
+      if (val.length <= 10) return "*".repeat(val.length);
+      return val.substring(0, 6) + "*".repeat(val.length - 10) + val.substring(val.length - 4);
+  };
+  return (
+      <span 
+          onMouseEnter={() => setVisible(true)}
+          onMouseLeave={() => setVisible(false)}
+          className="cursor-help relative group"
+      >
+          {visible ? value : getMasked(value)}
+      </span>
+  );
+}
+
 export function KesraKependudukanTab({ session }: any) {
   const [warga, setWarga] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -144,8 +162,8 @@ export function KesraKependudukanTab({ session }: any) {
                 filteredWarga.map((w, idx) => (
                   <tr key={w.id || idx} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-bold text-slate-800">{w.noKK || "-"}</div>
-                      <div className="text-xs text-slate-500 font-mono mt-0.5">{w.nik || "-"}</div>
+                      <div className="font-bold text-slate-800"><HoverMask value={w.noKK || ""} /></div>
+                      <div className="text-xs text-slate-500 font-mono mt-0.5"><HoverMask value={w.nik || ""} /></div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-bold text-slate-800 uppercase">{w.namaLengkap}</div>
@@ -158,7 +176,7 @@ export function KesraKependudukanTab({ session }: any) {
                     <td className="px-6 py-4">
                       <div className="text-sm text-slate-700">{w.alamat || w.kampung || "-"}</div>
                       <div className="text-xs font-bold text-emerald-600 mt-0.5">
-                        RT {w.rt || "-"} / RW {w.rw || "-"} {w.dusun ? `- Dusun ${w.dusun}` : ""}
+                        RT {w.rt || "-"} / RW {w.rw || "-"} {w.dusun ? `- ${w.dusun}` : ""}
                       </div>
                     </td>
                     <td className="px-6 py-4">

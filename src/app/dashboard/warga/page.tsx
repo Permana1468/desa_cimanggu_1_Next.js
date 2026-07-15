@@ -40,8 +40,8 @@ function HoverMask({ value }: { value: string }) {
     const [visible, setVisible] = useState(false);
     if (!value) return <span>-</span>;
     const getMasked = (val: string) => {
-        if (val.length <= 6) return "*".repeat(val.length);
-        return val.substring(0, 6) + "*".repeat(val.length - 6);
+        if (val.length <= 10) return "*".repeat(val.length);
+        return val.substring(0, 6) + "*".repeat(val.length - 10) + val.substring(val.length - 4);
     };
     return (
         <span 
@@ -486,7 +486,7 @@ export default function WargaManagementPage() {
                                     </td>
                                     <td className="py-5 px-4">
                                         <div className="text-xs font-bold text-slate-700 uppercase">{item.alamat} RT {item.rt}/RW {item.rw}</div>
-                                        <div className="text-[10px] text-slate-400 font-medium uppercase">Dusun {item.dusun}</div>
+                                        <div className="text-[10px] text-slate-400 font-medium uppercase">{item.dusun}</div>
                                     </td>
                                     <td className="py-5 px-4">
                                         <div className="text-xs font-bold text-slate-700">{item.tempatLahir}</div>

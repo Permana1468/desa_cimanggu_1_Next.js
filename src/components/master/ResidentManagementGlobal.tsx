@@ -40,8 +40,8 @@ function HoverMask({ value }: { value: string }) {
     const [visible, setVisible] = useState(false);
     if (!value) return <span>-</span>;
     const getMasked = (val: string) => {
-        if (val.length <= 6) return "*".repeat(val.length);
-        return val.substring(0, 6) + "*".repeat(val.length - 6);
+        if (val.length <= 10) return "*".repeat(val.length);
+        return val.substring(0, 6) + "*".repeat(val.length - 10) + val.substring(val.length - 4);
     };
     return (
         <span 
