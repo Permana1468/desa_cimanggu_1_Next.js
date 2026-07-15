@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { searchWarga, addWarga, updateWarga, deleteWarga } from "@/actions/village";
 import { exportWargaExcel, getLetterTemplates, generateSurat } from "@/actions/documents";
-import { getVillageStructure } from "@/actions/master";
+import { getFullVillageStructure as getVillageStructure } from "@/actions/rt";
 import { 
     Users, 
     Search, 

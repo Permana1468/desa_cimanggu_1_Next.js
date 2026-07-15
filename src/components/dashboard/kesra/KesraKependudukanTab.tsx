@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, Edit, Users, X } from "lucide-react";
 import { getWargaList, addWarga, updateWarga } from "@/actions/village";
-import { getVillageStructure } from "@/actions/master";
+import { getFullVillageStructure as getVillageStructure } from "@/actions/rt";
 import { WARGA_FIELDS, DEFAULT_WARGA_FORM } from "@/lib/wargaSchema";
 
 export function KesraKependudukanTab({ session }: any) {
