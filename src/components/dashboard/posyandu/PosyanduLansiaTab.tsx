@@ -16,10 +16,6 @@ export function PosyanduLansiaTab({ session }: any) {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -30,6 +26,11 @@ export function PosyanduLansiaTab({ session }: any) {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
 
   const handleDelete = async (id: string) => {
     if (confirm("Hapus data lansia ini?")) {

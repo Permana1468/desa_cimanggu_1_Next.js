@@ -19,10 +19,6 @@ export function KadusDashboard({ session, stats: initialStats }: { session: any,
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -33,6 +29,11 @@ export function KadusDashboard({ session, stats: initialStats }: { session: any,
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
 
   if (loading || !data) {
     return (

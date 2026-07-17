@@ -26,18 +26,19 @@ export default function ApbdesPage() {
     const [scanPreview, setScanPreview] = useState<any[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        if (session?.user?.tenantId) {
-            loadData();
-        }
-    }, [session, tahun]);
-
     const loadData = async () => {
         setIsLoading(true);
         const data = await getApbdesFinances(session?.user?.tenantId || "", tahun);
         setFinances(data);
         setIsLoading(false);
     };
+
+    useEffect(() => {
+        if (session?.user?.tenantId) {
+            loadData();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [session, tahun]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();

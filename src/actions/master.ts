@@ -462,8 +462,8 @@ export async function bulkImportResidents(residents: any[], tenantId: string) {
             residents.map(r => {
                 const { tanggalLahir, ...rest } = r;
 
-                let rw = rest.rw ? rest.rw.toString().replace(/\D/g, '').padStart(3, '0') : "";
-                let rt = rest.rt ? rest.rt.toString().replace(/\D/g, '').padStart(3, '0') : "";
+                const rw = rest.rw ? rest.rw.toString().replace(/\D/g, '').padStart(3, '0') : "";
+                const rt = rest.rt ? rest.rt.toString().replace(/\D/g, '').padStart(3, '0') : "";
                 let dusun = rest.dusun || "";
 
                 if (rw) {

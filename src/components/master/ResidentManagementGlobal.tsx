@@ -1668,7 +1668,7 @@ function processRawSheetData(rows: any[][]): ParsedSheetResult {
     }
 
     const mainHeaderRow = stringRows[headerRowIndex];
-    let finalHeaders: string[] = [...mainHeaderRow];
+    const finalHeaders: string[] = [...mainHeaderRow];
 
     // 2. Check if the next row contains sub-headers (like RT, RW)
     const nextRowIndex = headerRowIndex + 1;

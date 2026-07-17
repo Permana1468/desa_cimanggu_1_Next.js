@@ -190,7 +190,7 @@ export function TemplateManagementClient({ initialTemplates }: TemplateManagemen
                     <HelpCircle className="mx-auto text-slate-300 mb-6" size={48} />
                     <h3 className="text-lg font-black text-slate-800">Belum ada template resmi</h3>
                     <p className="text-slate-500 text-xs font-semibold mt-2 max-w-sm mx-auto">
-                        Klik tombol "Daftarkan Template" untuk menambahkan format spreadsheet atau dokumen baru ke dalam perpustakaan arsip desa.
+                        Klik tombol &quot;Daftarkan Template&quot; untuk menambahkan format spreadsheet atau dokumen baru ke dalam perpustakaan arsip desa.
                     </p>
                 </div>
             ) : (

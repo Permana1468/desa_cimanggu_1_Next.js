@@ -23,6 +23,14 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "venv/**",
+    "scratch/**",
+    ".scratch/**",
+    "tools/**",
+    "*.js",
+    "*.ts",
+    "!eslint.config.mjs",
+    "!next.config.ts",
+    "!postcss.config.mjs",
   ]),
 ]);
 

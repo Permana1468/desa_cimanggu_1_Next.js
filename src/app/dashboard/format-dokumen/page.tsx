@@ -11,7 +11,7 @@ export default async function FormatDokumenPage() {
     }
 
     const tenantId = (session.user as any).tenantId;
-    let rawRole = (session.user as any).role || "";
+    const rawRole = (session.user as any).role || "";
     
     // Convert specific roles to categories
     let category = rawRole;

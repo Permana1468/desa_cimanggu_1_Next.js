@@ -23,16 +23,17 @@ export function RwHealthTab({ session }: { session: any }) {
 
     const canEdit = session?.user?.role === "RW" || session?.user?.role === "POSYANDU";
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
     const loadData = async () => {
         setLoading(true);
         const data = await getRwHealthData();
         setDataList(data);
         setLoading(false);
     };
+
+    useEffect(() => {
+        loadData();
+    }, []);
+
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -191,7 +192,7 @@ export function RwHealthTab({ session }: { session: any }) {
                                     <Percent size={14} className="text-emerald-500" />
                                     <span className="text-xs font-bold text-emerald-700">Imunisasi: {item.imunisasiPercentage}%</span>
                                 </div>
-                                {item.notes && <p className="text-xs text-slate-500 italic max-w-sm">"{item.notes}"</p>}
+                                {item.notes && <p className="text-xs text-slate-500 italic max-w-sm">&quot;{item.notes}&quot;</p>}
                             </div>
                         </div>
                     ))}

@@ -26,7 +26,7 @@ async function getBansosSession() {
 export async function getBansosList() {
     try {
         const { tenantId, rt, rw, role } = await getBansosSession();
-        let filterScope: any = { tenantId };
+        const filterScope: any = { tenantId };
         
         // RT/RW can only see their own residents' bansos
         if (role === "RT") {
@@ -96,7 +96,7 @@ export async function getBansosStats() {
     try {
         const { tenantId, rt, rw, role } = await getBansosSession();
         
-        let filterScope: any = { tenantId };
+        const filterScope: any = { tenantId };
         if (role === "RT") {
             const rtClean = cleanDigits(rt || "");
             const rwClean = cleanDigits(rw || "");

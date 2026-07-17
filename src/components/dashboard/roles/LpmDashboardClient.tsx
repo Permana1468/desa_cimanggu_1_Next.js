@@ -67,12 +67,6 @@ export function LpmDashboardClient() {
         level: 2
     });
 
-    useEffect(() => {
-        if (status === "authenticated" && session?.user) {
-            fetchLembagaData();
-        }
-    }, [status, session]);
-
     async function fetchLembagaData() {
         setLoading(true);
         try {
@@ -93,6 +87,13 @@ export function LpmDashboardClient() {
             setLoading(false);
         }
     }
+
+    useEffect(() => {
+        if (status === "authenticated" && session?.user) {
+            fetchLembagaData();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [status, session]);
 
     const handleAddProgram = async (e: React.FormEvent) => {
         e.preventDefault();

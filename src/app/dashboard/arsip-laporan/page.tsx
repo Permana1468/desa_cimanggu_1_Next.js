@@ -15,7 +15,7 @@ export default async function ArsipLaporanPage() {
     const tenantId = (session.user as any).tenantId;
     const role = (session.user as any).role;
 
-    let whereClause: any = { tenantId };
+    const whereClause: any = { tenantId };
 
     // If not Admin/Kades, only show their own generated reports
     if (role !== "ADMIN_MASTER" && role !== "ADMIN_DESA" && role !== "KADES") {

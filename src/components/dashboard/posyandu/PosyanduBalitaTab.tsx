@@ -18,10 +18,6 @@ export function PosyanduBalitaTab({ session }: any) {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -32,6 +28,11 @@ export function PosyanduBalitaTab({ session }: any) {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
 
   const handleToggleStunting = async (id: string, currentStatus: boolean) => {
     await updatePosyanduBalitaStatus(id, !currentStatus);

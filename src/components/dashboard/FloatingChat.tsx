@@ -17,8 +17,6 @@ import {
 
 export function FloatingChat({ session }: { session: any }) {
     const role = session?.user?.role;
-    if (!role || role === "WARGA") return null;
-
     const currentUserId = session?.user?.id;
 
     const [isOpen, setIsOpen] = useState(false);
@@ -78,6 +76,7 @@ export function FloatingChat({ session }: { session: any }) {
     }, [notificationToast]);
 
     useEffect(() => {
+        if (!role || role === "WARGA") return;
         updateUserHeartbeat();
 
         const heartbeatInterval = setInterval(() => {
@@ -85,7 +84,9 @@ export function FloatingChat({ session }: { session: any }) {
         }, 15000);
 
         return () => clearInterval(heartbeatInterval);
-    }, []);
+     
+    }, [role]);
+
 
     const fetchContacts = async (showLoading = false) => {
         if (showLoading) setLoadingContacts(true);
@@ -218,6 +219,8 @@ export function FloatingChat({ session }: { session: any }) {
     });
 
     const totalUnread = contacts.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
+
+    if (!role || role === "WARGA") return null;
 
     return (
         <div className="fixed bottom-24 lg:bottom-6 right-6 z-[9999] flex flex-col items-end font-sans">

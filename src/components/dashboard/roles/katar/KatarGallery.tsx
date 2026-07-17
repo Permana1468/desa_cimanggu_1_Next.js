@@ -77,7 +77,7 @@ export function KatarGallery({ session }: { session: any }) {
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-12 text-center">
           <FolderArchive className="mx-auto text-slate-200 mb-3" size={44} />
           <p className="text-slate-400 font-medium">Belum ada file tersimpan.</p>
-          <p className="text-slate-300 text-xs mt-1">Klik "Unggah File" untuk menambahkan file pertama.</p>
+          <p className="text-slate-300 text-xs mt-1">Klik &quot;Unggah File&quot; untuk menambahkan file pertama.</p>
         </div>
       )}
 

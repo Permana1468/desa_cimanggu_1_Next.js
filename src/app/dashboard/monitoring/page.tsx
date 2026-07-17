@@ -11,12 +11,6 @@ export default function OperatorMonitoringPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [page, setPage] = useState(1);
 
-    useEffect(() => {
-        if (session?.user?.tenantId) {
-            loadLogs();
-        }
-    }, [session, page]);
-
     const loadLogs = async () => {
         setIsLoading(true);
         // Using getAuditLogs from master actions. In a real app we might want to filter only OPERATOR_DESA roles
@@ -24,6 +18,13 @@ export default function OperatorMonitoringPage() {
         setLogs(data);
         setIsLoading(false);
     };
+
+    useEffect(() => {
+        if (session?.user?.tenantId) {
+            loadLogs();
+        }
+    }, [session, page]);
+
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">

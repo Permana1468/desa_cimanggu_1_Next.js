@@ -14,10 +14,6 @@ export function PuskesosWargaTab({ session }: any) {
   const [selectedWarga, setSelectedWarga] = useState<any>(null);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -29,12 +25,17 @@ export function PuskesosWargaTab({ session }: any) {
     setLoading(false);
   };
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+
   const handleEditClick = (warga: any) => {
     setSelectedWarga(warga);
     setShowEditModal(true);
   };
 
-  let filteredData = data.filter(d => {
+  const filteredData = data.filter(d => {
     const matchSearch = d.namaLengkap.toLowerCase().includes(search.toLowerCase()) || d.nik.includes(search);
     const matchRT = filterRT === "ALL" || d.rt === filterRT;
     const matchRW = filterRW === "ALL" || d.rw === filterRW;

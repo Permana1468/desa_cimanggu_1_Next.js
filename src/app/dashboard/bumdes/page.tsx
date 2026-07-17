@@ -67,10 +67,6 @@ export default function BumdesPage() {
         icon: "ShoppingBag"
     });
 
-    useEffect(() => {
-        fetchData();
-    }, []);
-
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -96,6 +92,11 @@ export default function BumdesPage() {
         }
         setLoading(false);
     };
+
+    useEffect(() => {
+        fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleAddTransaction = async (e: React.FormEvent) => {
         e.preventDefault();

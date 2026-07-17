@@ -5,8 +5,8 @@ export function toRoman(num: number): string {
     X: 10, IX: 9, V: 5, IV: 4, I: 1
   };
   let str = '';
-  for (let i of Object.keys(roman)) {
-    let q = Math.floor(num / roman[i]);
+  for (const i of Object.keys(roman)) {
+    const q = Math.floor(num / roman[i]);
     num -= q * roman[i];
     str += i.repeat(q);
   }

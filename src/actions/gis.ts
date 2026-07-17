@@ -2,6 +2,37 @@
 
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import * as turf from '@turf/turf';
+
+export async function getGisDashboardStats(tenantId: string) {
+  try {
+    const [totalJiwa, totalHouses, totalKKRaw] = await Promise.all([
+      prisma.dataKependudukan.count({ where: { tenantId } }),
+      prisma.sensusPoint.count({
+        where: { tenantId, type: "RUMAH_WARGA", status: "DISETUJUI" }
+      }),
+      prisma.$queryRaw<[{ count: number }]>`SELECT COUNT(DISTINCT "noKK")::int as count FROM "DataKependudukan" WHERE "tenantId" = ${tenantId}`
+    ]);
+    
+    const totalKK = totalKKRaw[0]?.count || 0;
+
+    return {
+      success: true,
+      data: {
+        houses: totalHouses,
+        families: totalKK,
+        population: totalJiwa,
+        poverty: 0,
+      }
+    };
+  } catch (error) {
+    console.warn("getGisDashboardStats failed (database offline?), returning defaults");
+    return { success: false, data: { houses: 0, families: 0, population: 0, poverty: 0 } };
+  }
+}
+
+
+
 
 // 1. Fetch all boundaries for a tenant
 export async function getBoundaries(tenantId: string) {
@@ -12,7 +43,7 @@ export async function getBoundaries(tenantId: string) {
     });
     return { success: true, data: boundaries };
   } catch (error: any) {
-    console.error("Error in getBoundaries:", error);
+    console.warn("getBoundaries failed, returning empty");
     return { success: false, error: error.message || "Gagal mengambil data batas wilayah" };
   }
 }
@@ -45,8 +76,6 @@ export async function saveBoundary(payload: {
       if (!parentBoundary) {
          throw new Error(`Batas Induk (${parentType} ${parentName}) tidak ditemukan. Pastikan Induk sudah digambar.`);
       }
-
-      const turf = require("@turf/turf");
 
       const rawParentCoords = typeof parentBoundary.coordinates === "string" 
          ? JSON.parse(parentBoundary.coordinates) 
@@ -115,6 +144,65 @@ export async function saveBoundary(payload: {
   } catch (error: any) {
     console.error("Error in saveBoundary:", error);
     return { success: false, error: error.message || "Gagal menyimpan batas wilayah" };
+  }
+}
+
+// 3. Smart Search by NIK or Name
+export async function searchWargaForGis(tenantId: string, query: string) {
+  try {
+    // Cari warga berdasarkan NIK (tepat) atau Nama (mengandung kata)
+    const warga = await prisma.dataKependudukan.findFirst({
+      where: {
+        tenantId,
+        OR: [
+          { nik: query },
+          { namaLengkap: { contains: query, mode: "insensitive" } }
+        ]
+      },
+      select: {
+        nik: true,
+        namaLengkap: true,
+        noKK: true,
+        rt: true,
+        rw: true,
+      }
+    });
+
+    if (!warga) {
+      return { success: false, error: "Warga tidak ditemukan" };
+    }
+
+    // Cari lokasi rumah warga berdasarkan noKK di tabel SensusPoint
+    const point = await prisma.sensusPoint.findFirst({
+      where: {
+        tenantId,
+        noKK: warga.noKK,
+        type: "RUMAH_WARGA"
+      }
+    });
+
+    if (!point) {
+      return { 
+        success: true, 
+        data: {
+          ...warga,
+          hasLocation: false
+        }
+      };
+    }
+
+    return {
+      success: true,
+      data: {
+        ...warga,
+        hasLocation: true,
+        latitude: point.latitude,
+        longitude: point.longitude
+      }
+    };
+  } catch (error) {
+    console.warn("Smart search failed:", error);
+    return { success: false, error: "Gagal mencari data" };
   }
 }
 

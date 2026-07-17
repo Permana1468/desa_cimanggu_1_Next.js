@@ -17,16 +17,17 @@ export function RwInstitutionsTab({ session }: { session: any }) {
 
     const isRw = session?.user?.role === "RW";
 
-    useEffect(() => {
-        loadInstitutions();
-    }, []);
-
     const loadInstitutions = async () => {
         setLoading(true);
         const data = await getRwInstitutions();
         setInstitutions(data);
         setLoading(false);
     };
+
+    useEffect(() => {
+        loadInstitutions();
+    }, []);
+
 
     const handleAddInst = async (e: React.FormEvent) => {
         e.preventDefault();

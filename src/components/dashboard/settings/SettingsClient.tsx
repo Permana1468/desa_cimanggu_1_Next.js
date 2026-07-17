@@ -36,12 +36,6 @@ export default function SettingsClient({ user }: { user: any }) {
     const [configError, setConfigError] = useState("");
     const [configSuccess, setConfigSuccess] = useState("");
 
-    React.useEffect(() => {
-        if (activeSection === "integrasi-cloud") {
-            fetchCloudConfig();
-        }
-    }, [activeSection]);
-
     const fetchCloudConfig = async () => {
         setLoadingConfig(true);
         try {
@@ -61,6 +55,13 @@ export default function SettingsClient({ user }: { user: any }) {
         }
         setLoadingConfig(false);
     };
+
+    React.useEffect(() => {
+        if (activeSection === "integrasi-cloud") {
+            fetchCloudConfig();
+        }
+    }, [activeSection]);
+
 
     const handleSaveCloudConfig = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -456,7 +457,7 @@ export default function SettingsClient({ user }: { user: any }) {
                                     required
                                 />
                                 <p className="text-xs text-slate-400 mt-1.5">
-                                    Pastikan folder ini sudah di-Share ke alamat Service Account Email Anda dengan akses "Editor" agar file dapat terunggah.
+                                    Pastikan folder ini sudah di-Share ke alamat Service Account Email Anda dengan akses &quot;Editor&quot; agar file dapat terunggah.
                                 </p>
                             </div>
 

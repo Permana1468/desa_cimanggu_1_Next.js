@@ -109,7 +109,7 @@ Tugas Anda:
         // Parsing JSON output
         try {
             // Bersihkan markdown blok jika AI membandel
-            let cleanText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
+            const cleanText = responseText.replace(/```json/g, "").replace(/```/g, "").trim();
             const apbdesData = JSON.parse(cleanText);
             
             // Hitung persentase untuk keamanan

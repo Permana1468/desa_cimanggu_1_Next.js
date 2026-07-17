@@ -8,7 +8,7 @@ import { authOptions } from "@/lib/auth";
 // Helper to get tenantId safely
 async function getTenantId(): Promise<string | null> {
   const session = await getServerSession(authOptions);
-  // @ts-ignore
+
   return session?.user?.tenantId ?? null;
 }
 

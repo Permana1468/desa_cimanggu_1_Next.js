@@ -21,6 +21,7 @@ import {
   Activity as ActivityIcon
 } from "lucide-react";
 import { formatWilayah, formatDusun } from "@/lib/formatters";
+import * as turf from '@turf/turf';
 import { WARGA_FIELDS, DEFAULT_WARGA_FORM, isWargaDataIncomplete } from "@/lib/wargaSchema";
 import { 
   getRtDashboardStats, getRtFinance, addRtFinanceTransaction, deleteRtFinanceTransaction,
@@ -1792,6 +1793,7 @@ function LampidTab({
     }
   }, [preFilledMutation, clearPreFilledMutation]);
 
+
   const loadData = async () => {
     setLoading(true);
     let data: any[] = [];
@@ -3032,7 +3034,7 @@ function ComplaintsTab({ rt, rw }: { rt: string; rw: string }) {
                     </td>
                     <td className="p-6 max-w-xs">
                       {item.notes ? (
-                        <div className="text-slate-600 italic">"{item.notes}"</div>
+                        <div className="text-slate-600 italic">&quot;{item.notes}&quot;</div>
                       ) : (
                         <span className="text-slate-400 font-medium italic">Belum ada tanggapan</span>
                       )}
@@ -3569,44 +3571,6 @@ function GeoSensusTab({ session }: { session: any }) {
     boundary: true
   });
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsOffline(!navigator.onLine);
-      const handleOnline = () => {
-        setIsOffline(false);
-        triggerSync();
-      };
-      const handleOffline = () => setIsOffline(true);
-      window.addEventListener("online", handleOnline);
-      window.addEventListener("offline", handleOffline);
-      return () => {
-        window.removeEventListener("online", handleOnline);
-        window.removeEventListener("offline", handleOffline);
-      };
-    }
-  }, []);
-
-  const triggerSync = async () => {
-    const cached = localStorage.getItem("sensus-points-offline");
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      if (parsed.length > 0) {
-        for (const p of parsed) {
-          await saveSensusPoint(p);
-        }
-        localStorage.removeItem("sensus-points-offline");
-      }
-    }
-
-    const cachedBoundary = localStorage.getItem("sensus-boundary-offline");
-    if (cachedBoundary) {
-      await saveRtMapBoundary(JSON.parse(cachedBoundary));
-      localStorage.removeItem("sensus-boundary-offline");
-    }
-
-    fetchInitialData();
-  };
-
   const fetchInitialData = async () => {
     setLoading(true);
     if (session?.user?.role === "RW") {
@@ -3640,147 +3604,44 @@ function GeoSensusTab({ session }: { session: any }) {
     fetchInitialData();
   }, []);
 
-  useEffect(() => {
-    if (loading) return;
-
-    let mapInstance: any = null;
-
-    async function init() {
-      const L = (await import("leaflet")).default;
-      LRef.current = L;
-
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-      });
-
-      await import("@geoman-io/leaflet-geoman-free");
-
-      const container = L.DomUtil.get(mapContainerId);
-      if (container) {
-        (container as any)._leaflet_id = null;
-      }
-
-      let defaultCenter: [number, number] = [-6.5971, 106.6786];
-      let defaultZoom = 16;
-
-      if (session?.user?.role === "RW" && rwBoundary) {
-        try {
-          const coords = typeof rwBoundary.coordinates === "string" ? JSON.parse(rwBoundary.coordinates) : rwBoundary.coordinates;
-          if (coords && coords.length > 0) defaultCenter = coords[0];
-        } catch (e) {}
-      } else if (boundary) {
-        try {
-          const coords = typeof boundary.coordinates === "string" ? JSON.parse(boundary.coordinates) : boundary.coordinates;
-          if (coords && coords.length > 0) {
-            defaultCenter = coords[0];
-          }
-        } catch (e) {}
-      }
-
-      mapInstance = L.map(mapContainerId, {
-        zoomControl: true,
-      }).setView(defaultCenter, defaultZoom);
-
-      mapRef.current = mapInstance;
-
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19
-      }).addTo(mapInstance);
-
-      layersGroupRef.current = L.layerGroup().addTo(mapInstance);
-      boundaryGroupRef.current = L.layerGroup().addTo(mapInstance);
-
-      mapInstance.on("click", (e: any) => {
-        const activeMode = mapInstance.options.customMode;
-        if (activeMode === "sensus") {
-          const { lat, lng } = e.latlng;
-          setPoiForm({
-            type: "RUMAH_WARGA",
-            latitude: lat,
-            longitude: lng,
-            noKK: "",
-            statusWarga: "WARGA_TETAP",
-            name: "",
-            categoryFasum: "IBADAH",
-            description: ""
-          });
-          setSelectedPoint({ isNew: true, latitude: lat, longitude: lng });
+  const triggerSync = async () => {
+    const cached = localStorage.getItem("sensus-points-offline");
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed.length > 0) {
+        for (const p of parsed) {
+          await saveSensusPoint(p);
         }
-      });
-
-      redrawAll();
+        localStorage.removeItem("sensus-points-offline");
+      }
     }
 
+    const cachedBoundary = localStorage.getItem("sensus-boundary-offline");
+    if (cachedBoundary) {
+      await saveRtMapBoundary(JSON.parse(cachedBoundary));
+      localStorage.removeItem("sensus-boundary-offline");
+    }
+
+    fetchInitialData();
+  };
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
-      init();
+      setIsOffline(!navigator.onLine);
+      const handleOnline = () => {
+        setIsOffline(false);
+        triggerSync();
+      };
+      const handleOffline = () => setIsOffline(true);
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+      return () => {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+      };
     }
+  }, []);
 
-    return () => {
-      if (mapInstance) {
-        mapInstance.remove();
-      }
-    };
-  }, [loading, boundary, rwBoundary, rtBoundaries]);
-
-  useEffect(() => {
-    if (mapRef.current) {
-      mapRef.current.options.customMode = mode;
-
-      const L = LRef.current;
-      if (!L) return;
-
-      if (mode === "boundary") {
-        mapRef.current.pm.addControls({
-          position: 'topleft',
-          drawMarker: false,
-          drawCircleMarker: false,
-          drawPolyline: false,
-          drawRectangle: false,
-          drawCircle: false,
-          drawPolygon: true,
-          editMode: true,
-          dragMode: true,
-          cutPolygon: false,
-          removalMode: true
-        });
-
-        mapRef.current.on("pm:create", (e: any) => {
-          const layer = e.layer;
-          
-          if (typeof layer.getLatLngs === 'function') {
-            try {
-              const latlngs = layer.getLatLngs()[0];
-              if (latlngs && Array.isArray(latlngs)) {
-                const coords = latlngs.map((ll: any) => [ll.lat, ll.lng]);
-                coords.push(coords[0]); // Close the polygon
-                
-                if (confirm("Gunakan poligon ini sebagai batas RT Anda?")) {
-                  handleSaveBoundary(coords);
-                }
-              }
-            } catch (err) {
-              console.error("Failed to parse polygon coordinates", err);
-              alert("Gagal memproses poligon. Pastikan Anda menggambar bentuk area tertutup.");
-            }
-          } else {
-            alert("Harap gunakan alat Poligon (Polygon) untuk menggambar batas wilayah.");
-          }
-          
-          layer.remove(); // Always remove the drawn layer immediately as it's saved/handled via API
-        });
-      } else {
-        mapRef.current.pm.removeControls();
-      }
-    }
-  }, [mode]);
-
-  useEffect(() => {
-    redrawAll();
-  }, [points, layers, boundary, rwBoundary, rtBoundaries]);
 
   const redrawAll = () => {
     const L = LRef.current;
@@ -3901,11 +3762,173 @@ function GeoSensusTab({ session }: { session: any }) {
     });
   };
 
+  useEffect(() => {
+    if (loading) return;
+
+    let mapInstance: any = null;
+
+    async function init() {
+      const L = (await import("leaflet")).default;
+      LRef.current = L;
+
+      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+      });
+
+      await import("@geoman-io/leaflet-geoman-free");
+
+      const container = L.DomUtil.get(mapContainerId);
+      if (container) {
+        (container as any)._leaflet_id = null;
+      }
+
+      let defaultCenter: [number, number] = [-6.5971, 106.6786];
+      const defaultZoom = 16;
+
+      if (session?.user?.role === "RW" && rwBoundary) {
+        try {
+          const coords = typeof rwBoundary.coordinates === "string" ? JSON.parse(rwBoundary.coordinates) : rwBoundary.coordinates;
+          if (coords && coords.length > 0) defaultCenter = coords[0];
+        } catch (e) {}
+      } else if (boundary) {
+        try {
+          const coords = typeof boundary.coordinates === "string" ? JSON.parse(boundary.coordinates) : boundary.coordinates;
+          if (coords && coords.length > 0) {
+            defaultCenter = coords[0];
+          }
+        } catch (e) {}
+      }
+
+      mapInstance = L.map(mapContainerId, {
+        zoomControl: true,
+      }).setView(defaultCenter, defaultZoom);
+
+      mapRef.current = mapInstance;
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+      }).addTo(mapInstance);
+
+      layersGroupRef.current = L.layerGroup().addTo(mapInstance);
+      boundaryGroupRef.current = L.layerGroup().addTo(mapInstance);
+
+      mapInstance.on("click", (e: any) => {
+        const activeMode = mapInstance.options.customMode;
+        if (activeMode === "sensus") {
+          const { lat, lng } = e.latlng;
+          setPoiForm({
+            type: "RUMAH_WARGA",
+            latitude: lat,
+            longitude: lng,
+            noKK: "",
+            statusWarga: "WARGA_TETAP",
+            name: "",
+            categoryFasum: "IBADAH",
+            description: ""
+          });
+          setSelectedPoint({ isNew: true, latitude: lat, longitude: lng });
+        }
+      });
+
+      redrawAll();
+    }
+
+    if (typeof window !== "undefined") {
+      init();
+    }
+
+    return () => {
+      if (mapInstance) {
+        mapInstance.remove();
+      }
+    };
+  }, [loading, boundary, rwBoundary, rtBoundaries]);
+
+  const handleSaveBoundary = async (coordinates: any) => {
+    if (isOffline) {
+      localStorage.setItem("sensus-boundary-offline", JSON.stringify(coordinates));
+      alert("Offline Mode: Batas wilayah disimpan lokal di browser cache.");
+      setBoundary({ coordinates });
+    } else {
+      setActionLoading(true);
+      const res = await saveRtMapBoundary(coordinates);
+      setActionLoading(false);
+      if (res.success) {
+        alert("Batas wilayah RT berhasil disimpan!");
+        fetchInitialData();
+      } else {
+        alert("Gagal menyimpan batas wilayah: " + res.error);
+      }
+    }
+    setMode("view");
+  };
+
+  useEffect(() => {
+    if (mapRef.current) {
+      mapRef.current.options.customMode = mode;
+
+      const L = LRef.current;
+      if (!L) return;
+
+      if (mode === "boundary") {
+        mapRef.current.pm.addControls({
+          position: 'topleft',
+          drawMarker: false,
+          drawCircleMarker: false,
+          drawPolyline: false,
+          drawRectangle: false,
+          drawCircle: false,
+          drawPolygon: true,
+          editMode: true,
+          dragMode: true,
+          cutPolygon: false,
+          removalMode: true
+        });
+
+        mapRef.current.on("pm:create", (e: any) => {
+          const layer = e.layer;
+          
+          if (typeof layer.getLatLngs === 'function') {
+            try {
+              const latlngs = layer.getLatLngs()[0];
+              if (latlngs && Array.isArray(latlngs)) {
+                const coords = latlngs.map((ll: any) => [ll.lat, ll.lng]);
+                coords.push(coords[0]); // Close the polygon
+                
+                if (confirm("Gunakan poligon ini sebagai batas RT Anda?")) {
+                  handleSaveBoundary(coords);
+                }
+              }
+            } catch (err) {
+              console.error("Failed to parse polygon coordinates", err);
+              alert("Gagal memproses poligon. Pastikan Anda menggambar bentuk area tertutup.");
+            }
+          } else {
+            alert("Harap gunakan alat Poligon (Polygon) untuk menggambar batas wilayah.");
+          }
+          
+          layer.remove(); // Always remove the drawn layer immediately as it's saved/handled via API
+        });
+      } else {
+        mapRef.current.pm.removeControls();
+      }
+    }
+  }, [mode]);
+
+  useEffect(() => {
+    redrawAll();
+  }, [points, layers, boundary, rwBoundary, rtBoundaries]);
+
+
   const handleSavePoi = async (e: React.FormEvent) => {
     e.preventDefault();
     if (poiForm.latitude === 0 || poiForm.longitude === 0) return;
 
-    let payload: any = {
+    const payload: any = {
       type: poiForm.type,
       latitude: poiForm.latitude,
       longitude: poiForm.longitude,
@@ -3960,32 +3983,12 @@ function GeoSensusTab({ session }: { session: any }) {
     }
   };
 
-  const handleSaveBoundary = async (coordinates: any) => {
-    if (isOffline) {
-      localStorage.setItem("sensus-boundary-offline", JSON.stringify(coordinates));
-      alert("Offline Mode: Batas wilayah disimpan lokal di browser cache.");
-      setBoundary({ coordinates });
-    } else {
-      setActionLoading(true);
-      const res = await saveRtMapBoundary(coordinates);
-      setActionLoading(false);
-      if (res.success) {
-        alert("Batas wilayah RT berhasil disimpan!");
-        fetchInitialData();
-      } else {
-        alert("Gagal menyimpan batas wilayah: " + res.error);
-      }
-    }
-    setMode("view");
-  };
-
   const handleAutoRecommendPolygon = () => {
     if (points.length < 3) {
       alert("Dibutuhkan minimal 3 titik sensus untuk membuat rekomendasi batas (Convex Hull).");
       return;
     }
 
-    const turf = require("@turf/turf");
     try {
       const turfPoints = points.map(p => turf.point([p.longitude, p.latitude]));
       const collection = turf.featureCollection(turfPoints);
@@ -4007,7 +4010,6 @@ function GeoSensusTab({ session }: { session: any }) {
   const calculatePolygonStats = () => {
     if (!boundary) return { area: 0, houses: 0, fasum: 0 };
 
-    const turf = require("@turf/turf");
     let areaVal = 0;
     try {
       const coords = typeof boundary.coordinates === "string" ? JSON.parse(boundary.coordinates) : boundary.coordinates;

@@ -54,10 +54,6 @@ function PosyanduDashboardContent({ session }: any) {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
 
-  useEffect(() => {
-    if (activeTab === "overview") fetchStats();
-  }, [activeTab]);
-
   const fetchStats = async () => {
     setLoading(true);
     try {
@@ -69,6 +65,11 @@ function PosyanduDashboardContent({ session }: any) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (activeTab === "overview") fetchStats();
+  }, [activeTab]);
+
 
   const handleExport = async () => {
     try {

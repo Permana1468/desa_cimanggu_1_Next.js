@@ -52,10 +52,6 @@ export default function AparaturPage() {
         skUrl: ""
     });
 
-    useEffect(() => {
-        fetchAparatur();
-    }, []);
-
     const fetchAparatur = async () => {
         setLoading(true);
         try {
@@ -65,6 +61,11 @@ export default function AparaturPage() {
         }
         setLoading(false);
     };
+
+    useEffect(() => {
+        fetchAparatur();
+     
+    }, []);
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();

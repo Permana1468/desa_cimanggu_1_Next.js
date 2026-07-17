@@ -73,7 +73,145 @@ export default function InteractiveVillageMap({
   const layersGroupRef = useRef<any>(null);
   const LRef = useRef<any>(null);
 
+  async function handleSelectBoundary(b: Boundary) {
+    setSelectedBoundary(b);
+    setStats(null);
+    setStatsError("");
+    setStatsLoading(true);
+
+    // Dynamic zoom to the polygon
+    const L = LRef.current;
+    if (L && mapRef.current) {
+      mapRef.current.fitBounds(L.polygon(b.coordinates).getBounds(), { padding: [50, 50] });
+    }
+
+    try {
+      const res = await getBoundaryPopulationStats({
+        type: b.type,
+        name: b.name,
+        parentName: b.parentName,
+        tenantId
+      });
+
+      if (res.success) {
+        setStats(res.data);
+      } else {
+        setStatsError(res.error || "Gagal memuat statistik penduduk");
+      }
+    } catch (err: any) {
+      setStatsError("Terjadi kesalahan jaringan");
+    } finally {
+      setStatsLoading(false);
+    }
+  }
+
   // Initialize Map and Fetch Density
+  const drawBoundaries = () => {
+    const L = LRef.current;
+    const map = mapRef.current;
+    const group = layersGroupRef.current;
+
+    if (!L || !map || !group) return;
+
+    group.clearLayers();
+
+    // 1. Draw Inverted Polygon (Masking) if DESA exists
+    const desaBoundary = boundaries.find(b => b.type === "DESA");
+    if (desaBoundary) {
+      let desaCoords: [number, number][] = [];
+      try {
+        desaCoords = typeof desaBoundary.coordinates === "string" ? JSON.parse(desaBoundary.coordinates) : desaBoundary.coordinates;
+      } catch (e) {}
+
+      if (desaCoords && desaCoords.length >= 3) {
+        // Outer Bounds covering entire map range
+        const outerBounds = [
+          [-90, -180],
+          [90, -180],
+          [90, 180],
+          [-90, 180]
+        ];
+
+        // GeoJSON style for holes: [outerRing, innerRing]
+        L.polygon([outerBounds, desaCoords], {
+          color: "transparent",
+          fillColor: "#0f172a", // Dark slate mask
+          fillOpacity: 0.65,
+          interactive: false // So it doesn't block clicks on the actual boundaries
+        }).addTo(group);
+      }
+    }
+
+    // 2. Draw actual boundaries
+    const filtered = boundaries.filter(b => visibleLayers[b.type]);
+    if (filtered.length === 0) return;
+
+    const bounds: any[] = [];
+
+    filtered.forEach((b) => {
+      let coords: [number, number][] = [];
+      try {
+        coords = typeof b.coordinates === "string" ? JSON.parse(b.coordinates) : b.coordinates;
+      } catch (e) {
+        return;
+      }
+
+      if (!Array.isArray(coords) || coords.length === 0) return;
+
+      // Choropleth logic: calculate opacity and shade based on population density
+      const popCount = densityMap[b.id] || 0;
+      const maxPop = maxDensityByType[b.type] || 1;
+      // Normalization factor (0.2 to 0.8)
+      let calculatedOpacity = 0.15;
+      if (maxPop > 0) {
+        calculatedOpacity = 0.15 + (popCount / maxPop) * 0.65;
+      }
+
+      // Automatically make it darker if it's more populated
+      const isSelected = selectedBoundary?.id === b.id;
+      
+      const polygon = L.polygon(coords, {
+        color: b.color || "#3b82f6",
+        fillColor: b.color || "#3b82f6",
+        fillOpacity: isSelected ? 0.8 : calculatedOpacity,
+        weight: isSelected ? 4 : (b.type === "DESA" ? 3 : 2),
+        dashArray: b.type === "RT" ? "4, 6" : b.type === "RW" ? "6, 8" : undefined
+      }).addTo(group);
+
+      // Custom premium tooltip
+      const parentLabel = b.parentName ? ` (RW: ${b.parentName})` : "";
+      polygon.bindTooltip(`
+        <div class="font-sans">
+          <span class="text-[9px] font-black uppercase tracking-wider bg-slate-800 text-white px-2 py-0.5 rounded-md mr-1.5">${b.type}</span>
+          <span class="font-bold text-slate-900">${b.name}${parentLabel}</span>
+          <div class="mt-1 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full" style="background-color: ${b.color || '#3b82f6'}"></span>
+            <span class="text-[10px] font-bold text-slate-700">${popCount.toLocaleString()} Jiwa</span>
+          </div>
+          <p class="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-1.5 border-t border-slate-100 pt-1.5">Klik untuk Sensus Real-Time</p>
+        </div>
+      `, {
+        sticky: true,
+        className: "leaflet-voyager-tooltip border-0 shadow-lg p-3 rounded-2xl bg-white"
+      });
+
+      // Click event to fetch population stats
+      polygon.on("click", (e: any) => {
+        L.DomEvent.stopPropagation(e);
+        handleSelectBoundary(b);
+      });
+
+      coords.forEach(c => bounds.push(c));
+    });
+
+    if (bounds.length > 0 && !selectedBoundary) {
+      try {
+        map.invalidateSize();
+        map.fitBounds(bounds, { padding: [30, 30] });
+      } catch (e) {}
+    }
+  };
+
   useEffect(() => {
     let mapInstance: any = null;
 
@@ -197,143 +335,6 @@ export default function InteractiveVillageMap({
   }, [boundaries, visibleLayers]);
 
   // Helper to draw polygons on active layers
-  const drawBoundaries = () => {
-    const L = LRef.current;
-    const map = mapRef.current;
-    const group = layersGroupRef.current;
-
-    if (!L || !map || !group) return;
-
-    group.clearLayers();
-
-    // 1. Draw Inverted Polygon (Masking) if DESA exists
-    const desaBoundary = boundaries.find(b => b.type === "DESA");
-    if (desaBoundary) {
-      let desaCoords: [number, number][] = [];
-      try {
-        desaCoords = typeof desaBoundary.coordinates === "string" ? JSON.parse(desaBoundary.coordinates) : desaBoundary.coordinates;
-      } catch (e) {}
-
-      if (desaCoords && desaCoords.length >= 3) {
-        // Outer Bounds covering entire map range
-        const outerBounds = [
-          [-90, -180],
-          [90, -180],
-          [90, 180],
-          [-90, 180]
-        ];
-
-        // GeoJSON style for holes: [outerRing, innerRing]
-        L.polygon([outerBounds, desaCoords], {
-          color: "transparent",
-          fillColor: "#0f172a", // Dark slate mask
-          fillOpacity: 0.65,
-          interactive: false // So it doesn't block clicks on the actual boundaries
-        }).addTo(group);
-      }
-    }
-
-    // 2. Draw actual boundaries
-    const filtered = boundaries.filter(b => visibleLayers[b.type]);
-    if (filtered.length === 0) return;
-
-    const bounds: any[] = [];
-
-    filtered.forEach((b) => {
-      let coords: [number, number][] = [];
-      try {
-        coords = typeof b.coordinates === "string" ? JSON.parse(b.coordinates) : b.coordinates;
-      } catch (e) {
-        return;
-      }
-
-      if (!Array.isArray(coords) || coords.length === 0) return;
-
-      // Choropleth logic: calculate opacity and shade based on population density
-      const popCount = densityMap[b.id] || 0;
-      const maxPop = maxDensityByType[b.type] || 1;
-      // Normalization factor (0.2 to 0.8)
-      let calculatedOpacity = 0.15;
-      if (maxPop > 0) {
-        calculatedOpacity = 0.15 + (popCount / maxPop) * 0.65;
-      }
-
-      // Automatically make it darker if it's more populated
-      const isSelected = selectedBoundary?.id === b.id;
-      
-      const polygon = L.polygon(coords, {
-        color: b.color || "#3b82f6",
-        fillColor: b.color || "#3b82f6",
-        fillOpacity: isSelected ? 0.8 : calculatedOpacity,
-        weight: isSelected ? 4 : (b.type === "DESA" ? 3 : 2),
-        dashArray: b.type === "RT" ? "4, 6" : b.type === "RW" ? "6, 8" : undefined
-      }).addTo(group);
-
-      // Custom premium tooltip
-      const parentLabel = b.parentName ? ` (RW: ${b.parentName})` : "";
-      polygon.bindTooltip(`
-        <div class="font-sans">
-          <span class="text-[9px] font-black uppercase tracking-wider bg-slate-800 text-white px-2 py-0.5 rounded-md mr-1.5">${b.type}</span>
-          <span class="font-bold text-slate-900">${b.name}${parentLabel}</span>
-          <div class="mt-1 flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full" style="background-color: ${b.color || '#3b82f6'}"></span>
-            <span class="text-[10px] font-bold text-slate-700">${popCount.toLocaleString()} Jiwa</span>
-          </div>
-          <p class="text-[8px] text-slate-400 font-bold uppercase tracking-widest mt-1.5 border-t border-slate-100 pt-1.5">Klik untuk Sensus Real-Time</p>
-        </div>
-      `, {
-        sticky: true,
-        className: "leaflet-voyager-tooltip border-0 shadow-lg p-3 rounded-2xl bg-white"
-      });
-
-      // Click event to fetch population stats
-      polygon.on("click", (e: any) => {
-        L.DomEvent.stopPropagation(e);
-        handleSelectBoundary(b);
-      });
-
-      coords.forEach(c => bounds.push(c));
-    });
-
-    if (bounds.length > 0 && !selectedBoundary) {
-      try {
-        map.invalidateSize();
-        map.fitBounds(bounds, { padding: [30, 30] });
-      } catch (e) {}
-    }
-  };
-
-  const handleSelectBoundary = async (b: Boundary) => {
-    setSelectedBoundary(b);
-    setStats(null);
-    setStatsError("");
-    setStatsLoading(true);
-
-    // Dynamic zoom to the polygon
-    const L = LRef.current;
-    if (L && mapRef.current) {
-      mapRef.current.fitBounds(L.polygon(b.coordinates).getBounds(), { padding: [50, 50] });
-    }
-
-    try {
-      const res = await getBoundaryPopulationStats({
-        type: b.type,
-        name: b.name,
-        parentName: b.parentName,
-        tenantId
-      });
-
-      if (res.success) {
-        setStats(res.data);
-      } else {
-        setStatsError(res.error || "Gagal memuat statistik penduduk");
-      }
-    } catch (err: any) {
-      setStatsError("Terjadi kesalahan jaringan");
-    } finally {
-      setStatsLoading(false);
-    }
-  };
 
   const toggleLayer = (layer: "DESA" | "DUSUN" | "RW" | "RT") => {
     setVisibleLayers((prev) => ({

@@ -21,11 +21,6 @@ export function RwSecurityTab({ session }: { session: any }) {
 
     const isRw = session?.user?.role === "RW";
 
-    useEffect(() => {
-        loadLogs();
-        loadSchedules();
-    }, []);
-
     const loadLogs = async () => {
         setLoadingLogs(true);
         const data = await getRwSecurityLogs();
@@ -39,6 +34,13 @@ export function RwSecurityTab({ session }: { session: any }) {
         setSchedules(data);
         setLoadingSchedules(false);
     };
+
+    useEffect(() => {
+        loadLogs();
+        loadSchedules();
+    }, []);
+
+
 
     const handleAddLog = async (e: React.FormEvent) => {
         e.preventDefault();

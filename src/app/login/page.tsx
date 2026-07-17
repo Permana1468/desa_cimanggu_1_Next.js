@@ -95,9 +95,13 @@ export default function LoginPage() {
                 setSuccess("Masuk berhasil! Mengalihkan...");
                 // Set the session active flag in sessionStorage
                 sessionStorage.setItem("tab_session_active", "true");
-                // Force a hard navigation to the unified dashboard
-                // The dashboard layout/page will handle role-specific routing
-                window.location.href = "/dashboard";
+                
+                // Prevent NEXT_REDIRECT dev error overlay by routing directly 
+                if (identifier === "petagis@cimanggu1.desa.id") {
+                    window.location.href = "/gis-dashboard";
+                } else {
+                    window.location.href = "/dashboard";
+                }
             }
         } catch (err) {
             setError("Terjadi kesalahan sistem");

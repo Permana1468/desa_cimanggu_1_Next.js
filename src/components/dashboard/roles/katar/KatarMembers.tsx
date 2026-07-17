@@ -92,7 +92,7 @@ export function KatarMembers({ session }: { session: any }) {
                 <tr><td colSpan={6} className="p-10 text-center">
                   <UserCircle className="mx-auto text-slate-200 mb-2" size={36} />
                   <p className="text-slate-400 font-medium text-sm">Belum ada anggota terdaftar.</p>
-                  <p className="text-slate-300 text-xs mt-1">Klik tombol "Tambah Anggota" untuk mendaftarkan anggota baru.</p>
+                  <p className="text-slate-300 text-xs mt-1">Klik tombol &quot;Tambah Anggota&quot; untuk mendaftarkan anggota baru.</p>
                 </td></tr>
               )}
               {!loading && filtered.map((member) => {

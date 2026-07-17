@@ -18,18 +18,6 @@ export function KesraCloudTab({ session }: any) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchConfig();
-  }, []);
-
-  useEffect(() => {
-    if (config.connected && config.folderId) {
-      fetchFiles(config.folderId);
-    } else {
-      setFiles([]);
-    }
-  }, [config.connected, config.folderId]);
-
   const fetchConfig = async () => {
     setLoadingConfig(true);
     try {
@@ -53,7 +41,20 @@ export function KesraCloudTab({ session }: any) {
     setLoadingConfig(false);
   };
 
-  const fetchFiles = async (fid: string) => {
+  useEffect(() => {
+    fetchConfig();
+  }, []);
+
+  useEffect(() => {
+    if (config.connected && config.folderId) {
+      fetchFiles(config.folderId);
+    } else {
+      setFiles([]);
+    }
+  }, [config.connected, config.folderId]);
+
+
+  async function fetchFiles(fid: string) {
     if (!fid) return;
     setLoadingFiles(true);
     setError("");

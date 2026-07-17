@@ -19,10 +19,6 @@ export function PosyanduJadwalTab({ session }: any) {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -33,6 +29,11 @@ export function PosyanduJadwalTab({ session }: any) {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
 
   const handleTambah = async (record: any) => {
     await addPosyanduJadwal(record);

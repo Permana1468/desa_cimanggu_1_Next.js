@@ -1,5 +1,4 @@
-import { PrismaClient } from '@prisma/client'; 
-const prisma = new PrismaClient(); 
+import prisma from './src/lib/prisma'; 
 async function main() { 
   const u = await prisma.user.findMany({ 
     where: { role: 'KADUS' }, 

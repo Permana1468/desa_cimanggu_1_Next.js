@@ -59,13 +59,13 @@ async function main() {
   const roles = ["ADMIN_DESA", "KADES", "SEKDES", "RT", "RW", "KASI", "KAUR", "KADUS"];
 
   for (const role of roles) {
-    for (const module of modules) {
+    for (const moduleName of modules) {
       await prisma.rolePermission.upsert({
-        where: { role_module: { role: role as any, module } },
+        where: { role_module: { role: role as any, module: moduleName } },
         update: {},
         create: {
           role: role as any,
-          module,
+          module: moduleName,
           canView: true,
           canCreate: ["ADMIN_DESA", "SEKDES", "KASI", "KAUR"].includes(role),
           canUpdate: ["ADMIN_DESA", "SEKDES"].includes(role),

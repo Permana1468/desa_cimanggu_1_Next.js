@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getVillageDashboardStats, getSuratList } from "@/actions/village";
 import { getDashboardRealtimeStats } from "@/actions/dashboard";
+import { redirect } from "next/navigation";
 
 // Role Components
 import { ExecutiveDashboard } from "@/components/dashboard/roles/ExecutiveDashboard";
@@ -21,6 +22,10 @@ import { PuskesosDashboard } from "@/components/dashboard/roles/PuskesosDashboar
 export default async function VillageDashboardPage() {
   const session = await getServerSession(authOptions);
   
+  if (session?.user?.email === "petagis@cimanggu1.desa.id") {
+    redirect("/gis-dashboard");
+  }
+
   const stats = await getVillageDashboardStats();
   const latestSurat = await getSuratList();
   const realtimeStats = await getDashboardRealtimeStats();

@@ -17,10 +17,6 @@ export function PosyanduKehadiranTab({ session }: any) {
   const [filterKategori, setFilterKategori] = useState<string>("Semua");
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -31,6 +27,11 @@ export function PosyanduKehadiranTab({ session }: any) {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
 
   const handleTambah = async (record: any) => {
     await addPosyanduKehadiran(record);

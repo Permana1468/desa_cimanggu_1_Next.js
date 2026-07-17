@@ -23,7 +23,7 @@ export async function exportWargaExcel(filter?: any) {
         const userRt = (session.user as any).rt;
         const userRw = (session.user as any).rw;
 
-        let filterScope: any = {};
+        const filterScope: any = {};
         if (role === "RT") {
             const rtClean = cleanDigits(userRt || "");
             const rwClean = cleanDigits(userRw || "");

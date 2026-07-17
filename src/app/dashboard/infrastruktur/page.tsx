@@ -19,18 +19,19 @@ export default function InfrastrukturPage() {
         namaProyek: "", jenisPekerjaan: "", lokasi: "", dimensiPanjang: "", dimensiLebar: "", dimensiTinggi: "", anggaran: "", sumberDana: "", status: "PERENCANAAN"
     });
 
-    useEffect(() => {
-        if (session?.user?.tenantId) {
-            loadData();
-        }
-    }, [session]);
-
     const loadData = async () => {
         setIsLoading(true);
         const data = await getInfrastrukturProjects(session?.user?.tenantId || "");
         setProjects(data);
         setIsLoading(false);
     };
+
+    useEffect(() => {
+        if (session?.user?.tenantId) {
+            loadData();
+        }
+    }, [session]);
+
 
     // RAB States
     const [selectedProjectForRab, setSelectedProjectForRab] = useState<any | null>(null);

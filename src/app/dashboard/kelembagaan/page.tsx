@@ -74,16 +74,17 @@ export default function KelembagaanPage() {
         level: 2
     });
 
-    useEffect(() => {
-        fetchLembagas();
-    }, []);
-
     const fetchLembagas = async () => {
         setLoading(true);
         const data = await getLembagas();
         setLembagas(data);
         setLoading(false);
     };
+
+    useEffect(() => {
+        fetchLembagas();
+    }, []);
+
 
     const handleAdd = async (e: React.FormEvent) => {
         e.preventDefault();

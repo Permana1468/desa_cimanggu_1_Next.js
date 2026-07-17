@@ -123,7 +123,7 @@ export function KatarFinance({ session }: { session: any }) {
                 <tr><td colSpan={6} className="p-12 text-center">
                   <Banknote className="mx-auto text-slate-200 mb-2" size={40} />
                   <p className="text-slate-400 font-medium text-sm">Belum ada transaksi tercatat.</p>
-                  <p className="text-slate-300 text-xs mt-1">Klik tombol "Pemasukan" atau "Pengeluaran" untuk mencatat transaksi.</p>
+                  <p className="text-slate-300 text-xs mt-1">Klik tombol &quot;Pemasukan&quot; atau &quot;Pengeluaran&quot; untuk mencatat transaksi.</p>
                 </td></tr>
               )}
               {!loading && filtered.map((f) => (

@@ -24,10 +24,6 @@ export default function VillageProfilePage() {
         galeri: [] as string[]
     });
 
-    useEffect(() => {
-        fetchProfile();
-    }, []);
-
     const fetchProfile = async () => {
         setLoading(true);
         const data = await getVillageProfile();
@@ -47,6 +43,11 @@ export default function VillageProfilePage() {
         }
         setLoading(false);
     };
+
+    useEffect(() => {
+        fetchProfile();
+    }, []);
+
 
     const handleUpdate = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -142,7 +143,7 @@ export default function VillageProfilePage() {
                             <div>
                                 <h4 className="text-xs font-black text-amber-600 uppercase tracking-widest mb-2">Visi</h4>
                                 <p className="text-slate-700 font-bold text-lg leading-relaxed italic">
-                                    "{profile?.visi || "Visi belum diisi."}"
+                                    &quot;{profile?.visi || "Visi belum diisi."}&quot;
                                 </p>
                             </div>
                             <div>

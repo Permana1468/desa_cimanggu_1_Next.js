@@ -44,6 +44,62 @@ export function KesraGisTab({ session }: any) {
   };
 
   // Initialize Map
+  const renderMarkers = () => {
+    const L = LRef.current;
+    const map = mapRef.current;
+    const group = markersGroupRef.current;
+
+    if (!L || !map || !group) return;
+
+    group.clearLayers();
+
+    const filtered = wargas.filter(w => {
+      const matchSearch = w.nama.toLowerCase().includes(search.toLowerCase()) || w.nik.includes(search);
+      const matchFilter = filterKerentanan === "ALL" || w.kategoriKerentanan === filterKerentanan;
+      return matchSearch && matchFilter;
+    });
+
+    filtered.forEach(w => {
+      // Choose color based on category
+      // Red: MISKIN_EKSTREM, Yellow/Orange: RENTAN, Green: MAMPU
+      let color = "#10b981"; // green
+      let catLabel = "Mampu";
+      if (w.kategoriKerentanan === "MISKIN_EKSTREM") {
+        color = "#ef4444"; // red
+        catLabel = "Miskin Ekstrem";
+      } else if (w.kategoriKerentanan === "RENTAN") {
+        color = "#f59e0b"; // yellow
+        catLabel = "Rentan Sosial";
+      }
+
+      const customIcon = L.divIcon({
+        className: "custom-marker-pin",
+        html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3)"></div>`,
+        iconSize: [14, 14],
+        iconAnchor: [7, 7]
+      });
+
+      const marker = L.marker([w.latitude, w.longitude], { icon: customIcon });
+      
+      const popupHtml = `
+        <div style="font-family: sans-serif; font-size: 11px; color: #334155; width: 180px;">
+          <h4 style="margin: 0 0 5px; font-weight: bold; font-size: 12px; color: #0f172a;">${w.nama}</h4>
+          <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 9px; color: white; background-color: ${color}; margin-bottom: 8px;">
+            ${catLabel}
+          </span>
+          <p style="margin: 0 0 4px;"><b>NIK:</b> ${w.nik}</p>
+          <p style="margin: 0 0 4px;"><b>Telp:</b> ${w.kontak || "-"}</p>
+          <p style="margin: 0 0 4px;"><b>Posisi:</b> ${w.latitude.toFixed(5)}, ${w.longitude.toFixed(5)}</p>
+          ${w.fotoRumah ? `<img src="${w.fotoRumah}" style="width: 100%; height: 70px; object-cover; border-radius: 6px; margin-top: 6px;" alt="Rumah" />` : ""}
+        </div>
+      `;
+      
+      marker.bindTooltip(popupHtml, { direction: 'top', className: 'gis-tooltip' });
+      marker.bindPopup(popupHtml); // keep click functionality as fallback
+      marker.addTo(group);
+    });
+  };
+
   useEffect(() => {
     if (loading) return;
 
@@ -120,61 +176,6 @@ export function KesraGisTab({ session }: any) {
     };
   }, [loading, wargas, filterKerentanan]);
 
-  const renderMarkers = () => {
-    const L = LRef.current;
-    const map = mapRef.current;
-    const group = markersGroupRef.current;
-
-    if (!L || !map || !group) return;
-
-    group.clearLayers();
-
-    const filtered = wargas.filter(w => {
-      const matchSearch = w.nama.toLowerCase().includes(search.toLowerCase()) || w.nik.includes(search);
-      const matchFilter = filterKerentanan === "ALL" || w.kategoriKerentanan === filterKerentanan;
-      return matchSearch && matchFilter;
-    });
-
-    filtered.forEach(w => {
-      // Choose color based on category
-      // Red: MISKIN_EKSTREM, Yellow/Orange: RENTAN, Green: MAMPU
-      let color = "#10b981"; // green
-      let catLabel = "Mampu";
-      if (w.kategoriKerentanan === "MISKIN_EKSTREM") {
-        color = "#ef4444"; // red
-        catLabel = "Miskin Ekstrem";
-      } else if (w.kategoriKerentanan === "RENTAN") {
-        color = "#f59e0b"; // yellow
-        catLabel = "Rentan Sosial";
-      }
-
-      const customIcon = L.divIcon({
-        className: "custom-marker-pin",
-        html: `<div style="background-color: ${color}; width: 14px; height: 14px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.3)"></div>`,
-        iconSize: [14, 14],
-        iconAnchor: [7, 7]
-      });
-
-      const marker = L.marker([w.latitude, w.longitude], { icon: customIcon });
-      
-      const popupHtml = `
-        <div style="font-family: sans-serif; font-size: 11px; color: #334155; width: 180px;">
-          <h4 style="margin: 0 0 5px; font-weight: bold; font-size: 12px; color: #0f172a;">${w.nama}</h4>
-          <span style="display: inline-block; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 9px; color: white; background-color: ${color}; margin-bottom: 8px;">
-            ${catLabel}
-          </span>
-          <p style="margin: 0 0 4px;"><b>NIK:</b> ${w.nik}</p>
-          <p style="margin: 0 0 4px;"><b>Telp:</b> ${w.kontak || "-"}</p>
-          <p style="margin: 0 0 4px;"><b>Posisi:</b> ${w.latitude.toFixed(5)}, ${w.longitude.toFixed(5)}</p>
-          ${w.fotoRumah ? `<img src="${w.fotoRumah}" style="width: 100%; height: 70px; object-cover; border-radius: 6px; margin-top: 6px;" alt="Rumah" />` : ""}
-        </div>
-      `;
-      
-      marker.bindTooltip(popupHtml, { direction: 'top', className: 'gis-tooltip' });
-      marker.bindPopup(popupHtml); // keep click functionality as fallback
-      marker.addTo(group);
-    });
-  };
 
   const handleDeleteWarga = async (id: string) => {
     if (confirm("Hapus data GIS titik rumah warga ini?")) {

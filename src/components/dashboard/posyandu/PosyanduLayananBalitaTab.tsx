@@ -14,10 +14,6 @@ export function PosyanduLayananBalitaTab({ session }: any) {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -32,6 +28,11 @@ export function PosyanduLayananBalitaTab({ session }: any) {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
 
   const handleTambah = async (record: any) => {
     await addPosyanduRecord(record);

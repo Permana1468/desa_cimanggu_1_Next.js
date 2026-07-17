@@ -1,3 +1,5 @@
+"use client";
+
 import { 
   Terminal,
   Activity,
@@ -11,9 +13,16 @@ import {
   Network
 } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import { CyberPlanRabTab } from "../perencanaan/CyberPlanRabTab";
 
 export function PerencanaanDashboard({ session, stats }: { session: any, stats: any }) {
   const roleName = session?.user?.role?.replace(/_/g, ' ') || "KAUR PERENCANAAN";
+  const [activeTab, setActiveTab] = useState("main");
+
+  if (activeTab === "rab") {
+    return <CyberPlanRabTab onBack={() => setActiveTab("main")} />;
+  }
 
   return (
     <div className="space-y-6 bg-slate-950 min-h-[calc(100vh-80px)] p-4 md:p-6 rounded-[2.5rem] font-sans overflow-hidden relative">
@@ -122,7 +131,7 @@ export function PerencanaanDashboard({ session, stats }: { session: any, stats: 
             </h2>
             
             <div className="grid grid-cols-2 gap-3 relative z-10">
-              <button className="flex flex-col items-center gap-3 p-5 rounded-xl bg-cyan-950/40 border border-cyan-800/50 text-cyan-400 hover:bg-cyan-900/60 hover:border-cyan-400/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all group">
+              <button onClick={() => setActiveTab("rab")} className="flex flex-col items-center gap-3 p-5 rounded-xl bg-cyan-950/40 border border-cyan-800/50 text-cyan-400 hover:bg-cyan-900/60 hover:border-cyan-400/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.2)] transition-all group">
                 <Database size={28} className="group-hover:scale-110 transition-transform" />
                 <span className="text-[10px] font-bold text-center uppercase tracking-widest">Input RAB</span>
               </button>

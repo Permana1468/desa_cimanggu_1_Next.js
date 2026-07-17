@@ -34,7 +34,7 @@ const CheckMark = ({ condition }: { condition: boolean }) => (
   <span className="font-bold">{condition ? "●" : ""}</span>
 );
 
-export function CetakUsulanUhc({ data, onBack }: { data: any; onBack: () => void }) {
+export function CetakUsulanUhc({ data, onBack, isBundle }: { data: any; onBack?: () => void; isBundle?: boolean }) {
   useEffect(() => {
     // Optionally trigger print on load
     // window.print();

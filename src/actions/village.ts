@@ -39,7 +39,7 @@ export async function getSuratList() {
         const userRt = (session.user as any).rt;
         const userRw = (session.user as any).rw;
 
-        let filterScope: any = { tenantId };
+        const filterScope: any = { tenantId };
         if (role === "WARGA") {
             const user = await prisma.user.findUnique({ where: { id: (session.user as any).id } });
             if (user?.residentId) {
@@ -120,7 +120,7 @@ export async function getWargaList(query?: string, rtFilter?: string, rwFilter?:
         const userRt = (session.user as any).rt;
         const userRw = (session.user as any).rw;
 
-        let { filterScope } = await buildWilayahFilterScope(role, userRt, userRw, tenantId);
+        const { filterScope } = await buildWilayahFilterScope(role, userRt, userRw, tenantId);
 
         // Using global cleanDigits helper
 

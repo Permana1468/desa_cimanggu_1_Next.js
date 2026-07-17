@@ -24,7 +24,8 @@ import {
   Cloud,
   FileText,
   Brain,
-  Store
+  Store,
+  MessageCircle
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,6 +42,7 @@ const menuItems = [
   { name: "Statistik", icon: PieChart, href: "/master-admin/stats" },
   { name: "Arsip Template", icon: FileText, href: "/master-admin/templates" },
   { name: "Integrasi Cloud", icon: Cloud, href: "/master-admin/integrasi" },
+  { name: "Integrasi WhatsApp", icon: MessageCircle, href: "/master-admin/whatsapp" },
   { name: "Kecerdasan Buatan", icon: Brain, href: "/master-admin/ai" },
   { name: "Konfigurasi", icon: Settings, href: "/master-admin/config" },
 ];

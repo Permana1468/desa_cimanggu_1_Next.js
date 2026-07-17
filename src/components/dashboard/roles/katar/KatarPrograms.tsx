@@ -86,7 +86,7 @@ export function KatarPrograms({ session }: { session: any }) {
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-12 text-center">
           <CalendarDays className="mx-auto text-slate-200 mb-3" size={44} />
           <p className="text-slate-400 font-medium">Belum ada program kerja.</p>
-          <p className="text-slate-300 text-xs mt-1">Klik tombol "Rencanakan Proker" untuk memulai.</p>
+          <p className="text-slate-300 text-xs mt-1">Klik tombol &quot;Rencanakan Proker&quot; untuk memulai.</p>
         </div>
       )}
 

@@ -66,12 +66,6 @@ function KelembagaanDashboardContent() {
         level: 2
     });
 
-    useEffect(() => {
-        if (status === "authenticated" && session?.user) {
-            fetchLembagaData();
-        }
-    }, [status, session]);
-
     async function fetchLembagaData() {
         setLoading(true);
         try {
@@ -88,11 +82,18 @@ function KelembagaanDashboardContent() {
                 setPrograms(progData);
             }
         } catch (error) {
-            console.error(error);
+            console.error("Gagal memuat data lembaga:", error);
         } finally {
             setLoading(false);
         }
     }
+
+    useEffect(() => {
+        if (status === "authenticated" && session?.user) {
+            fetchLembagaData();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [status, session]);
 
     const handleAddProgram = async (e: React.FormEvent) => {
         e.preventDefault();

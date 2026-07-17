@@ -22,7 +22,7 @@ export async function generateSuratDocx(suratId: string) {
         if (surat.status !== "DISETUJUI") throw new Error("Surat belum disetujui");
 
         // Cari template
-        let template = await prisma.letterTemplate.findFirst({
+        const template = await prisma.letterTemplate.findFirst({
             where: { 
                 OR: [
                     { code: surat.jenisSurat },

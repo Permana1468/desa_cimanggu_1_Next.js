@@ -14,10 +14,6 @@ export function PosyanduAnalisisTab({ session }: any) {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
   const fetchStats = async () => {
     setLoading(true);
     try {
@@ -28,6 +24,11 @@ export function PosyanduAnalisisTab({ session }: any) {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
 
   if (loading) {
     return (

@@ -10,10 +10,6 @@ export function PosyanduIbuHamilTab({ session }: any) {
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -24,6 +20,11 @@ export function PosyanduIbuHamilTab({ session }: any) {
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
 
   const handleToggleRisiko = async (id: string, currentStatus: boolean) => {
     await updatePosyanduIbuHamilStatus(id, !currentStatus);

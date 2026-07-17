@@ -75,22 +75,8 @@ export default function LandingCMSPage() {
         if (tabParam) setActiveTab(tabParam);
     }, [tabParam]);
 
-    if (session && !isAdmin) {
-        return (
-            <div className="flex flex-col items-center justify-center h-96 gap-4">
-                <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center">
-                    <ShieldCheck size={32} />
-                </div>
-                <h1 className="text-2xl font-black text-slate-800">Akses Dibatasi</h1>
-                <p className="text-slate-500 max-w-md text-center">Anda tidak memiliki izin untuk mengakses pengaturan website desa. Silakan hubungi Admin Desa jika ini adalah kesalahan.</p>
-                <Link href="/dashboard" className="mt-4 px-6 py-2 bg-slate-900 text-white rounded-xl font-bold text-sm">
-                    Kembali ke Dashboard
-                </Link>
-            </div>
-        );
-    }
-
     useEffect(() => {
+        if (!isAdmin) return;
         async function load() {
             const [profile, org] = await Promise.all([
                 getVillageProfile(),
@@ -113,7 +99,8 @@ export default function LandingCMSPage() {
             setLoading(false);
         }
         load();
-    }, []);
+     
+    }, [isAdmin]);
 
     const handleLandingSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -159,6 +146,21 @@ export default function LandingCMSPage() {
             setSaving(false);
         }
     };
+
+    if (session && !isAdmin) {
+        return (
+            <div className="flex flex-col items-center justify-center h-96 gap-4">
+                <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center">
+                    <ShieldCheck size={32} />
+                </div>
+                <h1 className="text-2xl font-black text-slate-800">Akses Dibatasi</h1>
+                <p className="text-slate-500 max-w-md text-center">Anda tidak memiliki izin untuk mengakses pengaturan website desa. Silakan hubungi Admin Desa jika ini adalah kesalahan.</p>
+                <Link href="/dashboard" className="mt-4 px-6 py-2 bg-slate-900 text-white rounded-xl font-bold text-sm">
+                    Kembali ke Dashboard
+                </Link>
+            </div>
+        );
+    }
 
     if (loading) return <div className="p-10 animate-pulse text-slate-400">Memuat Sistem CMS...</div>;
 

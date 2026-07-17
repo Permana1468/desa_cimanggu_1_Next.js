@@ -18,18 +18,19 @@ export default function ArsipDigitalPage() {
         judul: "", jenisDokumen: "PERDES", nomorDokumen: "", tanggalDitetapkan: "", fileUrl: ""
     });
 
-    useEffect(() => {
-        if (session?.user?.tenantId) {
-            loadData();
-        }
-    }, [session]);
-
     const loadData = async () => {
         setIsLoading(true);
         const data = await getVillageDocuments(session?.user?.tenantId || "");
         setDocuments(data);
         setIsLoading(false);
     };
+
+    useEffect(() => {
+        if (session?.user?.tenantId) {
+            loadData();
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [session]);
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();

@@ -179,6 +179,10 @@ model User {
   umkmStore             UmkmStore?
   umkmOrders            UmkmOrder[]
 
+  // Sensus relations
+  sensusCreated         SensusPoint[] @relation("SensusCreator")
+  sensusVerified        SensusPoint[] @relation("SensusVerifier")
+
   @@index([tenantId, role])
   @@index([tenantId, isActive])
 }
@@ -268,6 +272,8 @@ model DataKependudukan {
 
   @@index([tenantId, noKK])
   @@index([tenantId, rt, rw])
+  @@index([tenantId, rt, rw, createdAt])
+  @@index([tenantId, dusun])
   @@index([tenantId, jenisKelamin])
 }
 
@@ -327,6 +333,7 @@ model Surat {
   updatedAt DateTime @updatedAt
 
   @@index([tenantId, status])
+  @@index([tenantId, status, createdAt])
   @@index([tenantId, jenisSurat])
   @@index([wargaId])
   @@index([adminId])
@@ -547,6 +554,8 @@ model FinanceProposal {
   rab         Json?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+
+  @@index([tenantId, status])
 }
 
 model Tracking {
@@ -822,6 +831,7 @@ model RtComplaint {
   updatedAt DateTime @updatedAt
 
   @@index([tenantId, rt, rw])
+  @@index([tenantId, status, createdAt])
 }
 
 model RtInventory {
@@ -881,10 +891,18 @@ model SensusPoint {
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
+  // Sensus App Workflow
+  status       String  @default("MENUNGGU_VERIFIKASI") // MENUNGGU_VERIFIKASI, DISETUJUI, DITOLAK
+  createdById  String?
+  createdBy    User?   @relation("SensusCreator", fields: [createdById], references: [id])
+  verifiedById String?
+  verifiedBy   User?   @relation("SensusVerifier", fields: [verifiedById], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([tenantId, rt, rw])
+  @@index([tenantId, status, createdAt])
 }
 
 model ChatMessage {

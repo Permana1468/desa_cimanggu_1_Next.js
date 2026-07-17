@@ -30,7 +30,7 @@ function cleanName(val: string | undefined | null): string {
 }
 
 export async function buildWilayahFilterScope(role: string, userRt: string, userRw: string, tenantId: string) {
-    let filterScope: any = { tenantId };
+    const filterScope: any = { tenantId };
     let allowedRws: string[] = [];
     
     const rtClean = cleanDigits(userRt || "");
@@ -49,7 +49,7 @@ export async function buildWilayahFilterScope(role: string, userRt: string, user
     
     if (role === "RW") {
         const targetRwClean = cleanDigits(userRw || "");
-        let rtScopeList: string[] = [];
+        const rtScopeList: string[] = [];
         
         structure.dusun?.forEach((d: any) => {
             d.rw?.forEach((rw: any) => {
@@ -71,8 +71,8 @@ export async function buildWilayahFilterScope(role: string, userRt: string, user
             filterScope.rt = { in: matchedRts };
         }
     } else if (role === "KADUS") {
-        let allowedRts: string[] = [];
-        let kaduAllowedRws: string[] = [];
+        const allowedRts: string[] = [];
+        const kaduAllowedRws: string[] = [];
         let dusunName = "";
         
         const targetDusunClean = cleanName(userRw || "");
@@ -132,7 +132,7 @@ export async function getWilayahStrukturOptions() {
         if (role === "RT") {
             const targetRwClean = cleanDigits(userRw);
             let matchedDusunName = "";
-            let rtOptions: string[] = [];
+            const rtOptions: string[] = [];
             
             structure.dusun?.forEach((d: any) => {
                 d.rw?.forEach((rw: any) => {
@@ -151,7 +151,7 @@ export async function getWilayahStrukturOptions() {
             };
         } else if (role === "RW") {
             const targetRwClean = cleanDigits(userRw);
-            let rtOptions: string[] = [];
+            const rtOptions: string[] = [];
             let matchedDusunName = "";
             
             structure.dusun?.forEach((d: any) => {
@@ -173,7 +173,7 @@ export async function getWilayahStrukturOptions() {
             const targetDusunClean = cleanName(userRw);
             const matchedDusun = structure.dusun?.find((d: any) => cleanName(d.name) === targetDusunClean);
             
-            let rwOptions: { name: string, rt: string[] }[] = [];
+            const rwOptions: { name: string, rt: string[] }[] = [];
             if (matchedDusun) {
                 matchedDusun.rw?.forEach((rw: any) => {
                     rwOptions.push({
@@ -809,7 +809,7 @@ export async function deleteRtInventory(id: string) {
 export async function getRtInventoryLoans() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        let filterScope: any = { tenantId };
+        const filterScope: any = { tenantId };
         const { filterScope: innerScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
         delete innerScope.tenantId;
         filterScope.inventory = innerScope;
@@ -1126,10 +1126,9 @@ async function triggerRwPolygonAggregation(tenantId: string, rwName: string) {
 
     if (rtBoundaries.length === 0) return;
 
-    const turf = require("@turf/turf");
 
     const polygons = rtBoundaries.map(b => {
-        let coords = typeof b.coordinates === "string" ? JSON.parse(b.coordinates) : b.coordinates;
+        const coords = typeof b.coordinates === "string" ? JSON.parse(b.coordinates) : b.coordinates;
         const turfCoords = coords.map((c: any) => [c[1], c[0]]);
         if (turfCoords[0][0] !== turfCoords[turfCoords.length - 1][0] || turfCoords[0][1] !== turfCoords[turfCoords.length - 1][1]) {
             turfCoords.push(turfCoords[0]);
@@ -1137,7 +1136,7 @@ async function triggerRwPolygonAggregation(tenantId: string, rwName: string) {
         return turf.polygon([turfCoords]);
     });
 
-    let unioned = polygons[0];
+    let unioned: any = polygons[0];
     for (let i = 1; i < polygons.length; i++) {
         unioned = turf.union(unioned, polygons[i]);
     }

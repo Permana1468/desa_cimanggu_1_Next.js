@@ -119,135 +119,6 @@ export default function GisManagementClient({
   }, [selectedTenantId, initialBoundaries, currentTenantId]);
 
   // Leaflet Initialization
-  useEffect(() => {
-    let mapInstance: any = null;
-
-    async function initLeaflet() {
-
-      // Fix icon issues in Next.js/Leaflet
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-      });
-
-      // Fix duplicate container initialization in React StrictMode
-      const container = L.DomUtil.get(mapContainerId);
-      if (container) {
-        (container as any)._leaflet_id = null;
-      }
-
-      // Check if DESA boundary exists to set default view precisely
-      const desaBoundary = initialBoundaries.find(b => b.type === "DESA");
-      let defaultCenter: [number, number] = [-6.5971, 106.6786];
-      let defaultZoom = 13;
-
-      if (desaBoundary) {
-        try {
-          const coords = typeof desaBoundary.coordinates === "string" ? JSON.parse(desaBoundary.coordinates) : desaBoundary.coordinates;
-          if (coords && coords.length > 0) {
-            defaultCenter = coords[0];
-            defaultZoom = 15;
-          }
-        } catch (e) {}
-      }
-
-      // Default view center on Bogor region (Cibungbulang) or village center
-      mapInstance = L.map(mapContainerId, {
-        zoomControl: true,
-      }).setView(defaultCenter, defaultZoom);
-      
-      mapRef.current = mapInstance;
-
-      // Standard OpenStreetMap tiles (Reliable fallback to prevent gray map)
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxZoom: 19
-      }).addTo(mapInstance);
-
-
-      drawnLayersGroupRef.current = L.layerGroup().addTo(mapInstance);
-      drawingLayerGroupRef.current = L.layerGroup().addTo(mapInstance);
-      LRef.current = L;
-
-      // Initialize Geoman
-      mapInstance.pm.setGlobalOptions({
-        snappable: true,
-        snapDistance: 20,
-        allowSelfIntersection: false,
-      });
-
-      // Handle Geoman drawing completion
-      mapInstance.on("pm:create", (e: any) => {
-        const layer = e.layer;
-        const coords = layer.getLatLngs()[0]; // outer ring
-        const vertices: [number, number][] = coords.map((c: any) => [c.lat, c.lng]);
-        
-        setDrawVertices(vertices);
-        setIsDrawing(false);
-        
-        // Remove geoman layer because we will render it via our React state
-        layer.remove();
-        drawTempDrawing(vertices);
-      });
-
-      // Draw initial polygons
-      drawAllSavedPolygons();
-
-      // Force Leaflet to recalculate container size to avoid gray map issue
-      setTimeout(() => {
-        if (mapInstance) {
-          mapInstance.invalidateSize();
-        }
-      }, 600);
-    }
-
-    if (typeof window !== "undefined") {
-      initLeaflet();
-    }
-
-    return () => {
-      if (mapInstance) {
-        mapInstance.remove();
-      }
-    };
-  }, []);
-
-  // Fullscreen Listener
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-      if (mapRef.current) {
-        setTimeout(() => mapRef.current.invalidateSize(), 200);
-      }
-    };
-    document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
-  }, []);
-
-  // Sync isDrawing with Map Interaction
-  useEffect(() => {
-    if (!mapRef.current) return;
-    if (isDrawing) {
-      mapRef.current.getContainer().style.cursor = "crosshair";
-    } else {
-      mapRef.current.getContainer().style.cursor = "";
-      mapRef.current.pm.disableDraw();
-    }
-  }, [isDrawing]);
-
-  // Watch boundaries and redraw whenever they change
-  useEffect(() => {
-    if (mapRef.current) {
-      try {
-        mapRef.current.invalidateSize();
-      } catch (e) {}
-    }
-    drawAllSavedPolygons();
-  }, [boundaries]);
-
-  // Helper to draw saved polygons from DB
   const drawAllSavedPolygons = () => {
     const L = LRef.current;
     const map = mapRef.current;
@@ -332,8 +203,138 @@ export default function GisManagementClient({
     }
   };
 
+  useEffect(() => {
+    let mapInstance: any = null;
+
+    async function initLeaflet() {
+
+      // Fix icon issues in Next.js/Leaflet
+      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
+        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+      });
+
+      // Fix duplicate container initialization in React StrictMode
+      const container = L.DomUtil.get(mapContainerId);
+      if (container) {
+        (container as any)._leaflet_id = null;
+      }
+
+      // Check if DESA boundary exists to set default view precisely
+      const desaBoundary = initialBoundaries.find(b => b.type === "DESA");
+      let defaultCenter: [number, number] = [-6.5971, 106.6786];
+      let defaultZoom = 13;
+
+      if (desaBoundary) {
+        try {
+          const coords = typeof desaBoundary.coordinates === "string" ? JSON.parse(desaBoundary.coordinates) : desaBoundary.coordinates;
+          if (coords && coords.length > 0) {
+            defaultCenter = coords[0];
+            defaultZoom = 15;
+          }
+        } catch (e) {}
+      }
+
+      // Default view center on Bogor region (Cibungbulang) or village center
+      mapInstance = L.map(mapContainerId, {
+        zoomControl: true,
+      }).setView(defaultCenter, defaultZoom);
+      
+      mapRef.current = mapInstance;
+
+      // Define Base Maps (lyrs=s indicates pure Satellite WITHOUT road names/labels)
+      L.tileLayer("https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}", {
+        attribution: 'Google Maps',
+        maxZoom: 22,
+        maxNativeZoom: 19
+      }).addTo(mapInstance);
+
+      drawnLayersGroupRef.current = L.layerGroup().addTo(mapInstance);
+      drawingLayerGroupRef.current = L.layerGroup().addTo(mapInstance);
+      LRef.current = L;
+
+      // Initialize Geoman
+      mapInstance.pm.setGlobalOptions({
+        snappable: true,
+        snapDistance: 20,
+        allowSelfIntersection: false,
+      });
+
+      // Handle Geoman drawing completion
+      mapInstance.on("pm:create", (e: any) => {
+        const layer = e.layer;
+        const coords = layer.getLatLngs()[0]; // outer ring
+        const vertices: [number, number][] = coords.map((c: any) => [c.lat, c.lng]);
+        
+        setDrawVertices(vertices);
+        setIsDrawing(false);
+        
+        // Remove geoman layer because we will render it via our React state
+        layer.remove();
+        drawTempDrawing(vertices);
+      });
+
+      // Draw initial polygons
+      drawAllSavedPolygons();
+
+      // Force Leaflet to recalculate container size to avoid gray map issue
+      setTimeout(() => {
+        if (mapInstance) {
+          mapInstance.invalidateSize();
+        }
+      }, 600);
+    }
+
+    if (typeof window !== "undefined") {
+      initLeaflet();
+    }
+
+    return () => {
+      if (mapInstance) {
+        mapInstance.remove();
+      }
+    };
+  }, []);
+
+  // Fullscreen Listener
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      if (mapRef.current) {
+        setTimeout(() => mapRef.current.invalidateSize(), 200);
+      }
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  // Sync isDrawing with Map Interaction
+  useEffect(() => {
+    if (!mapRef.current) return;
+    if (isDrawing) {
+      mapRef.current.getContainer().style.cursor = "crosshair";
+    } else {
+      mapRef.current.getContainer().style.cursor = "";
+      mapRef.current.pm.disableDraw();
+    }
+  }, [isDrawing]);
+
+  // Watch boundaries and redraw whenever they change
+  useEffect(() => {
+    if (mapRef.current) {
+      try {
+        mapRef.current.invalidateSize();
+      } catch (e) {}
+    }
+    drawAllSavedPolygons();
+  }, [boundaries]);
+
+  // Helper to draw saved polygons from DB
+
   // Helper to draw temporary vertices when drawing new polygon
-  const drawTempDrawing = (vertices: [number, number][]) => {
+  function drawTempDrawing(vertices: [number, number][]) {
     const L = LRef.current;
     const group = drawingLayerGroupRef.current;
     if (!L || !group) return;
@@ -466,7 +467,7 @@ export default function GisManagementClient({
     }
   };
 
-  const handleEditClick = (b: Boundary) => {
+  function handleEditClick(b: Boundary) {
     setError("");
     setSuccess("");
     setEditingId(b.id);
@@ -631,6 +632,26 @@ export default function GisManagementClient({
     downloadAnchor.click();
     downloadAnchor.remove();
   };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isFs = !!document.fullscreenElement;
+      setIsFullscreen(isFs);
+      if (mapRef.current) {
+        // Trigger resize event multiple times to catch animation frames smoothly
+        [100, 300, 500, 1000].forEach(delay => {
+          setTimeout(() => {
+            if (mapRef.current) mapRef.current.invalidateSize();
+          }, delay);
+        });
+      }
+    };
+    
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
 
   const toggleFullscreen = () => {
     const container = document.getElementById("gis-admin-fullscreen-wrapper");
