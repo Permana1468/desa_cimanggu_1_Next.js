@@ -62,12 +62,14 @@ const menuItems = [
   { name: "Verifikasi Warga", icon: UserCog, href: "/dashboard/verifikasi-warga" },
   { name: "Pusat Persuratan", icon: FileText, href: "/dashboard/surat" },
   { name: "Data Kependudukan", icon: Database, href: "/dashboard/warga" },
+  { name: "Manajemen Konten (CMS)", icon: Monitor, href: "/dashboard/cms" },
+  { name: "Log & Sistem", icon: Terminal, href: "/dashboard/sistem" },
   { name: "Profil Desa", icon: UserCircle, href: "/dashboard/profil" },
   { name: "Aparatur Desa", icon: Users, href: "/dashboard/aparatur" },
   { name: "Kelembagaan", icon: Building2, href: "/dashboard/kelembagaan" },
   { name: "BUMDES", icon: Store, href: "/dashboard/bumdes" },
   { name: "Infrastruktur", icon: HardHat, href: "/dashboard/infrastruktur" },
-  { name: "Usulan Pembangunan", icon: Banknote, href: "/dashboard/finance" },
+  { name: "Usulan Musrenbang", icon: Banknote, href: "/dashboard/finance" },
   { name: "APBDes", icon: PieChart, href: "/dashboard/apbdes" },
   { name: "Peta Interaktif", icon: Map, href: "/dashboard/map" },
   { name: "Arsip Digital", icon: Archive, href: "/dashboard/arsip" },
@@ -478,7 +480,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                {[
                  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard", activeParam: "overview" },
                  { name: "Infrastruktur", icon: HardHat, href: "/dashboard/infrastruktur", activeParam: "" },
-                 { name: "Usulan Pembangunan", icon: Banknote, href: "/dashboard/finance", activeParam: "" },
+                 { name: "Usulan Musrenbang", icon: Banknote, href: "/dashboard/finance", activeParam: "" },
                  { name: "APBDes", icon: PieChart, href: "/dashboard/apbdes", activeParam: "" },
                  { name: "Peta Interaktif", icon: Map, href: "/dashboard/map", activeParam: "" },
                  { name: "Data Kependudukan", icon: Database, href: "/dashboard/warga", activeParam: "warga" },
@@ -1013,13 +1015,17 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
             <div className="space-y-1.5">
               {(() => {
                 let itemsToRender = menuItems.filter(item => {
-                    if (["ADMIN_DESA", "KADES", "SEKDES", "PERANGKAT_DESA", "OPERATOR_DESA", "ADMIN_MASTER"].includes(role as string)) {
-                        if (role === "ADMIN_DESA" && item.name === "Usulan Pembangunan") return false;
+                    if (role === "OPERATOR_DESA") {
+                        // Fitur spesifik Operator Desa
+                        return ["Dashboard", "Verifikasi Warga", "Pusat Persuratan", "Manajemen Konten (CMS)", "Log & Sistem"].includes(item.name);
+                    }
+                    if (["ADMIN_DESA", "KADES", "SEKDES", "PERANGKAT_DESA", "ADMIN_MASTER"].includes(role as string)) {
+                        if (role === "ADMIN_DESA" && item.name === "Usulan Musrenbang") return false;
                         if (item.name === "Arsip Laporan" && !["ADMIN_DESA", "ADMIN_MASTER", "KADES"].includes(role as string)) return false;
                         return true;
                     }
                   if (role === "KAUR_KEUANGAN") {
-                    return ["Dashboard", "APBDes", "Usulan Pembangunan", "Pengaturan"].includes(item.name);
+                    return ["Dashboard", "APBDes", "Pengaturan"].includes(item.name);
                   }
                   if (role === "KAUR_TU") {
                     return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Aparatur Desa", "Arsip Digital", "Tracking Layanan", "Pengaturan"].includes(item.name);
@@ -1035,7 +1041,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                   }
                   if (["KAUR", "KASI"].includes(role as string)) return true;
                   if (["PKK", "TP_PKK", "BPD", "PUSKESOS", "PETUGAS_SENSUS"].includes(role as string)) {
-                     return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Pembangunan", "Tracking Layanan", "Peta Interaktif"].includes(item.name);
+                     return ["Dashboard", "Pusat Persuratan", "Data Kependudukan", "Usulan Musrenbang", "Tracking Layanan", "Peta Interaktif"].includes(item.name);
                   }
                   if (role === "KADUS") {
                      return ["Dashboard", "Data Kependudukan", "Data Bansos", "Pusat Persuratan", "Infrastruktur", "Peta Interaktif", "Pengaturan"].includes(item.name);
@@ -1049,7 +1055,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                 if (role === "LPM") {
                   itemsToRender = [
                     { name: "Dashboard", icon: LayoutDashboard, href: "/kelembagaan?tab=overview" },
-                    { name: "Usulan Pembangunan", icon: Banknote, href: "/kelembagaan/finance" },
+                    { name: "Usulan Musrenbang", icon: Banknote, href: "/kelembagaan/musrenbang" },
                     { name: "Program Kerja", icon: Activity, href: "/kelembagaan?tab=program" },
                     { name: "Pemberdayaan", icon: Sparkles, href: "/kelembagaan?tab=pemberdayaan" },
                     { name: "Swadaya & Gotong Royong", icon: HeartHandshake, href: "/kelembagaan?tab=swadaya" },
@@ -1067,6 +1073,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                     { name: "Program & Kegiatan", icon: Activity, href: "/kelembagaan?tab=kegiatan" },
                     { name: "Pemberdayaan UEP", icon: Briefcase, href: "/kelembagaan?tab=wirausaha" },
                     { name: "Galeri & Arsip LPJ", icon: FolderArchive, href: "/kelembagaan?tab=gallery" },
+                    { name: "Usulan Musrenbang", icon: Banknote, href: "/kelembagaan/musrenbang" },
                   ];
                 }
 
@@ -1096,7 +1103,8 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                     { name: "Inventaris RT", icon: Package, href: "/dashboard?tab=inventory" },
                     { name: "GeoSENSUS", icon: Compass, href: "/dashboard?tab=geosensus" },
                     { name: "Data Bansos", icon: HeartHandshake, href: "/dashboard?tab=bansos" },
-                    { name: "Keamanan Lingkungan", icon: ShieldCheck, href: "/dashboard?tab=security" }
+                    { name: "Keamanan Lingkungan", icon: ShieldCheck, href: "/dashboard?tab=security" },
+                    { name: "Usulan Musrenbang", icon: Banknote, href: "/kelembagaan/musrenbang" }
                   ];
                   if (role === "RW") {
                     itemsToRender.push(
@@ -1110,45 +1118,108 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                     itemsToRender.push({ name: 'Pengaturan', icon: Settings, href: '/dashboard/settings' });
                 }
 
-                return itemsToRender.map((item) => {
-                  const isInstitutional = ["PKK", "TP_PKK", "LPM", "BPD", "KARANG_TARUNA", "PETUGAS_SENSUS"].includes(role as string);
-                  let href = item.href;
-                  if (isInstitutional && role !== "LPM") {
-                      if (href === "/dashboard") href = "/kelembagaan";
-                      else if (!href.includes("/settings")) href = href.replace("/dashboard/", "/kelembagaan/");
-                  }
-                  let isActive = false;
-                  if (role === "RT" || role === "RW" || role === "LPM" || role === "PUSKESOS") {
-                    const urlTab = tabParam || "overview";
-                    const itemTab = item.href.split("tab=")[1] || "overview";
-                    isActive = (pathname === "/dashboard" || pathname === "/kelembagaan") && urlTab === itemTab;
-                    if (item.name === "Usulan Pembangunan" && role === "LPM") {
-                      isActive = pathname === "/kelembagaan/finance";
-                    }
-                  } else {
-                    isActive = pathname === href;
-                  }
+                return (
+                  <>
+                    {itemsToRender.map((item) => {
+                      const isInstitutional = ["PKK", "TP_PKK", "LPM", "BPD", "KARANG_TARUNA", "PETUGAS_SENSUS"].includes(role as string);
+                      let href = item.href;
+                      if (isInstitutional && role !== "LPM" && item.name !== "Usulan Musrenbang") {
+                          if (href === "/dashboard") href = "/kelembagaan";
+                          else if (!href.includes("/settings")) href = href.replace("/dashboard/", "/kelembagaan/");
+                      } else if (isInstitutional && item.name === "Usulan Musrenbang") {
+                          href = "/kelembagaan/musrenbang";
+                      }
+                      let isActive = false;
+                      if (role === "RT" || role === "RW" || role === "LPM" || role === "PUSKESOS") {
+                        const urlTab = tabParam || "overview";
+                        const itemTab = item.href.split("tab=")[1] || "overview";
+                        isActive = (pathname === "/dashboard" || pathname === "/kelembagaan") && urlTab === itemTab;
+                        if (item.name === "Usulan Musrenbang" && role === "LPM") {
+                          isActive = pathname === "/kelembagaan/musrenbang";
+                        }
+                      } else {
+                        isActive = pathname === href;
+                      }
 
-                  return (
-                    <Link
-                      key={item.name}
-                      href={href}
-                      onClick={() => setIsOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                        isActive
-                          ? (isHackerTheme 
-                              ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)]" 
-                              : "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20")
-                          : (isHackerTheme
-                              ? "text-slate-400 hover:bg-slate-800/80 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium"
-                              : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
-                      } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
-                    >
-                      <item.icon size={20} className={`${isActive ? "" : "group-hover:scale-110 transition-transform"} ${isHackerTheme && isActive ? 'animate-pulse drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]' : ''}`} />
-                      {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>{item.name}</span>}
-                    </Link>
-                  );
-                });
+                      return (
+                        <Link
+                          key={item.name}
+                          href={href}
+                          onClick={() => setIsOpen(false)}
+                          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                            isActive
+                              ? (isHackerTheme 
+                                  ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)]" 
+                                  : "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20")
+                              : (isHackerTheme
+                                  ? "text-slate-400 hover:bg-slate-800/80 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium"
+                                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
+                          } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
+                        >
+                          <item.icon size={20} className={`${isActive ? "" : "group-hover:scale-110 transition-transform"} ${isHackerTheme && isActive ? 'animate-pulse drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]' : ''}`} />
+                          {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>{item.name}</span>}
+                        </Link>
+                      );
+                    })}
+
+                    {/* CUSTOM DROPDOWN LAPORAN FOR OPERATOR_DESA */}
+                    {role === "OPERATOR_DESA" && (
+                      <div className="mt-2">
+                        <button
+                          onClick={() => setOpenGroup(prev => prev === "laporan-operator" ? null : "laporan-operator")}
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all group ${isHackerTheme ? "text-slate-400 hover:text-cyan-400 font-mono" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"} ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <FolderArchive size={20} />
+                            {(!isCollapsed || isOpen) && (
+                              <span className="text-[11px] font-bold tracking-widest uppercase">Laporan</span>
+                            )}
+                          </div>
+                          {(!isCollapsed || isOpen) && (
+                            <ChevronDown
+                              size={14}
+                              className={`transition-transform duration-200 ${openGroup === "laporan-operator" ? "rotate-180" : ""}`}
+                            />
+                          )}
+                        </button>
+                        <AnimatePresence>
+                          {(openGroup === "laporan-operator" && (!isCollapsed || isOpen)) && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className={`mt-1 ml-4 pl-3 border-l space-y-1 ${isHackerTheme ? 'border-cyan-500/30' : 'border-blue-100'}`}>
+                                {[
+                                  { label: "Standar Harga Satuan", href: "/dashboard/laporan/harga-satuan", icon: Database },
+                                  { label: "Pesanan Barang", href: "/dashboard/laporan/pesanan-barang", icon: Package },
+                                  { label: "Absensi & Tanda Terima", href: "/dashboard/laporan/pekerja-absensi", icon: Users },
+                                  { label: "Kegiatan Perangkat", href: "/dashboard/laporan/kegiatan-perangkat", icon: Activity },
+                                ].map((subItem) => (
+                                  <Link
+                                    key={subItem.href}
+                                    href={subItem.href}
+                                    onClick={() => setIsOpen(false)}
+                                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
+                                      pathname === subItem.href
+                                        ? (isHackerTheme ? "bg-cyan-900/50 text-cyan-300 font-bold" : "bg-emerald-50 text-emerald-700 font-bold")
+                                        : (isHackerTheme ? "text-slate-400 hover:text-cyan-400 font-mono" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")
+                                    }`}
+                                  >
+                                    <subItem.icon size={14} />
+                                    <span>{subItem.label}</span>
+                                  </Link>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
+                  </>
+                );
               })()}
             </div>
           )}

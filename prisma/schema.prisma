@@ -550,9 +550,18 @@ model FinanceProposal {
   tenantId    String
   tenant      Tenant     @relation(fields: [tenantId], references: [id])
   trackings   Tracking[]
-  volume      String?
-  kubikasi    Float?
-  rab         Json?
+  
+  // New Musrenbang fields
+  lokasiRt       String?
+  lokasiRw       String?
+  lokasiDetail   String?
+  satuan         String?
+  prioritasKe    Int?
+  keterangan     String?
+  volume         String?
+  kubikasi       Float?
+  rab            Json?
+  
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 

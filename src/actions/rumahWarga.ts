@@ -11,7 +11,7 @@ async function getSessionOrThrow() {
   return session;
 }
 
-import { buildWilayahFilterScope } from "@/actions/rt";
+import { buildWilayahFilterScope, buildReportFilterScope } from "@/actions/rt";
 
 /**
  * Get list of RumahWarga for the logged-in RT/RW user.
@@ -23,7 +23,7 @@ export async function getRumahWargaList(query = "", filterRt = "", filterRw = ""
   const tenantId = user.tenantId;
 
   // For RT/RW role, it uses their session RT/RW. For others, it uses the provided filters.
-  const { filterScope } = await buildWilayahFilterScope(user.role, user.rt || filterRt, user.rw || filterRw, tenantId);
+  const filterScope = await buildReportFilterScope(user.role, user.rt || filterRt, user.rw || filterRw, tenantId);
 
   const list = await prisma.rumahWarga.findMany({
     where: {
@@ -101,17 +101,29 @@ export async function getKKWithoutRumah() {
   const tenantId = user.tenantId;
 
   const { filterScope } = await buildWilayahFilterScope(user.role, user.rt, user.rw, tenantId);
+  const reportFilterScope = await buildReportFilterScope(user.role, user.rt, user.rw, tenantId);
+
+  const [deaths, moves] = await Promise.all([
+    prisma.rtDeathReport.findMany({ where: reportFilterScope, select: { nik: true } }),
+    prisma.rtMoveReport.findMany({ where: reportFilterScope, select: { nik: true } })
+  ]);
+  const inactiveNiks = [...deaths.map(d => d.nik), ...moves.map(m => m.nik)];
+
+  const whereCond: any = {
+    ...filterScope,
+    hubunganKeluarga: "KEPALA_KELUARGA",
+  };
+  if (inactiveNiks.length > 0) {
+    whereCond.nik = { notIn: inactiveNiks };
+  }
 
   const allKK = await prisma.dataKependudukan.findMany({
-    where: {
-      ...filterScope,
-      hubunganKeluarga: "KEPALA_KELUARGA",
-    },
+    where: whereCond,
     select: { noKK: true, namaLengkap: true, alamat: true, rt: true, rw: true },
   });
 
   const existingKK = await prisma.rumahWarga.findMany({
-    where: filterScope,
+    where: reportFilterScope,
     select: { noKK: true },
   });
 

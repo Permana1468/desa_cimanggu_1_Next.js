@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { StatusSurat } from "@prisma/client";
 import bcrypt from "bcryptjs";
-import { buildWilayahFilterScope } from "./rt";
+import { buildWilayahFilterScope, buildReportFilterScope } from "./rt";
 
 function cleanDigits(val: string): string {
     return val ? val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0' : '';
@@ -121,37 +121,44 @@ export async function getWargaList(query?: string, rtFilter?: string, rwFilter?:
         const userRw = (session.user as any).rw;
 
         const { filterScope } = await buildWilayahFilterScope(role, userRt, userRw, tenantId);
-
-        // Using global cleanDigits helper
+        const reportFilterScope = await buildReportFilterScope(role, userRt, userRw, tenantId);
 
         if (role === "RW") {
             if (rtFilter) {
                 const rtClean = cleanDigits(rtFilter);
-                filterScope.rt = { in: [rtFilter, rtClean.padStart(3, '0'), rtClean] };
+                const rtIn = [rtFilter, rtClean.padStart(3, '0'), rtClean];
+                filterScope.rt = { in: rtIn };
+                reportFilterScope.rt = { in: rtIn };
             }
         } else if (role === "KADUS") {
             if (rwFilter) {
                 delete filterScope.OR;
                 const rwClean = cleanDigits(rwFilter);
-                filterScope.rw = { in: [rwFilter, rwClean.padStart(3, '0'), rwClean] };
+                const rwIn = [rwFilter, rwClean.padStart(3, '0'), rwClean];
+                filterScope.rw = { in: rwIn };
+                reportFilterScope.rw = { in: rwIn };
                 
                 if (rtFilter) {
                     const rtClean = cleanDigits(rtFilter);
-                    filterScope.rt = { in: [rtFilter, rtClean.padStart(3, '0'), rtClean] };
+                    const rtIn = [rtFilter, rtClean.padStart(3, '0'), rtClean];
+                    filterScope.rt = { in: rtIn };
+                    reportFilterScope.rt = { in: rtIn };
                 }
             } else if (rtFilter) {
                 const rtClean = cleanDigits(rtFilter);
+                const rtIn = [rtFilter, rtClean.padStart(3, '0'), rtClean];
                 if (filterScope.OR) {
                     filterScope.OR = filterScope.OR.map((cond: any) => {
-                        return { ...cond, rt: { in: [rtFilter, rtClean.padStart(3, '0'), rtClean] } };
+                        return { ...cond, rt: { in: rtIn } };
                     });
                 }
+                reportFilterScope.rt = { in: rtIn };
             }
         }
 
         const [deaths, moves] = await Promise.all([
-            prisma.rtDeathReport.findMany({ select: { nik: true } }),
-            prisma.rtMoveReport.findMany({ select: { nik: true } })
+            prisma.rtDeathReport.findMany({ where: reportFilterScope, select: { nik: true } }),
+            prisma.rtMoveReport.findMany({ where: reportFilterScope, select: { nik: true } })
         ]);
         const inactiveNiks = [...deaths.map(d => d.nik), ...moves.map(m => m.nik)];
 

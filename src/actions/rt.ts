@@ -116,6 +116,82 @@ export async function buildWilayahFilterScope(role: string, userRt: string, user
     return { filterScope, allowedRws };
 }
 
+export async function buildReportFilterScope(role: string, userRt: string, userRw: string, tenantId: string) {
+    const filterScope: any = { tenantId };
+    
+    const rtClean = cleanDigits(userRt || "");
+    const rwClean = cleanDigits(userRw || "");
+    
+    if (role === "RT") {
+        filterScope.rt = { in: [userRt, rtClean, rtClean.padStart(2, '0'), rtClean.padStart(3, '0')] };
+        filterScope.rw = { in: [userRw, rwClean, rwClean.padStart(2, '0'), rwClean.padStart(3, '0')] };
+        return filterScope;
+    }
+    
+    const config = await prisma.systemSetting.findUnique({
+        where: { id: "village_structure" }
+    });
+    const structure = (config?.settings as any) || { dusun: [] };
+    
+    if (role === "RW") {
+        const targetRwClean = cleanDigits(userRw || "");
+        const rtScopeList: string[] = [];
+        
+        structure.dusun?.forEach((d: any) => {
+            d.rw?.forEach((rw: any) => {
+                if (cleanDigits(rw.name) === targetRwClean) {
+                    rw.rt?.forEach((rt: any) => {
+                        rtScopeList.push(rt);
+                    });
+                }
+            });
+        });
+        
+        const matchedRts = rtScopeList.flatMap(rt => {
+            const clean = cleanDigits(rt);
+            return [clean, clean.padStart(2, '0'), clean.padStart(3, '0'), rt];
+        });
+        
+        filterScope.rw = { in: [userRw, targetRwClean, targetRwClean.padStart(2, '0'), targetRwClean.padStart(3, '0')] };
+        if (matchedRts.length > 0) {
+            filterScope.rt = { in: matchedRts };
+        }
+    } else if (role === "KADUS") {
+        const allowedRts: string[] = [];
+        const kaduAllowedRws: string[] = [];
+        
+        const targetDusunClean = cleanName(userRw || "");
+        const matchedDusun = structure.dusun?.find((d: any) => cleanName(d.name) === targetDusunClean);
+        
+        if (matchedDusun) {
+            matchedDusun.rw?.forEach((rw: any) => {
+                kaduAllowedRws.push(rw.name);
+                rw.rt?.forEach((rt: any) => {
+                    allowedRts.push(rt);
+                });
+            });
+        }
+        
+        const matchedRws = kaduAllowedRws.flatMap(rw => {
+            const clean = cleanDigits(rw);
+            return [clean, clean.padStart(2, '0'), clean.padStart(3, '0'), rw];
+        });
+        const matchedRts = allowedRts.flatMap(rt => {
+            const clean = cleanDigits(rt);
+            return [clean, clean.padStart(2, '0'), clean.padStart(3, '0'), rt];
+        });
+        
+        if (matchedRws.length > 0) {
+            filterScope.rw = { in: matchedRws };
+        }
+        if (matchedRts.length > 0) {
+            filterScope.rt = { in: matchedRts };
+        }
+    }
+    
+    return filterScope;
+}
+
 export async function getWilayahStrukturOptions() {
     try {
         const session = await getServerSession(authOptions);
@@ -222,10 +298,11 @@ export async function getRtDashboardStats() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
         const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const reportFilterScope = await buildReportFilterScope(role, rt, rw, tenantId);
 
         const [deathRecords, moveRecords] = await Promise.all([
-            prisma.rtDeathReport.findMany({ select: { nik: true } }),
-            prisma.rtMoveReport.findMany({ select: { nik: true } })
+            prisma.rtDeathReport.findMany({ where: reportFilterScope, select: { nik: true } }),
+            prisma.rtMoveReport.findMany({ where: reportFilterScope, select: { nik: true } })
         ]);
         const inactiveNiks = [...deathRecords.map(d => d.nik), ...moveRecords.map(m => m.nik)];
         const activeScope = { ...filterScope };
@@ -246,13 +323,17 @@ export async function getRtDashboardStats() {
         const totalKK = familiesCount.length;
 
         // Total Kas RT (Balance)
-        const finances = await prisma.rtFinance.findMany({
-            where: filterScope
+        const finances = await prisma.rtFinance.groupBy({
+            by: ['type'],
+            where: reportFilterScope,
+            _sum: {
+                amount: true
+            }
         });
         let totalKas = 0;
         finances.forEach(f => {
-            if (f.type === "INCOME") totalKas += f.amount;
-            else if (f.type === "EXPENSE") totalKas -= f.amount;
+            if (f.type === "INCOME") totalKas += f._sum.amount || 0;
+            else if (f.type === "EXPENSE") totalKas -= f._sum.amount || 0;
         });
 
         // Pending Letters
@@ -265,10 +346,10 @@ export async function getRtDashboardStats() {
 
         // LAMPID Counts
         const [births, deaths, moves, incoming] = await Promise.all([
-            prisma.rtBirthReport.count({ where: filterScope }),
-            prisma.rtDeathReport.count({ where: filterScope }),
-            prisma.rtMoveReport.count({ where: filterScope }),
-            prisma.rtIncomingReport.count({ where: filterScope })
+            prisma.rtBirthReport.count({ where: reportFilterScope }),
+            prisma.rtDeathReport.count({ where: reportFilterScope }),
+            prisma.rtMoveReport.count({ where: reportFilterScope }),
+            prisma.rtIncomingReport.count({ where: reportFilterScope })
         ]);
 
         return {
@@ -300,7 +381,7 @@ export async function getRtDashboardStats() {
 export async function getRtFinance() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const filterScope = await buildReportFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtFinance.findMany({
             where: filterScope,
@@ -354,7 +435,7 @@ export async function deleteRtFinanceTransaction(id: string) {
 export async function getRtActivities() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const filterScope = await buildReportFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtActivity.findMany({
             where: filterScope,
@@ -410,7 +491,7 @@ export async function deleteRtActivity(id: string) {
 export async function getRtBirthReports() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const filterScope = await buildReportFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtBirthReport.findMany({
             where: filterScope,
@@ -465,7 +546,7 @@ export async function deleteRtBirthReport(id: string) {
 export async function getRtDeathReports() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const filterScope = await buildReportFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtDeathReport.findMany({
             where: filterScope,
@@ -519,7 +600,7 @@ export async function deleteRtDeathReport(id: string) {
 export async function getRtMoveReports() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const filterScope = await buildReportFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtMoveReport.findMany({
             where: filterScope,
@@ -573,7 +654,7 @@ export async function deleteRtMoveReport(id: string) {
 export async function getRtIncomingReports() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const filterScope = await buildReportFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtIncomingReport.findMany({
             where: filterScope,
@@ -628,7 +709,7 @@ export async function deleteRtIncomingReport(id: string) {
 export async function getRtAnnouncements() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const filterScope = await buildReportFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtAnnouncement.findMany({
             where: filterScope,
@@ -681,7 +762,7 @@ export async function deleteRtAnnouncement(id: string) {
 export async function getRtComplaints() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const filterScope = await buildReportFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtComplaint.findMany({
             where: filterScope,
@@ -756,7 +837,7 @@ export async function deleteRtComplaint(id: string) {
 export async function getRtInventories() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const filterScope = await buildReportFilterScope(role, rt, rw, tenantId);
 
         return await prisma.rtInventory.findMany({
             where: filterScope,
@@ -810,7 +891,7 @@ export async function getRtInventoryLoans() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
         const filterScope: any = { tenantId };
-        const { filterScope: innerScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const innerScope = await buildReportFilterScope(role, rt, rw, tenantId);
         delete innerScope.tenantId;
         filterScope.inventory = innerScope;
 
@@ -891,12 +972,24 @@ export async function getResidentKks() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
         const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const reportFilterScope = await buildReportFilterScope(role, rt, rw, tenantId);
+
+        const [deaths, moves] = await Promise.all([
+            prisma.rtDeathReport.findMany({ where: reportFilterScope, select: { nik: true } }),
+            prisma.rtMoveReport.findMany({ where: reportFilterScope, select: { nik: true } })
+        ]);
+        const inactiveNiks = [...deaths.map(d => d.nik), ...moves.map(m => m.nik)];
+
+        const whereCond: any = {
+            ...filterScope,
+            hubunganKeluarga: { equals: "KEPALA_KELUARGA", mode: "insensitive" }
+        };
+        if (inactiveNiks.length > 0) {
+            whereCond.nik = { notIn: inactiveNiks };
+        }
 
         const residents = await prisma.dataKependudukan.findMany({
-            where: {
-                ...filterScope,
-                hubunganKeluarga: { equals: "KEPALA_KELUARGA", mode: "insensitive" }
-            },
+            where: whereCond,
             select: {
                 noKK: true,
                 namaLengkap: true
@@ -912,7 +1005,7 @@ export async function getResidentKks() {
 export async function getSensusPoints() {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const filterScope = await buildReportFilterScope(role, rt, rw, tenantId);
 
         return await prisma.sensusPoint.findMany({
             where: filterScope
@@ -1180,10 +1273,11 @@ export async function getRwDashboardStats() {
         }
 
         const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const reportFilterScope = await buildReportFilterScope(role, rt, rw, tenantId);
 
         const [deathRecords, moveRecords] = await Promise.all([
-            prisma.rtDeathReport.findMany({ select: { nik: true } }),
-            prisma.rtMoveReport.findMany({ select: { nik: true } })
+            prisma.rtDeathReport.findMany({ where: reportFilterScope, select: { nik: true } }),
+            prisma.rtMoveReport.findMany({ where: reportFilterScope, select: { nik: true } })
         ]);
         const inactiveNiks = [...deathRecords.map(d => d.nik), ...moveRecords.map(m => m.nik)];
         const activeScope = { ...filterScope };
@@ -1192,7 +1286,12 @@ export async function getRwDashboardStats() {
         }
 
         const citizens = await prisma.dataKependudukan.findMany({
-            where: activeScope
+            where: activeScope,
+            select: {
+                rt: true,
+                rw: true,
+                noKK: true
+            }
         });
 
         const rtWargaMap: Record<string, number> = {};
@@ -1210,7 +1309,13 @@ export async function getRwDashboardStats() {
         });
 
         const finances = await prisma.rtFinance.findMany({
-            where: filterScope
+            where: reportFilterScope,
+            select: {
+                rt: true,
+                rw: true,
+                type: true,
+                amount: true
+            }
         });
         const rtKasMap: Record<string, number> = {};
         finances.forEach(f => {
@@ -1225,7 +1330,11 @@ export async function getRwDashboardStats() {
         });
 
         const activities = await prisma.rtActivity.findMany({
-            where: filterScope
+            where: reportFilterScope,
+            select: {
+                rt: true,
+                rw: true
+            }
         });
         const rtActivitiesCount: Record<string, number> = {};
         activities.forEach(a => {
@@ -1297,15 +1406,30 @@ export async function getRtDemographicReport(month: number, year: number) {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
         const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
+        const reportFilterScope = await buildReportFilterScope(role, rt, rw, tenantId);
 
-        // Fetch all residents
+        // Fetch all residents (selecting only needed fields)
         const residents = await prisma.dataKependudukan.findMany({
-            where: filterScope
+            where: filterScope,
+            select: {
+                nik: true,
+                tanggalLahir: true,
+                jenisKelamin: true,
+                noKK: true
+            }
         });
 
         // Fetch all death and move reports to filter out inactive ones for the target month
-        const deaths = await prisma.rtDeathReport.findMany({ where: filterScope });
-        const moves = await prisma.rtMoveReport.findMany({ where: filterScope });
+        const [deaths, moves] = await Promise.all([
+            prisma.rtDeathReport.findMany({
+                where: reportFilterScope,
+                select: { nik: true, tanggalMeninggal: true }
+            }),
+            prisma.rtMoveReport.findMany({
+                where: reportFilterScope,
+                select: { nik: true, tanggalPindah: true }
+            })
+        ]);
 
         const deadNiks = new Set(
             deaths.filter(d => {
@@ -1338,6 +1462,7 @@ export async function getRtDemographicReport(month: number, year: number) {
         let wajibKtpP = 0;
 
         activeResidents.forEach(r => {
+            if (!r.tanggalLahir) return;
             const birthDate = new Date(r.tanggalLahir);
             const birthYear = birthDate.getFullYear();
             const birthMonth = birthDate.getMonth() + 1;
@@ -1373,25 +1498,25 @@ export async function getRtDemographicReport(month: number, year: number) {
         const [birthsThisMonth, deathsThisMonth, movesThisMonth, incomingThisMonth] = await Promise.all([
             prisma.rtBirthReport.findMany({
                 where: {
-                    ...filterScope,
+                    ...reportFilterScope,
                     tanggalLahir: { gte: startDate, lt: endDate }
                 }
             }),
             prisma.rtDeathReport.findMany({
                 where: {
-                    ...filterScope,
+                    ...reportFilterScope,
                     tanggalMeninggal: { gte: startDate, lt: endDate }
                 }
             }),
             prisma.rtMoveReport.findMany({
                 where: {
-                    ...filterScope,
+                    ...reportFilterScope,
                     tanggalPindah: { gte: startDate, lt: endDate }
                 }
             }),
             prisma.rtIncomingReport.findMany({
                 where: {
-                    ...filterScope,
+                    ...reportFilterScope,
                     tanggalDatang: { gte: startDate, lt: endDate }
                 }
             })

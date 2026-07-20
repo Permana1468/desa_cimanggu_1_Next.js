@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "cross-env NODE_OPTIONS='--max-old-space-size=6144' next dev --turbo",
+    "dev": "cross-env NODE_OPTIONS='--max-old-space-size=6144' next dev --turbo -H 0.0.0.0",
     "build": "cross-env NODE_OPTIONS='--max-old-space-size=6144' next build",
-    "start": "next start",
+    "start": "next start -H 0.0.0.0",
     "lint": "eslint",
     "postinstall": "prisma generate"
   },
@@ -55,10 +55,17 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "eslint-plugin-security": "^4.0.0",
+    "lightningcss": "^1.33.0",
     "prisma": "^7.8.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "^1.33.0",
+    "lightningcss-windows-x64-msvc": "^1.33.0",
+    "lightningcss-darwin-arm64": "^1.33.0",
+    "lightningcss-darwin-x64": "^1.33.0"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -61,7 +61,11 @@ export async function getFinanceProposals() {
 
         return await prisma.financeProposal.findMany({
             where: { tenantId: u.tenantId },
-            include: { user: { select: { fullName: true, role: true } }, trackings: true },
+            include: { 
+                user: { select: { fullName: true, role: true } }, 
+                trackings: true,
+                tenant: { include: { profile: true } }
+            },
             orderBy: { createdAt: 'desc' }
         });
     } catch (error) {
