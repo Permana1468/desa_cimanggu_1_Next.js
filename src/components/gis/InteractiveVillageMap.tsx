@@ -59,6 +59,10 @@ export default function InteractiveVillageMap({
   });
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  useEffect(() => {
+    setBoundaries(initialBoundaries as Boundary[]);
+  }, [initialBoundaries]);
+
   // Selected region details
   const [selectedBoundary, setSelectedBoundary] = useState<Boundary | null>(null);
   const [stats, setStats] = useState<any>(null);

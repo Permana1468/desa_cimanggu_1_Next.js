@@ -125,6 +125,7 @@ export async function saveBoundary(payload: {
         },
       });
       revalidatePath("/master-admin/gis");
+      revalidatePath("/dashboard/map");
       return { success: true, data: updated };
     } else {
       // Create new boundary
@@ -139,6 +140,7 @@ export async function saveBoundary(payload: {
         },
       });
       revalidatePath("/master-admin/gis");
+      revalidatePath("/dashboard/map");
       return { success: true, data: created };
     }
   } catch (error: any) {
@@ -213,6 +215,7 @@ export async function deleteBoundary(id: string, tenantId: string) {
       where: { id },
     });
     revalidatePath("/master-admin/gis");
+    revalidatePath("/dashboard/map");
     return { success: true };
   } catch (error: any) {
     console.error("Error in deleteBoundary:", error);

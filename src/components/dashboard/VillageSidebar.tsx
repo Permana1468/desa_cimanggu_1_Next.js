@@ -50,7 +50,9 @@ import {
   MessageSquare,
   Folder,
   ShoppingBag,
-  FolderArchive
+  FolderArchive,
+  Monitor,
+  Terminal
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -495,12 +497,12 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                       onClick={() => setIsOpen(false)}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
                         isActive
-                          ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)]"
-                          : "text-slate-400 hover:bg-slate-800/80 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium"
+                          ? (isHackerTheme ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)]" : "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20")
+                          : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/80 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
                       } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
                     >
-                      <item.icon size={20} className={`${isActive ? "" : "group-hover:scale-110 transition-transform"} ${isActive ? 'animate-pulse drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]' : ''}`} />
-                      {(!isCollapsed || isOpen) && <span className="text-sm font-mono">{item.name}</span>}
+                      <item.icon size={20} className={`${isActive ? "" : "group-hover:scale-110 transition-transform"} ${isActive && isHackerTheme ? 'animate-pulse drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]' : ''}`} />
+                      {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>{item.name}</span>}
                     </Link>
                   );
                })}
@@ -509,12 +511,12 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                <div className="pt-2">
                  <button
                    onClick={() => (!isCollapsed || isOpen) && toggleGroup("cyberplan")}
-                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group text-slate-400 hover:bg-slate-800/80 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isHackerTheme ? 'text-slate-400 hover:bg-slate-800/80 hover:text-cyan-400 hover:border hover:border-cyan-500/30' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} font-medium ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                  >
                    <Building2 size={20} className="shrink-0 group-hover:scale-110 transition-transform" />
                    {(!isCollapsed || isOpen) && (
                      <>
-                       <span className="text-[11px] flex-1 text-left font-mono font-bold tracking-widest text-emerald-500 uppercase">CYBER-PLAN ENGINE</span>
+                       <span className={`text-[11px] flex-1 text-left tracking-widest uppercase ${isHackerTheme ? 'font-mono font-bold text-emerald-500' : 'font-bold text-emerald-600'}`}>{isHackerTheme ? 'CYBER-PLAN ENGINE' : 'Perencanaan Pembangunan'}</span>
                        <ChevronDown
                          size={14}
                          className={`transition-transform duration-200 ${openGroup === "cyberplan" ? "rotate-180" : ""}`}
@@ -531,22 +533,23 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                        transition={{ duration: 0.2 }}
                        className="overflow-hidden"
                      >
-                       <div className="mt-1 ml-3 pl-3 border-l border-cyan-500/30 space-y-1">
+                       <div className={`mt-1 ml-3 pl-3 border-l space-y-1 ${isHackerTheme ? 'border-cyan-500/30' : 'border-emerald-100'}`}>
                          {[
-                           { label: "[RKP-Desa]", tab: "rkp", icon: FileText },
-                           { label: "[Take Off Sheet]", tab: "takeoff", icon: FileText },
-                           { label: "[RAB-Desa]", tab: "rab", icon: PieChart },
-                           { label: "[S-Curve Tracker]", tab: "scurve", icon: Activity },
-                           { label: "[Progress Control]", tab: "progress", icon: HardHat },
+                           { label: isHackerTheme ? "[RKP-Desa]" : "RKP Desa", tab: "rkp", icon: FileText },
+                           { label: isHackerTheme ? "[Harga Satuan]" : "Harga Satuan", tab: "harga-satuan", icon: Database },
+                           { label: isHackerTheme ? "[Take Off Sheet]" : "Take Off Sheet", tab: "takeoff", icon: FileText },
+                           { label: isHackerTheme ? "[RAB-Desa]" : "RAB Desa", tab: "rab", icon: PieChart },
+                           { label: isHackerTheme ? "[S-Curve Tracker]" : "S-Curve Tracker", tab: "scurve", icon: Activity },
+                           { label: isHackerTheme ? "[Progress Control]" : "Progress Control", tab: "progress", icon: HardHat },
                          ].map((item) => (
                            <Link
                              key={item.tab}
                              href={`/dashboard?tab=${item.tab}`}
                              onClick={() => setIsOpen(false)}
-                             className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm font-mono ${
+                             className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
                                tabParam === item.tab
-                                 ? "bg-cyan-900/50 text-cyan-300 font-bold border border-cyan-500/50"
-                                 : "text-slate-400 hover:bg-slate-800 hover:text-cyan-400"
+                                 ? (isHackerTheme ? "bg-cyan-900/50 text-cyan-300 font-bold border border-cyan-500/50" : "bg-emerald-500 text-white font-bold")
+                                 : (isHackerTheme ? "text-slate-400 hover:bg-slate-800 hover:text-cyan-400 font-mono" : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-700")
                              }`}
                            >
                              <item.icon size={14} />
@@ -565,13 +568,34 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                   onClick={() => setIsOpen(false)}
                   className={`mt-2 flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
                     pathname === "/dashboard/settings"
-                      ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)]"
-                      : "text-slate-400 hover:bg-slate-800/80 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium"
+                      ? (isHackerTheme ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)]" : "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20")
+                      : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/80 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
                   } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
                 >
-                  <Settings size={20} className={`${pathname === "/dashboard/settings" ? "animate-pulse drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" : "group-hover:scale-110 transition-transform"}`} />
-                  {(!isCollapsed || isOpen) && <span className="text-sm font-mono">Pengaturan</span>}
+                  <Settings size={20} className={`${pathname === "/dashboard/settings" ? (isHackerTheme ? "animate-pulse drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" : "") : "group-hover:scale-110 transition-transform"}`} />
+                  {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>Pengaturan</span>}
                 </Link>
+
+                {/* Theme Toggle */}
+                <button
+                  onClick={() => {
+                    const isCurrentlyHacker = !document.cookie.includes('themeMode=normal');
+                    document.cookie = `themeMode=${isCurrentlyHacker ? 'normal' : 'hacker'}; path=/`;
+                    window.location.reload();
+                  }}
+                  className={`mt-2 w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group cursor-pointer ${
+                    isHackerTheme
+                      ? "text-slate-400 hover:bg-slate-800/80 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                  } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
+                >
+                  {isHackerTheme ? <Monitor size={20} className="group-hover:scale-110 transition-transform" /> : <Terminal size={20} className="group-hover:scale-110 transition-transform" />}
+                  {(!isCollapsed || isOpen) && (
+                    <span className={`text-sm text-left flex-1 ${isHackerTheme ? 'font-mono' : ''}`}>
+                      {isHackerTheme ? 'Normal Mode' : 'Hacker Mode'}
+                    </span>
+                  )}
+                </button>
              </div>
           ) : role === "KASI_KESEJAHTERAAN" ? (
              // === KASI KESEJAHTERAAN ACCORDION SIDEBAR ===

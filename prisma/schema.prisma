@@ -7,7 +7,7 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 // ==============================
@@ -40,6 +40,7 @@ model Tenant {
   apbdesFinances        ApbdesFinance[]
   villageDocuments      VillageDocument[]
   umkmStores            UmkmStore[]
+  hargaSatuans          HargaSatuan[]
 
   // RT Modules
   rtFinances        RtFinance[]
@@ -92,15 +93,15 @@ model Tenant {
   puskesosPenguruses    PuskesosPengurus[]
   arsipLaporans         ArsipLaporan[]
 
-  katarFinances KatarFinance[]
-  katarInventories KatarInventory[]
+  katarFinances       KatarFinance[]
+  katarInventories    KatarInventory[]
   katarInventoryLoans KatarInventoryLoan[]
-  katarSurats KatarSurat[]
-  katarGalleries KatarGallery[]
-  katarMembers KatarMember[]
-  katarPrograms KatarProgram[]
-  katarUmkms KatarUmkm[]
-  katarLokers KatarLoker[]
+  katarSurats         KatarSurat[]
+  katarGalleries      KatarGallery[]
+  katarMembers        KatarMember[]
+  katarPrograms       KatarProgram[]
+  katarUmkms          KatarUmkm[]
+  katarLokers         KatarLoker[]
 }
 
 // ==============================
@@ -180,8 +181,8 @@ model User {
   umkmOrders            UmkmOrder[]
 
   // Sensus relations
-  sensusCreated         SensusPoint[] @relation("SensusCreator")
-  sensusVerified        SensusPoint[] @relation("SensusVerifier")
+  sensusCreated  SensusPoint[] @relation("SensusCreator")
+  sensusVerified SensusPoint[] @relation("SensusVerifier")
 
   @@index([tenantId, role])
   @@index([tenantId, isActive])
@@ -1367,19 +1368,19 @@ model KesraUsulanUhc {
   fotoKamarMandi String?
 
   // SKKM Fields
-  skkmNoRegister          String?
-  skkmRtRwPengantar       String?
-  skkmTanggalPengantar    DateTime?
-  skkmTanggalKk           DateTime?
-  skkmTanggalKtp          DateTime?
-  skkmNamaKepalaKeluarga  String?
-  skkmJenisKelamin        String?
-  skkmTempatTanggalLahir  String?
+  skkmNoRegister           String?
+  skkmRtRwPengantar        String?
+  skkmTanggalPengantar     DateTime?
+  skkmTanggalKk            DateTime?
+  skkmTanggalKtp           DateTime?
+  skkmNamaKepalaKeluarga   String?
+  skkmJenisKelamin         String?
+  skkmTempatTanggalLahir   String?
   skkmAgamaKewarganegaraan String?
-  skkmStatusPerkawinan    String?
-  skkmAlamatJalan         String?
-  skkmTerdaftarDtks       String?
-  skkmNamaPenandatangan   String? @default("FAJAR TRI APRIANA")
+  skkmStatusPerkawinan     String?
+  skkmAlamatJalan          String?
+  skkmTerdaftarDtks        String?
+  skkmNamaPenandatangan    String?   @default("FAJAR TRI APRIANA")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1649,7 +1650,7 @@ model KatarFinance {
   id          String   @id @default(uuid())
   date        DateTime @default(now())
   description String
-  type        String   // "in" | "out"
+  type        String // "in" | "out"
   amount      Float
   receiptUrl  String?
   tenantId    String
@@ -1659,107 +1660,107 @@ model KatarFinance {
 }
 
 model KatarInventory {
-  id          String   @id @default(uuid())
-  name        String
-  category    String
-  quantity    Int      @default(0)
-  condition   String   // "Baik" | "Rusak Ringan" | "Rusak Berat"
-  status      String   // "Tersedia" | "Dipinjam"
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  loans       KatarInventoryLoan[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String               @id @default(uuid())
+  name      String
+  category  String
+  quantity  Int                  @default(0)
+  condition String // "Baik" | "Rusak Ringan" | "Rusak Berat"
+  status    String // "Tersedia" | "Dipinjam"
+  tenantId  String
+  tenant    Tenant               @relation(fields: [tenantId], references: [id])
+  loans     KatarInventoryLoan[]
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
 }
 
 model KatarInventoryLoan {
-  id          String   @id @default(uuid())
+  id          String         @id @default(uuid())
   inventoryId String
   inventory   KatarInventory @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
   borrower    String
-  borrowDate  DateTime @default(now())
+  borrowDate  DateTime       @default(now())
   dueDate     DateTime
   returnDate  DateTime?
-  status      String   // "Aktif" | "Selesai" | "Terlambat"
+  status      String // "Aktif" | "Selesai" | "Terlambat"
   tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  tenant      Tenant         @relation(fields: [tenantId], references: [id])
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 }
 
 model KatarSurat {
-  id          String   @id @default(uuid())
-  noSurat     String
-  type        String   // "masuk" | "keluar"
-  perihal     String
-  pengirim    String?
-  tujuan      String?
-  tanggal     DateTime @default(now())
-  status      String   // "Belum Dibaca" | "Dibaca" | "Terkirim"
-  fileUrl     String?
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  noSurat   String
+  type      String // "masuk" | "keluar"
+  perihal   String
+  pengirim  String?
+  tujuan    String?
+  tanggal   DateTime @default(now())
+  status    String // "Belum Dibaca" | "Dibaca" | "Terkirim"
+  fileUrl   String?
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model KatarGallery {
-  id          String   @id @default(uuid())
-  fileName    String
-  type        String   // "document" | "image"
-  size        String
-  fileUrl     String
-  category    String   // "LPJ" | "Dokumentasi"
-  date        DateTime @default(now())
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  fileName  String
+  type      String // "document" | "image"
+  size      String
+  fileUrl   String
+  category  String // "LPJ" | "Dokumentasi"
+  date      DateTime @default(now())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model KatarMember {
-  id          String   @id @default(uuid())
-  name        String
-  role        String   @default("Anggota") // Ketua, Sekretaris, Bendahara, Anggota
-  rt          String?
-  rw          String?
-  phone       String?
-  skills      String?  // JSON array of skills
-  status      String   @default("Aktif") // Aktif, Pasif
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  name      String
+  role      String   @default("Anggota") // Ketua, Sekretaris, Bendahara, Anggota
+  rt        String?
+  rw        String?
+  phone     String?
+  skills    String? // JSON array of skills
+  status    String   @default("Aktif") // Aktif, Pasif
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model KatarProgram {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   description String?
-  panitia     Int      @default(0)
-  progress    Int      @default(0) // 0-100
-  status      String   @default("Persiapan") // Persiapan, Berjalan, Selesai
+  panitia     Int       @default(0)
+  progress    Int       @default(0) // 0-100
+  status      String    @default("Persiapan") // Persiapan, Berjalan, Selesai
   startDate   DateTime?
   endDate     DateTime?
   tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  tenant      Tenant    @relation(fields: [tenantId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model KatarUmkm {
-  id          String   @id @default(uuid())
-  name        String
-  owner       String
-  category    String
-  income      String?
-  address     String?
-  phone       String?
-  status      String   @default("Aktif") // Aktif, Tidak Aktif
-  tenantId    String
-  tenant      Tenant   @relation(fields: [tenantId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  name      String
+  owner     String
+  category  String
+  income    String?
+  address   String?
+  phone     String?
+  status    String   @default("Aktif") // Aktif, Tidak Aktif
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model KatarLoker {
@@ -1774,4 +1775,25 @@ model KatarLoker {
   tenant      Tenant   @relation(fields: [tenantId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ==============================
+// 14. STANDAR HARGA SATUAN (SSH)
+// ==============================
+model HargaSatuan {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  kategori   String // Contoh: "PENGHASILAN TETAP", "TUNJANGAN PENGHASILAN"
+  uraian     String // Contoh: "Kepala Desa", "Sekdes"
+  satuan     String // Contoh: "Bulan", "Tahun"
+  harga      Float // Contoh: 4750000
+  keterangan String? // Catatan opsional
+  noUrut     Int     @default(0) // Untuk pengurutan presisi
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId, kategori])
 }

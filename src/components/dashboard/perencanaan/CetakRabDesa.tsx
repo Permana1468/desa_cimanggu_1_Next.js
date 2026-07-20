@@ -76,9 +76,9 @@ export function CetakRabDesa({
     return list.map((item, idx) => {
       const c = calculateRow(item);
       return (
-        <tr key={item.id} className="text-[10px]">
+        <tr key={item.id} className="text-[8px]">
           <td className="border-x border-black border-b border-dotted px-1 py-0.5 text-center">{idx + 1}</td>
-          <td className="border-x border-black border-b border-dotted px-1 py-0.5 truncate max-w-[150px]">{item.uraian}</td>
+          <td className="border-x border-black border-b border-dotted px-1 py-0.5 truncate max-w-[120px]">{item.uraian}</td>
           <td className="border-x border-black border-b border-dotted px-1 py-0.5 text-center font-mono">{c.volTotal > 0 ? c.volTotal.toFixed(2) : "-"}</td>
           <td className="border-x border-black border-b border-dotted px-1 py-0.5 text-center font-mono">{item.volumeSwadaya > 0 ? item.volumeSwadaya.toFixed(2) : "-"}</td>
           <td className="border-x border-black border-b border-dotted px-1 py-0.5 text-center font-mono">{item.volumeApbd > 0 ? item.volumeApbd.toFixed(2) : "-"}</td>
@@ -98,7 +98,7 @@ export function CetakRabDesa({
   };
 
   const renderSubtotal = (roman: string, calc: any) => (
-    <tr className="font-bold text-[10px]">
+    <tr className="font-bold text-[8px]">
       <td colSpan={8} className="border border-black px-1 py-0.5 text-center italic">Sub total {roman}</td>
       <td className="border border-black px-1 py-0.5 text-right font-mono">{formatCurrency(calc.totalSwadaya)}</td>
       <td className="border border-black px-1 py-0.5 text-right font-mono">{formatCurrency(calc.totalApbd)}</td>
@@ -122,15 +122,22 @@ export function CetakRabDesa({
             left: 0;
             top: 0;
             width: 100% !important;
-            padding: 0 !important;
+            max-width: none !important;
+            padding: 5mm !important;
+            margin: 0 !important;
             background: white !important;
             color: black !important;
+            box-shadow: none !important;
           }
           .no-print { display: none !important; }
           @page {
-            size: 330.2mm 215.9mm landscape; /* F4 Landscape */
-            margin: 10mm;
+            size: 215.9mm 330.2mm portrait; /* F4 Portrait */
+            margin: 5mm;
           }
+          table { page-break-inside: auto; }
+          tr { page-break-inside: avoid; page-break-after: auto; }
+          thead { display: table-header-group; }
+          tfoot { display: table-footer-group; }
         }
         table {
           width: 100%;
@@ -148,12 +155,12 @@ export function CetakRabDesa({
           <ArrowLeft size={18} /> Kembali
         </button>
         <button onClick={() => window.print()} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-sm">
-          <Printer size={18} /> Cetak RAB (F4 Landscape)
+          <Printer size={18} /> Cetak RAB (F4 Portrait)
         </button>
       </div>
 
-      {/* Print Document - Landscape Layout */}
-      <div id="print-area" className="mx-auto bg-white shadow-xl text-black font-serif overflow-hidden" style={{ width: "100%", maxWidth: "330.2mm", minHeight: "215.9mm", padding: "10mm", fontFamily: "'Times New Roman', Times, serif", color: "#000" }}>
+      {/* Print Document - Portrait Layout */}
+      <div id="print-area" className="mx-auto bg-white shadow-xl text-black font-serif overflow-hidden" style={{ width: "100%", maxWidth: "215.9mm", minHeight: "330.2mm", padding: "10mm", fontFamily: "'Times New Roman', Times, serif", color: "#000" }}>
         
         {/* Header Title */}
         <h1 className="text-center font-bold text-[14px] mb-4 tracking-wide text-black">RANCANGAN ANGGARAN BELANJA DESA</h1>
@@ -176,28 +183,28 @@ export function CetakRabDesa({
         </div>
 
         {/* Tabel RAB */}
-        <table className="w-full text-[9px] border-collapse border border-black table-fixed">
+        <table className="w-full text-[8px] border-collapse border border-black table-fixed">
           <thead>
             <tr className="bg-white font-bold text-center">
-              <td className="border border-black p-0.5 w-[25px]" rowSpan={2}>NO</td>
-              <td className="border border-black p-0.5 w-[140px]" rowSpan={2}>URAIAN</td>
+              <td className="border border-black p-0.5 w-[20px]" rowSpan={2}>NO</td>
+              <td className="border border-black p-0.5 w-[120px]" rowSpan={2}>URAIAN</td>
               <td className="border border-black p-0.5" colSpan={3}>VOLUME</td>
-              <td className="border border-black p-0.5 w-[40px]" rowSpan={2}>Satuan</td>
-              <td className="border border-black p-0.5 w-[40px]" rowSpan={2}>Kode<br/>Kategori</td>
-              <td className="border border-black p-0.5 w-[65px]" rowSpan={2}>HARGA<br/>SATUAN<br/>(Rp)</td>
+              <td className="border border-black p-0.5 w-[30px]" rowSpan={2}>Satuan</td>
+              <td className="border border-black p-0.5 w-[35px]" rowSpan={2}>Kode<br/>Kategori</td>
+              <td className="border border-black p-0.5 w-[55px]" rowSpan={2}>HARGA<br/>SATUAN<br/>(Rp)</td>
               <td className="border border-black p-0.5" colSpan={2}>Sumber Dana</td>
-              <td className="border border-black p-0.5 w-[75px]" rowSpan={2}>Total<br/>(Rp)</td>
-              <td className="border border-black p-0.5 w-[55px]" rowSpan={2}>PPN<br/>11%</td>
-              <td className="border border-black p-0.5 w-[55px]" rowSpan={2}>PPH 21<br/>5%</td>
-              <td className="border border-black p-0.5 w-[50px]" rowSpan={2}>PPH 22<br/>1.50%</td>
-              <td className="border border-black p-0.5 w-[45px]" rowSpan={2}>PPH 23<br/>2%</td>
+              <td className="border border-black p-0.5 w-[60px]" rowSpan={2}>Total<br/>(Rp)</td>
+              <td className="border border-black p-0.5 w-[45px]" rowSpan={2}>PPN<br/>11%</td>
+              <td className="border border-black p-0.5 w-[45px]" rowSpan={2}>PPH 21<br/>5%</td>
+              <td className="border border-black p-0.5 w-[40px]" rowSpan={2}>PPH 22<br/>1.50%</td>
+              <td className="border border-black p-0.5 w-[35px]" rowSpan={2}>PPH 23<br/>2%</td>
             </tr>
             <tr className="bg-white font-bold text-center">
-              <td className="border border-black p-0.5 w-[40px]">Total</td>
-              <td className="border border-black p-0.5 w-[40px]">Dari<br/>Swadaya</td>
-              <td className="border border-black p-0.5 w-[40px]">Dari<br/>APBD</td>
-              <td className="border border-black p-0.5 w-[65px]">Dari<br/>Swadaya</td>
-              <td className="border border-black p-0.5 w-[65px]">Dari APBD</td>
+              <td className="border border-black p-0.5 w-[35px]">Total</td>
+              <td className="border border-black p-0.5 w-[35px]">Dari<br/>Swadaya</td>
+              <td className="border border-black p-0.5 w-[35px]">Dari<br/>APBD</td>
+              <td className="border border-black p-0.5 w-[55px]">Dari<br/>Swadaya</td>
+              <td className="border border-black p-0.5 w-[55px]">Dari APBD</td>
             </tr>
           </thead>
           <tbody>
@@ -244,7 +251,7 @@ export function CetakRabDesa({
             {renderSubtotal("IV", opCalc)}
 
             {/* GRAND TOTAL */}
-            <tr className="font-bold bg-white text-[10px]">
+            <tr className="font-bold bg-white text-[8px]">
               <td colSpan={8} className="border border-black p-1 text-center uppercase">TOTAL BIAYA</td>
               <td className="border border-black p-1 text-right font-mono">{formatCurrency(grandTotal.totalSwadaya)}</td>
               <td className="border border-black p-1 text-right font-mono">{formatCurrency(grandTotal.totalApbd)}</td>
@@ -258,11 +265,11 @@ export function CetakRabDesa({
         </table>
 
         {/* Sumber Dana Rekap */}
-        <div className="mt-2 border border-black w-5/12 ml-auto text-[10px]">
+        <div className="mt-2 border border-black w-1/2 ml-auto text-[8px]">
           <table className="w-full">
             <tbody>
               <tr className="border-b border-black font-bold">
-                <td className="border-r border-black p-1 w-1/3 text-center" rowSpan={3}>SUMBER<br/>DANA</td>
+                <td className="border-r border-black p-1 w-[80px] text-center" rowSpan={3}>SUMBER<br/>APBD</td>
                 <td className="border-r border-black p-1 text-center">APBD</td>
                 <td className="border-r border-black p-1 text-right font-mono w-[80px]">{formatCurrency(grandTotal.totalApbd)}</td>
                 <td className="p-1 text-right font-mono w-[80px]">{formatCurrency(grandTotal.totalApbd)}</td>
@@ -282,7 +289,7 @@ export function CetakRabDesa({
         </div>
 
         {/* Tanda Tangan */}
-        <div className="mt-6 flex justify-between px-10 text-[11px] text-black">
+        <div className="mt-6 flex justify-between px-10 text-[10px] text-black">
           <div className="text-center">
             <p>Disetujui,</p>
             <p className="mb-16">Kepala Desa Cimanggu I</p>
