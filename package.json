@@ -19,6 +19,7 @@
     "@turf/turf": "^7.3.5",
     "axios": "^1.15.2",
     "bcryptjs": "^3.0.3",
+    "date-fns": "^4.4.0",
     "docxtemplater": "^3.68.6",
     "dotenv": "^17.4.2",
     "exceljs": "^4.4.0",
@@ -36,6 +37,7 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hot-toast": "^2.6.0",
+    "react-signature-canvas": "^1.1.0-alpha.2",
     "recharts": "^3.8.1",
     "swr": "^2.4.1",
     "xlsx": "^0.18.5",
@@ -50,6 +52,7 @@
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/react-signature-canvas": "^1.0.7",
     "babel-plugin-react-compiler": "^1.0.0",
     "cross-env": "^10.1.0",
     "eslint": "^9",
@@ -62,10 +65,10 @@
     "typescript": "^5"
   },
   "optionalDependencies": {
-    "lightningcss-linux-x64-gnu": "^1.33.0",
-    "lightningcss-windows-x64-msvc": "^1.33.0",
     "lightningcss-darwin-arm64": "^1.33.0",
-    "lightningcss-darwin-x64": "^1.33.0"
+    "lightningcss-darwin-x64": "^1.33.0",
+    "lightningcss-linux-x64-gnu": "^1.33.0",
+    "lightningcss-windows-x64-msvc": "^1.33.0"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

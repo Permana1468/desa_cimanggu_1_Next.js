@@ -135,3 +135,35 @@ export async function createPuskesosPengurus(data: any) {
   revalidatePath('/dashboard/puskesos');
   return res;
 }
+
+// --- Buku Tamu ---
+export async function getPuskesosBukuTamu(tenantId: string) {
+  return await prisma.puskesosBukuTamu.findMany({
+    where: { tenantId },
+    orderBy: { createdAt: 'desc' }
+  });
+}
+
+export async function createPuskesosBukuTamu(data: {
+  tenantId: string;
+  namaLengkap: string;
+  nik?: string;
+  alamat: string;
+  noHp?: string;
+  keperluan: string;
+  tandaTangan: string; // Base64
+}) {
+  const res = await prisma.puskesosBukuTamu.create({
+    data: {
+      tenantId: data.tenantId,
+      namaLengkap: data.namaLengkap,
+      nik: data.nik || null,
+      alamat: data.alamat,
+      noHp: data.noHp || null,
+      keperluan: data.keperluan,
+      tandaTangan: data.tandaTangan,
+    }
+  });
+  revalidatePath('/dashboard/puskesos/buku-tamu');
+  return res;
+}

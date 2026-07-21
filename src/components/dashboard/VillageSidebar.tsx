@@ -996,6 +996,59 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                  {(!isCollapsed || isOpen) && <span className="text-sm">Data Pengurus</span>}
                </Link>
 
+               {/* CUSTOM DROPDOWN LAPORAN FOR PUSKESOS */}
+               <div className="mt-2">
+                 <button
+                   onClick={() => setOpenGroup(prev => prev === "laporan-puskesos" ? null : "laporan-puskesos")}
+                   className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all group ${isHackerTheme ? "text-slate-400 hover:text-cyan-400 font-mono" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"} ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                 >
+                   <div className="flex items-center gap-3">
+                     <FolderArchive size={20} />
+                     {(!isCollapsed || isOpen) && (
+                       <span className="text-[11px] font-bold tracking-widest uppercase">Laporan</span>
+                     )}
+                   </div>
+                   {(!isCollapsed || isOpen) && (
+                     <ChevronDown
+                       size={14}
+                       className={`transition-transform duration-200 ${openGroup === "laporan-puskesos" ? "rotate-180" : ""}`}
+                     />
+                   )}
+                 </button>
+                 <AnimatePresence>
+                   {(openGroup === "laporan-puskesos" && (!isCollapsed || isOpen)) && (
+                     <motion.div
+                       initial={{ height: 0, opacity: 0 }}
+                       animate={{ height: "auto", opacity: 1 }}
+                       exit={{ height: 0, opacity: 0 }}
+                       transition={{ duration: 0.2 }}
+                       className="overflow-hidden"
+                     >
+                       <div className={`mt-1 ml-4 pl-3 border-l space-y-1 ${isHackerTheme ? 'border-cyan-500/30' : 'border-blue-100'}`}>
+                         {[
+                           { label: "Buku Tamu", href: "/dashboard/puskesos/buku-tamu", icon: FileText },
+                           { label: "Laporan Pengajuan", href: "/dashboard/puskesos/laporan-pengajuan", icon: Activity },
+                         ].map((subItem) => (
+                           <Link
+                             key={subItem.href}
+                             href={subItem.href}
+                             onClick={() => setIsOpen(false)}
+                             className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
+                               pathname === subItem.href
+                                 ? (isHackerTheme ? "bg-cyan-900/50 text-cyan-300 font-bold" : "bg-blue-50 text-blue-700 font-bold")
+                                 : (isHackerTheme ? "text-slate-400 hover:text-cyan-400 font-mono" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")
+                             }`}
+                           >
+                             <subItem.icon size={14} />
+                             <span>{subItem.label}</span>
+                           </Link>
+                         ))}
+                       </div>
+                     </motion.div>
+                   )}
+                 </AnimatePresence>
+               </div>
+
                {/* Pengaturan */}
                <Link
                  href="/dashboard/settings"
@@ -1197,6 +1250,60 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                                   { label: "Pesanan Barang", href: "/dashboard/laporan/pesanan-barang", icon: Package },
                                   { label: "Absensi & Tanda Terima", href: "/dashboard/laporan/pekerja-absensi", icon: Users },
                                   { label: "Kegiatan Perangkat", href: "/dashboard/laporan/kegiatan-perangkat", icon: Activity },
+                                ].map((subItem) => (
+                                  <Link
+                                    key={subItem.href}
+                                    href={subItem.href}
+                                    onClick={() => setIsOpen(false)}
+                                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
+                                      pathname === subItem.href
+                                        ? (isHackerTheme ? "bg-cyan-900/50 text-cyan-300 font-bold" : "bg-emerald-50 text-emerald-700 font-bold")
+                                        : (isHackerTheme ? "text-slate-400 hover:text-cyan-400 font-mono" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")
+                                    }`}
+                                  >
+                                    <subItem.icon size={14} />
+                                    <span>{subItem.label}</span>
+                                  </Link>
+                                ))}
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
+                    {/* CUSTOM DROPDOWN LAPORAN FOR PUSKESOS */}
+                    {role === "PUSKESOS" && (
+                      <div className="mt-2">
+                        <button
+                          onClick={() => setOpenGroup(prev => prev === "laporan-puskesos" ? null : "laporan-puskesos")}
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all group ${isHackerTheme ? "text-slate-400 hover:text-cyan-400 font-mono" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"} ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <FolderArchive size={20} />
+                            {(!isCollapsed || isOpen) && (
+                              <span className="text-[11px] font-bold tracking-widest uppercase">Laporan</span>
+                            )}
+                          </div>
+                          {(!isCollapsed || isOpen) && (
+                            <ChevronDown
+                              size={14}
+                              className={`transition-transform duration-200 ${openGroup === "laporan-puskesos" ? "rotate-180" : ""}`}
+                            />
+                          )}
+                        </button>
+                        <AnimatePresence>
+                          {(openGroup === "laporan-puskesos" && (!isCollapsed || isOpen)) && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className="overflow-hidden"
+                            >
+                              <div className={`mt-1 ml-4 pl-3 border-l space-y-1 ${isHackerTheme ? 'border-cyan-500/30' : 'border-blue-100'}`}>
+                                {[
+                                  { label: "Buku Tamu", href: "/dashboard/puskesos/buku-tamu", icon: FileText },
+                                  { label: "Laporan Pengajuan", href: "/dashboard/puskesos/laporan-pengajuan", icon: Activity },
                                 ].map((subItem) => (
                                   <Link
                                     key={subItem.href}

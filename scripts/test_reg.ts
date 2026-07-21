@@ -1,4 +1,4 @@
-import { registerWarga } from './src/actions/auth';
+import { registerWarga } from '../src/actions/auth';
 async function test() {
   try {
     const res = await registerWarga({

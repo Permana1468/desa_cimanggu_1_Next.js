@@ -1,4 +1,4 @@
-import prisma from './src/lib/prisma';
+import prisma from '../src/lib/prisma';
 async function test() { 
     try { 
         const user = await prisma.dataKependudukan.findUnique({ where: { nik: '123' }}); 

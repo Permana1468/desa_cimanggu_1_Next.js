@@ -91,6 +91,7 @@ model Tenant {
   puskesosRujukans      PuskesosRujukan[]
   puskesosKegiatans     PuskesosKegiatan[]
   puskesosPenguruses    PuskesosPengurus[]
+  puskesosBukuTamus     PuskesosBukuTamu[]
   arsipLaporans         ArsipLaporan[]
 
   katarFinances       KatarFinance[]
@@ -1805,4 +1806,20 @@ model HargaSatuan {
   updatedAt DateTime @updatedAt
 
   @@index([tenantId, kategori])
+}
+
+model PuskesosBukuTamu {
+  id           String   @id @default(uuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  namaLengkap  String
+  nik          String?
+  alamat       String
+  noHp         String?
+  keperluan    String
+  tandaTangan  String   @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId])
 }
