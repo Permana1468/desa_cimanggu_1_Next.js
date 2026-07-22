@@ -40,44 +40,72 @@ export async function getChatContacts() {
         }
     });
 
+    const userIds = users.map((u) => u.id);
+
+    if (userIds.length === 0) return [];
+
+    // Batch query 1: Fetch unread counts per sender in a single query
+    const unreadCountsGroup = await prisma.chatMessage.groupBy({
+        by: ["senderId"],
+        where: {
+            receiverId: currentUserId,
+            isRead: false,
+            senderId: { in: userIds }
+        },
+        _count: {
+            _all: true
+        }
+    });
+
+    const unreadMap = new Map<string, number>();
+    for (const item of unreadCountsGroup) {
+        unreadMap.set(item.senderId, item._count._all);
+    }
+
+    // Batch query 2: Fetch recent messages involving current user and these contacts
+    const allRecentMessages = await prisma.chatMessage.findMany({
+        where: {
+            OR: [
+                { senderId: currentUserId, receiverId: { in: userIds } },
+                { senderId: { in: userIds }, receiverId: currentUserId }
+            ]
+        },
+        orderBy: {
+            createdAt: "desc"
+        },
+        select: {
+            message: true,
+            createdAt: true,
+            senderId: true,
+            receiverId: true
+        }
+    });
+
+    const lastMessageMap = new Map<string, { message: string; createdAt: Date; senderId: string }>();
+    for (const msg of allRecentMessages) {
+        const otherId = msg.senderId === currentUserId ? msg.receiverId : msg.senderId;
+        if (!lastMessageMap.has(otherId)) {
+            lastMessageMap.set(otherId, {
+                message: msg.message,
+                createdAt: msg.createdAt,
+                senderId: msg.senderId
+            });
+        }
+    }
+
     const now = new Date();
-    const contacts = await Promise.all(users.map(async (u) => {
+    const contacts = users.map((u) => {
         const isOnline = u.lastActiveAt 
             ? (now.getTime() - new Date(u.lastActiveAt).getTime()) < 30000 // 30 seconds threshold
             : false;
-        
-        const unreadCount = await prisma.chatMessage.count({
-            where: {
-                senderId: u.id,
-                receiverId: currentUserId,
-                isRead: false
-            }
-        });
-
-        const lastMessage = await prisma.chatMessage.findFirst({
-            where: {
-                OR: [
-                    { senderId: currentUserId, receiverId: u.id },
-                    { senderId: u.id, receiverId: currentUserId }
-                ]
-            },
-            orderBy: {
-                createdAt: "desc"
-            },
-            select: {
-                message: true,
-                createdAt: true,
-                senderId: true
-            }
-        });
 
         return {
             ...u,
             isOnline,
-            unreadCount,
-            lastMessage
+            unreadCount: unreadMap.get(u.id) || 0,
+            lastMessage: lastMessageMap.get(u.id) || null
         };
-    }));
+    });
 
     // Sort contacts: latest message first, then alphabetical
     contacts.sort((a, b) => {

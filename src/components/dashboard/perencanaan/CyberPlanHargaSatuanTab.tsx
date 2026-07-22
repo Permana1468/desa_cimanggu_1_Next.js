@@ -6,6 +6,7 @@ import { getHargaSatuans, createHargaSatuan, deleteHargaSatuan, deleteAllHargaSa
 import { importHargaSatuanWithAI } from "@/actions/hargaSatuan-ai";
 import { CetakHargaSatuan } from "./CetakHargaSatuan";
 
+
 export function CyberPlanHargaSatuanTab({ onBack }: { onBack: () => void }) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -296,6 +297,9 @@ export function CyberPlanHargaSatuanTab({ onBack }: { onBack: () => void }) {
           </div>
         </div>
       )}
+
+      {/* IMO ROBOT MOTION COMPANION */}
+
     </div>
   );
 }

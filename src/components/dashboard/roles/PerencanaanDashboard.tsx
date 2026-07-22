@@ -19,6 +19,7 @@ import { CyberPlanRabTab } from "../perencanaan/CyberPlanRabTab";
 import { CyberPlanTakeOffTab } from "../perencanaan/CyberPlanTakeOffTab";
 import { CyberPlanHargaSatuanTab } from "../perencanaan/CyberPlanHargaSatuanTab";
 
+
 export function PerencanaanDashboard({ session, stats }: { session: any, stats: any }) {
   const roleName = session?.user?.role?.replace(/_/g, ' ') || "KAUR PERENCANAAN";
   const searchParams = useSearchParams();
@@ -205,6 +206,9 @@ export function PerencanaanDashboard({ session, stats }: { session: any, stats: 
           </div>
         </div>
       </div>
+
+      {/* IMO ROBOT MOTION COMPANION */}
+
     </div>
   );
 }

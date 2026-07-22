@@ -8,6 +8,7 @@ import { Suspense } from "react";
 
 
 import { cookies } from "next/headers";
+import { ImoRobotCompanion } from "@/components/dashboard/perencanaan/ImoRobotCompanion";
 
 export default async function VillageAdminLayout({
   children,
@@ -103,6 +104,7 @@ export default async function VillageAdminLayout({
       
       {/* Floating Transparent Chat for Dashboard Users */}
       <FloatingChat session={session} />
+      {role === "KAUR_PERENCANAAN" && <ImoRobotCompanion />}
     </div>
   );
 }

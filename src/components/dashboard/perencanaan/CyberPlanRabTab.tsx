@@ -5,6 +5,7 @@ import { ArrowLeft, Save, Plus, Trash2, Printer, Edit2, FileText, X } from "luci
 import { v4 as uuidv4 } from "uuid";
 import { CetakRabDesa } from "./CetakRabDesa";
 
+
 export type RabItem = {
   id: string;
   uraian: string;
@@ -399,6 +400,9 @@ export function CyberPlanRabTab({ onBack }: { onBack: () => void }) {
            {renderTable("IV. BIAYA OPERASIONAL", "operasionalList")}
         </div>
       </div>
+
+      {/* IMO ROBOT MOTION COMPANION */}
+
     </div>
   );
 }

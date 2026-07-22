@@ -242,7 +242,7 @@ export default function AdminVerifierClient({
                                 {selectedPoint.description && (
                                     <div className="col-span-2">
                                         <label className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Catatan Lapangan</label>
-                                        <p className="text-slate-300 italic">"{selectedPoint.description}"</p>
+                                         <p className="text-slate-300 italic">&quot;{selectedPoint.description}&quot;</p>
                                     </div>
                                 )}
                             </div>

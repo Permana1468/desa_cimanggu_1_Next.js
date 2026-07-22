@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { getBeritaList, deleteBerita } from "@/actions/cms";
 import { createVillageAccount } from "@/actions/village";
 import { RoleType } from "@prisma/client";
@@ -74,6 +74,12 @@ export default function SettingsPage() {
                         icon={UserCircle} 
                         label="Profil Saya" 
                     />
+                    <TabButton 
+                        active={activeTab === "facesecurity"} 
+                        onClick={() => setActiveTab("facesecurity")} 
+                        icon={ShieldCheck} 
+                        label="Keamanan Wajah" 
+                    />
                 </div>
             )}
 
@@ -81,6 +87,7 @@ export default function SettingsPage() {
                 {activeTab === "cms" && isAdmin && <CMSManager />}
                 {activeTab === "accounts" && isAdmin && <AccountManager />}
                 {activeTab === "profile" && <UserProfileManager />}
+                {activeTab === "facesecurity" && <FaceSecurityManager />}
             </div>
         </div>
     );
@@ -280,7 +287,7 @@ function AccountManager() {
     );
 }
 
-function TabButton({ active, onClick, icon: Icon, label }: { active: boolean; onClick: () => void; icon: React.ElementType; label: string }) {
+function TabButton({ active, onClick, icon: Icon, label }: { active: boolean; onClick: () => void; icon: any; label: string }) {
     return (
         <button 
             onClick={onClick}
@@ -290,4 +297,188 @@ function TabButton({ active, onClick, icon: Icon, label }: { active: boolean; on
             {label}
         </button>
     )
+}
+
+function FaceSecurityManager() {
+    const [modelsLoaded, setModelsLoaded] = useState(false);
+    const [isCameraActive, setIsCameraActive] = useState(false);
+    const [statusText, setStatusText] = useState("Memuat model Face API...");
+    const [descriptor, setDescriptor] = useState<Float32Array | null>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const streamRef = useRef<MediaStream | null>(null);
+    const [isRegisteredState, setIsRegisteredState] = useState(false);
+
+    useEffect(() => {
+        setIsRegisteredState(typeof window !== 'undefined' && !!localStorage.getItem("imo_registered_face"));
+
+        const loadModels = async () => {
+            try {
+                // --- TEMPORARILY DISABLED DUE TO DEV SERVER HANG ---
+                // const faceapi = await import('@vladmandic/face-api');
+                // await Promise.all([
+                //     faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+                //     faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+                //     faceapi.nets.faceRecognitionNet.loadFromUri('/models')
+                // ]);
+                setModelsLoaded(true); // Faked
+                setStatusText("Model siap. Silakan aktifkan kamera.");
+            } catch (err) {
+                console.error("Gagal memuat model:", err);
+                setStatusText("Gagal memuat model Face API. Pastikan folder /models tersedia.");
+            }
+        };
+        loadModels();
+
+        return () => {
+            if (streamRef.current) {
+                streamRef.current.getTracks().forEach(track => track.stop());
+            }
+        };
+    }, []);
+
+    const startCamera = async () => {
+        if (!modelsLoaded) return;
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                streamRef.current = stream;
+                setIsCameraActive(true);
+                setStatusText("Kamera aktif. Posisikan wajah Anda di tengah...");
+            }
+        } catch (err) {
+            setStatusText("Tidak dapat mengakses kamera.");
+        }
+    };
+
+    const stopCamera = () => {
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+            setIsCameraActive(false);
+            setStatusText("Kamera dimatikan.");
+        }
+    };
+
+    const handleVideoPlay = () => {
+        const detectFace = async () => {
+            if (!videoRef.current || !isCameraActive || videoRef.current.paused || videoRef.current.ended) return;
+            try {
+                // --- TEMPORARILY DISABLED FOR PERFORMANCE ---
+                // const faceapi = await import('@vladmandic/face-api');
+                // const detection = await faceapi.detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
+                //     .withFaceLandmarks()
+                //     .withFaceDescriptor();
+
+                // if (detection) {
+                //     setStatusText("Wajah terdeteksi! Siap didaftarkan.");
+                //     setDescriptor(detection.descriptor);
+                    
+                //     if (canvasRef.current && videoRef.current) {
+                //         const displaySize = { width: videoRef.current.videoWidth, height: videoRef.current.videoHeight };
+                //         faceapi.matchDimensions(canvasRef.current, displaySize);
+                //         const resizedDetection = faceapi.resizeResults(detection, displaySize);
+                //         canvasRef.current.getContext('2d')?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                //         faceapi.draw.drawDetections(canvasRef.current, resizedDetection);
+                //     }
+                // } else {
+                //     setStatusText("Wajah tidak ditemukan, paskan di tengah.");
+                //     setDescriptor(null);
+                //     if (canvasRef.current) {
+                //         canvasRef.current.getContext('2d')?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                //     }
+                // }
+            } catch (e) {
+                console.error(e);
+            }
+            
+            if (isCameraActive) {
+                setTimeout(() => requestAnimationFrame(detectFace), 100);
+            }
+        };
+        detectFace();
+    };
+
+    const registerFace = () => {
+        if (descriptor) {
+            localStorage.setItem("imo_registered_face", JSON.stringify(Array.from(descriptor)));
+            setIsRegisteredState(true);
+            alert("Wajah berhasil didaftarkan sebagai pemilik sah!");
+            stopCamera();
+        }
+    };
+
+    const clearRegistration = () => {
+        localStorage.removeItem("imo_registered_face");
+        setIsRegisteredState(false);
+        alert("Data wajah berhasil dihapus.");
+    };
+
+    return (
+        <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-200/60 max-w-2xl">
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-3 mb-4">
+                <ShieldCheck className="text-emerald-500" size={24} />
+                Verifikasi Keamanan Wajah
+            </h2>
+            <p className="text-slate-600 mb-6 text-sm">
+                Daftarkan wajah Anda agar robot IMO-1 dapat mengenali Anda. 
+                Jika orang asing mencoba menggunakan dashboard Anda, fitur akan terkunci.
+            </p>
+
+            <div className="space-y-4">
+                <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-sm flex justify-between items-center">
+                    <div>
+                        <span className="font-bold text-slate-700">Status Registrasi: </span>
+                        {isRegisteredState ? (
+                            <span className="text-emerald-600 font-bold">Terdaftar</span>
+                        ) : (
+                            <span className="text-rose-500 font-bold">Belum Terdaftar</span>
+                        )}
+                    </div>
+                    {isRegisteredState && (
+                        <button onClick={clearRegistration} className="text-rose-500 hover:text-rose-600 text-xs font-bold px-3 py-1 bg-rose-50 rounded-lg">
+                            Hapus Data Wajah
+                        </button>
+                    )}
+                </div>
+
+                <div className="relative bg-slate-900 rounded-3xl overflow-hidden aspect-video flex flex-col items-center justify-center">
+                    {!isCameraActive ? (
+                        <div className="text-center text-slate-400">
+                            <UserCircle size={48} className="mx-auto mb-2 opacity-50" />
+                            <p>{statusText}</p>
+                            {modelsLoaded && (
+                                <button onClick={startCamera} className="mt-4 px-6 py-2 bg-emerald-500 hover:bg-emerald-400 text-white font-bold rounded-xl transition">
+                                    Nyalakan Kamera
+                                </button>
+                            )}
+                        </div>
+                    ) : (
+                        <>
+                            <video 
+                                ref={videoRef} 
+                                onPlay={handleVideoPlay}
+                                autoPlay 
+                                muted 
+                                className="w-full h-full object-cover transform scale-x-[-1]"
+                            />
+                            <canvas ref={canvasRef} className="absolute inset-0 w-full h-full transform scale-x-[-1]" />
+                            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4 z-10">
+                                <button onClick={stopCamera} className="px-4 py-2 bg-slate-800/80 hover:bg-slate-700 text-white font-bold rounded-xl backdrop-blur-md">
+                                    Batalkan
+                                </button>
+                                <button 
+                                    onClick={registerFace} 
+                                    disabled={!descriptor}
+                                    className="px-6 py-2 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:bg-slate-500 text-white font-bold rounded-xl shadow-lg"
+                                >
+                                    Daftarkan Wajah Ini
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
 }

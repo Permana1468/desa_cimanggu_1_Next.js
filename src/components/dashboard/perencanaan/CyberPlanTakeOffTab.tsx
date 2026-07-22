@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ArrowLeft, Calculator, FileSpreadsheet, Ruler, Layers, ChevronRight, HardHat, Droplets, ArrowDownToLine, BrickWall } from "lucide-react";
 
+
 type ProjectCategory = "tpt" | "beton" | "uditch" | "buis" | null;
 
 interface TosResultItem {
@@ -352,6 +353,9 @@ export function CyberPlanTakeOffTab({ onBack }: { onBack: () => void }) {
         </div>
 
       </div>
+
+      {/* IMO ROBOT MOTION COMPANION */}
+
     </div>
   );
 }
