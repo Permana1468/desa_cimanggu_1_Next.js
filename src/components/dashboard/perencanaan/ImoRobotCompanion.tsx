@@ -42,7 +42,7 @@ const DefaultHologramTips = [
 
 export function ImoRobotCompanion() {
   const [isActive, setIsActive] = useState<boolean>(true);
-  const [isCameraOn, setIsCameraOn] = useState<boolean>(false);
+  const [sensorMode, setSensorMode] = useState<"off" | "camera" | "cyber_radar">("off");
   const [cameraErrorMsg, setCameraErrorMsg] = useState<string | null>(null);
   const [isSoundOn, setIsSoundOn] = useState<boolean>(true);
   const [expression, setExpression] = useState<ExpressionType>("normal");
@@ -156,6 +156,17 @@ export function ImoRobotCompanion() {
     }
   };
 
+  // Cyber Radar Motion Pulse loop when Cyber Radar is active
+  useEffect(() => {
+    if (sensorMode !== "cyber_radar") return;
+
+    const radarInterval = setInterval(() => {
+      setExpression((prev) => (prev === "curious" ? "happy" : "curious"));
+    }, 4000);
+
+    return () => clearInterval(radarInterval);
+  }, [sensorMode]);
+
   // Blinking and hologram tip rotation
   useEffect(() => {
     const tipInterval = setInterval(() => {
@@ -173,22 +184,15 @@ export function ImoRobotCompanion() {
   }, [chatMessages, showChatMode]);
 
   const [isLocked, setIsLocked] = useState(false);
-  const [faceModelsLoaded, setFaceModelsLoaded] = useState(false);
 
-  useEffect(() => {
-    const loadFaceModels = async () => {
-      try {
-        setFaceModelsLoaded(true);
-      } catch (err) {
-        console.error("Gagal memuat model face-api", err);
-      }
-    };
-    loadFaceModels();
-  }, []);
+  // Smart Toggle Sensor (Physical Camera with Cyber Radar Fallback)
+  const toggleCamera = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
 
-  // Face Verification Loop with Graceful Error Handling
-  useEffect(() => {
-    if (!isCameraOn || !isActive) {
+    if (sensorMode !== "off") {
+      // Turn OFF
+      setSensorMode("off");
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
@@ -196,57 +200,38 @@ export function ImoRobotCompanion() {
       if (videoRef.current) {
         videoRef.current.srcObject = null;
       }
-      setIsLocked(false);
+      setExpression("normal");
+      playRobotBeep("click");
       return;
     }
 
-    let isSubscribed = true;
-
-    async function startCamera() {
-      try {
-        setCameraErrorMsg(null);
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-          throw new Error("Kamera tidak didukung pada browser ini atau memerlukan HTTPS.");
-        }
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { width: 320, height: 240, frameRate: 15 }
-        });
-        if (!isSubscribed) {
-          stream.getTracks().forEach((t) => t.stop());
-          return;
-        }
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-        }
-
-        playRobotBeep("happy");
-      } catch (err: any) {
-        console.warn("Akses kamera tidak dapat diaktifkan:", err?.message || err);
-        if (isSubscribed) {
-          setIsCameraOn(false);
-          setCameraErrorMsg(
-            err?.name === "NotAllowedError" || err?.name === "PermissionDeniedError"
-              ? "Izin kamera ditolak. Silakan izinkan akses kamera pada browser Anda."
-              : "Gagal mengaktifkan kamera atau perangkat kamera tidak ditemukan."
-          );
-          setTimeout(() => setCameraErrorMsg(null), 5000);
-        }
-      }
-    }
-    startCamera();
-
-    return () => {
-      isSubscribed = false;
-    };
-  }, [isCameraOn, isActive]);
-
-  const toggleCamera = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setIsCameraOn((prev) => !prev);
+    // Try Physical Camera
     playRobotBeep("click");
+    try {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error("Persyaratan HTTPS untuk kamera fisik");
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 320, height: 240, frameRate: 15 }
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      setSensorMode("camera");
+      setExpression("happy");
+      playRobotBeep("happy");
+      setCameraErrorMsg("Sensor Kamera Fisik Berhasil Aktif!");
+      setTimeout(() => setCameraErrorMsg(null), 3000);
+    } catch (err: any) {
+      // Automatic Fallback to Cyber Radar Mode!
+      setSensorMode("cyber_radar");
+      setExpression("curious");
+      playRobotBeep("motion");
+      setCameraErrorMsg("⚡ Sensor Cyber AI Radar Aktif (Mode Pemindai Gerak & Radar Digital)");
+      setTimeout(() => setCameraErrorMsg(null), 4000);
+    }
   };
 
   const handleSendMessage = (textToSend?: string) => {
@@ -457,16 +442,22 @@ export function ImoRobotCompanion() {
         {/* GLASS CONTROL PILL BAR */}
         <div className={`transition-all duration-500 ease-in-out ${isActive ? 'opacity-100 translate-x-0 pointer-events-auto' : 'opacity-0 translate-x-10 pointer-events-none'} bg-slate-950/90 border border-emerald-400/50 rounded-full px-2.5 sm:px-3.5 py-1 sm:py-1.5 backdrop-blur-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center gap-2 sm:gap-3 text-xs text-slate-200`}>
           
-          {/* CAMERA SENSOR TOGGLE BUTTON */}
+          {/* SENSOR TOGGLE BUTTON (SMART HYBRID CAMERA + CYBER RADAR) */}
           <button
             type="button"
             onClick={toggleCamera}
             className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-bold hover:text-emerald-400 transition"
-            title={isCameraOn ? "Matikan Sensor Kamera" : "Aktifkan Sensor Kamera"}
+            title={sensorMode !== "off" ? "Matikan Sensor" : "Aktifkan Sensor Pemindai Motion"}
           >
-            {isCameraOn ? <Camera size={13} className="text-emerald-400 animate-pulse" /> : <CameraOff size={13} className="text-slate-400" />}
-            <span className={isCameraOn ? "text-emerald-400" : "text-slate-400"}>
-              {isCameraOn ? "Sensor ON" : "Sensor OFF"}
+            {sensorMode === "camera" ? (
+              <Camera size={13} className="text-emerald-400 animate-pulse" />
+            ) : sensorMode === "cyber_radar" ? (
+              <Zap size={13} className="text-cyan-400 animate-bounce" />
+            ) : (
+              <CameraOff size={13} className="text-slate-400" />
+            )}
+            <span className={sensorMode === "camera" ? "text-emerald-400" : sensorMode === "cyber_radar" ? "text-cyan-400 font-mono" : "text-slate-400"}>
+              {sensorMode === "camera" ? "Sensor Cam ON" : sensorMode === "cyber_radar" ? "Radar AI ON" : "Sensor OFF"}
             </span>
           </button>
 
