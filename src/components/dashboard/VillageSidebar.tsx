@@ -56,6 +56,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { SidebarThreeBackground } from "./roles/SidebarThreeBackground";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
@@ -205,14 +206,16 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
 
       {/* SIDEBAR CONTAINER */}
       <aside 
-        className={`transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col z-[70] shrink-0 border-r
+        className={`transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col z-[70] shrink-0 border-r relative overflow-hidden
           fixed inset-y-0 left-0 h-full w-72 ${isOpen ? 'translate-x-0 shadow-[10px_0_40px_rgba(0,0,0,0.15)]' : '-translate-x-full'}
           lg:relative lg:translate-x-0 lg:h-full ${isCollapsed && !isOpen ? 'lg:w-20' : 'lg:w-72'}
-          ${isHackerTheme ? 'bg-slate-900 border-cyan-500/30 text-cyan-50 shadow-[0_0_30px_rgba(6,182,212,0.1)]' : 'bg-white border-slate-200'}
+          ${isHackerTheme ? 'bg-transparent border-cyan-500/30 text-cyan-50 shadow-[0_0_30px_rgba(6,182,212,0.1)]' : 'bg-white border-slate-200'}
         `}
       >
+        {isHackerTheme && <SidebarThreeBackground />}
+        
         {/* Logo Area */}
-        <div className={`p-6 flex items-center ${isCollapsed && !isOpen ? 'justify-center' : 'justify-between'} h-24 ${isHackerTheme ? 'border-b border-cyan-500/30' : ''}`}>
+        <div className={`relative z-10 p-6 flex items-center ${isCollapsed && !isOpen ? 'justify-center' : 'justify-between'} h-24 ${isHackerTheme ? 'border-b border-cyan-500/30' : ''}`}>
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="relative w-10 h-10 shrink-0">
               <Image src={role === "KARANG_TARUNA" ? "/images/logo-katar.png" : role === "PUSKESOS" ? "/images/PUSKESOS-1.png" : "/images/logo-bogor.png"} alt="Logo" fill sizes="40px" className={`object-contain ${isHackerTheme ? 'drop-shadow-[0_0_10px_rgba(34,211,238,0.8)] hue-rotate-180 brightness-150' : ''}`} />
@@ -238,7 +241,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 mt-2 overflow-y-auto custom-scrollbar">
+        <nav className="relative z-10 flex-1 px-3 mt-2 overflow-y-auto custom-scrollbar">
           {role === "POSYANDU" ? (
             // === POSYANDU ACCORDION SIDEBAR ===
             <div className="space-y-1">
@@ -497,25 +500,25 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                       key={item.name}
                       href={item.href + (item.activeParam && isDashboard ? `?tab=${item.activeParam}` : '')}
                       onClick={() => setIsOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative z-10 ${
                         isActive
-                          ? (isHackerTheme ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)]" : "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20")
-                          : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/80 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
+                          ? (isHackerTheme ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)] backdrop-blur-sm" : "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20")
+                          : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium backdrop-blur-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
                       } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
                     >
-                      <item.icon size={20} className={`${isActive ? "" : "group-hover:scale-110 transition-transform"} ${isActive && isHackerTheme ? 'animate-pulse drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]' : ''}`} />
+                      <item.icon size={20} className={`${isActive ? "" : "group-hover:scale-110 transition-transform group-hover:animate-luxury-float"} ${isActive && isHackerTheme ? 'animate-luxury-pulse luxury-glow-strong text-teal-300' : ''}`} />
                       {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>{item.name}</span>}
                     </Link>
                   );
                })}
 
                {/* CYBER-PLAN ENGINE Dropdown */}
-               <div className="pt-2">
+               <div className="pt-2 relative z-10">
                  <button
                    onClick={() => (!isCollapsed || isOpen) && toggleGroup("cyberplan")}
-                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isHackerTheme ? 'text-slate-400 hover:bg-slate-800/80 hover:text-cyan-400 hover:border hover:border-cyan-500/30' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} font-medium ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isHackerTheme ? 'text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 hover:border hover:border-cyan-500/30 backdrop-blur-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} font-medium ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                  >
-                   <Building2 size={20} className="shrink-0 group-hover:scale-110 transition-transform" />
+                   <Building2 size={20} className={`shrink-0 group-hover:scale-110 transition-transform ${isHackerTheme ? 'group-hover:animate-luxury-pulse' : ''}`} />
                    {(!isCollapsed || isOpen) && (
                      <>
                        <span className={`text-[11px] flex-1 text-left tracking-widest uppercase ${isHackerTheme ? 'font-mono font-bold text-emerald-500' : 'font-bold text-emerald-600'}`}>{isHackerTheme ? 'CYBER-PLAN ENGINE' : 'Perencanaan Pembangunan'}</span>
@@ -548,13 +551,13 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                              key={item.tab}
                              href={`/dashboard?tab=${item.tab}`}
                              onClick={() => setIsOpen(false)}
-                             className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
+                             className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm group ${
                                tabParam === item.tab
-                                 ? (isHackerTheme ? "bg-cyan-900/50 text-cyan-300 font-bold border border-cyan-500/50" : "bg-emerald-500 text-white font-bold")
-                                 : (isHackerTheme ? "text-slate-400 hover:bg-slate-800 hover:text-cyan-400 font-mono" : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-700")
+                                 ? (isHackerTheme ? "bg-cyan-900/50 text-cyan-300 font-bold border border-cyan-500/50 backdrop-blur-sm" : "bg-emerald-500 text-white font-bold")
+                                 : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 font-mono backdrop-blur-sm" : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-700")
                              }`}
                            >
-                             <item.icon size={14} />
+                             <item.icon size={14} className={`${tabParam === item.tab && isHackerTheme ? 'animate-luxury-float luxury-glow-strong text-teal-300' : 'group-hover:animate-luxury-pulse'}`} />
                              <span>{item.label}</span>
                            </Link>
                          ))}
@@ -565,16 +568,16 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                </div>
 
                {/* Pengaturan */}
-               <Link
+                <Link
                   href="/dashboard/settings"
                   onClick={() => setIsOpen(false)}
-                  className={`mt-2 flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                  className={`mt-2 flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative z-10 ${
                     pathname === "/dashboard/settings"
-                      ? (isHackerTheme ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)]" : "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20")
-                      : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/80 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
+                      ? (isHackerTheme ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)] backdrop-blur-sm" : "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20")
+                      : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium backdrop-blur-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
                   } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
                 >
-                  <Settings size={20} className={`${pathname === "/dashboard/settings" ? (isHackerTheme ? "animate-pulse drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" : "") : "group-hover:scale-110 transition-transform"}`} />
+                  <Settings size={20} className={`${pathname === "/dashboard/settings" ? (isHackerTheme ? "animate-luxury-spin luxury-glow-strong text-teal-300" : "") : "group-hover:scale-110 transition-transform group-hover:animate-luxury-spin"}`} />
                   {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>Pengaturan</span>}
                 </Link>
 
@@ -585,13 +588,13 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                     document.cookie = `themeMode=${isCurrentlyHacker ? 'normal' : 'hacker'}; path=/`;
                     window.location.reload();
                   }}
-                  className={`mt-2 w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group cursor-pointer ${
+                  className={`mt-2 w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group cursor-pointer relative z-10 ${
                     isHackerTheme
-                      ? "text-slate-400 hover:bg-slate-800/80 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium"
+                      ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium backdrop-blur-sm"
                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                   } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
                 >
-                  {isHackerTheme ? <Monitor size={20} className="group-hover:scale-110 transition-transform" /> : <Terminal size={20} className="group-hover:scale-110 transition-transform" />}
+                  {isHackerTheme ? <Monitor size={20} className="group-hover:scale-110 transition-transform group-hover:animate-luxury-pulse" /> : <Terminal size={20} className="group-hover:scale-110 transition-transform" />}
                   {(!isCollapsed || isOpen) && (
                     <span className={`text-sm text-left flex-1 ${isHackerTheme ? 'font-mono' : ''}`}>
                       {isHackerTheme ? 'Normal Mode' : 'Hacker Mode'}

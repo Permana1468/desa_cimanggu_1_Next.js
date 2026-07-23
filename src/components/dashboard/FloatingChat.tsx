@@ -81,7 +81,7 @@ export function FloatingChat({ session }: { session: any }) {
 
         const heartbeatInterval = setInterval(() => {
             updateUserHeartbeat();
-        }, 15000);
+        }, 60000); // Increased from 15s to 60s to reduce DB load
 
         return () => clearInterval(heartbeatInterval);
      
@@ -132,7 +132,7 @@ export function FloatingChat({ session }: { session: any }) {
 
         const interval = setInterval(() => {
             fetchContacts();
-        }, 15000);
+        }, 60000); // Increased from 15s to 60s to reduce DB load
 
         return () => clearInterval(interval);
     }, [isOpen]);

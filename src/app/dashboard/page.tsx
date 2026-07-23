@@ -21,6 +21,9 @@ import { PuskesosDashboard } from "@/components/dashboard/roles/PuskesosDashboar
 
 export default async function VillageDashboardPage() {
   const session = await getServerSession(authOptions);
+  const { cookies } = await import("next/headers");
+  const cookieStore = await cookies();
+  const themeMode = cookieStore?.get('themeMode')?.value || 'hacker';
   
   if (session?.user?.email === "petagis@cimanggu1.desa.id") {
     redirect("/gis-dashboard");
@@ -68,7 +71,8 @@ export default async function VillageDashboardPage() {
 
   // 3. PERENCANAAN
   if (role === "KAUR_PERENCANAAN") {
-    return <PerencanaanDashboard session={session} stats={stats} />;
+    const isHackerTheme = themeMode === 'hacker';
+    return <PerencanaanDashboard session={session} stats={stats} isHackerTheme={isHackerTheme} />;
   }
 
   // 3b. KEUANGAN

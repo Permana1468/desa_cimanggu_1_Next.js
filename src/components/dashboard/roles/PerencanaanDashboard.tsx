@@ -17,8 +17,9 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { CyberPlanRabTab } from "../perencanaan/CyberPlanRabTab";
 import { CyberPlanTakeOffTab } from "../perencanaan/CyberPlanTakeOffTab";
 import { CyberPlanHargaSatuanTab } from "../perencanaan/CyberPlanHargaSatuanTab";
+import { LuxuryRingChart } from "./LuxuryRingChart";
 
-export function PerencanaanDashboard({ session, stats }: { session: any, stats: any }) {
+export function PerencanaanDashboard({ session, stats, isHackerTheme }: { session: any, stats: any, isHackerTheme?: boolean }) {
   const roleName = session?.user?.role?.replace(/_/g, ' ') || "KAUR PERENCANAAN";
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -63,14 +64,14 @@ export function PerencanaanDashboard({ session, stats }: { session: any, stats: 
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 min-h-[calc(100vh-80px)] font-sans relative pb-28 md:pb-8">
+    <div className={`space-y-4 sm:space-y-6 min-h-[calc(100vh-80px)] font-sans relative pb-28 md:pb-8 ${isHackerTheme ? 'text-cyan-50' : ''}`}>
       
       {/* HEADER CARD */}
       <div className="relative z-10 bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-8 relative z-10">
           <div className="space-y-2.5 sm:space-y-3 text-slate-800">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold uppercase text-[9px] sm:text-[10px] tracking-widest">
-              <Terminal size={14} className="animate-pulse text-emerald-600" /> 
+              <Terminal size={14} className={isHackerTheme ? "animate-luxury-pulse text-teal-400 luxury-glow" : "animate-pulse text-emerald-600"} /> 
               <span>MODUL AKTIF: PERENCANAAN DESA</span>
             </div>
             
@@ -85,11 +86,16 @@ export function PerencanaanDashboard({ session, stats }: { session: any, stats: 
 
           {/* Key Metric Telemetry Cards */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 sm:p-5 min-w-0 shadow-sm relative group">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 sm:p-5 min-w-0 shadow-sm relative group overflow-hidden">
               <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping opacity-75" />
               <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-emerald-500" />
-              <span className="block text-[9px] sm:text-[10px] font-black text-slate-500 mb-1.5 sm:mb-2 uppercase tracking-widest truncate">Serapan Dana</span>
-              <span className="block text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
+              {isHackerTheme && (
+                <div className="absolute right-[-10px] top-1/2 -translate-y-1/2 w-28 h-28 opacity-60 pointer-events-none">
+                  <LuxuryRingChart percentage={serapan} color="#2dd4bf" />
+                </div>
+              )}
+              <span className="block text-[9px] sm:text-[10px] font-black text-slate-500 mb-1.5 sm:mb-2 uppercase tracking-widest truncate relative z-10">Serapan Dana</span>
+              <span className="block text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight relative z-10">
                 {serapan.toFixed(1)}%
               </span>
             </div>
@@ -111,13 +117,13 @@ export function PerencanaanDashboard({ session, stats }: { session: any, stats: 
           <div className="bg-white rounded-2xl sm:rounded-[2rem] p-4 sm:p-6 md:p-8 shadow-sm border border-slate-200/80">
             <div className="flex items-center justify-between mb-4 sm:mb-6 border-b border-slate-100 pb-3 sm:pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 sm:w-12 h-10 sm:h-12 bg-emerald-50 border border-emerald-200 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm shrink-0">
-                  <Wallet size={22} className="text-emerald-600 sm:w-6 sm:h-6" />
+                <div className="w-10 sm:w-12 h-10 sm:h-12 bg-emerald-50 border border-emerald-200 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm shrink-0 relative overflow-hidden">
+                  <Wallet size={22} className={isHackerTheme ? "animate-luxury-float text-teal-400 luxury-glow relative z-10 sm:w-6 sm:h-6" : "text-emerald-600 sm:w-6 sm:h-6"} />
                 </div>
                 <div>
                   <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-wide flex items-center gap-2">
                     Analisis APBDes 2026
-                    <Sparkles size={16} className="text-yellow-500" />
+                    <Sparkles size={16} className={isHackerTheme ? "text-teal-300 animate-luxury-pulse" : "text-yellow-500"} />
                   </h2>
                   <p className="text-slate-500 text-[11px] sm:text-xs font-medium mt-0.5">Alokasi & Realisasi Anggaran Berjalan</p>
                 </div>
@@ -126,10 +132,10 @@ export function PerencanaanDashboard({ session, stats }: { session: any, stats: 
             
             <div className="space-y-3 sm:space-y-4">
               {/* PENDAPATAN */}
-              <div className="p-4 sm:p-5 bg-slate-50/80 border border-slate-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-emerald-300 transition-all duration-300 group shadow-sm">
-                <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-4 sm:p-5 bg-slate-50/80 border border-slate-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-emerald-300 transition-all duration-300 group shadow-sm relative overflow-hidden">
+                <div className="flex items-center gap-3 sm:gap-4 relative z-10">
                   <div className="w-10 sm:w-12 h-10 sm:h-12 bg-white border border-emerald-200 text-emerald-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm shrink-0">
-                    <ArrowDownRight size={22} className="sm:w-6 sm:h-6" />
+                    <ArrowDownRight size={22} className={isHackerTheme ? "animate-luxury-float text-teal-400 luxury-glow sm:w-6 sm:h-6" : "sm:w-6 sm:h-6"} />
                   </div>
                   <div>
                     <h4 className="font-extrabold text-slate-800 uppercase text-xs sm:text-sm tracking-wide">Pendapatan Desa</h4>
@@ -147,10 +153,10 @@ export function PerencanaanDashboard({ session, stats }: { session: any, stats: 
               </div>
 
               {/* BELANJA */}
-              <div className="p-4 sm:p-5 bg-slate-50/80 border border-slate-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-rose-300 transition-all duration-300 group shadow-sm">
-                <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-4 sm:p-5 bg-slate-50/80 border border-slate-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-rose-300 transition-all duration-300 group shadow-sm relative overflow-hidden">
+                <div className="flex items-center gap-3 sm:gap-4 relative z-10">
                   <div className="w-10 sm:w-12 h-10 sm:h-12 bg-white border border-rose-200 text-rose-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm shrink-0">
-                    <ArrowUpRight size={22} className="sm:w-6 sm:h-6" />
+                    <ArrowUpRight size={22} className={isHackerTheme ? "animate-luxury-float text-rose-400 luxury-glow sm:w-6 sm:h-6" : "sm:w-6 sm:h-6"} />
                   </div>
                   <div>
                     <h4 className="font-extrabold text-slate-800 uppercase text-xs sm:text-sm tracking-wide">Belanja Desa</h4>
@@ -175,7 +181,7 @@ export function PerencanaanDashboard({ session, stats }: { session: any, stats: 
           <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-200/80">
             
             <h2 className="text-xs font-black text-slate-800 mb-5 uppercase tracking-widest flex items-center gap-2">
-              <MonitorPlay size={16} className="text-slate-400" /> PUSAT KENDALI
+              <MonitorPlay size={16} className={isHackerTheme ? "text-teal-400 animate-luxury-pulse luxury-glow" : "text-slate-400"} /> PUSAT KENDALI
             </h2>
             
             <div className="grid grid-cols-3 gap-3 relative z-10">
@@ -208,7 +214,7 @@ export function PerencanaanDashboard({ session, stats }: { session: any, stats: 
           <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
              <div className="flex items-center justify-between text-xs font-mono mb-4 border-b border-slate-100 pb-3">
                 <span className="font-extrabold text-slate-700 flex items-center gap-1.5">
-                  <Cpu size={14} className="text-slate-400" /> SYSTEM STATUS
+                  <Cpu size={14} className={isHackerTheme ? "text-teal-400 animate-luxury-pulse luxury-glow" : "text-slate-400"} /> SYSTEM STATUS
                 </span>
                 <span className="text-emerald-600 flex items-center gap-1.5 font-bold">
                   <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"/> 
@@ -222,9 +228,15 @@ export function PerencanaanDashboard({ session, stats }: { session: any, stats: 
                     <span>SERVER LOAD</span>
                     <span className="text-blue-600">{serverLoad.toFixed(1)}%</span>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60">
-                    <div className="bg-blue-600 h-2 rounded-full transition-all duration-1000 ease-in-out" style={{width: `${serverLoad}%`}}></div>
-                  </div>
+                  {isHackerTheme ? (
+                    <div className="h-16 w-full -mt-2">
+                      <LuxuryRingChart percentage={serverLoad} color="#0ea5e9" />
+                    </div>
+                  ) : (
+                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60">
+                      <div className="bg-blue-600 h-2 rounded-full transition-all duration-1000 ease-in-out" style={{width: `${serverLoad}%`}}></div>
+                    </div>
+                  )}
                </div>
 
                <div>
@@ -232,9 +244,15 @@ export function PerencanaanDashboard({ session, stats }: { session: any, stats: 
                     <span>DATABASE SYNC</span>
                     <span className="text-emerald-600">{dbSync}%</span>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60">
-                    <div className="bg-emerald-600 h-2 rounded-full transition-all duration-1000 ease-in-out" style={{width: `${dbSync}%`}}></div>
-                  </div>
+                  {isHackerTheme ? (
+                    <div className="h-16 w-full -mt-2">
+                      <LuxuryRingChart percentage={dbSync} color="#2dd4bf" />
+                    </div>
+                  ) : (
+                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60">
+                      <div className="bg-emerald-600 h-2 rounded-full transition-all duration-1000 ease-in-out" style={{width: `${dbSync}%`}}></div>
+                    </div>
+                  )}
                </div>
              </div>
           </div>
