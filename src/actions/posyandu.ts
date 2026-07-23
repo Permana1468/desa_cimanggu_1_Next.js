@@ -137,6 +137,46 @@ export async function deletePosyanduBalita(id: string) {
     return { success: true };
 }
 
+export async function getBalitaDetail(balitaId: string) {
+    const { tenantId } = await verifyPosyanduAccess();
+
+    const balita = await prisma.posyanduBalita.findFirst({
+        where: { id: balitaId, tenantId },
+        include: {
+            records: {
+                orderBy: { tanggal: 'desc' }
+            }
+        }
+    });
+
+    if (!balita) throw new Error("Data Balita tidak ditemukan");
+
+    let citizenData: any = null;
+    if (balita.nik) {
+        citizenData = await prisma.dataKependudukan.findFirst({
+            where: { nik: balita.nik, tenantId },
+            select: {
+                nik: true,
+                namaLengkap: true,
+                namaIbu: true,
+                namaAyah: true,
+                alamat: true,
+                rt: true,
+                rw: true,
+                dusun: true,
+                noKK: true,
+                tanggalLahir: true,
+                jenisKelamin: true
+            }
+        });
+    }
+
+    return {
+        ...balita,
+        citizenData
+    };
+}
+
 // =======================
 // POSYANDU IBU HAMIL
 // =======================

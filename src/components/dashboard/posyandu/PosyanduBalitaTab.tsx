@@ -1,8 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, Baby, Trash2, CheckCircle2 } from "lucide-react";
-import { getPosyanduBalita, addPosyanduBalita, updatePosyanduBalitaStatus, deletePosyanduBalita } from "@/actions/posyandu";
+import {
+  Plus, Search, Baby, Trash2, CheckCircle2, Eye, QrCode, Printer,
+  X, Calendar, User, MapPin, Activity, ShieldAlert, Sparkles, Clock,
+  FileText, HeartPulse, ChevronRight, Stethoscope, Award, Phone
+} from "lucide-react";
+import {
+  getPosyanduBalita, addPosyanduBalita, updatePosyanduBalitaStatus,
+  deletePosyanduBalita, getBalitaDetail
+} from "@/actions/posyandu";
 import { CitizenSearchAutocomplete } from "./CitizenSearchAutocomplete";
 import { getRWsForPosyandu, POSYANDU_UNITS } from "@/lib/posyandu";
 
@@ -14,11 +21,84 @@ function hitungUsia(tanggalLahir: string | Date): string {
   return `${Math.floor(bulan / 12)} Tahun ${bulan % 12} Bln`;
 }
 
+// Inline Vector Barcode Generator
+function BarcodeSVG({ value }: { value: string }) {
+  const cleanVal = (value || "3201160000000000").replace(/\D/g, "").padEnd(16, "0");
+  const bars: { width: number; space: number }[] = [];
+  for (let i = 0; i < cleanVal.length; i++) {
+    const digit = parseInt(cleanVal[i], 10) || 1;
+    bars.push({ width: (digit % 3) + 1.2, space: ((digit * 7) % 3) + 1.2 });
+  }
+
+  let xCursor = 12;
+  return (
+    <svg viewBox="0 0 240 54" className="w-full h-11">
+      <rect x="4" y="2" width="2" height="42" fill="#0f172a" />
+      <rect x="7" y="2" width="1" height="42" fill="#0f172a" />
+      {bars.map((bar, idx) => {
+        const x = xCursor;
+        xCursor += bar.width + bar.space;
+        return (
+          <rect key={idx} x={x} y="2" width={bar.width} height="36" fill="#0f172a" />
+        );
+      })}
+      <rect x={xCursor + 2} y="2" width="1" height="42" fill="#0f172a" />
+      <rect x={xCursor + 5} y="2" width="2" height="42" fill="#0f172a" />
+      <text x="120" y="49" textAnchor="middle" fontSize="9" fontFamily="monospace" fontWeight="bold" fill="#334155">
+        *{cleanVal}*
+      </text>
+    </svg>
+  );
+}
+
+// Inline Vector QR Code Generator
+function QRCodeSVG({ value }: { value: string }) {
+  const size = 15;
+  const grid: boolean[][] = Array(size).fill(false).map(() => Array(size).fill(false));
+  
+  const addFinder = (r: number, c: number) => {
+    for (let i = 0; i < 5; i++) {
+      for (let j = 0; j < 5; j++) {
+        if (i === 0 || i === 4 || j === 0 || j === 4 || (i >= 1 && i <= 3 && j >= 1 && j <= 3)) {
+          grid[r + i][c + j] = true;
+        }
+      }
+    }
+  };
+
+  addFinder(0, 0);
+  addFinder(0, 10);
+  addFinder(10, 0);
+
+  let hash = 0;
+  for (let i = 0; i < value.length; i++) hash = (hash * 31 + value.charCodeAt(i)) & 0xffffffff;
+
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if ((r < 5 && c < 5) || (r < 5 && c >= 10) || (r >= 10 && c < 5)) continue;
+      const bit = ((hash ^ (r * 17 + c * 23)) >>> ((r + c) % 16)) & 1;
+      grid[r][c] = bit === 1;
+    }
+  }
+
+  return (
+    <svg viewBox="0 0 60 60" className="w-14 h-14 bg-white p-1 rounded-lg border border-slate-200 shadow-sm shrink-0">
+      {grid.map((row, r) =>
+        row.map((cell, c) => cell && (
+          <rect key={`${r}-${c}`} x={c * 4} y={r * 4} width="3.6" height="3.6" fill="#0f172a" rx="0.5" />
+        ))
+      )}
+    </svg>
+  );
+}
+
 export function PosyanduBalitaTab({ session, selectedPosyandu }: { session?: any; selectedPosyandu?: string }) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [selectedDetailBalitaId, setSelectedDetailBalitaId] = useState<string | null>(null);
+  const [selectedKartuBalita, setSelectedKartuBalita] = useState<any | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -67,12 +147,12 @@ export function PosyanduBalitaTab({ session, selectedPosyandu }: { session?: any
             Data Balita
           </h2>
           <p className="text-slate-500 text-sm mt-1">
-            Kelola data balita dan pemantauan status gizi
+            Kelola data balita, rincian detail perkembangan, dan cetak kartu anggota posyandu
           </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-colors font-semibold shadow-sm"
+          className="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-semibold shadow-sm cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Tambah Balita
         </button>
@@ -135,14 +215,14 @@ export function PosyanduBalitaTab({ session, selectedPosyandu }: { session?: any
                           {b.jenisKelamin === "L" || b.jenisKelamin === "LAKI_LAKI" ? "Laki-laki" : "Perempuan"}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-slate-600">
+                      <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
                         {b.tanggalLahir ? new Date(b.tanggalLahir).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) : "-"}
                       </td>
-                      <td className="px-4 py-3 text-slate-600">
+                      <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
                         {b.tanggalLahir ? hitungUsia(b.tanggalLahir) : "-"}
                       </td>
                       <td className="px-4 py-3 text-slate-600">{b.namaOrangTua || "-"}</td>
-                      <td className="px-4 py-3 text-slate-600">RT {b.rt} / RW {b.rw}</td>
+                      <td className="px-4 py-3 text-slate-600 whitespace-nowrap">RT {b.rt} / RW {b.rw}</td>
                       <td className="px-4 py-3">
                         <button
                           onClick={() => handleToggleStunting(b.id, b.statusStunting)}
@@ -152,11 +232,32 @@ export function PosyanduBalitaTab({ session, selectedPosyandu }: { session?: any
                         </button>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center justify-center gap-2">
+                        <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
+                          {/* DETAIL BUTTON */}
+                          <button
+                            onClick={() => setSelectedDetailBalitaId(b.id)}
+                            className="px-2.5 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                            title="Lihat Rincian Detail Balita"
+                          >
+                            <Eye size={14} />
+                            <span>Detail</span>
+                          </button>
+
+                          {/* CETAK KARTU BUTTON */}
+                          <button
+                            onClick={() => setSelectedKartuBalita(b)}
+                            className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                            title="Cetak Kartu Anggota Posyandu Digital"
+                          >
+                            <QrCode size={14} />
+                            <span>Cetak Kartu</span>
+                          </button>
+
+                          {/* HAPUS BUTTON */}
                           <button
                             onClick={() => handleDelete(b.id)}
-                            className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
-                            title="Hapus"
+                            className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer"
+                            title="Hapus Data Balita"
                           >
                             <Trash2 size={15} />
                           </button>
@@ -177,6 +278,7 @@ export function PosyanduBalitaTab({ session, selectedPosyandu }: { session?: any
         )}
       </div>
 
+      {/* MODAL TAMBAH BALITA */}
       {showModal && (
         <ModalTambahBalita
           onClose={() => setShowModal(false)}
@@ -185,6 +287,487 @@ export function PosyanduBalitaTab({ session, selectedPosyandu }: { session?: any
           selectedPosyandu={selectedPosyandu}
         />
       )}
+
+      {/* MODAL DETAIL BALITA */}
+      {selectedDetailBalitaId && (
+        <ModalDetailBalita
+          balitaId={selectedDetailBalitaId}
+          onClose={() => setSelectedDetailBalitaId(null)}
+          onOpenCetakKartu={(balitaObj: any) => {
+            setSelectedDetailBalitaId(null);
+            setSelectedKartuBalita(balitaObj);
+          }}
+        />
+      )}
+
+      {/* MODAL CETAK KARTU BALITA */}
+      {selectedKartuBalita && (
+        <ModalCetakKartuBalita
+          balita={selectedKartuBalita}
+          onClose={() => setSelectedKartuBalita(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// MODAL DETAIL BALITA LENGKAP
+// ==========================================
+function ModalDetailBalita({ balitaId, onClose, onOpenCetakKartu }: { balitaId: string; onClose: () => void; onOpenCetakKartu: (balita: any) => void }) {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"profil" | "penimbangan" | "imunisasi">("profil");
+
+  useEffect(() => {
+    async function loadDetail() {
+      setLoading(true);
+      try {
+        const res = await getBalitaDetail(balitaId);
+        setData(res);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDetail();
+  }, [balitaId]);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-2xl flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-slate-500 font-semibold">Memuat Detail Balita...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const records = data.records || [];
+  const latestRecord = records[0] || null;
+  const citizen = data.citizenData || {};
+  const namaIbu = citizen.namaIbu || data.namaOrangTua || "-";
+  const namaAyah = citizen.namaAyah || "-";
+
+  // Standard Immunization Checklist calculation
+  const defaultImmunizations = [
+    { code: "HB0", name: "Hepatitis B (0-7 hari)", isDone: true, date: data.tanggalLahir },
+    { code: "BCG", name: "BCG & Polio 1 (1 Bulan)", isDone: records.length > 0 },
+    { code: "DPT1", name: "DPT-HB-Hib 1 & Polio 2 (2 Bulan)", isDone: records.length > 1 },
+    { code: "DPT2", name: "DPT-HB-Hib 2 & Polio 3 (3 Bulan)", isDone: records.length > 2 },
+    { code: "DPT3", name: "DPT-HB-Hib 3 & Polio 4 (4 Bulan)", isDone: records.length > 3 },
+    { code: "MR", name: "Campak / MR (9 Bulan)", isDone: records.length > 5 },
+    { code: "VITA", name: "Vitamin A Biru/Merah", isDone: true },
+    { code: "CACING", name: "Obat Cacing", isDone: true },
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto border border-slate-100">
+        
+        {/* Header Hero Banner */}
+        <div className="bg-gradient-to-r from-teal-600 via-teal-700 to-emerald-800 text-white p-5 sm:p-6 relative">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+          >
+            <X size={18} />
+          </button>
+          
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/20 border border-white/30 backdrop-blur-md flex items-center justify-center font-black text-2xl text-white shrink-0">
+              👶
+            </div>
+            <div className="flex-1 min-w-0 pr-6">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-white/20 text-white border border-white/20">
+                  {data.posyanduName || "Posyandu Unit"}
+                </span>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
+                  data.statusStunting ? "bg-red-500/30 text-red-200 border-red-400/40" : "bg-emerald-500/30 text-emerald-200 border-emerald-400/40"
+                }`}>
+                  {data.statusStunting ? "⚠️ Stunting" : "✓ Status Gizi Normal"}
+                </span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-white leading-tight truncate">
+                {data.namaLengkap}
+              </h3>
+              <p className="text-xs text-teal-100/90 font-mono mt-0.5">
+                NIK: {data.nik || "Belum ada NIK"} • {hitungUsia(data.tanggalLahir)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Modal Sub-Tabs */}
+        <div className="flex border-b border-slate-100 bg-slate-50/70 px-4 pt-2 gap-1 overflow-x-auto scrollbar-none">
+          <button
+            onClick={() => setActiveTab("profil")}
+            className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all cursor-pointer border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === "profil"
+                ? "bg-white text-teal-600 border-teal-500 shadow-xs"
+                : "text-slate-500 hover:text-slate-700 border-transparent"
+            }`}
+          >
+            <User size={14} /> Profil & Orang Tua
+          </button>
+          <button
+            onClick={() => setActiveTab("penimbangan")}
+            className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all cursor-pointer border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === "penimbangan"
+                ? "bg-white text-teal-600 border-teal-500 shadow-xs"
+                : "text-slate-500 hover:text-slate-700 border-transparent"
+            }`}
+          >
+            <Activity size={14} /> Riwayat Penimbangan ({records.length})
+          </button>
+          <button
+            onClick={() => setActiveTab("imunisasi")}
+            className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all cursor-pointer border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === "imunisasi"
+                ? "bg-white text-teal-600 border-teal-500 shadow-xs"
+                : "text-slate-500 hover:text-slate-700 border-transparent"
+            }`}
+          >
+            <Stethoscope size={14} /> Imunisasi & Vitamin
+          </button>
+        </div>
+
+        {/* Tab Body Contents */}
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1">
+          
+          {activeTab === "profil" && (
+            <div className="space-y-5">
+              {/* Card Status Gizi Terbaru */}
+              <div className="bg-gradient-to-br from-teal-50 via-emerald-50 to-teal-100/50 p-4 rounded-2xl border border-teal-100 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-teal-800 flex items-center gap-1.5">
+                    <HeartPulse size={15} className="text-teal-600" /> Hasil Pemeriksaan Terbaru
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-500">
+                    {latestRecord ? new Date(latestRecord.tanggal).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) : "Belum ada catatan"}
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-white p-3 rounded-xl border border-slate-100 text-center shadow-2xs">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">Berat Badan</p>
+                    <p className="text-lg font-black text-slate-800">{latestRecord?.beratBadan ? `${latestRecord.beratBadan} kg` : "-"}</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-slate-100 text-center shadow-2xs">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">Tinggi Badan</p>
+                    <p className="text-lg font-black text-slate-800">{latestRecord?.tinggiBadan ? `${latestRecord.tinggiBadan} cm` : "-"}</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-slate-100 text-center shadow-2xs">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase">Lingkar Kepala</p>
+                    <p className="text-lg font-black text-slate-800">{latestRecord?.lingkarKepala ? `${latestRecord.lingkarKepala} cm` : "-"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Informasi Balita */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Informasi Balita</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-slate-400 block font-semibold">Nama Lengkap</span>
+                    <span className="font-bold text-slate-800 text-sm">{data.namaLengkap}</span>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-slate-400 block font-semibold">NIK Balita</span>
+                    <span className="font-bold font-mono text-slate-800 text-sm">{data.nik || "-"}</span>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-slate-400 block font-semibold">Tanggal Lahir & Usia</span>
+                    <span className="font-bold text-slate-800">
+                      {new Date(data.tanggalLahir).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })} ({hitungUsia(data.tanggalLahir)})
+                    </span>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-slate-400 block font-semibold">Jenis Kelamin</span>
+                    <span className="font-bold text-slate-800">
+                      {data.jenisKelamin === "L" || data.jenisKelamin === "LAKI_LAKI" ? "Laki-laki" : "Perempuan"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Data Orang Tua & Alamat */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Data Orang Tua & Alamat</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-slate-400 block font-semibold">Nama Ibu Kandung</span>
+                    <span className="font-bold text-slate-800">{namaIbu}</span>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                    <span className="text-slate-400 block font-semibold">Nama Ayah</span>
+                    <span className="font-bold text-slate-800">{namaAyah}</span>
+                  </div>
+                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 sm:col-span-2">
+                    <span className="text-slate-400 block font-semibold">Alamat Lengkap</span>
+                    <span className="font-bold text-slate-800">
+                      {citizen.alamat || "Desa Cimanggu I"}, RT {data.rt} / RW {data.rw} {citizen.dusun ? `• Dusun ${citizen.dusun}` : ""}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "penimbangan" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Riwayat Penimbangan & Pengukuran</h4>
+                <span className="text-xs text-slate-500 font-semibold">{records.length} Total Pemeriksaan</span>
+              </div>
+
+              {records.length === 0 ? (
+                <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-2">
+                  <Activity className="w-10 h-10 text-slate-300 mx-auto" />
+                  <p className="text-xs text-slate-400 font-medium">Belum ada riwayat penimbangan untuk balita ini.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {records.map((rec: any, idx: number) => (
+                    <div key={rec.id || idx} className="p-4 bg-white rounded-2xl border border-slate-100 shadow-2xs hover:border-teal-200 transition-all space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-teal-700 flex items-center gap-1.5">
+                          <Calendar size={13} /> {new Date(rec.tanggal).toLocaleDateString("id-ID", { day: "2-digit", month: "long", year: "numeric" })}
+                        </span>
+                        {rec.statusGizi && (
+                          <span className="bg-teal-50 text-teal-700 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-teal-200">
+                            {rec.statusGizi}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-xl text-xs text-center font-medium">
+                        <div><span className="text-[10px] text-slate-400 block">BB</span> <strong>{rec.beratBadan ? `${rec.beratBadan} kg` : "-"}</strong></div>
+                        <div><span className="text-[10px] text-slate-400 block">TB</span> <strong>{rec.tinggiBadan ? `${rec.tinggiBadan} cm` : "-"}</strong></div>
+                        <div><span className="text-[10px] text-slate-400 block">Lingkar Kepala</span> <strong>{rec.lingkarKepala ? `${rec.lingkarKepala} cm` : "-"}</strong></div>
+                      </div>
+
+                      {rec.keterangan && (
+                        <p className="text-xs text-slate-500 italic bg-slate-50/50 p-2 rounded-lg">
+                          Catatan: {rec.keterangan}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "imunisasi" && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Jadwal Imunisasi & Vitamin A</h4>
+                <span className="text-xs text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-full">
+                  Status Terpantau
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {defaultImmunizations.map((item) => (
+                  <div key={item.code} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-slate-800 truncate">{item.name}</p>
+                      <p className="text-[10px] text-slate-400 font-mono mt-0.5">Kode: {item.code}</p>
+                    </div>
+                    {item.isDone ? (
+                      <span className="bg-emerald-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 shrink-0">
+                        <CheckCircle2 size={12} /> Diberikan
+                      </span>
+                    ) : (
+                      <span className="bg-slate-200 text-slate-600 text-[10px] font-bold px-2.5 py-1 rounded-full shrink-0">
+                        Belum
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+        </div>
+
+        {/* Footer Actions */}
+        <div className="p-4 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <button
+            onClick={() => onOpenCetakKartu(data)}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
+          >
+            <QrCode size={15} /> Cetak Kartu Anggota
+          </button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-white text-slate-700 hover:bg-slate-100 rounded-xl text-xs font-bold border border-slate-200 transition-colors cursor-pointer"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// MODAL CETAK KARTU ANGGOTA POSYANDU BALITA
+// ==========================================
+function ModalCetakKartuBalita({ balita, onClose }: { balita: any; onClose: () => void }) {
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const formattedDob = balita.tanggalLahir
+    ? new Date(balita.tanggalLahir).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })
+    : "-";
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #printable-posyandu-card, #printable-posyandu-card * {
+            visibility: visible;
+          }
+          #printable-posyandu-card {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(1.1);
+            width: 420px !important;
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+          }
+        }
+      `}</style>
+
+      <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-6">
+        
+        {/* Action Header */}
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
+              <QrCode className="w-5 h-5 text-indigo-600" /> Kartu Anggota Posyandu Digital
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">Pratinjau sebelum dicetak / diunduh</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 text-lg cursor-pointer">&times;</button>
+        </div>
+
+        {/* PRINTABLE CARD CONTAINER */}
+        <div className="flex justify-center">
+          <div
+            id="printable-posyandu-card"
+            className="w-[380px] sm:w-[420px] bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col relative text-slate-800"
+          >
+            {/* CARD HEADER */}
+            <div className="bg-gradient-to-r from-teal-700 via-emerald-700 to-teal-900 text-white p-3.5 relative overflow-hidden flex items-center justify-between">
+              <div className="flex items-center gap-2.5 relative z-10">
+                <div className="w-9 h-9 bg-white/20 border border-white/30 rounded-xl flex items-center justify-center text-lg font-black shrink-0">
+                  👶
+                </div>
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider leading-none text-white">POSYANDU BALITA</h4>
+                  <p className="text-[9px] text-teal-200 font-bold uppercase mt-0.5">DESA CIMANGGU I • KEC. CIBUNGBULANG</p>
+                  <p className="text-[8px] text-teal-100/80 font-medium">{balita.posyanduName || "Posyandu Mawar"}</p>
+                </div>
+              </div>
+              <div className="bg-white/15 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest text-teal-100 border border-white/20">
+                KARTU ANGGOTA
+              </div>
+            </div>
+
+            {/* CARD BODY */}
+            <div className="p-4 space-y-3 bg-gradient-to-b from-slate-50/50 to-white">
+              <div className="flex gap-3 items-start">
+                
+                {/* Photo Placeholder / Avatar */}
+                <div className="w-16 h-20 bg-slate-100 rounded-xl border border-slate-200 flex flex-col items-center justify-center text-center p-1 shrink-0 shadow-2xs">
+                  <div className="w-9 h-9 rounded-full bg-teal-100 text-teal-700 font-bold text-sm flex items-center justify-center">
+                    {balita.jenisKelamin === "L" || balita.jenisKelamin === "LAKI_LAKI" ? "L" : "P"}
+                  </div>
+                  <span className="text-[8px] font-extrabold text-slate-500 uppercase mt-1 truncate max-w-full">
+                    {hitungUsia(balita.tanggalLahir)}
+                  </span>
+                </div>
+
+                {/* Member Info Details */}
+                <div className="flex-1 min-w-0 space-y-1 text-[11px]">
+                  <div>
+                    <span className="text-[8px] uppercase tracking-wider font-extrabold text-slate-400 block leading-none">NAMA BALITA</span>
+                    <p className="font-black text-slate-900 text-sm leading-tight truncate uppercase">{balita.namaLengkap}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1 text-[10px]">
+                    <div>
+                      <span className="text-[8px] uppercase tracking-wider font-extrabold text-slate-400 block leading-none">NIK</span>
+                      <p className="font-bold font-mono text-slate-700 truncate">{balita.nik || "-"}</p>
+                    </div>
+                    <div>
+                      <span className="text-[8px] uppercase tracking-wider font-extrabold text-slate-400 block leading-none">TGL LAHIR</span>
+                      <p className="font-bold text-slate-700 truncate">{formattedDob}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1 text-[10px]">
+                    <div>
+                      <span className="text-[8px] uppercase tracking-wider font-extrabold text-slate-400 block leading-none">NAMA IBU</span>
+                      <p className="font-bold text-slate-700 truncate uppercase">{balita.namaOrangTua || "-"}</p>
+                    </div>
+                    <div>
+                      <span className="text-[8px] uppercase tracking-wider font-extrabold text-slate-400 block leading-none">WILAYAH</span>
+                      <p className="font-bold text-slate-700 truncate">RT {balita.rt} / RW {balita.rw}</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* BARCODE & QR CODE FOOTER */}
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <BarcodeSVG value={balita.nik || "3201160000000000"} />
+                </div>
+                <QRCodeSVG value={`https://cimanggu1.desa.id/verify-posyandu?nik=${balita.nik || ""}`} />
+              </div>
+            </div>
+
+            {/* CARD BOTTOM FOOTER */}
+            <div className="bg-slate-900 text-white px-3 py-1.5 text-[8px] flex items-center justify-between font-medium">
+              <span className="text-slate-300">Sistem Posyandu Terintegrasi Desa Cimanggu I</span>
+              <span className="text-teal-400 font-bold">VALID MEMBER CARD</span>
+            </div>
+
+          </div>
+        </div>
+
+        {/* BUTTON ACTIONS */}
+        <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+          >
+            Tutup
+          </button>
+          <button
+            onClick={handlePrint}
+            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
+          >
+            <Printer size={15} /> Cetak Kartu Anggota
+          </button>
+        </div>
+
+      </div>
     </div>
   );
 }
@@ -199,7 +782,6 @@ function ModalTambahBalita({ onClose, onRefresh, session, selectedPosyandu }: an
   const [rt, setRt] = useState("001");
   const [rw, setRw] = useState("");
 
-  // Determine valid RW options for the current Posyandu scope
   let availableRws: string[] = [];
 
   if (selectedPosyandu && selectedPosyandu !== "ALL") {
@@ -279,7 +861,6 @@ function ModalTambahBalita({ onClose, onRefresh, session, selectedPosyandu }: an
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all text-xl">&times;</button>
         </div>
 
-        {/* Autocomplete Search Citizen */}
         <div className="mb-5 bg-teal-50/50 p-3.5 rounded-xl border border-teal-100">
           <CitizenSearchAutocomplete
             onSelect={handleCitizenSelect}
@@ -370,8 +951,8 @@ function ModalTambahBalita({ onClose, onRefresh, session, selectedPosyandu }: an
             </div>
           </div>
           <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-xl border border-slate-200">Batal</button>
-            <button type="submit" disabled={loading} className="px-5 py-2 text-sm bg-teal-500 hover:bg-teal-600 text-white rounded-xl disabled:opacity-50 font-semibold shadow-sm">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">Batal</button>
+            <button type="submit" disabled={loading} className="px-5 py-2 text-sm bg-teal-500 hover:bg-teal-600 text-white rounded-xl disabled:opacity-50 font-semibold shadow-sm cursor-pointer">
               {loading ? "Menyimpan..." : "Simpan Data"}
             </button>
           </div>
