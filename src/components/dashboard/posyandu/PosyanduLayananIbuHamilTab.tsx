@@ -33,7 +33,7 @@ export function PosyanduLayananIbuHamilTab({ session, selectedPosyandu }: { sess
   }, [selectedPosyandu]);
 
   const handleTambah = async (record: any) => {
-    await addPosyanduRecord(record);
+    await addPosyanduRecord({ ...record, posyanduFilter: selectedPosyandu });
     fetchData();
   };
 

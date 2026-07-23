@@ -110,6 +110,17 @@ export async function addPosyanduBalita(data: any) {
         }
     });
 
+    // Auto-create initial record for Layanan Balita tab
+    await prisma.posyanduRecord.create({
+        data: {
+            balitaId: balita.id,
+            tanggal: new Date(),
+            statusGizi: balita.statusStunting ? "Stunting" : "Normal",
+            keterangan: "Pendaftaran Awal Posyandu Balita",
+            tenantId
+        }
+    });
+
     revalidatePath("/dashboard");
     return { success: true, balita };
 }
@@ -202,7 +213,7 @@ export async function addPosyanduIbuHamil(data: any) {
 
     const ibuHamil = await prisma.posyanduIbuHamil.create({
         data: {
-            nik: data.nik,
+            nik: data.nik || null,
             namaLengkap: data.namaLengkap,
             usiaKandungan: parseInt(data.usiaKandungan),
             beratBadan: data.beratBadan ? parseFloat(data.beratBadan) : null,
@@ -211,6 +222,18 @@ export async function addPosyanduIbuHamil(data: any) {
             rw: data.rw,
             risikoTinggi: Boolean(data.risikoTinggi),
             posyanduName: data.posyanduName || "Posyandu",
+            tenantId
+        }
+    });
+
+    // Auto-create initial record for Layanan Ibu Hamil tab
+    await prisma.posyanduRecord.create({
+        data: {
+            ibuHamilId: ibuHamil.id,
+            tanggal: new Date(),
+            beratBadan: ibuHamil.beratBadan,
+            statusRisiko: ibuHamil.risikoTinggi ? "Risiko Tinggi" : "Normal",
+            keterangan: "Pendaftaran Awal Ibu Hamil",
             tenantId
         }
     });
@@ -306,7 +329,7 @@ export async function addPosyanduLansia(data: any) {
 
     const lansia = await prisma.posyanduLansia.create({
         data: {
-            nik: data.nik,
+            nik: data.nik || null,
             namaLengkap: data.namaLengkap,
             jenisKelamin: data.jenisKelamin || null,
             tanggalLahir: data.tanggalLahir ? new Date(data.tanggalLahir) : null,
@@ -315,6 +338,17 @@ export async function addPosyanduLansia(data: any) {
             rw: data.rw,
             memilikiPenyakitBawaan: Boolean(data.memilikiPenyakitBawaan),
             posyanduName: data.posyanduName || "Posyandu",
+            tenantId
+        }
+    });
+
+    // Auto-create initial record for Layanan Lansia tab
+    await prisma.posyanduRecord.create({
+        data: {
+            lansiaId: lansia.id,
+            tanggal: new Date(),
+            kondisiUmum: lansia.memilikiPenyakitBawaan ? "Perlu Rujukan" : "Baik",
+            keterangan: "Pendaftaran Awal Posyandu Lansia",
             tenantId
         }
     });
@@ -543,15 +577,81 @@ export async function exportPosyanduReport(posyanduFilter?: string) {
 // =======================
 
 export async function getPosyanduRecords(kategori: "BALITA" | "IBU_HAMIL" | "LANSIA", posyanduFilter?: string) {
-    const { tenantId } = await verifyPosyanduAccess(posyanduFilter);
+    const { tenantId, rws } = await verifyPosyanduAccess(posyanduFilter);
     
+    // Auto-sync missing initial records for existing master entities
+    const rwCondition = rws.length === 1 ? rws[0] : rws.length > 1 ? { in: rws } : undefined;
+
+    if (kategori === "BALITA") {
+        const balitasWithoutRecords = await prisma.posyanduBalita.findMany({
+            where: {
+                tenantId,
+                ...(rwCondition ? { rw: rwCondition } : {}),
+                records: { none: {} }
+            }
+        });
+        for (const b of balitasWithoutRecords) {
+            await prisma.posyanduRecord.create({
+                data: {
+                    balitaId: b.id,
+                    tanggal: new Date(),
+                    statusGizi: b.statusStunting ? "Stunting" : "Normal",
+                    keterangan: "Pendaftaran Awal Posyandu Balita",
+                    tenantId
+                }
+            });
+        }
+    } else if (kategori === "IBU_HAMIL") {
+        const ibusWithoutRecords = await prisma.posyanduIbuHamil.findMany({
+            where: {
+                tenantId,
+                ...(rwCondition ? { rw: rwCondition } : {}),
+                records: { none: {} }
+            }
+        });
+        for (const i of ibusWithoutRecords) {
+            await prisma.posyanduRecord.create({
+                data: {
+                    ibuHamilId: i.id,
+                    tanggal: new Date(),
+                    beratBadan: i.beratBadan,
+                    statusRisiko: i.risikoTinggi ? "Risiko Tinggi" : "Normal",
+                    keterangan: "Pendaftaran Awal Ibu Hamil",
+                    tenantId
+                }
+            });
+        }
+    } else if (kategori === "LANSIA") {
+        const lansiasWithoutRecords = await prisma.posyanduLansia.findMany({
+            where: {
+                tenantId,
+                ...(rwCondition ? { rw: rwCondition } : {}),
+                records: { none: {} }
+            }
+        });
+        for (const l of lansiasWithoutRecords) {
+            await prisma.posyanduRecord.create({
+                data: {
+                    lansiaId: l.id,
+                    tanggal: new Date(),
+                    kondisiUmum: l.memilikiPenyakitBawaan ? "Perlu Rujukan" : "Baik",
+                    keterangan: "Pendaftaran Awal Posyandu Lansia",
+                    tenantId
+                }
+            });
+        }
+    }
+
     const whereClause: any = { tenantId };
     if (kategori === "BALITA") {
         whereClause.balitaId = { not: null };
+        if (rwCondition) whereClause.balita = { rw: rwCondition };
     } else if (kategori === "IBU_HAMIL") {
         whereClause.ibuHamilId = { not: null };
+        if (rwCondition) whereClause.ibuHamil = { rw: rwCondition };
     } else if (kategori === "LANSIA") {
         whereClause.lansiaId = { not: null };
+        if (rwCondition) whereClause.lansia = { rw: rwCondition };
     }
 
     return await prisma.posyanduRecord.findMany({
@@ -566,14 +666,49 @@ export async function getPosyanduRecords(kategori: "BALITA" | "IBU_HAMIL" | "LAN
 }
 
 export async function addPosyanduRecord(data: any) {
-    const { tenantId } = await verifyPosyanduAccess();
-    
+    const { tenantId } = await verifyPosyanduAccess(data.posyanduFilter);
+
+    const recordData: any = {
+        tanggal: data.tanggal ? new Date(data.tanggal) : new Date(),
+        tenantId
+    };
+
+    if (data.balitaId) recordData.balitaId = data.balitaId;
+    if (data.ibuHamilId) recordData.ibuHamilId = data.ibuHamilId;
+    if (data.lansiaId) recordData.lansiaId = data.lansiaId;
+    if (data.beratBadan !== undefined) recordData.beratBadan = data.beratBadan;
+    if (data.tinggiBadan !== undefined) recordData.tinggiBadan = data.tinggiBadan;
+    if (data.lingkarKepala !== undefined) recordData.lingkarKepala = data.lingkarKepala;
+    if (data.tensi !== undefined) recordData.tensi = data.tensi;
+    if (data.gulaDarah !== undefined) recordData.gulaDarah = data.gulaDarah;
+    if (data.statusGizi !== undefined) recordData.statusGizi = data.statusGizi;
+    if (data.statusRisiko !== undefined) recordData.statusRisiko = data.statusRisiko;
+    if (data.kondisiUmum !== undefined) recordData.kondisiUmum = data.kondisiUmum;
+    if (data.imunisasi !== undefined) recordData.imunisasi = data.imunisasi;
+    if (data.keterangan !== undefined) recordData.keterangan = data.keterangan;
+
     const record = await prisma.posyanduRecord.create({
-        data: {
-            ...data,
-            tenantId
-        }
+        data: recordData
     });
+
+    if (data.ibuHamilId && (data.beratBadan || data.statusRisiko)) {
+        await prisma.posyanduIbuHamil.updateMany({
+            where: { id: data.ibuHamilId, tenantId },
+            data: {
+                ...(data.beratBadan ? { beratBadan: data.beratBadan } : {}),
+                ...(data.statusRisiko === "Risiko Tinggi" ? { risikoTinggi: true } : data.statusRisiko === "Normal" ? { risikoTinggi: false } : {})
+            }
+        });
+    }
+
+    if (data.lansiaId && data.kondisiUmum) {
+        await prisma.posyanduLansia.updateMany({
+            where: { id: data.lansiaId, tenantId },
+            data: {
+                ...(data.kondisiUmum === "Perlu Rujukan" || data.kondisiUmum === "Kurang Baik" ? { memilikiPenyakitBawaan: true } : {})
+            }
+        });
+    }
 
     revalidatePath("/dashboard");
     return { success: true, record };
