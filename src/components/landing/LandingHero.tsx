@@ -22,7 +22,7 @@ export const LandingHero = ({ siteData, heroImages }: HeroProps) => {
     }, [heroImages.length]);
 
     return (
-        <section id="beranda" className="relative h-[94vh] md:h-screen flex flex-col justify-center px-4 sm:px-8 md:px-20 lg:px-32 overflow-hidden">
+        <section id="beranda" className="relative min-h-[100dvh] flex flex-col justify-center px-4 sm:px-8 md:px-20 lg:px-32 overflow-hidden py-16 sm:py-0">
             {/* BACKGROUND CAROUSEL WITH DYNAMIC CYBER OVERLAYS */}
             <div className="absolute inset-0 z-0 bg-[#060b17] overflow-hidden">
                 {heroImages.map((src, index) => (
@@ -37,15 +37,15 @@ export const LandingHero = ({ siteData, heroImages }: HeroProps) => {
                             fill
                             priority={index === 0}
                             sizes="100vw"
-                            className={`object-cover transition-transform duration-[18000ms] ease-out ${index === currentSlide ? 'scale-110 translate-y-0' : 'scale-100 translate-y-2'
+                            className={`object-cover object-center transition-transform duration-[18000ms] ease-out ${index === currentSlide ? 'scale-110 translate-y-0' : 'scale-100 translate-y-2'
                                 }`}
                         />
                     </div>
                 ))}
 
                 {/* Cyber Gradient Vignette Overlays */}
-                <div className="absolute inset-0 z-20 bg-gradient-to-r from-[#060a17] via-[#060a17]/85 to-transparent"></div>
-                <div className="absolute inset-0 z-20 bg-gradient-to-t from-[#08101e] via-transparent to-black/50"></div>
+                <div className="absolute inset-0 z-20 bg-gradient-to-r from-[#060a17]/90 via-[#060a17]/60 to-transparent sm:via-[#060a17]/85"></div>
+                <div className="absolute inset-0 z-20 bg-gradient-to-t from-[#060b17] via-transparent to-black/40"></div>
 
                 {/* Animated Vertical Cyber Scanner Line */}
                 <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent opacity-50 z-25 animate-laser-scan pointer-events-none"></div>
