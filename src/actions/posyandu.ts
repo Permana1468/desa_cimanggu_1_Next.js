@@ -242,6 +242,45 @@ export async function deletePosyanduIbuHamil(id: string) {
     return { success: true };
 }
 
+export async function getIbuHamilDetail(ibuHamilId: string) {
+    const { tenantId } = await verifyPosyanduAccess();
+
+    const ibuHamil = await prisma.posyanduIbuHamil.findFirst({
+        where: { id: ibuHamilId, tenantId },
+        include: {
+            records: {
+                orderBy: { tanggal: 'desc' }
+            }
+        }
+    });
+
+    if (!ibuHamil) throw new Error("Data Ibu Hamil tidak ditemukan");
+
+    let citizenData: any = null;
+    if (ibuHamil.nik) {
+        citizenData = await prisma.dataKependudukan.findFirst({
+            where: { nik: ibuHamil.nik, tenantId },
+            select: {
+                nik: true,
+                namaLengkap: true,
+                namaAyah: true,
+                namaIbu: true,
+                alamat: true,
+                rt: true,
+                rw: true,
+                dusun: true,
+                noKK: true,
+                tanggalLahir: true
+            }
+        });
+    }
+
+    return {
+        ...ibuHamil,
+        citizenData
+    };
+}
+
 // =======================
 // POSYANDU LANSIA
 // =======================
@@ -293,6 +332,46 @@ export async function deletePosyanduLansia(id: string) {
 
     revalidatePath("/dashboard");
     return { success: true };
+}
+
+export async function getLansiaDetail(lansiaId: string) {
+    const { tenantId } = await verifyPosyanduAccess();
+
+    const lansia = await prisma.posyanduLansia.findFirst({
+        where: { id: lansiaId, tenantId },
+        include: {
+            records: {
+                orderBy: { tanggal: 'desc' }
+            }
+        }
+    });
+
+    if (!lansia) throw new Error("Data Lansia tidak ditemukan");
+
+    let citizenData: any = null;
+    if (lansia.nik) {
+        citizenData = await prisma.dataKependudukan.findFirst({
+            where: { nik: lansia.nik, tenantId },
+            select: {
+                nik: true,
+                namaLengkap: true,
+                namaAyah: true,
+                namaIbu: true,
+                alamat: true,
+                rt: true,
+                rw: true,
+                dusun: true,
+                noKK: true,
+                tanggalLahir: true,
+                jenisKelamin: true
+            }
+        });
+    }
+
+    return {
+        ...lansia,
+        citizenData
+    };
 }
 
 // =======================

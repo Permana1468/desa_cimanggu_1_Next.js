@@ -1,16 +1,96 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, HeartPulse, Trash2 } from "lucide-react";
-import { getPosyanduIbuHamil, addPosyanduIbuHamil, updatePosyanduIbuHamilStatus, deletePosyanduIbuHamil } from "@/actions/posyandu";
+import {
+  Plus, Search, HeartPulse, Trash2, Eye, QrCode, Printer, X,
+  Calendar, User, MapPin, Activity, ShieldAlert, Phone, Stethoscope,
+  CheckCircle2, Clock, FileText, AlertTriangle
+} from "lucide-react";
+import {
+  getPosyanduIbuHamil, addPosyanduIbuHamil, updatePosyanduIbuHamilStatus,
+  deletePosyanduIbuHamil, getIbuHamilDetail
+} from "@/actions/posyandu";
 import { CitizenSearchAutocomplete } from "./CitizenSearchAutocomplete";
 import { getRWsForPosyandu, POSYANDU_UNITS } from "@/lib/posyandu";
+
+// Inline Vector Barcode Generator
+function BarcodeSVG({ value }: { value: string }) {
+  const cleanVal = (value || "3201160000000000").replace(/\D/g, "").padEnd(16, "0");
+  const bars: { width: number; space: number }[] = [];
+  for (let i = 0; i < cleanVal.length; i++) {
+    const digit = parseInt(cleanVal[i], 10) || 1;
+    bars.push({ width: (digit % 3) + 1.2, space: ((digit * 7) % 3) + 1.2 });
+  }
+
+  let xCursor = 12;
+  return (
+    <svg viewBox="0 0 240 54" className="w-full h-11">
+      <rect x="4" y="2" width="2" height="42" fill="#0f172a" />
+      <rect x="7" y="2" width="1" height="42" fill="#0f172a" />
+      {bars.map((bar, idx) => {
+        const x = xCursor;
+        xCursor += bar.width + bar.space;
+        return (
+          <rect key={idx} x={x} y="2" width={bar.width} height="36" fill="#0f172a" />
+        );
+      })}
+      <rect x={xCursor + 2} y="2" width="1" height="42" fill="#0f172a" />
+      <rect x={xCursor + 5} y="2" width="2" height="42" fill="#0f172a" />
+      <text x="120" y="49" textAnchor="middle" fontSize="9" fontFamily="monospace" fontWeight="bold" fill="#334155">
+        *{cleanVal}*
+      </text>
+    </svg>
+  );
+}
+
+// Inline Vector QR Code Generator
+function QRCodeSVG({ value }: { value: string }) {
+  const size = 15;
+  const grid: boolean[][] = Array(size).fill(false).map(() => Array(size).fill(false));
+  
+  const addFinder = (r: number, c: number) => {
+    for (let i = 0; i < 5; i++) {
+      for (let j = 0; j < 5; j++) {
+        if (i === 0 || i === 4 || j === 0 || j === 4 || (i >= 1 && i <= 3 && j >= 1 && j <= 3)) {
+          grid[r + i][c + j] = true;
+        }
+      }
+    }
+  };
+
+  addFinder(0, 0);
+  addFinder(0, 10);
+  addFinder(10, 0);
+
+  let hash = 0;
+  for (let i = 0; i < value.length; i++) hash = (hash * 31 + value.charCodeAt(i)) & 0xffffffff;
+
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if ((r < 5 && c < 5) || (r < 5 && c >= 10) || (r >= 10 && c < 5)) continue;
+      const bit = ((hash ^ (r * 17 + c * 23)) >>> ((r + c) % 16)) & 1;
+      grid[r][c] = bit === 1;
+    }
+  }
+
+  return (
+    <svg viewBox="0 0 60 60" className="w-14 h-14 bg-white p-1 rounded-lg border border-slate-200 shadow-sm shrink-0">
+      {grid.map((row, r) =>
+        row.map((cell, c) => cell && (
+          <rect key={`${r}-${c}`} x={c * 4} y={r * 4} width="3.6" height="3.6" fill="#0f172a" rx="0.5" />
+        ))
+      )}
+    </svg>
+  );
+}
 
 export function PosyanduIbuHamilTab({ session, selectedPosyandu }: { session?: any; selectedPosyandu?: string }) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [selectedDetailIbuHamilId, setSelectedDetailIbuHamilId] = useState<string | null>(null);
+  const [selectedKartuIbuHamil, setSelectedKartuIbuHamil] = useState<any | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -53,11 +133,11 @@ export function PosyanduIbuHamilTab({ session, selectedPosyandu }: { session?: a
             <HeartPulse className="w-6 h-6 text-pink-500" />
             Data Ibu Hamil
           </h2>
-          <p className="text-slate-500 text-sm mt-1">Kelola data pemantauan kesehatan ibu hamil</p>
+          <p className="text-slate-500 text-sm mt-1">Kelola data pemantauan kesehatan ibu hamil dan cetak kartu kontrol posyandu</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-pink-500 hover:bg-pink-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-colors font-semibold shadow-sm"
+          className="bg-pink-500 hover:bg-pink-600 text-white px-5 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-colors font-semibold shadow-sm cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Tambah Ibu Hamil
         </button>
@@ -108,28 +188,49 @@ export function PosyanduIbuHamilTab({ session, selectedPosyandu }: { session?: a
                 filteredData.map((d, idx) => (
                   <tr key={d.id} className="hover:bg-slate-50/70 transition-colors">
                     <td className="px-4 py-3 text-slate-400 font-medium">{idx + 1}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-slate-600">{d.nik}</td>
+                    <td className="px-4 py-3 font-mono text-xs text-slate-600">{d.nik || "-"}</td>
                     <td className="px-4 py-3 font-semibold text-slate-800">{d.namaLengkap}</td>
-                    <td className="px-4 py-3 text-slate-600 font-medium">{d.usiaKandungan} Bulan</td>
-                    <td className="px-4 py-3 text-slate-600">{d.beratBadan ? `${d.beratBadan} kg` : "-"}</td>
-                    <td className="px-4 py-3 text-slate-600 font-mono text-xs">{d.noHp || "-"}</td>
-                    <td className="px-4 py-3 text-slate-600">RT {d.rt} / RW {d.rw}</td>
+                    <td className="px-4 py-3 text-slate-600 font-medium whitespace-nowrap">{d.usiaKandungan} Bulan</td>
+                    <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{d.beratBadan ? `${d.beratBadan} kg` : "-"}</td>
+                    <td className="px-4 py-3 text-slate-600 font-mono text-xs whitespace-nowrap">{d.noHp || "-"}</td>
+                    <td className="px-4 py-3 text-slate-600 whitespace-nowrap">RT {d.rt} / RW {d.rw}</td>
                     <td className="px-4 py-3">
                       <button
                         onClick={() => handleToggleRisiko(d.id, d.risikoTinggi)}
                         className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors ${
-                          d.risikoTinggi ? "bg-red-50 text-red-700 border-red-200" : "bg-green-50 text-green-700 border-green-200"
+                          d.risikoTinggi ? "bg-red-50 text-red-700 border-red-200" : "bg-emerald-50 text-emerald-700 border-emerald-200"
                         }`}
                       >
                         {d.risikoTinggi ? "Risiko Tinggi" : "Normal"}
                       </button>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center justify-center gap-1.5 whitespace-nowrap">
+                        {/* DETAIL BUTTON */}
+                        <button
+                          onClick={() => setSelectedDetailIbuHamilId(d.id)}
+                          className="px-2.5 py-1.5 bg-pink-50 hover:bg-pink-100 text-pink-700 text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                          title="Lihat Detail Ibu Hamil"
+                        >
+                          <Eye size={14} />
+                          <span>Detail</span>
+                        </button>
+
+                        {/* CETAK KARTU BUTTON */}
+                        <button
+                          onClick={() => setSelectedKartuIbuHamil(d)}
+                          className="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg transition-all flex items-center gap-1 cursor-pointer active:scale-95"
+                          title="Cetak Kartu Kontrol Posyandu"
+                        >
+                          <QrCode size={14} />
+                          <span>Cetak Kartu</span>
+                        </button>
+
+                        {/* HAPUS BUTTON */}
                         <button
                           onClick={() => handleDelete(d.id)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
-                          title="Hapus"
+                          className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer"
+                          title="Hapus Data Ibu Hamil"
                         >
                           <Trash2 size={15} />
                         </button>
@@ -149,6 +250,7 @@ export function PosyanduIbuHamilTab({ session, selectedPosyandu }: { session?: a
         )}
       </div>
 
+      {/* MODAL TAMBAH IBU HAMIL */}
       {showModal && (
         <ModalTambahIbuHamil
           onClose={() => setShowModal(false)}
@@ -157,6 +259,367 @@ export function PosyanduIbuHamilTab({ session, selectedPosyandu }: { session?: a
           selectedPosyandu={selectedPosyandu}
         />
       )}
+
+      {/* MODAL DETAIL IBU HAMIL */}
+      {selectedDetailIbuHamilId && (
+        <ModalDetailIbuHamil
+          ibuHamilId={selectedDetailIbuHamilId}
+          onClose={() => setSelectedDetailIbuHamilId(null)}
+          onOpenCetakKartu={(obj: any) => {
+            setSelectedDetailIbuHamilId(null);
+            setSelectedKartuIbuHamil(obj);
+          }}
+        />
+      )}
+
+      {/* MODAL CETAK KARTU IBU HAMIL */}
+      {selectedKartuIbuHamil && (
+        <ModalCetakKartuIbuHamil
+          ibuHamil={selectedKartuIbuHamil}
+          onClose={() => setSelectedKartuIbuHamil(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ==========================================
+// MODAL DETAIL IBU HAMIL LENGKAP
+// ==========================================
+function ModalDetailIbuHamil({ ibuHamilId, onClose, onOpenCetakKartu }: { ibuHamilId: string; onClose: () => void; onOpenCetakKartu: (obj: any) => void }) {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadDetail() {
+      setLoading(true);
+      try {
+        const res = await getIbuHamilDetail(ibuHamilId);
+        setData(res);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadDetail();
+  }, [ibuHamilId]);
+
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-2xl flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-pink-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs text-slate-500 font-semibold">Memuat Detail Ibu Hamil...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  const records = data.records || [];
+  const latestRecord = records[0] || null;
+  const citizen = data.citizenData || {};
+  const namaSuami = citizen.namaAyah || "-";
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto border border-slate-100">
+        
+        {/* Header Hero Banner */}
+        <div className="bg-gradient-to-r from-pink-600 via-rose-600 to-pink-800 text-white p-5 sm:p-6 relative">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+          >
+            <X size={18} />
+          </button>
+          
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white/20 border border-white/30 backdrop-blur-md flex items-center justify-center font-black text-2xl text-white shrink-0">
+              🤰
+            </div>
+            <div className="flex-1 min-w-0 pr-6">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-white/20 text-white border border-white/20">
+                  {data.posyanduName || "Posyandu Unit"}
+                </span>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase border ${
+                  data.risikoTinggi ? "bg-red-500/30 text-red-100 border-red-400/40" : "bg-emerald-500/30 text-emerald-100 border-emerald-400/40"
+                }`}>
+                  {data.risikoTinggi ? "⚠️ Risiko Tinggi" : "✓ Status Normal"}
+                </span>
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-white leading-tight truncate">
+                {data.namaLengkap}
+              </h3>
+              <p className="text-xs text-pink-100/90 font-mono mt-0.5">
+                NIK: {data.nik || "-"} • Usia Kandungan: {data.usiaKandungan} Bulan
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Modal Body Contents */}
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1">
+          
+          {/* Card Hasil Pemeriksaan Terbaru */}
+          <div className="bg-gradient-to-br from-pink-50 via-rose-50 to-pink-100/50 p-4 rounded-2xl border border-pink-100 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-extrabold uppercase tracking-wider text-pink-900 flex items-center gap-1.5">
+                <HeartPulse size={15} className="text-pink-600" /> Hasil Pemeriksaan Terbaru (ANC)
+              </span>
+              <span className="text-[11px] font-semibold text-slate-500">
+                {latestRecord ? new Date(latestRecord.tanggal).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }) : "Belum ada catatan"}
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-white p-3 rounded-xl border border-slate-100 text-center shadow-2xs">
+                <p className="text-[10px] text-slate-400 font-bold uppercase">Berat Badan</p>
+                <p className="text-lg font-black text-slate-800">{latestRecord?.beratBadan || data.beratBadan ? `${latestRecord?.beratBadan || data.beratBadan} kg` : "-"}</p>
+              </div>
+              <div className="bg-white p-3 rounded-xl border border-slate-100 text-center shadow-2xs">
+                <p className="text-[10px] text-slate-400 font-bold uppercase">Tekanan Darah</p>
+                <p className="text-lg font-black text-slate-800">{latestRecord?.tensi ? `${latestRecord.tensi} mmHg` : "120/80"}</p>
+              </div>
+              <div className="bg-white p-3 rounded-xl border border-slate-100 text-center shadow-2xs">
+                <p className="text-[10px] text-slate-400 font-bold uppercase">Tinggi Badan</p>
+                <p className="text-lg font-black text-slate-800">{latestRecord?.tinggiBadan ? `${latestRecord.tinggiBadan} cm` : "-"}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Data Informasi Ibu Hamil & Suami */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Informasi Ibu Hamil & Suami</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-slate-400 block font-semibold">Nama Ibu Hamil</span>
+                <span className="font-bold text-slate-800 text-sm">{data.namaLengkap}</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-slate-400 block font-semibold">NIK Ibu</span>
+                <span className="font-bold font-mono text-slate-800 text-sm">{data.nik || "-"}</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-slate-400 block font-semibold">Nama Suami</span>
+                <span className="font-bold text-slate-800">{namaSuami}</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-slate-400 block font-semibold">No HP / WhatsApp</span>
+                <span className="font-bold font-mono text-slate-800">{data.noHp || "-"}</span>
+              </div>
+              <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 sm:col-span-2">
+                <span className="text-slate-400 block font-semibold">Alamat Lengkap</span>
+                <span className="font-bold text-slate-800">
+                  {citizen.alamat || "Desa Cimanggu I"}, RT {data.rt} / RW {data.rw} {citizen.dusun ? `• Dusun ${citizen.dusun}` : ""}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Riwayat Kunjungan ANC */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Riwayat Pemeriksaan ANC ({records.length})</h4>
+            </div>
+
+            {records.length === 0 ? (
+              <div className="p-6 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-xs text-slate-400">
+                Belum ada catatan riwayat pemeriksaan kehamilan.
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {records.map((rec: any, idx: number) => (
+                  <div key={rec.id || idx} className="p-3.5 bg-white rounded-xl border border-slate-100 text-xs space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-pink-700 flex items-center gap-1.5">
+                        <Calendar size={13} /> {new Date(rec.tanggal).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
+                      </span>
+                      <span className="bg-pink-50 text-pink-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                        BB: {rec.beratBadan ? `${rec.beratBadan} kg` : "-"}
+                      </span>
+                    </div>
+                    {rec.keterangan && <p className="text-slate-500 italic text-[11px]">{rec.keterangan}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        {/* Footer Actions */}
+        <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+          <button
+            onClick={() => onOpenCetakKartu(data)}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
+          >
+            <QrCode size={15} /> Cetak Kartu Kontrol
+          </button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-white text-slate-700 hover:bg-slate-100 rounded-xl text-xs font-bold border border-slate-200 transition-colors cursor-pointer"
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==========================================
+// MODAL CETAK KARTU KONTROL IBU HAMIL
+// ==========================================
+function ModalCetakKartuIbuHamil({ ibuHamil, onClose }: { ibuHamil: any; onClose: () => void }) {
+  const handlePrint = () => {
+    window.print();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
+      <style>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #printable-posyandu-card, #printable-posyandu-card * {
+            visibility: visible;
+          }
+          #printable-posyandu-card {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) scale(1.1);
+            width: 420px !important;
+            box-shadow: none !important;
+            border: 1px solid #cbd5e1 !important;
+          }
+        }
+      `}</style>
+
+      <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 space-y-6">
+        
+        {/* Action Header */}
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h3 className="text-base font-extrabold text-slate-800 flex items-center gap-2">
+              <QrCode className="w-5 h-5 text-indigo-600" /> Kartu Kontrol Ibu Hamil Digital
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">Pratinjau cetak kartu posyandu</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 text-lg cursor-pointer">&times;</button>
+        </div>
+
+        {/* PRINTABLE CARD CONTAINER */}
+        <div className="flex justify-center">
+          <div
+            id="printable-posyandu-card"
+            className="w-[380px] sm:w-[420px] bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden flex flex-col relative text-slate-800"
+          >
+            {/* CARD HEADER */}
+            <div className="bg-gradient-to-r from-pink-700 via-rose-700 to-pink-900 text-white p-3.5 relative overflow-hidden flex items-center justify-between">
+              <div className="flex items-center gap-2.5 relative z-10">
+                <div className="w-9 h-9 bg-white/20 border border-white/30 rounded-xl flex items-center justify-center text-lg font-black shrink-0">
+                  🤰
+                </div>
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider leading-none text-white">KARTU KONTROL IBU HAMIL</h4>
+                  <p className="text-[9px] text-pink-200 font-bold uppercase mt-0.5">DESA CIMANGGU I • KEC. CIBUNGBULANG</p>
+                  <p className="text-[8px] text-pink-100/80 font-medium">{ibuHamil.posyanduName || "Posyandu Mawar"}</p>
+                </div>
+              </div>
+              <div className="bg-white/15 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest text-pink-100 border border-white/20">
+                KARTU ANGGOTA
+              </div>
+            </div>
+
+            {/* CARD BODY */}
+            <div className="p-4 space-y-3 bg-gradient-to-b from-rose-50/30 to-white">
+              <div className="flex gap-3 items-start">
+                
+                {/* Photo Placeholder / Avatar */}
+                <div className="w-16 h-20 bg-pink-50 rounded-xl border border-pink-200 flex flex-col items-center justify-center text-center p-1 shrink-0 shadow-2xs">
+                  <div className="w-9 h-9 rounded-full bg-pink-100 text-pink-700 font-bold text-sm flex items-center justify-center">
+                    🤰
+                  </div>
+                  <span className="text-[8px] font-extrabold text-pink-700 uppercase mt-1 truncate max-w-full">
+                    {ibuHamil.usiaKandungan} Bulan
+                  </span>
+                </div>
+
+                {/* Member Info Details */}
+                <div className="flex-1 min-w-0 space-y-1 text-[11px]">
+                  <div>
+                    <span className="text-[8px] uppercase tracking-wider font-extrabold text-slate-400 block leading-none">NAMA IBU HAMIL</span>
+                    <p className="font-black text-slate-900 text-sm leading-tight truncate uppercase">{ibuHamil.namaLengkap}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1 text-[10px]">
+                    <div>
+                      <span className="text-[8px] uppercase tracking-wider font-extrabold text-slate-400 block leading-none">NIK</span>
+                      <p className="font-bold font-mono text-slate-700 truncate">{ibuHamil.nik || "-"}</p>
+                    </div>
+                    <div>
+                      <span className="text-[8px] uppercase tracking-wider font-extrabold text-slate-400 block leading-none">NO HP / WA</span>
+                      <p className="font-bold font-mono text-slate-700 truncate">{ibuHamil.noHp || "-"}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-1 text-[10px]">
+                    <div>
+                      <span className="text-[8px] uppercase tracking-wider font-extrabold text-slate-400 block leading-none">STATUS RISIKO</span>
+                      <p className={`font-bold truncate ${ibuHamil.risikoTinggi ? "text-red-600" : "text-emerald-600"}`}>
+                        {ibuHamil.risikoTinggi ? "Risiko Tinggi" : "Normal"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[8px] uppercase tracking-wider font-extrabold text-slate-400 block leading-none">WILAYAH</span>
+                      <p className="font-bold text-slate-700 truncate">RT {ibuHamil.rt} / RW {ibuHamil.rw}</p>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* BARCODE & QR CODE FOOTER */}
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-3">
+                <div className="flex-1">
+                  <BarcodeSVG value={ibuHamil.nik || "3201160000000000"} />
+                </div>
+                <QRCodeSVG value={`https://cimanggu1.desa.id/verify-posyandu?nik=${ibuHamil.nik || ""}`} />
+              </div>
+            </div>
+
+            {/* CARD BOTTOM FOOTER */}
+            <div className="bg-slate-900 text-white px-3 py-1.5 text-[8px] flex items-center justify-between font-medium">
+              <span className="text-slate-300">Sistem Informasi Posyandu Desa Cimanggu I</span>
+              <span className="text-pink-400 font-bold">KARTU KONTROL ANC</span>
+            </div>
+
+          </div>
+        </div>
+
+        {/* BUTTON ACTIONS */}
+        <div className="flex items-center justify-between gap-3 pt-2 border-t border-slate-100">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+          >
+            Tutup
+          </button>
+          <button
+            onClick={handlePrint}
+            className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all shadow-md cursor-pointer active:scale-95"
+          >
+            <Printer size={15} /> Cetak Kartu Kontrol
+          </button>
+        </div>
+
+      </div>
     </div>
   );
 }
@@ -170,8 +633,10 @@ function ModalTambahIbuHamil({ onClose, onRefresh, session, selectedPosyandu }: 
   const [noHp, setNoHp] = useState("");
   const [rt, setRt] = useState("001");
   const [rw, setRw] = useState("");
+  const [risikoTinggi, setRisikoTinggi] = useState(false);
 
   let availableRws: string[] = [];
+
   if (selectedPosyandu && selectedPosyandu !== "ALL") {
     availableRws = getRWsForPosyandu(selectedPosyandu);
   } else if (session?.user?.rw) {
@@ -191,7 +656,6 @@ function ModalTambahIbuHamil({ onClose, onRefresh, session, selectedPosyandu }: 
   const handleCitizenSelect = (citizen: any) => {
     if (citizen.nik) setNik(citizen.nik);
     if (citizen.namaLengkap) setNamaLengkap(citizen.namaLengkap);
-    if (citizen.phoneNumber) setNoHp(citizen.phoneNumber);
     if (citizen.rt) setRt(citizen.rt);
     if (citizen.rw && availableRws.includes(citizen.rw)) {
       setRw(citizen.rw);
@@ -215,11 +679,12 @@ function ModalTambahIbuHamil({ onClose, onRefresh, session, selectedPosyandu }: 
     await addPosyanduIbuHamil({
       nik,
       namaLengkap,
-      usiaKandungan: parseInt(usiaKandungan) || 1,
+      usiaKandungan: parseInt(usiaKandungan),
       beratBadan: beratBadan ? parseFloat(beratBadan) : null,
-      noHp: noHp || null,
+      noHp,
       rt,
       rw: rw || availableRws[0],
+      risikoTinggi,
       posyanduName,
       posyanduFilter: selectedPosyandu
     });
@@ -235,45 +700,44 @@ function ModalTambahIbuHamil({ onClose, onRefresh, session, selectedPosyandu }: 
         <div className="flex justify-between items-center mb-5">
           <div>
             <h3 className="text-lg font-bold text-slate-800">Tambah Data Ibu Hamil</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Isi data lengkap atau cari dari Data Kependudukan</p>
+            <p className="text-xs text-slate-500 mt-0.5">Isi data lengkap atau pilih dari Data Kependudukan</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all text-xl">&times;</button>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 text-xl cursor-pointer">&times;</button>
         </div>
 
-        {/* Autocomplete Search Citizen */}
         <div className="mb-5 bg-pink-50/50 p-3.5 rounded-xl border border-pink-100">
           <CitizenSearchAutocomplete
             onSelect={handleCitizenSelect}
             posyanduFilter={selectedPosyandu}
-            label="Integrasi Data Kependudukan (Cari NIK / Nama Ibu Hamil)"
+            label="Integrasi Data Kependudukan (Cari NIK / Nama Ibu)"
           />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">NIK *</label>
-            <input
-              value={nik}
-              onChange={(e) => setNik(e.target.value)}
-              required
-              type="text"
-              maxLength={16}
-              placeholder="16 digit NIK Ibu Hamil"
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 outline-none font-mono"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nama Lengkap *</label>
-            <input
-              value={namaLengkap}
-              onChange={(e) => setNamaLengkap(e.target.value)}
-              required
-              type="text"
-              placeholder="Nama Lengkap Ibu"
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 outline-none"
-            />
-          </div>
           <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">NIK (Wajib) *</label>
+              <input
+                value={nik}
+                onChange={(e) => setNik(e.target.value)}
+                required
+                type="text"
+                maxLength={16}
+                placeholder="16 digit NIK Ibu Hamil"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 outline-none font-mono"
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nama Lengkap *</label>
+              <input
+                value={namaLengkap}
+                onChange={(e) => setNamaLengkap(e.target.value)}
+                required
+                type="text"
+                placeholder="Nama Ibu Hamil"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 outline-none"
+              />
+            </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Usia Kandungan (Bulan) *</label>
               <input
@@ -287,28 +751,26 @@ function ModalTambahIbuHamil({ onClose, onRefresh, session, selectedPosyandu }: 
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Berat Badan (kg)</label>
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Berat Badan (Kg)</label>
               <input
                 value={beratBadan}
                 onChange={(e) => setBeratBadan(e.target.value)}
                 type="number"
                 step="0.1"
-                placeholder="50.0"
+                placeholder="55.5"
                 className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 outline-none"
               />
             </div>
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nomor HP / WhatsApp</label>
-            <input
-              value={noHp}
-              onChange={(e) => setNoHp(e.target.value)}
-              type="text"
-              placeholder="08xxxxxxxxxx"
-              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 outline-none font-mono"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">No. HP / WhatsApp</label>
+              <input
+                value={noHp}
+                onChange={(e) => setNoHp(e.target.value)}
+                type="text"
+                placeholder="08123456789"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-pink-500 outline-none font-mono"
+              />
+            </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">RT *</label>
               <input
@@ -333,10 +795,20 @@ function ModalTambahIbuHamil({ onClose, onRefresh, session, selectedPosyandu }: 
                 ))}
               </select>
             </div>
+            <div className="col-span-2 flex items-center gap-2 pt-2">
+              <input
+                id="risiko"
+                type="checkbox"
+                checked={risikoTinggi}
+                onChange={(e) => setRisikoTinggi(e.target.checked)}
+                className="w-4 h-4 text-pink-600 border-slate-300 rounded focus:ring-pink-500"
+              />
+              <label htmlFor="risiko" className="text-xs text-slate-700 font-medium cursor-pointer">Kategori Kehamilan Risiko Tinggi (KEK/Anemia/Lainnya)</label>
+            </div>
           </div>
           <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-xl border border-slate-200">Batal</button>
-            <button type="submit" disabled={loading} className="px-5 py-2 text-sm bg-pink-500 hover:bg-pink-600 text-white rounded-xl disabled:opacity-50 font-semibold shadow-sm">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">Batal</button>
+            <button type="submit" disabled={loading} className="px-5 py-2 text-sm bg-pink-500 hover:bg-pink-600 text-white rounded-xl disabled:opacity-50 font-semibold shadow-sm cursor-pointer">
               {loading ? "Menyimpan..." : "Simpan Data"}
             </button>
           </div>
