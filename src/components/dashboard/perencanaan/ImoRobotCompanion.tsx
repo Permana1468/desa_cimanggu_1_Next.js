@@ -49,8 +49,7 @@ export function ImoRobotCompanion() {
   const [tipIndex, setTipIndex] = useState<number>(0);
   const [showHologram, setShowHologram] = useState<boolean>(true);
   const [showChatMode, setShowChatMode] = useState<boolean>(false);
-  const [motionIntensity, setMotionIntensity] = useState<number>(0);
-  const [eyeOffset, setEyeOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isPillExpanded, setIsPillExpanded] = useState<boolean>(false);
   const [isTickled, setIsTickled] = useState<boolean>(false);
   const [isPointing, setIsPointing] = useState<boolean>(false);
 
@@ -59,7 +58,6 @@ export function ImoRobotCompanion() {
     if (!isActive) return;
 
     const handleGlobalClick = (e: MouseEvent) => {
-      // Prevent reacting when clicking on the robot itself or its UI
       if ((e.target as HTMLElement).closest('.imo-robot-ui')) return;
 
       setIsPointing(true);
@@ -92,7 +90,7 @@ export function ImoRobotCompanion() {
     {
       id: "1",
       sender: "imo",
-      text: "Halo Kaur Perencanaan! Saya IMO-1 3D Asisten Digital. Ada dokumen RAB atau Take Off Sheet yang ingin dibahas? 🤖✨",
+      text: "Halo Kaur Perencanaan! Saya IMO-1 3D Asisten AI Desa. Ada dokumen RAB, TOS, atau alokasi anggaran yang ingin didiskusikan? 🤖✨",
       time: "Sekarang"
     }
   ]);
@@ -102,9 +100,7 @@ export function ImoRobotCompanion() {
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const prevFrameRef = useRef<Uint8ClampedArray | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const animFrameId = useRef<number | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
   // Sound Synthesizer function for cute robot beeps
@@ -191,7 +187,6 @@ export function ImoRobotCompanion() {
     e.preventDefault();
 
     if (sensorMode !== "off") {
-      // Turn OFF
       setSensorMode("off");
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
@@ -205,7 +200,6 @@ export function ImoRobotCompanion() {
       return;
     }
 
-    // Try Physical Camera
     playRobotBeep("click");
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -225,15 +219,15 @@ export function ImoRobotCompanion() {
       setCameraErrorMsg("Sensor Kamera Fisik Berhasil Aktif!");
       setTimeout(() => setCameraErrorMsg(null), 3000);
     } catch (err: any) {
-      // Automatic Fallback to Cyber Radar Mode!
       setSensorMode("cyber_radar");
       setExpression("curious");
       playRobotBeep("motion");
-      setCameraErrorMsg("⚡ Sensor Cyber AI Radar Aktif (Mode Pemindai Gerak & Radar Digital)");
+      setCameraErrorMsg("⚡ Sensor Cyber AI Radar Aktif (Mode Pemindai Gerak Digital)");
       setTimeout(() => setCameraErrorMsg(null), 4000);
     }
   };
 
+  // Enhanced Master AI Response Engine
   const handleSendMessage = (textToSend?: string) => {
     const query = textToSend || inputMessage.trim();
     if (!query) return;
@@ -258,16 +252,22 @@ export function ImoRobotCompanion() {
       const lower = query.toLowerCase();
 
       if (lower.includes("rab") || lower.includes("anggaran") || lower.includes("hitung")) {
-        replyText = "Perhitungan RAB Desa membagi alokasi ke 4 pos utama: Bahan, Alat, Upah, dan Operasional TPK. PPN 11% & PPh dihitung otomatis oleh sistem.";
+        replyText = "💡 **Analisis AI RAB Desa**: Komposisi anggaran dibagi ke Material (50-60%), Upah TPK/Warga (25-30%), Alat (10%), & Operasional TPK (5%). PPN 11% & PPh Pasal 22 dihitung otomatis sesuai Perdes 2026.";
         setExpression("happy");
       } else if (lower.includes("take off") || lower.includes("tos") || lower.includes("volume")) {
-        replyText = "Modul Take Off Sheet menghitung volume TPT, Jalan Beton, & U-Ditch dengan standar rumus teknik desa. Hasilnya bisa langsung ditarik ke dokumen RAB!";
+        replyText = "📐 **TOS Engine**: Modul Take Off Sheet menghitung volume TPT (Tembok Penahan Tanah), Jalan Beton, & U-Ditch dengan rumus standar teknik sipil desa. Hasil kubikasi langsung tersinkronisasi ke cetak RAB!";
         setExpression("happy");
       } else if (lower.includes("harga satuan") || lower.includes("hspk")) {
-        replyText = "Data acuan Harga Satuan Desa Cimanggu 1 sudah tersinkronisasi sesuai keputusan Perdes 2026.";
+        replyText = "📊 **Master Data Harga Satuan**: Seluruh acuan bahan (semen, batu belah, pasir) & standar upah pekerja di Desa Cimanggu I sudah terkunci sesuai SK Perdes Perencanaan 2026.";
         setExpression("curious");
+      } else if (lower.includes("musrenbang") || lower.includes("usulan")) {
+        replyText = "🏛️ **Integrasi Musrenbang**: 5 Usulan fisik prioritas warga siap dimasukkan ke RKP Desa 2026. Anda dapat memantau perubahannya di tab Usulan Musrenbang!";
+        setExpression("winking");
+      } else if (lower.includes("halo") || lower.includes("hai") || lower.includes("pagi") || lower.includes("siang")) {
+        replyText = "Halo Kaur Perencanaan! Saya IMO-1 AI Asisten siap membantu penyusunan dokumen fisik, laporan serapan, dan kontrol anggaran desa hari ini! 🚀";
+        setExpression("happy");
       } else {
-        replyText = `Siap Kaur Perencanaan! Mengenai "${query}", IMO-1 siap mendampingi kelancaran alokasi anggaran desa! 🚀`;
+        replyText = `Siap Kaur Perencanaan! Mengenai "${query}", IMO-1 AI siap mengkalkulasi dan memastikan alokasi pembangunan Desa Cimanggu I berjalan presisi & akuntabel! 💡`;
         setExpression("happy");
       }
 
@@ -281,7 +281,7 @@ export function ImoRobotCompanion() {
       setChatMessages((prev) => [...prev, imoMsg]);
       setIsThinking(false);
       playRobotBeep("happy");
-    }, 800);
+    }, 700);
   };
 
   return (
@@ -290,10 +290,10 @@ export function ImoRobotCompanion() {
       <video ref={videoRef} className="hidden" playsInline muted />
       <canvas ref={canvasRef} className="hidden" />
 
-      {/* CAMERA ERROR NOTIFICATION TOAST */}
+      {/* CAMERA ERROR / TOAST NOTIFICATION */}
       {cameraErrorMsg && (
-        <div className="fixed top-4 right-4 left-4 sm:left-auto sm:w-96 z-[9999] bg-slate-900/95 border border-rose-500/60 rounded-2xl p-3.5 shadow-[0_10px_30px_rgba(244,63,94,0.3)] backdrop-blur-xl text-white text-xs flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300 pointer-events-auto">
-          <AlertCircle size={20} className="text-rose-400 shrink-0" />
+        <div className="fixed top-4 right-4 left-4 sm:left-auto sm:w-96 z-[9999] bg-slate-900/95 border border-emerald-500/60 rounded-2xl p-3.5 shadow-[0_10px_30px_rgba(16,185,129,0.3)] backdrop-blur-xl text-white text-xs flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-300 pointer-events-auto">
+          <Sparkles size={18} className="text-emerald-400 shrink-0" />
           <div className="flex-1 font-medium text-slate-200">{cameraErrorMsg}</div>
           <button onClick={() => setCameraErrorMsg(null)} className="text-slate-400 hover:text-white p-1">
             <X size={14} />
@@ -314,7 +314,7 @@ export function ImoRobotCompanion() {
       {isActive && (
         <div className="fixed bottom-[145px] right-1 sm:right-4 md:bottom-24 md:right-12 z-[40] flex flex-col-reverse md:flex-row items-end md:items-center gap-2 md:gap-6 font-sans animate-fade-in-up pointer-events-none origin-bottom-right transition-all duration-300">
             
-            {/* HOLOGRAPHIC PROJECTION CALLOUT CARD & PROJECTION BEAM */}
+            {/* HOLOGRAPHIC PROJECTION CALLOUT CARD */}
             {showHologram && !showChatMode && (
               <div className="relative flex items-center group animate-fade-in pointer-events-auto">
                 <div
@@ -352,12 +352,12 @@ export function ImoRobotCompanion() {
               </div>
             )}
 
-            {/* CHAT MODAL INTERFACE (When active) */}
+            {/* CHAT MODAL INTERFACE */}
             {showChatMode && (
-              <div className="bg-slate-950/95 border-2 border-emerald-400/60 rounded-3xl p-3.5 sm:p-4 shadow-[0_20px_50px_rgba(16,185,129,0.3)] backdrop-blur-2xl w-[calc(100vw-2.5rem)] sm:w-80 h-[320px] sm:h-[380px] flex flex-col relative z-20 pointer-events-auto">
+              <div className="bg-slate-950/95 border-2 border-emerald-400/60 rounded-3xl p-3.5 sm:p-4 shadow-[0_20px_50px_rgba(16,185,129,0.3)] backdrop-blur-2xl w-[calc(100vw-2.5rem)] sm:w-80 h-[360px] sm:h-[400px] flex flex-col relative z-20 pointer-events-auto">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
                   <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wider">
-                    <Bot size={16} /> Chat IMO-1 AI
+                    <Bot size={16} /> Chat IMO-1 Master AI
                   </div>
                   <button
                     onClick={() => setShowChatMode(false)}
@@ -375,7 +375,7 @@ export function ImoRobotCompanion() {
                       className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
                     >
                       <div
-                        className={`max-w-[85%] p-2.5 rounded-2xl ${
+                        className={`max-w-[88%] p-2.5 rounded-2xl ${
                           msg.sender === "user"
                             ? "bg-emerald-600 text-white rounded-br-none"
                             : "bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none"
@@ -383,10 +383,10 @@ export function ImoRobotCompanion() {
                       >
                         {msg.sender === "imo" && (
                           <span className="block text-[9px] font-bold text-emerald-400 uppercase mb-1">
-                            🤖 IMO-1 Robot
+                            🤖 IMO-1 Master AI
                           </span>
                         )}
-                        <p>{msg.text}</p>
+                        <p className="leading-relaxed">{msg.text}</p>
                       </div>
                       <span className="text-[9px] text-slate-500 mt-0.5 font-mono px-1">{msg.time}</span>
                     </div>
@@ -394,10 +394,32 @@ export function ImoRobotCompanion() {
                   {isThinking && (
                     <div className="flex items-center gap-2 text-xs text-emerald-400 font-mono bg-slate-900 p-2 rounded-xl border border-slate-800">
                       <Sparkles size={13} className="animate-spin" />
-                      <span>IMO-1 sedang berpikir...</span>
+                      <span>IMO-1 AI sedang menganalisis...</span>
                     </div>
                   )}
                   <div ref={chatBottomRef} />
+                </div>
+
+                {/* Quick Topic Prompts */}
+                <div className="flex items-center gap-1.5 overflow-x-auto py-1.5 border-t border-slate-800/80 custom-scrollbar shrink-0">
+                  <button
+                    onClick={() => handleSendMessage("Cara hitung Take Off Sheet")}
+                    className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 text-emerald-300 text-[10px] whitespace-nowrap shrink-0"
+                  >
+                    📐 TOS Jalan
+                  </button>
+                  <button
+                    onClick={() => handleSendMessage("Komposisi RAB Desa")}
+                    className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 text-emerald-300 text-[10px] whitespace-nowrap shrink-0"
+                  >
+                    💡 Komposisi RAB
+                  </button>
+                  <button
+                    onClick={() => handleSendMessage("Musrenbang Desa 2026")}
+                    className="px-2 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-emerald-500/30 text-emerald-300 text-[10px] whitespace-nowrap shrink-0"
+                  >
+                    🏛️ Musrenbang
+                  </button>
                 </div>
 
                 {/* Input Form */}
@@ -412,7 +434,7 @@ export function ImoRobotCompanion() {
                     type="text"
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
-                    placeholder="Ketik pesan..."
+                    placeholder="Tanyakan ke IMO-1 AI..."
                     className="flex-1 bg-slate-900 border border-slate-800 text-slate-100 placeholder-slate-500 text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-500"
                   />
                   <button
@@ -428,7 +450,6 @@ export function ImoRobotCompanion() {
 
             {/* 3D FREESTANDING ROBOT CHARACTER */}
             <div className="flex flex-col items-center justify-center relative group imo-robot-ui pointer-events-none">
-              {/* 3D ROBOT RENDER FROM THREE.JS */}
               <div className="relative flex flex-col items-center justify-center p-1 sm:p-2 animate-bounce-gentle">
                 <ThreeDImoRobot expression={expression} isTickled={isTickled} isPointing={isPointing} onRobotClick={handleRobotClick} />
               </div>
@@ -436,59 +457,91 @@ export function ImoRobotCompanion() {
         </div>
       )}
 
-      {/* 3. CIRCULAR TRIGGER BUTTON & GLASS CONTROL PILL (POSITIONED ABOVE 75px MOBILE NAVBAR DOCK) */}
+      {/* 3. MINIMALIST EXPANDABLE CONTROL ORB (HOVER / TAP EXPANDABLE) */}
       <div className="fixed bottom-[84px] right-2 sm:bottom-[84px] sm:right-4 md:bottom-6 md:right-24 z-[40] flex items-center gap-2 sm:gap-3 font-sans pointer-events-none imo-robot-ui transition-all duration-300">
         
-        {/* GLASS CONTROL PILL BAR */}
-        <div className={`transition-all duration-500 ease-in-out ${isActive ? 'opacity-100 translate-x-0 pointer-events-auto' : 'opacity-0 translate-x-10 pointer-events-none'} bg-slate-950/90 border border-emerald-400/50 rounded-full px-2.5 sm:px-3.5 py-1 sm:py-1.5 backdrop-blur-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center gap-2 sm:gap-3 text-xs text-slate-200`}>
-          
-          {/* SENSOR TOGGLE BUTTON (SMART HYBRID CAMERA + CYBER RADAR) */}
-          <button
-            type="button"
-            onClick={toggleCamera}
-            className="flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-bold hover:text-emerald-400 transition"
-            title={sensorMode !== "off" ? "Matikan Sensor" : "Aktifkan Sensor Pemindai Motion"}
-          >
-            {sensorMode === "camera" ? (
-              <Camera size={13} className="text-emerald-400 animate-pulse" />
-            ) : sensorMode === "cyber_radar" ? (
-              <Zap size={13} className="text-cyan-400 animate-bounce" />
-            ) : (
-              <CameraOff size={13} className="text-slate-400" />
-            )}
-            <span className={sensorMode === "camera" ? "text-emerald-400" : sensorMode === "cyber_radar" ? "text-cyan-400 font-mono" : "text-slate-400"}>
-              {sensorMode === "camera" ? "Sensor Cam ON" : sensorMode === "cyber_radar" ? "Radar AI ON" : "Sensor OFF"}
-            </span>
-          </button>
+        {/* MINIMALIST EXPANDABLE CONTROL PILL */}
+        <div
+          onMouseEnter={() => setIsPillExpanded(true)}
+          onMouseLeave={() => setIsPillExpanded(false)}
+          className={`pointer-events-auto transition-all duration-500 ease-out origin-right ${
+            isActive ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10 pointer-events-none'
+          }`}
+        >
+          {isPillExpanded ? (
+            /* EXPANDED FULL CONTROL BAR */
+            <div className="bg-slate-950/95 border-2 border-emerald-400/60 rounded-full px-3.5 py-1.5 backdrop-blur-2xl shadow-[0_0_25px_rgba(16,185,129,0.4)] flex items-center gap-3 text-xs text-slate-200 animate-in fade-in zoom-in-95 duration-300">
+              
+              {/* SENSOR TOGGLE BUTTON */}
+              <button
+                type="button"
+                onClick={toggleCamera}
+                className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold hover:text-emerald-400 transition"
+                title={sensorMode !== "off" ? "Matikan Sensor" : "Aktifkan Sensor Pemindai Motion"}
+              >
+                {sensorMode === "camera" ? (
+                  <Camera size={13} className="text-emerald-400 animate-pulse" />
+                ) : sensorMode === "cyber_radar" ? (
+                  <Zap size={13} className="text-cyan-400 animate-bounce" />
+                ) : (
+                  <CameraOff size={13} className="text-slate-400" />
+                )}
+                <span className={sensorMode === "camera" ? "text-emerald-400" : sensorMode === "cyber_radar" ? "text-cyan-400 font-mono" : "text-slate-400"}>
+                  {sensorMode === "camera" ? "Sensor Cam ON" : sensorMode === "cyber_radar" ? "Radar AI ON" : "Sensor OFF"}
+                </span>
+              </button>
 
-          <div className="w-px h-3.5 sm:h-4 bg-slate-800" />
+              <div className="w-px h-3.5 sm:h-4 bg-slate-800" />
 
-          {/* SOUND TOGGLE BUTTON */}
-          <button
-            type="button"
-            onClick={() => {
-              setIsSoundOn(!isSoundOn);
-              playRobotBeep("click");
-            }}
-            className="text-slate-400 hover:text-emerald-400 transition"
-            title={isSoundOn ? "Matikan Suara" : "Aktifkan Suara"}
-          >
-            {isSoundOn ? <Volume2 size={13} className="text-emerald-400" /> : <VolumeX size={13} />}
-          </button>
+              {/* SOUND TOGGLE BUTTON */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSoundOn(!isSoundOn);
+                  playRobotBeep("click");
+                }}
+                className="text-slate-400 hover:text-emerald-400 transition"
+                title={isSoundOn ? "Matikan Suara" : "Aktifkan Suara"}
+              >
+                {isSoundOn ? <Volume2 size={13} className="text-emerald-400" /> : <VolumeX size={13} />}
+              </button>
 
-          <div className="w-px h-3.5 sm:h-4 bg-slate-800" />
+              <div className="w-px h-3.5 sm:h-4 bg-slate-800" />
 
-          {/* CHAT TOGGLE BUTTON */}
-          <button
-            type="button"
-            onClick={() => {
-              setShowChatMode(!showChatMode);
-              playRobotBeep("click");
-            }}
-            className="text-slate-400 hover:text-emerald-400 transition flex items-center gap-1 text-[10px] sm:text-[11px] font-bold"
-          >
-            <MessageSquare size={12} className="text-emerald-400" /> Chat
-          </button>
+              {/* CHAT TOGGLE BUTTON */}
+              <button
+                type="button"
+                onClick={() => {
+                  setShowChatMode(!showChatMode);
+                  playRobotBeep("click");
+                }}
+                className="text-slate-400 hover:text-emerald-400 transition flex items-center gap-1 text-[10px] sm:text-[11px] font-bold"
+              >
+                <MessageSquare size={12} className="text-emerald-400" /> Chat
+              </button>
+            </div>
+          ) : (
+            /* COLLAPSED MINIMALIST ACTIVE INDICATOR ORB */
+            <button
+              type="button"
+              onClick={() => setIsPillExpanded(true)}
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-slate-950/90 border-2 border-emerald-400/60 shadow-[0_0_20px_rgba(16,185,129,0.4)] backdrop-blur-xl flex items-center justify-center relative hover:scale-110 active:scale-95 transition-all duration-300 group/orb"
+              title="Arahkan kursor atau tap untuk membuka kontrol IMO AI"
+            >
+              {/* Active pulsing green dot */}
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping absolute top-0.5 right-0.5 pointer-events-none" />
+              <span className="w-2 h-2 rounded-full bg-emerald-400 absolute top-0.5 right-0.5 pointer-events-none" />
+              
+              {/* Icon in center */}
+              {sensorMode === "cyber_radar" ? (
+                <Zap size={16} className="text-cyan-400 animate-bounce" />
+              ) : sensorMode === "camera" ? (
+                <Camera size={16} className="text-emerald-400 animate-pulse" />
+              ) : (
+                <Bot size={18} className="text-emerald-400 group-hover/orb:rotate-12 transition-transform" />
+              )}
+            </button>
+          )}
         </div>
 
         {/* CIRCULAR ROBOT AVATAR TRIGGER BUTTON */}
