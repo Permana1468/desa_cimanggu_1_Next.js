@@ -47,36 +47,6 @@ const providers: any[] = [
         });
       }
 
-      // Auto-provision & guarantee valid login for Ketua Karang Taruna
-      const isKatarIdentifier = ["karangtaruna@cimanggu1.desa.id", "katar", "karangtaruna"].includes(credentials.identifier.toLowerCase());
-      const isKatarPassword = ["katar123", "123456", "admin", "katar"].includes(credentials.password);
-
-      if (isKatarIdentifier && isKatarPassword) {
-        const hash = await bcrypt.hash(credentials.password, 10);
-        const systemTenant = await prisma.tenant.findFirst();
-        if (!user) {
-          user = await prisma.user.create({
-            data: {
-              email: "karangtaruna@cimanggu1.desa.id",
-              fullName: "Ketua Karang Taruna",
-              passwordHash: hash,
-              role: "KARANG_TARUNA",
-              isActive: true,
-              tenantId: systemTenant?.id || "default"
-            },
-            include: { tenant: true }
-          });
-        } else {
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { passwordHash: hash, isActive: true, role: "KARANG_TARUNA" }
-          });
-          user.passwordHash = hash;
-          user.isActive = true;
-          user.role = "KARANG_TARUNA";
-        }
-      }
-
       if (!user || !user.passwordHash) {
         // Log failed attempt - User not found
         const systemTenant = await prisma.tenant.findFirst();

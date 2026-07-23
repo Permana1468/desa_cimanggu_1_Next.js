@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   title: "Desa Cimanggu I",
   description: "Platform digital terpadu untuk mengelola, memonitor, dan menganalisis data pemberdayaan masyarakat.",
   icons: {
-    icon: "/images/logo-bogor.png",
-    apple: "/images/logo-bogor.png",
+    icon: "/images/LOGO-DESA 2026.png",
+    apple: "/images/LOGO-DESA 2026.png",
   }
 };
 
