@@ -21,37 +21,74 @@ function hitungUsia(tanggalLahir: string | Date): string {
   return `${Math.floor(bulan / 12)} Tahun ${bulan % 12} Bln`;
 }
 
-// Inline Vector Barcode Generator
+// Authentic Code 39 Barcode Generator Component
 function BarcodeSVG({ value }: { value: string }) {
   const cleanVal = (value || "3201160000000000").replace(/\D/g, "").padEnd(16, "0");
-  const bars: { width: number; space: number }[] = [];
-  for (let i = 0; i < cleanVal.length; i++) {
-    const digit = parseInt(cleanVal[i], 10) || 1;
-    bars.push({ width: (digit % 3) + 1.2, space: ((digit * 7) % 3) + 1.2 });
-  }
+  
+  const CODE39_PATTERNS: { [key: string]: string } = {
+    '0': '1010011010',
+    '1': '1101001010',
+    '2': '1011001010',
+    '3': '1101100100',
+    '4': '1010011010',
+    '5': '1101001100',
+    '6': '1011001100',
+    '7': '1010010110',
+    '8': '1101001010',
+    '9': '1011001010',
+  };
 
-  let xCursor = 12;
+  const startGuard = '1001011010';
+  const endGuard = '1001011010';
+
+  let bitPattern = startGuard;
+  for (let i = 0; i < cleanVal.length; i++) {
+    const char = cleanVal[i];
+    bitPattern += (CODE39_PATTERNS[char] || CODE39_PATTERNS['0']) + '0';
+  }
+  bitPattern += endGuard;
+
+  const barWidth = 1.6;
+  const height = 36;
+  const totalWidth = bitPattern.length * barWidth + 24;
+
   return (
-    <svg viewBox="0 0 240 54" className="w-full h-11">
-      <rect x="4" y="2" width="2" height="42" fill="#0f172a" />
-      <rect x="7" y="2" width="1" height="42" fill="#0f172a" />
-      {bars.map((bar, idx) => {
-        const x = xCursor;
-        xCursor += bar.width + bar.space;
-        return (
-          <rect key={idx} x={x} y="2" width={bar.width} height="36" fill="#0f172a" />
-        );
-      })}
-      <rect x={xCursor + 2} y="2" width="1" height="42" fill="#0f172a" />
-      <rect x={xCursor + 5} y="2" width="2" height="42" fill="#0f172a" />
-      <text x="120" y="49" textAnchor="middle" fontSize="9" fontFamily="monospace" fontWeight="bold" fill="#334155">
-        *{cleanVal}*
-      </text>
-    </svg>
+    <div className="flex flex-col items-center justify-center w-full">
+      <svg viewBox={`0 0 ${totalWidth} 52`} className="h-11 max-w-full">
+        {bitPattern.split('').map((bit, idx) => {
+          if (bit === '1') {
+            return (
+              <rect
+                key={idx}
+                x={12 + idx * barWidth}
+                y="2"
+                width={barWidth - 0.2}
+                height={height}
+                fill="#0f172a"
+              />
+            );
+          }
+          return null;
+        })}
+        {/* NIK text 100% centered beneath barcode */}
+        <text
+          x={totalWidth / 2}
+          y="49"
+          textAnchor="middle"
+          fontSize="9.5"
+          fontFamily="monospace"
+          fontWeight="bold"
+          fill="#1e293b"
+          letterSpacing="1"
+        >
+          *{cleanVal}*
+        </text>
+      </svg>
+    </div>
   );
 }
 
-// Inline Vector QR Code Generator
+// Inline Vector QR Code Generator Component
 function QRCodeSVG({ value }: { value: string }) {
   const size = 15;
   const grid: boolean[][] = Array(size).fill(false).map(() => Array(size).fill(false));
@@ -82,7 +119,7 @@ function QRCodeSVG({ value }: { value: string }) {
   }
 
   return (
-    <svg viewBox="0 0 60 60" className="w-14 h-14 bg-white p-1 rounded-lg border border-slate-200 shadow-sm shrink-0">
+    <svg viewBox="0 0 60 60" className="w-14 h-14 bg-white p-1 rounded-lg border border-slate-200 shadow-xs shrink-0">
       {grid.map((row, r) =>
         row.map((cell, c) => cell && (
           <rect key={`${r}-${c}`} x={c * 4} y={r * 4} width="3.6" height="3.6" fill="#0f172a" rx="0.5" />
@@ -353,7 +390,6 @@ function ModalDetailBalita({ balitaId, onClose, onOpenCetakKartu }: { balitaId: 
   const namaIbu = citizen.namaIbu || data.namaOrangTua || "-";
   const namaAyah = citizen.namaAyah || "-";
 
-  // Standard Immunization Checklist calculation
   const defaultImmunizations = [
     { code: "HB0", name: "Hepatitis B (0-7 hari)", isDone: true, date: data.tanggalLahir },
     { code: "BCG", name: "BCG & Polio 1 (1 Bulan)", isDone: records.length > 0 },
@@ -633,20 +669,27 @@ function ModalCetakKartuBalita({ balita, onClose }: { balita: any; onClose: () =
     <div className="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4 overflow-y-auto">
       <style>{`
         @media print {
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
           body * {
-            visibility: hidden;
+            visibility: hidden !important;
           }
           #printable-posyandu-card, #printable-posyandu-card * {
-            visibility: visible;
+            visibility: visible !important;
           }
           #printable-posyandu-card {
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%) scale(1.1);
+            position: fixed !important;
+            left: 50% !important;
+            top: 50% !important;
+            transform: translate(-50%, -50%) scale(1.1) !important;
             width: 420px !important;
+            margin: 0 !important;
             box-shadow: none !important;
             border: 1px solid #cbd5e1 !important;
+            background-color: white !important;
           }
         }
       `}</style>
@@ -733,9 +776,9 @@ function ModalCetakKartuBalita({ balita, onClose }: { balita: any; onClose: () =
 
               </div>
 
-              {/* BARCODE & QR CODE FOOTER */}
-              <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-3">
-                <div className="flex-1">
+              {/* BARCODE & QR CODE FOOTER - PERFECTLY CENTERED */}
+              <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between gap-3">
+                <div className="flex-1 flex justify-center items-center overflow-hidden">
                   <BarcodeSVG value={balita.nik || "3201160000000000"} />
                 </div>
                 <QRCodeSVG value={`https://cimanggu1.desa.id/verify-posyandu?nik=${balita.nik || ""}`} />
@@ -858,7 +901,7 @@ function ModalTambahBalita({ onClose, onRefresh, session, selectedPosyandu }: an
             <h3 className="text-lg font-bold text-slate-800">Tambah Data Balita</h3>
             <p className="text-xs text-slate-500 mt-0.5">Isi data lengkap balita atau cari dari Data Kependudukan</p>
           </div>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all text-xl">&times;</button>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all text-xl cursor-pointer">&times;</button>
         </div>
 
         <div className="mb-5 bg-teal-50/50 p-3.5 rounded-xl border border-teal-100">
