@@ -1,7 +1,9 @@
 "use client";
 import React, { useEffect, useRef } from 'react';
+import { useLandingTheme } from './LandingThemeProvider';
 
 export const TechNightCanvas: React.FC = () => {
+    const { isNightMode } = useLandingTheme();
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     useEffect(() => {
@@ -197,7 +199,9 @@ export const TechNightCanvas: React.FC = () => {
             window.removeEventListener('mousemove', handleMouseMove);
             cancelAnimationFrame(animationFrameId);
         };
-    }, []);
+    }, [isNightMode]);
+
+    if (!isNightMode) return null;
 
     return (
         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">

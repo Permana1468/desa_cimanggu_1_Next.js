@@ -13,6 +13,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { registerWarga } from "@/actions/auth";
 import { TechNightCanvas } from "@/components/landing/TechNightCanvas";
+import { LandingThemeProvider } from "@/components/landing/LandingThemeProvider";
 
 export default function LoginPage() {
     const [isLogin, setIsLogin] = useState(true);
@@ -148,8 +149,15 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#050914] text-white flex items-center justify-center p-4 md:p-6 font-sans relative overflow-hidden selection:bg-cyan-500 selection:text-black">
-            {/* Real-time Dynamic Ambient Cyber Canvas Background */}
+        <LandingThemeProvider>
+            <div className="min-h-screen bg-[#050914] text-white flex items-center justify-center p-4 md:p-6 font-sans relative overflow-hidden selection:bg-cyan-500 selection:text-black">
+                {/* Back to Home Button */}
+                <Link href="/" className="absolute top-6 left-6 z-50 flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors bg-slate-900/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 hover:border-cyan-400/50 shadow-lg group">
+                    <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Kembali</span>
+                </Link>
+
+                {/* Real-time Dynamic Ambient Cyber Canvas Background */}
             <TechNightCanvas />
 
             {/* MAIN CYBER GLASS CONTAINER */}
@@ -478,6 +486,7 @@ export default function LoginPage() {
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+        </LandingThemeProvider>
     );
 }

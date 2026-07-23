@@ -26,6 +26,7 @@ import {
 } from '@/actions/landing';
 
 // Import Modular Components
+import { LandingThemeProvider } from '../components/landing/LandingThemeProvider';
 import { TechNightCanvas } from '../components/landing/TechNightCanvas';
 import { LandingNavbar } from '../components/landing/LandingNavbar';
 import { LandingHero } from '../components/landing/LandingHero';
@@ -33,8 +34,13 @@ import { LandingStats } from '../components/landing/LandingStats';
 import { LandingNews } from '../components/landing/LandingNews';
 import { LandingOrganization } from '../components/landing/LandingOrganization';
 import { LandingAspiration } from '../components/landing/LandingAspiration';
+import { cookies } from 'next/headers';
 
 export default async function LandingPage() {
+    // Read Initial Theme Cookie (Server-Side)
+    const cookieStore = await cookies();
+    const initialIsNightMode = cookieStore.get('landingThemeMode')?.value === 'night';
+
     // FETCH DATA ON SERVER
     const [statsRes, newsRes, profileRes, aparaturRes, lembagaRes] = await Promise.all([
         getVillageStats(),
@@ -82,8 +88,8 @@ export default async function LandingPage() {
     };
 
     return (
-        <SmoothScroll>
-            <div className="bg-[#050914] min-h-screen text-white font-sans overflow-x-hidden relative">
+        <LandingThemeProvider initialIsNightMode={initialIsNightMode}>
+            <SmoothScroll>
                 {/* Real-time Dynamic Ambient Canvas & Particle Night Background */}
                 <TechNightCanvas />
 
@@ -359,9 +365,9 @@ export default async function LandingPage() {
                     </div>
                 </footer>
             </div>
-        </div>
-    </SmoothScroll>
-);
+            </SmoothScroll>
+        </LandingThemeProvider>
+    );
 }
 
 function FeatureCard({ icon: Icon, title, desc, color, badge }: any) {

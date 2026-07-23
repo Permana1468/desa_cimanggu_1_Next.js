@@ -2,13 +2,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronDown, ChevronRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { ChevronDown, ChevronRight, ShieldCheck, Sparkles, Sun, Moon } from 'lucide-react';
+import { useLandingTheme } from './LandingThemeProvider';
 
 interface LandingNavbarProps {
     siteData: any;
 }
 
 export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
+    const { isNightMode, toggleNightMode } = useLandingTheme();
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -271,10 +273,20 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                     })}
                 </nav>
 
-                {/* Login Button */}
+                {/* Right Action Area */}
                 <div className="hidden lg:flex items-center gap-4">
+                    {/* Theme Toggle Button */}
+                    <button
+                        onClick={toggleNightMode}
+                        className="p-2.5 rounded-full border border-cyan-500/30 text-yellow-400 bg-slate-900/60 backdrop-blur-md shadow-[0_0_15px_rgba(250,204,21,0.2)] hover:scale-110 transition-transform flex items-center justify-center relative overflow-hidden group"
+                        title={isNightMode ? "Ganti ke Mode Normal" : "Ganti ke Mode Malam"}
+                    >
+                        <div className="absolute inset-0 bg-yellow-400/10 group-hover:bg-yellow-400/20 transition-colors" />
+                        {isNightMode ? <Sun size={18} className="animate-spin-slow" /> : <Moon size={18} className="text-slate-200" />}
+                    </button>
+
                     <Link 
-                        href="/login" 
+                        href="/login"  
                         className="relative group bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-300 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] flex items-center gap-2"
                     >
                         <ShieldCheck size={16} />
@@ -371,6 +383,22 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                             <a key={idx} href={`#${menu.id}`} {...commonProps}>{menu.name}</a>
                         );
                     })}
+                    
+                    {/* Mobile Theme Toggle */}
+                    <button
+                        onClick={() => {
+                            toggleNightMode();
+                            setIsMobileMenuOpen(false);
+                        }}
+                        className="bg-slate-900/40 border border-cyan-500/30 text-slate-200 text-center py-3.5 rounded-2xl font-bold uppercase text-xs tracking-wider mt-2 flex items-center justify-center gap-2 transition-all active:scale-95"
+                    >
+                        {isNightMode ? (
+                            <><Sun size={18} className="text-yellow-400" /> Mode Terang</>
+                        ) : (
+                            <><Moon size={18} className="text-slate-300" /> Mode Malam</>
+                        )}
+                    </button>
+
                     <Link
                         href="/login"
                         onClick={() => setIsMobileMenuOpen(false)}

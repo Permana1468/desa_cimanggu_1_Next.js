@@ -206,7 +206,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
 
       {/* SIDEBAR CONTAINER */}
       <aside 
-        className={`transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col z-[70] shrink-0 border-r relative overflow-hidden
+        className={`transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col z-[70] shrink-0 border-r overflow-hidden
           fixed inset-y-0 left-0 h-full w-72 ${isOpen ? 'translate-x-0 shadow-[10px_0_40px_rgba(0,0,0,0.15)]' : '-translate-x-full'}
           lg:relative lg:translate-x-0 lg:h-full ${isCollapsed && !isOpen ? 'lg:w-20' : 'lg:w-72'}
           ${isHackerTheme ? 'bg-transparent border-cyan-500/30 text-cyan-50 shadow-[0_0_30px_rgba(6,182,212,0.1)]' : 'bg-white border-slate-200'}

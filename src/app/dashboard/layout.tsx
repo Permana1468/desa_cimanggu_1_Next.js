@@ -41,7 +41,7 @@ export default async function VillageAdminLayout({
       {isHackerTheme && <KaurPerencanaanThreeBackground />}
       
       {/* Village Sidebar */}
-      <Suspense fallback={<div className="w-64 h-screen bg-slate-900/90 shrink-0" />}>
+      <Suspense fallback={<div className="hidden lg:block w-72 h-screen shrink-0 border-r border-slate-200 bg-white" />}>
         <VillageSidebar session={session} isHackerTheme={isHackerTheme} />
       </Suspense>
 
