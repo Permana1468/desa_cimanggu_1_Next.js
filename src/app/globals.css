@@ -326,3 +326,12 @@ html.lenis, html.lenis body {
   pointer-events: none;
   z-index: 10;
 }
+
+/* ── SMOOTH SCROLL UTILITIES FOR MOBILE ────────────────── */
+.scrollbar-none, .no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar, .no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

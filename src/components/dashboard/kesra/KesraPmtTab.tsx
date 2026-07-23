@@ -7,7 +7,7 @@ import { getPosyanduAnggarans, addPosyanduAnggaran, deletePosyanduAnggaran } fro
 const JENIS_DANA = ["OPERASIONAL", "PMT", "INSENTIF_KADER", "LAINNYA"];
 const TIPE = ["PEMASUKAN", "PENGELUARAN"];
 
-export function KesraPmtTab({ session }: any) {
+export function KesraPmtTab({ session, selectedPosyandu }: any) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any[]>([]);
   const [search, setSearch] = useState("");

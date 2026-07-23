@@ -7,7 +7,7 @@ import { getPosyanduAbsensi, addPosyanduAbsensi, deletePosyanduAbsensi } from "@
 const PERAN = ["KADER_POSYANDU", "BIDAN", "PETUGAS_PUSKESMAS", "LAINNYA"];
 const STATUS = ["HADIR", "IZIN", "SAKIT", "ALPA"];
 
-export function PosyanduJadwalAbsensiTab({ session }: any) {
+export function PosyanduJadwalAbsensiTab({ session, selectedPosyandu }: any) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any[]>([]);
   const [search, setSearch] = useState("");

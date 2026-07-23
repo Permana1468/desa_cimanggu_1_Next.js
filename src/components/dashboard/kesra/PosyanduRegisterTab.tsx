@@ -14,7 +14,7 @@ const FORMATS = [
   { id: 7, name: "Format 7", desc: "Data Pengunjung & Petugas" }
 ];
 
-export function PosyanduRegisterTab({ session }: any) {
+export function PosyanduRegisterTab({ session, selectedPosyandu }: any) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any[]>([]);
   const [activeFormat, setActiveFormat] = useState(1);

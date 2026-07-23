@@ -4,8 +4,9 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { getRWsForPosyandu, getPosyanduUnit, detectUserPosyanduUnit } from "@/lib/posyandu";
 
-async function verifyPosyanduAccess() {
+async function verifyPosyanduAccess(posyanduFilter?: string) {
     const session = await getServerSession(authOptions);
     if (!session?.user) throw new Error("Unauthorized");
     
@@ -13,32 +14,76 @@ async function verifyPosyanduAccess() {
     const rwString = (session.user as any).rw;
     const tenantId = (session.user as any).tenantId;
 
-    if (role !== "POSYANDU" && role !== "RW" && role !== "ADMIN_DESA" && role !== "KADES" && role !== "ADMIN_MASTER") {
-        throw new Error("Akses ditolak. Fitur ini khusus untuk Kader Posyandu.");
+    if (!["POSYANDU", "RW", "ADMIN_DESA", "KADES", "SEKDES", "KASI_KESEJAHTERAAN", "TP_PKK", "ADMIN_MASTER"].includes(role)) {
+        throw new Error("Akses ditolak. Fitur ini khusus untuk Posyandu dan Administrator.");
     }
 
-    // Support for multiple RWs separated by comma e.g. "001,002"
-    const rws = rwString ? rwString.split(",").map((s: string) => s.trim()).filter((s: string) => s) : [];
+    let rws: string[] = [];
+
+    // If logged in as POSYANDU role, strictly force their dedicated unit's RW scope
+    if (role === "POSYANDU") {
+        const userUnit = detectUserPosyanduUnit(session.user);
+        if (userUnit) {
+            rws = userUnit.rws;
+        } else if (rwString && rwString.trim() !== "") {
+            rws = rwString.split(",").map((s: string) => s.trim()).filter(Boolean);
+        }
+    } else {
+        // For admin / Kasi Kesra / external roles
+        if (posyanduFilter && posyanduFilter !== "ALL") {
+            rws = getRWsForPosyandu(posyanduFilter);
+        } else if (rwString && rwString.trim() !== "") {
+            rws = rwString.split(",").map((s: string) => s.trim()).filter(Boolean);
+        }
+    }
 
     return { tenantId, rws, user: session.user, role };
+}
+
+// =======================
+// INTEGRASI DATA KEPENDUDUKAN
+// =======================
+
+export async function searchWargaForPosyandu(query: string, posyanduFilter?: string) {
+    const { tenantId, rws } = await verifyPosyanduAccess(posyanduFilter);
+
+    if (!query || query.trim().length === 0) return [];
+
+    const cleanQuery = query.trim();
+    const whereCondition: any = {
+        tenantId,
+        OR: [
+            { namaLengkap: { contains: cleanQuery, mode: 'insensitive' } },
+            { nik: { contains: cleanQuery } }
+        ]
+    };
+
+    // Filter by RW if scoped to a specific posyandu
+    if (rws.length === 1) {
+        whereCondition.rw = rws[0];
+    } else if (rws.length > 1) {
+        whereCondition.rw = { in: rws };
+    }
+
+    return await prisma.dataKependudukan.findMany({
+        where: whereCondition,
+        take: 20,
+        orderBy: { namaLengkap: 'asc' }
+    });
 }
 
 // =======================
 // POSYANDU BALITA
 // =======================
 
-export async function getPosyanduBalita() {
-    const { tenantId, rws, role } = await verifyPosyanduAccess();
-
-    if (rws.length === 0 && role === "POSYANDU") return [];
+export async function getPosyanduBalita(posyanduFilter?: string) {
+    const { tenantId, rws } = await verifyPosyanduAccess(posyanduFilter);
 
     const whereClause: any = { tenantId };
-    if (role === "POSYANDU" || role === "RW") {
-        if (rws.length === 1) {
-            whereClause.rw = rws[0];
-        } else if (rws.length > 1) {
-            whereClause.rw = { in: rws };
-        }
+    if (rws.length === 1) {
+        whereClause.rw = rws[0];
+    } else if (rws.length > 1) {
+        whereClause.rw = { in: rws };
     }
 
     return await prisma.posyanduBalita.findMany({
@@ -48,12 +93,19 @@ export async function getPosyanduBalita() {
 }
 
 export async function addPosyanduBalita(data: any) {
-    const { tenantId } = await verifyPosyanduAccess();
+    const { tenantId } = await verifyPosyanduAccess(data.posyanduFilter);
 
     const balita = await prisma.posyanduBalita.create({
         data: {
-            ...data,
             nik: data.nik || null,
+            namaLengkap: data.namaLengkap,
+            tanggalLahir: new Date(data.tanggalLahir),
+            jenisKelamin: data.jenisKelamin,
+            namaOrangTua: data.namaOrangTua,
+            rt: data.rt,
+            rw: data.rw,
+            posyanduName: data.posyanduName || "Posyandu",
+            statusStunting: Boolean(data.statusStunting),
             tenantId
         }
     });
@@ -89,18 +141,14 @@ export async function deletePosyanduBalita(id: string) {
 // POSYANDU IBU HAMIL
 // =======================
 
-export async function getPosyanduIbuHamil() {
-    const { tenantId, rws, role } = await verifyPosyanduAccess();
-
-    if (rws.length === 0 && role === "POSYANDU") return [];
+export async function getPosyanduIbuHamil(posyanduFilter?: string) {
+    const { tenantId, rws } = await verifyPosyanduAccess(posyanduFilter);
 
     const whereClause: any = { tenantId };
-    if (role === "POSYANDU" || role === "RW") {
-        if (rws.length === 1) {
-            whereClause.rw = rws[0];
-        } else if (rws.length > 1) {
-            whereClause.rw = { in: rws };
-        }
+    if (rws.length === 1) {
+        whereClause.rw = rws[0];
+    } else if (rws.length > 1) {
+        whereClause.rw = { in: rws };
     }
 
     return await prisma.posyanduIbuHamil.findMany({
@@ -110,17 +158,25 @@ export async function getPosyanduIbuHamil() {
 }
 
 export async function addPosyanduIbuHamil(data: any) {
-    const { tenantId } = await verifyPosyanduAccess();
+    const { tenantId } = await verifyPosyanduAccess(data.posyanduFilter);
 
-    const ibu = await prisma.posyanduIbuHamil.create({
+    const ibuHamil = await prisma.posyanduIbuHamil.create({
         data: {
-            ...data,
+            nik: data.nik,
+            namaLengkap: data.namaLengkap,
+            usiaKandungan: parseInt(data.usiaKandungan),
+            beratBadan: data.beratBadan ? parseFloat(data.beratBadan) : null,
+            noHp: data.noHp || null,
+            rt: data.rt,
+            rw: data.rw,
+            risikoTinggi: Boolean(data.risikoTinggi),
+            posyanduName: data.posyanduName || "Posyandu",
             tenantId
         }
     });
 
     revalidatePath("/dashboard");
-    return { success: true, ibu };
+    return { success: true, ibuHamil };
 }
 
 export async function updatePosyanduIbuHamilStatus(id: string, risikoTinggi: boolean) {
@@ -150,18 +206,14 @@ export async function deletePosyanduIbuHamil(id: string) {
 // POSYANDU LANSIA
 // =======================
 
-export async function getPosyanduLansia() {
-    const { tenantId, rws, role } = await verifyPosyanduAccess();
-
-    if (rws.length === 0 && role === "POSYANDU") return [];
+export async function getPosyanduLansia(posyanduFilter?: string) {
+    const { tenantId, rws } = await verifyPosyanduAccess(posyanduFilter);
 
     const whereClause: any = { tenantId };
-    if (role === "POSYANDU" || role === "RW") {
-        if (rws.length === 1) {
-            whereClause.rw = rws[0];
-        } else if (rws.length > 1) {
-            whereClause.rw = { in: rws };
-        }
+    if (rws.length === 1) {
+        whereClause.rw = rws[0];
+    } else if (rws.length > 1) {
+        whereClause.rw = { in: rws };
     }
 
     return await prisma.posyanduLansia.findMany({
@@ -171,11 +223,19 @@ export async function getPosyanduLansia() {
 }
 
 export async function addPosyanduLansia(data: any) {
-    const { tenantId } = await verifyPosyanduAccess();
+    const { tenantId } = await verifyPosyanduAccess(data.posyanduFilter);
 
     const lansia = await prisma.posyanduLansia.create({
         data: {
-            ...data,
+            nik: data.nik,
+            namaLengkap: data.namaLengkap,
+            jenisKelamin: data.jenisKelamin || null,
+            tanggalLahir: data.tanggalLahir ? new Date(data.tanggalLahir) : null,
+            usia: parseInt(data.usia) || 60,
+            rt: data.rt,
+            rw: data.rw,
+            memilikiPenyakitBawaan: Boolean(data.memilikiPenyakitBawaan),
+            posyanduName: data.posyanduName || "Posyandu",
             tenantId
         }
     });
@@ -199,16 +259,14 @@ export async function deletePosyanduLansia(id: string) {
 // POSYANDU DASHBOARD
 // =======================
 
-export async function getPosyanduDashboardStats() {
-    const { tenantId, rws, role } = await verifyPosyanduAccess();
+export async function getPosyanduDashboardStats(posyanduFilter?: string) {
+    const { tenantId, rws } = await verifyPosyanduAccess(posyanduFilter);
 
     const whereClause: any = { tenantId };
-    if (role === "POSYANDU" || role === "RW") {
-        if (rws.length === 1) {
-            whereClause.rw = rws[0];
-        } else if (rws.length > 1) {
-            whereClause.rw = { in: rws };
-        }
+    if (rws.length === 1) {
+        whereClause.rw = rws[0];
+    } else if (rws.length > 1) {
+        whereClause.rw = { in: rws };
     }
 
     const [
@@ -241,11 +299,9 @@ export async function getPosyanduDashboardStats() {
                 lansia: true
             }
         }),
-        // Status gizi counts from records
         prisma.posyanduRecord.count({ where: { tenantId, statusGizi: "Normal" } }),
         prisma.posyanduRecord.count({ where: { tenantId, statusGizi: "Gizi Kurang" } }),
         prisma.posyanduRecord.count({ where: { tenantId, statusGizi: "Gizi Lebih" } }),
-        // Jadwal & Kehadiran stats
         prisma.posyanduJadwal.count({ where: { tenantId } }),
         prisma.posyanduJadwal.findMany({
             where: { tenantId },
@@ -261,7 +317,6 @@ export async function getPosyanduDashboardStats() {
         prisma.posyanduRecord.count({ where: { tenantId, lansiaId: { not: null } } })
     ]);
 
-    // Simple chart data from records
     const recordsThisYear = await prisma.posyanduRecord.findMany({
         where: {
             tenantId,
@@ -319,16 +374,14 @@ export async function getPosyanduDashboardStats() {
     };
 }
 
-export async function exportPosyanduReport() {
-    const { tenantId, rws, role } = await verifyPosyanduAccess();
+export async function exportPosyanduReport(posyanduFilter?: string) {
+    const { tenantId, rws } = await verifyPosyanduAccess(posyanduFilter);
 
     const whereClause: any = { tenantId };
-    if (role === "POSYANDU" || role === "RW") {
-        if (rws.length === 1) {
-            whereClause.rw = rws[0];
-        } else if (rws.length > 1) {
-            whereClause.rw = { in: rws };
-        }
+    if (rws.length === 1) {
+        whereClause.rw = rws[0];
+    } else if (rws.length > 1) {
+        whereClause.rw = { in: rws };
     }
 
     const balitas = await prisma.posyanduBalita.findMany({
@@ -345,8 +398,6 @@ export async function exportPosyanduReport() {
     const header = ["Nama Balita", "NIK", "Umur Bulan", "Nama Ortu", "RT", "RW", "Status Stunting", "BB Terakhir", "TB Terakhir", "Tgl Kunjungan Terakhir"];
     const rows = balitas.map(b => {
         const r = b.records[0];
-        
-        // Calculate age in months
         const birthDate = new Date(b.tanggalLahir);
         const today = new Date();
         const diffMonths = (today.getFullYear() - birthDate.getFullYear()) * 12 + (today.getMonth() - birthDate.getMonth());
@@ -372,8 +423,8 @@ export async function exportPosyanduReport() {
 // POSYANDU RECORDS (LAYANAN KESEHATAN)
 // =======================
 
-export async function getPosyanduRecords(kategori: "BALITA" | "IBU_HAMIL" | "LANSIA") {
-    const { tenantId } = await verifyPosyanduAccess();
+export async function getPosyanduRecords(kategori: "BALITA" | "IBU_HAMIL" | "LANSIA", posyanduFilter?: string) {
+    const { tenantId } = await verifyPosyanduAccess(posyanduFilter);
     
     const whereClause: any = { tenantId };
     if (kategori === "BALITA") {
@@ -424,8 +475,8 @@ export async function deletePosyanduRecord(id: string) {
 // POSYANDU JADWAL
 // =======================
 
-export async function getPosyanduJadwals() {
-    const { tenantId } = await verifyPosyanduAccess();
+export async function getPosyanduJadwals(posyanduFilter?: string) {
+    const { tenantId } = await verifyPosyanduAccess(posyanduFilter);
 
     return await prisma.posyanduJadwal.findMany({
         where: { tenantId },
@@ -479,8 +530,8 @@ export async function deletePosyanduJadwal(id: string) {
 // POSYANDU KEHADIRAN
 // =======================
 
-export async function getPosyanduKehadirans() {
-    const { tenantId } = await verifyPosyanduAccess();
+export async function getPosyanduKehadirans(posyanduFilter?: string) {
+    const { tenantId } = await verifyPosyanduAccess(posyanduFilter);
 
     return await prisma.posyanduKehadiran.findMany({
         where: { tenantId },

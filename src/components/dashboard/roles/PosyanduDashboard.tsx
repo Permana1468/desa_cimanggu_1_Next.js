@@ -17,11 +17,12 @@ import { PosyanduRegisterTab } from "../kesra/PosyanduRegisterTab";
 import { PosyanduJadwalAbsensiTab } from "../kesra/PosyanduJadwalAbsensiTab";
 import { PosyanduInventarisTab } from "../kesra/PosyanduInventarisTab";
 import { KesraPmtTab } from "../kesra/KesraPmtTab";
+import { POSYANDU_UNITS, getPosyanduUnit, detectUserPosyanduUnit } from "@/lib/posyandu";
 import {
   Activity, AlertTriangle, Baby, Calendar, HeartPulse, Plus,
   FileText, Users, Stethoscope, ClipboardList, CheckCircle2,
   TrendingUp, TrendingDown, ArrowRight, Clock, MapPin, ShieldAlert,
-  BarChart3, Sparkles
+  BarChart3, Sparkles, Filter, ChevronDown, Download, Lock
 } from "lucide-react";
 import { getPosyanduDashboardStats, exportPosyanduReport } from "@/actions/posyandu";
 import {
@@ -30,12 +31,12 @@ import {
 } from "recharts";
 
 const CHART_COLORS = {
-  teal:   "#0d9488",
-  pink:   "#ec4899",
+  teal: "#0d9488",
+  pink: "#ec4899",
   indigo: "#6366f1",
-  amber:  "#f59e0b",
-  rose:   "#f43f5e",
-  slate:  "#94a3b8",
+  amber: "#f59e0b",
+  rose: "#f43f5e",
+  slate: "#94a3b8",
 };
 
 export function PosyanduDashboard({ session }: any) {
@@ -50,6 +51,14 @@ function PosyanduDashboardContent({ session }: any) {
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("tab") || "overview";
 
+  // Detect user's assigned Posyandu unit (e.g. Mawar I)
+  const userUnit = detectUserPosyanduUnit(session?.user);
+  const isLockedToUnit = !!userUnit;
+
+  const [selectedPosyandu, setSelectedPosyandu] = useState<string>(() => {
+    if (userUnit) return userUnit.id;
+    return "mawar1";
+  });
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
@@ -57,7 +66,7 @@ function PosyanduDashboardContent({ session }: any) {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const data = await getPosyanduDashboardStats();
+      const data = await getPosyanduDashboardStats(selectedPosyandu);
       setStats(data);
     } catch (error) {
       console.error("Failed to fetch posyandu stats", error);
@@ -68,18 +77,17 @@ function PosyanduDashboardContent({ session }: any) {
 
   useEffect(() => {
     if (activeTab === "overview") fetchStats();
-  }, [activeTab]);
-
+  }, [activeTab, selectedPosyandu]);
 
   const handleExport = async () => {
     try {
       setExporting(true);
-      const csvData = await exportPosyanduReport();
+      const csvData = await exportPosyanduReport(selectedPosyandu);
       const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.setAttribute("href", url);
-      link.setAttribute("download", `Laporan_Posyandu_${new Date().toISOString().split("T")[0]}.csv`);
+      link.setAttribute("download", `Laporan_${selectedPosyandu}_${new Date().toISOString().split("T")[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -90,10 +98,9 @@ function PosyanduDashboardContent({ session }: any) {
     }
   };
 
+  const currentUnitObj = getPosyanduUnit(selectedPosyandu);
+
   const totalSasaran = (stats?.totalBalita || 0) + (stats?.totalIbuHamil || 0) + (stats?.totalLansia || 0);
-  const stuntingRate = stats?.totalBalita
-    ? ((stats.stuntingBalita / stats.totalBalita) * 100).toFixed(1)
-    : "0";
 
   // Dynamic statusGiziData calculations
   const normalGizi = stats?.giziStats?.normal || 0;
@@ -114,145 +121,183 @@ function PosyanduDashboardContent({ session }: any) {
     { name: "Gizi Lebih", value: 0, color: CHART_COLORS.indigo },
   ];
 
-  // Kehadiran tren
-  const monthLabels = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
-  const currentYear = new Date().getFullYear();
-  const attendanceChartMap: Record<string, { name: string; balita: number; ibuHamil: number; lansia: number }> = {};
-  monthLabels.forEach(m => {
-    attendanceChartMap[m] = { name: m, balita: 0, ibuHamil: 0, lansia: 0 };
-  });
-
-  if (stats?.kehadiranList) {
-    stats.kehadiranList.forEach((k: any) => {
-      const date = new Date(k.tanggal);
-      if (date.getFullYear() === currentYear && k.hadir) {
-        const mLabel = monthLabels[date.getMonth()];
-        if (k.kategori === "Balita") {
-          attendanceChartMap[mLabel].balita += 1;
-        } else if (k.kategori === "Ibu Hamil") {
-          attendanceChartMap[mLabel].ibuHamil += 1;
-        } else if (k.kategori === "Lansia") {
-          attendanceChartMap[mLabel].lansia += 1;
-        }
-      }
-    });
-  }
-  const dynamicKehadiranChart = monthLabels.map(m => attendanceChartMap[m]).slice(-6); // Last 6 months
-
   const agendaHariIni = stats?.activeJadwals || [];
-  const totalHadir = stats?.kehadiranList?.filter((k: any) => k.hadir).length || 0;
-  const totalTidakHadir = stats?.kehadiranList?.filter((k: any) => !k.hadir).length || 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 max-w-full px-1 sm:px-0 pb-20 sm:pb-10">
+      {/* DAPUR POSYANDU HEADER BAR - MOBILE ENHANCED */}
+      <div className="bg-slate-900 text-white p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] shadow-xl border border-slate-800 space-y-3.5 sm:space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-teal-400 to-emerald-500 flex items-center justify-center font-black text-slate-950 shadow-lg shadow-teal-500/20 shrink-0">
+              <HeartPulse className="w-5 h-5 sm:w-6 sm:h-6" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <h2 className="text-base sm:text-xl font-black text-white truncate max-w-full">
+                  {currentUnitObj ? `${currentUnitObj.name}` : "Rekapan Seluruh Dapur Posyandu"}
+                </h2>
+                {currentUnitObj ? (
+                  <span className="bg-teal-500/20 text-teal-300 border border-teal-500/30 text-[10px] sm:text-xs px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full font-bold whitespace-nowrap">
+                    📌 {currentUnitObj.rtDescription}
+                  </span>
+                ) : (
+                  <span className="bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[10px] sm:text-xs px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full font-bold whitespace-nowrap">
+                    🌐 Gabungan Mawar I s/d VII
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] sm:text-xs text-slate-400 mt-1 leading-snug">
+                {isLockedToUnit ? (
+                  <span className="text-teal-300 font-semibold flex items-center gap-1.5">
+                    <Lock size={12} className="text-teal-400 shrink-0" /> Dapur Khusus Terkunci ({userUnit?.name})
+                  </span>
+                ) : (
+                  "Pilih Dapur Posyandu di bawah untuk mengelola rekapan khusus"
+                )}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto shrink-0">
+            <button
+              onClick={handleExport}
+              disabled={exporting}
+              className="w-full sm:w-auto justify-center inline-flex items-center gap-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-xl text-xs transition-all shadow-lg shadow-teal-500/20 disabled:opacity-50 cursor-pointer active:scale-95"
+            >
+              <Download size={15} />
+              <span>{exporting ? "Mengekspor..." : `Export Rekapan ${currentUnitObj ? currentUnitObj.name.replace("Posyandu ", "") : "Posyandu"}`}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Dapur Tabs Selector Bar - SMOOTH MOBILE SCROLLABLE SLIDER */}
+        {!isLockedToUnit && (
+          <div className="pt-2.5 sm:pt-3 border-t border-slate-800">
+            <div className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-1.5">
+              <Filter size={12} className="text-teal-400" /> Pilih Dapur Posyandu:
+            </div>
+            
+            {/* Mobile horizontal scroll container */}
+            <div className="flex sm:grid sm:grid-cols-4 lg:grid-cols-8 gap-2 overflow-x-auto pb-1 sm:pb-0 scroll-smooth -mx-1 px-1">
+              {POSYANDU_UNITS.map((unit) => {
+                const isActive = selectedPosyandu === unit.id;
+                return (
+                  <button
+                    key={unit.id}
+                    onClick={() => setSelectedPosyandu(unit.id)}
+                    className={`px-3 py-2 sm:py-2.5 rounded-xl text-xs font-bold text-center transition-all cursor-pointer border shrink-0 flex flex-col items-center justify-center min-w-[110px] sm:min-w-0 ${
+                      isActive
+                        ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-slate-950 border-teal-300 font-black shadow-lg shadow-teal-500/20 scale-[1.02]"
+                        : "bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-800 hover:text-white"
+                    }`}
+                  >
+                    <span className="whitespace-nowrap">{unit.name.replace("Posyandu ", "")}</span>
+                    <span className="text-[9px] font-semibold opacity-85 mt-0.5">({unit.rws.map(r => `RW ${r}`).join("&")})</span>
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() => setSelectedPosyandu("ALL")}
+                className={`px-3 py-2 sm:py-2.5 rounded-xl text-xs font-bold text-center transition-all cursor-pointer border shrink-0 flex flex-col items-center justify-center min-w-[100px] sm:min-w-0 ${
+                  selectedPosyandu === "ALL"
+                    ? "bg-blue-500 text-white border-blue-400 font-black shadow-lg shadow-blue-500/20 scale-[1.02]"
+                    : "bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-800 hover:text-white"
+                }`}
+              >
+                <span className="whitespace-nowrap">🌐 Semua</span>
+                <span className="text-[9px] font-semibold opacity-85 mt-0.5">(Gabungan)</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       <AnimatePresence mode="wait">
         <motion.div
-          key={activeTab}
-          initial={{ opacity: 0, y: 10 }}
+          key={activeTab + selectedPosyandu}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.18 }}
         >
           {activeTab === "overview" && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
 
-              {/* ---- HERO BANNER ---- */}
-              <div className="bg-gradient-to-br from-teal-600 via-teal-700 to-teal-900 rounded-[2rem] p-8 text-white shadow-2xl shadow-teal-900/30 relative overflow-hidden">
-                <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-                <div className="absolute bottom-0 left-1/3 w-48 h-48 bg-teal-400/20 rounded-full blur-2xl" />
+              {/* ---- HERO BANNER MOBILE RESPONSIVE ---- */}
+              <div className="bg-gradient-to-br from-teal-600 via-teal-700 to-teal-900 rounded-2xl sm:rounded-[2rem] p-5 sm:p-8 text-white shadow-xl shadow-teal-900/20 relative overflow-hidden">
+                <div className="absolute -top-16 -right-16 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute bottom-0 left-1/3 w-48 h-48 bg-teal-400/20 rounded-full blur-2xl pointer-events-none" />
                 <div className="relative z-10">
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                  <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6">
                     <div>
-                      <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-wider mb-4 border border-white/20 backdrop-blur-sm">
-                        <Activity size={12} className="animate-pulse" /> Dashboard Kader Aktif
+                      <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 bg-white/20 rounded-full text-[10px] font-bold uppercase tracking-wider mb-3 sm:mb-4 border border-white/20 backdrop-blur-sm">
+                        <Activity size={12} className="animate-pulse text-teal-300" />
+                        {currentUnitObj ? `${currentUnitObj.name}` : "Dapur Seluruh Posyandu"}
                       </div>
-                      <h1 className="text-3xl font-black mb-2 leading-tight">
-                        Posyandu Desa Cimanggu I
+                      <h1 className="text-2xl sm:text-3xl font-black mb-2 leading-tight">
+                        {currentUnitObj ? `Pengelolaan ${currentUnitObj.name}` : "Posyandu Desa Cimanggu I"}
                       </h1>
-                      <p className="text-teal-100/90 text-sm max-w-lg leading-relaxed">
-                        Selamat datang, <strong>{session?.user?.fullName || "Kader"}</strong>. 
-                        Pantau kondisi kesehatan balita, ibu hamil, dan lansia secara real-time dari satu dashboard terpadu.
+                      <p className="text-teal-100/90 text-xs sm:text-sm max-w-lg leading-relaxed">
+                        Selamat datang, <strong>{session?.user?.fullName || "Kader Posyandu"}</strong>.
+                        Rekapan khusus <strong>{currentUnitObj ? currentUnitObj.rtDescription : "Seluruh RW Desa Cimanggu I"}</strong> terintegrasi Data Kependudukan.
                       </p>
-                      {/* Quick stats bar */}
-                      <div className="flex flex-wrap gap-4 mt-5">
+                      
+                      {/* Quick stats pills - Grid on mobile */}
+                      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-4 mt-4 sm:mt-5">
                         {[
                           { label: "Total Sasaran", val: totalSasaran },
                           { label: "Balita Terdaftar", val: stats?.totalBalita ?? "-" },
                           { label: "Ibu Hamil", val: stats?.totalIbuHamil ?? "-" },
                           { label: "Lansia", val: stats?.totalLansia ?? "-" },
-                        ].map((s) => (
-                          <div key={s.label} className="bg-white/15 backdrop-blur-sm border border-white/20 rounded-xl px-4 py-2.5">
-                            <p className="text-[10px] text-teal-200 font-bold uppercase tracking-wider">{s.label}</p>
-                            <p className="text-xl font-black">{s.val}</p>
+                        ].map((item) => (
+                          <div key={item.label} className="bg-white/10 border border-white/15 backdrop-blur-md px-3 py-2 sm:px-3.5 sm:py-2 rounded-xl text-left">
+                            <p className="text-[9px] sm:text-[10px] text-teal-200 uppercase font-semibold truncate">{item.label}</p>
+                            <p className="text-base sm:text-lg font-black">{item.val}</p>
                           </div>
                         ))}
                       </div>
                     </div>
-                    <div className="flex flex-col gap-3">
+
+                    <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 sm:gap-3 shrink-0 pt-2 sm:pt-0">
                       <button
                         onClick={handleExport}
                         disabled={exporting}
-                        className="bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/20 text-white px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition-all disabled:opacity-50"
+                        className="bg-white hover:bg-teal-50 text-teal-900 font-bold px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md text-xs sm:text-sm disabled:opacity-50 active:scale-98 cursor-pointer"
                       >
-                        {exporting ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <FileText size={16} />}
-                        Export Laporan Format 1-7
+                        <FileText size={16} />
+                        <span>{exporting ? "Mengunduh..." : "Export Laporan CSV"}</span>
                       </button>
                       <Link
-                        href="/dashboard?tab=layanan-balita"
-                        className="bg-white text-teal-700 hover:bg-teal-50 px-5 py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-xl shadow-teal-900/20 text-center"
+                        href="/dashboard?tab=balita"
+                        className="bg-teal-500/40 hover:bg-teal-500/60 border border-white/30 text-white font-bold px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl flex items-center justify-center gap-2 transition-all text-xs sm:text-sm backdrop-blur-sm active:scale-98"
                       >
-                        <Plus size={16} /> Input Pelayanan Baru
+                        <Plus size={16} /> Input Data Balita
                       </Link>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* ---- LOADING STATE ---- */}
-              {loading && (
-                <div className="p-12 flex justify-center">
+              {loading ? (
+                <div className="bg-white p-8 sm:p-12 rounded-2xl border border-slate-100 flex items-center justify-center">
                   <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
                 </div>
-              )}
-
-              {!loading && (
+              ) : (
                 <>
-                  {/* ---- SECTION 1: KPI CARDS ---- */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {/* ---- SECTION 1: 4 MAIN METRIC CARDS (2-GRID MOBILE) ---- */}
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
                     {[
                       {
-                        label: "Total Balita", val: stats?.totalBalita ?? 0,
-                        sub: `${stats?.stuntingBalita ?? 0} stunting terdeteksi`,
-                        icon: Baby, bg: "bg-blue-50", color: "text-blue-600",
-                        trend: "up", href: "/dashboard?tab=balita"
-                      },
-                      {
-                        label: "Ibu Hamil", val: stats?.totalIbuHamil ?? 0,
-                        sub: "terdaftar aktif",
-                        icon: HeartPulse, bg: "bg-pink-50", color: "text-pink-600",
-                        trend: "up", href: "/dashboard?tab=ibuhamil"
-                      },
-                      {
-                        label: "Lansia", val: stats?.totalLansia ?? 0,
-                        sub: "dalam pemantauan",
-                        icon: Users, bg: "bg-indigo-50", color: "text-indigo-600",
-                        trend: "neutral", href: "/dashboard?tab=lansia"
-                      },
-                      {
-                        label: "Kasus Stunting", val: stats?.stuntingBalita ?? 0,
-                        sub: `${stuntingRate}% dari total balita`,
-                        icon: AlertTriangle, bg: "bg-rose-50", color: "text-rose-600",
-                        trend: "down", href: "/dashboard?tab=analisis"
-                      },
-                      {
                         label: "Layanan Balita", val: stats?.layananBalitaCount ?? 0,
-                        sub: "total layanan diberikan",
+                        sub: "total pelayanan",
                         icon: Stethoscope, bg: "bg-teal-50", color: "text-teal-600",
                         trend: "up", href: "/dashboard?tab=layanan-balita"
                       },
                       {
                         label: "Layanan Ibu Hamil", val: stats?.layananIbuHamilCount ?? 0,
-                        sub: "total layanan diberikan",
+                        sub: "total pelayanan",
                         icon: HeartPulse, bg: "bg-pink-50", color: "text-pink-600",
                         trend: "up", href: "/dashboard?tab=layanan-ibuhamil"
                       },
@@ -271,28 +316,28 @@ function PosyanduDashboardContent({ session }: any) {
                     ].map((card, i) => (
                       <motion.div
                         key={card.label}
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 15 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
+                        transition={{ delay: i * 0.04 }}
                       >
                         <Link href={card.href} className="block group">
-                          <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-teal-200 transition-all h-full">
-                            <div className="flex items-start justify-between mb-4">
-                              <div className={`w-11 h-11 ${card.bg} rounded-xl flex items-center justify-center ${card.color}`}>
-                                <card.icon size={20} />
+                          <div className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-teal-200 transition-all h-full">
+                            <div className="flex items-start justify-between mb-2 sm:mb-4">
+                              <div className={`w-9 h-9 sm:w-11 sm:h-11 ${card.bg} rounded-lg sm:rounded-xl flex items-center justify-center ${card.color} shrink-0`}>
+                                <card.icon className="w-4 h-4 sm:w-5 sm:h-5" />
                               </div>
-                              <div className={`flex items-center gap-0.5 text-xs font-bold px-2 py-0.5 rounded-full ${
+                              <div className={`flex items-center gap-0.5 text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded-full ${
                                 card.trend === "up" ? "bg-green-50 text-green-600" :
                                 card.trend === "down" ? "bg-red-50 text-red-600" :
                                 "bg-slate-50 text-slate-500"
                               }`}>
-                                {card.trend === "up" ? <TrendingUp size={11} /> : card.trend === "down" ? <TrendingDown size={11} /> : null}
+                                {card.trend === "up" ? <TrendingUp size={10} /> : card.trend === "down" ? <TrendingDown size={10} /> : null}
                               </div>
                             </div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{card.label}</p>
-                            <p className="text-2xl font-black text-slate-800">{card.val}</p>
-                            <p className="text-[10px] text-slate-400 mt-1.5 flex items-center gap-1 group-hover:text-teal-600 transition-colors">
-                              {card.sub} <ArrowRight size={9} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5 truncate">{card.label}</p>
+                            <p className="text-xl sm:text-2xl font-black text-slate-800">{card.val}</p>
+                            <p className="text-[9px] sm:text-[10px] text-slate-400 mt-1 sm:mt-1.5 flex items-center gap-1 group-hover:text-teal-600 transition-colors truncate">
+                              {card.sub} <ArrowRight size={9} className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                             </p>
                           </div>
                         </Link>
@@ -300,398 +345,167 @@ function PosyanduDashboardContent({ session }: any) {
                     ))}
                   </div>
 
-                  {/* ---- SECTION 2: CHARTS GRID ---- */}
-                  <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+                  {/* ---- SECTION 2: CHARTS GRID MOBILE OPTIMIZED ---- */}
+                  <div className="grid grid-cols-1 xl:grid-cols-5 gap-4 sm:gap-6">
 
                     {/* Bar chart pertumbuhan balita */}
-                    <div className="xl:col-span-3 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                      <div className="flex items-start justify-between mb-5">
+                    <div className="xl:col-span-3 bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
+                      <div className="flex items-start justify-between mb-4 sm:mb-5 gap-2">
                         <div>
-                          <h3 className="font-bold text-slate-800 text-base">Grafik Pertumbuhan Balita</h3>
-                          <p className="text-xs text-slate-400 mt-0.5">Rata-rata berat & tinggi badan per bulan (kg / cm)</p>
+                          <h3 className="font-bold text-slate-800 text-sm sm:text-base">Grafik Pertumbuhan Balita</h3>
+                          <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Rata-rata berat & tinggi badan per bulan</p>
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs text-teal-600 font-semibold bg-teal-50 px-3 py-1 rounded-full">
-                          <BarChart3 size={12} /> Tahun Ini
+                        <div className="flex items-center gap-1 text-[10px] sm:text-xs text-teal-600 font-semibold bg-teal-50 px-2.5 py-1 rounded-full shrink-0">
+                          <BarChart3 size={11} /> Tahun Ini
                         </div>
                       </div>
-                      <div className="h-[260px]">
+                      <div className="h-[210px] sm:h-[260px] w-full">
                         {stats?.chartData && stats.chartData.length > 0 ? (
                           <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={stats.chartData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                            <BarChart data={stats.chartData} margin={{ top: 5, right: 5, left: -28, bottom: 0 }}>
                               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#94a3b8" }} dy={8} />
-                              <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                              <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#94a3b8" }} />
+                              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#94a3b8" }} dy={6} />
+                              <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#94a3b8" }} />
+                              <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "#94a3b8" }} />
                               <Tooltip
-                                contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 25px -5px rgba(0,0,0,.1)" }}
+                                contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 25px -5px rgba(0,0,0,.1)", fontSize: "12px" }}
                                 cursor={{ fill: "#f8fafc" }}
                               />
-                              <Legend iconType="circle" wrapperStyle={{ fontSize: "11px", paddingTop: "16px" }} />
-                              <Bar yAxisId="left" dataKey="beratRataRata" name="Berat (Kg)" fill={CHART_COLORS.teal} radius={[5, 5, 0, 0]} maxBarSize={32} />
-                              <Bar yAxisId="right" dataKey="tinggiRataRata" name="Tinggi (Cm)" fill={CHART_COLORS.slate} radius={[5, 5, 0, 0]} maxBarSize={32} />
+                              <Legend iconType="circle" wrapperStyle={{ fontSize: "10px", paddingTop: "12px" }} />
+                              <Bar yAxisId="left" dataKey="beratRataRata" name="Berat (Kg)" fill={CHART_COLORS.teal} radius={[4, 4, 0, 0]} maxBarSize={24} />
+                              <Bar yAxisId="right" dataKey="tinggiRataRata" name="Tinggi (Cm)" fill={CHART_COLORS.slate} radius={[4, 4, 0, 0]} maxBarSize={24} />
                             </BarChart>
                           </ResponsiveContainer>
                         ) : (
-                          <div className="h-full flex flex-col items-center justify-center gap-3">
-                            <BarChart3 className="w-12 h-12 text-slate-200" />
-                            <p className="text-slate-400 text-sm">Data grafik belum tersedia</p>
-                            <p className="text-slate-300 text-xs">Tambahkan data layanan balita untuk melihat grafik</p>
+                          <div className="h-full flex flex-col items-center justify-center gap-2">
+                            <BarChart3 className="w-10 h-10 text-slate-200" />
+                            <p className="text-slate-400 text-xs">Data grafik belum tersedia</p>
                           </div>
                         )}
                       </div>
                     </div>
 
                     {/* Pie chart status gizi */}
-                    <div className="xl:col-span-2 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                      <div className="flex items-start justify-between mb-5">
+                    <div className="xl:col-span-2 bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
+                      <div className="flex items-start justify-between mb-3 sm:mb-5">
                         <div>
-                          <h3 className="font-bold text-slate-800 text-base">Status Gizi Balita</h3>
-                          <p className="text-xs text-slate-400 mt-0.5">Distribusi kondisi gizi saat ini</p>
+                          <h3 className="font-bold text-slate-800 text-sm sm:text-base">Status Gizi Balita</h3>
+                          <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Distribusi kondisi gizi saat ini</p>
                         </div>
-                        <Link href="/dashboard?tab=analisis" className="text-[10px] text-teal-600 font-bold hover:underline flex items-center gap-0.5">
-                          Detail <ArrowRight size={10} />
-                        </Link>
                       </div>
-                      <div className="h-[180px]">
+                      <div className="h-[180px] sm:h-[200px] flex items-center justify-center">
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
-                            <Pie data={statusGiziData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
-                              {statusGiziData.map((entry, i) => (
-                                <Cell key={i} fill={entry.color} />
+                            <Pie
+                              data={statusGiziData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={48}
+                              outerRadius={72}
+                              paddingAngle={4}
+                              dataKey="value"
+                            >
+                              {statusGiziData.map((entry) => (
+                                <Cell key={entry.name} fill={entry.color} />
                               ))}
                             </Pie>
-                            <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 25px -5px rgba(0,0,0,.1)" }} />
+                            <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 25px -5px rgba(0,0,0,.1)", fontSize: "12px" }} />
                           </PieChart>
                         </ResponsiveContainer>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        {statusGiziData.map((d) => (
-                          <div key={d.name} className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: d.color }} />
-                            <span className="text-[10px] text-slate-500 truncate">{d.name} <span className="font-bold text-slate-700">{d.value}%</span></span>
+                      <div className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-slate-100">
+                        {statusGiziData.map((item) => (
+                          <div key={item.name} className="flex items-center gap-1.5 text-xs">
+                            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                            <span className="text-slate-500 font-medium truncate text-[11px]">{item.name}</span>
+                            <span className="font-bold text-slate-700 ml-auto text-[11px]">{item.value}%</span>
                           </div>
                         ))}
                       </div>
                     </div>
                   </div>
 
-                  {/* ---- SECTION 3: Kehadiran area chart + Jadwal Hari Ini ---- */}
-                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                  {/* ---- SECTION 3: RECENT RECORDS & AGENDA ---- */}
+                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
 
-                    {/* Area chart kehadiran */}
-                    <div className="xl:col-span-2 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                      <div className="flex items-start justify-between mb-5">
+                    {/* Recent Records List */}
+                    <div className="xl:col-span-2 bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm">
+                      <div className="flex items-center justify-between mb-4 sm:mb-5">
                         <div>
-                          <h3 className="font-bold text-slate-800 text-base">Tren Kehadiran Peserta</h3>
-                          <p className="text-xs text-slate-400 mt-0.5">Kehadiran per kategori dalam 6 bulan terakhir</p>
+                          <h3 className="font-bold text-slate-800 text-sm sm:text-base">Aktivitas Pemeriksaan Terbaru</h3>
+                          <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Catatan kesehatan peserta posyandu</p>
                         </div>
-                        <Link href="/dashboard?tab=kehadiran" className="text-[10px] text-teal-600 font-bold hover:underline flex items-center gap-0.5">
-                          Lihat Rekap <ArrowRight size={10} />
-                        </Link>
-                      </div>
-                      <div className="h-[220px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={dynamicKehadiranChart} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                            <defs>
-                              <linearGradient id="gradBalita" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={CHART_COLORS.teal} stopOpacity={0.3} />
-                                <stop offset="95%" stopColor={CHART_COLORS.teal} stopOpacity={0} />
-                              </linearGradient>
-                              <linearGradient id="gradBumil" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={CHART_COLORS.pink} stopOpacity={0.3} />
-                                <stop offset="95%" stopColor={CHART_COLORS.pink} stopOpacity={0} />
-                              </linearGradient>
-                              <linearGradient id="gradLansia" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={CHART_COLORS.indigo} stopOpacity={0.3} />
-                                <stop offset="95%" stopColor={CHART_COLORS.indigo} stopOpacity={0} />
-                              </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#94a3b8" }} />
-                            <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 25px -5px rgba(0,0,0,.1)" }} />
-                            <Legend iconType="circle" wrapperStyle={{ fontSize: "11px", paddingTop: "16px" }} />
-                            <Area type="monotone" dataKey="balita" name="Balita" stroke={CHART_COLORS.teal} strokeWidth={2} fill="url(#gradBalita)" dot={false} />
-                            <Area type="monotone" dataKey="ibuHamil" name="Ibu Hamil" stroke={CHART_COLORS.pink} strokeWidth={2} fill="url(#gradBumil)" dot={false} />
-                            <Area type="monotone" dataKey="lansia" name="Lansia" stroke={CHART_COLORS.indigo} strokeWidth={2} fill="url(#gradLansia)" dot={false} />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-
-                    {/* Jadwal Hari Ini Widget */}
-                    <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                      <div className="flex items-center justify-between mb-5">
-                        <div>
-                          <h3 className="font-bold text-slate-800 text-base">Agenda Terdekat</h3>
-                          <p className="text-xs text-slate-400 mt-0.5">Kegiatan terjadwal bulan ini</p>
-                        </div>
-                        <div className="w-9 h-9 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
-                          <Calendar size={16} />
-                        </div>
-                      </div>
-                      <div className="space-y-3">
-                        {agendaHariIni.length > 0 ? (
-                          agendaHariIni.map((a: any, i: number) => (
-                            <div
-                              key={i}
-                              className={`p-3.5 rounded-xl border transition-all ${
-                                a.status === "Berlangsung"
-                                  ? "border-teal-200 bg-gradient-to-r from-teal-50 to-emerald-50"
-                                  : "border-slate-100 bg-slate-50/50"
-                              }`}
-                            >
-                              <div className="flex items-center gap-2 mb-1.5">
-                                <div className={`w-1.5 h-1.5 rounded-full ${a.status === "Berlangsung" ? "bg-teal-500 animate-pulse" : "bg-slate-300"}`} />
-                                <span className="text-[10px] font-bold text-slate-400 font-mono">
-                                  {new Date(a.tanggal).toLocaleDateString("id-ID", { day: "2-digit", month: "short" })} - {a.waktu}
-                                </span>
-                                {a.status === "Berlangsung" && (
-                                  <span className="text-[9px] font-bold bg-teal-500 text-white px-1.5 py-0.5 rounded-full">AKTIF</span>
-                                )}
-                              </div>
-                              <p className="text-xs font-bold text-slate-800">{a.namaKegiatan}</p>
-                              <p className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
-                                <MapPin size={9} /> {a.lokasi}
-                              </p>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="text-center py-8 text-slate-400 text-xs">
-                            Tidak ada jadwal kegiatan dalam waktu dekat.
-                          </div>
-                        )}
-                      </div>
-                      <Link
-                        href="/dashboard?tab=jadwal"
-                        className="w-full mt-4 py-2.5 rounded-xl border border-dashed border-slate-200 text-slate-400 text-xs font-bold hover:bg-slate-50 hover:text-teal-600 hover:border-teal-200 transition-all flex items-center justify-center gap-1.5"
-                      >
-                        <ClipboardList size={13} /> Kelola Semua Jadwal
-                      </Link>
-                    </div>
-                  </div>
-
-                  {/* ---- SECTION 4: Kunjungan Terbaru ---- */}
-                  <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-                    {/* Kunjungan Terbaru */}
-                    <div className="xl:col-span-2 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-                      <div className="flex items-center justify-between mb-5">
-                        <div>
-                          <h3 className="font-bold text-slate-800 text-base">Riwayat Kunjungan Terbaru</h3>
-                          <p className="text-xs text-slate-400 mt-0.5">Histori pemeriksaan dan penimbangan terakhir</p>
-                        </div>
-                        <Link href="/dashboard?tab=analisis" className="text-xs text-teal-600 font-bold hover:underline flex items-center gap-1">
+                        <Link href="/dashboard?tab=layanan-balita" className="text-xs text-teal-600 font-bold hover:underline flex items-center gap-1 shrink-0">
                           Lihat Semua <ArrowRight size={12} />
                         </Link>
                       </div>
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                          <thead>
-                            <tr className="bg-slate-50 text-slate-500 text-xs">
-                              <th className="px-3 py-2.5 rounded-l-xl font-semibold">Tanggal</th>
-                              <th className="px-3 py-2.5 font-semibold">Nama</th>
-                              <th className="px-3 py-2.5 font-semibold">Kategori</th>
-                              <th className="px-3 py-2.5 font-semibold">Pemeriksaan</th>
-                              <th className="px-3 py-2.5 rounded-r-xl font-semibold">Status</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-50">
-                            {stats?.recentRecords && stats.recentRecords.length > 0
-                              ? stats.recentRecords.map((r: any) => (
-                                  <tr key={r.id} className="hover:bg-slate-50/50 transition-colors">
-                                    <td className="px-3 py-3 text-slate-500 text-xs whitespace-nowrap">
-                                      {new Date(r.tanggal).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })}
-                                    </td>
-                                    <td className="px-3 py-3 font-semibold text-slate-800 text-xs">
-                                      {r.balita?.namaLengkap || r.ibuHamil?.namaLengkap || r.lansia?.namaLengkap || "-"}
-                                    </td>
-                                    <td className="px-3 py-3">
-                                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
-                                        r.balita ? "bg-blue-100 text-blue-700" : r.ibuHamil ? "bg-pink-100 text-pink-700" : "bg-indigo-100 text-indigo-700"
-                                      }`}>
-                                        {r.balita ? "Balita" : r.ibuHamil ? "Ibu Hamil" : "Lansia"}
-                                      </span>
-                                    </td>
-                                    <td className="px-3 py-3 text-xs text-slate-500">
-                                      {r.beratBadan && <span>BB: {r.beratBadan}kg </span>}
-                                      {r.tinggiBadan && <span>TB: {r.tinggiBadan}cm</span>}
-                                      {!r.beratBadan && !r.tinggiBadan && "-"}
-                                    </td>
-                                    <td className="px-3 py-3">
-                                      <span className="flex items-center gap-1 text-emerald-600 text-[10px] font-bold">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Selesai
-                                      </span>
-                                    </td>
-                                  </tr>
-                                ))
-                              : (
-                                <tr>
-                                  <td colSpan={5} className="px-3 py-10 text-center">
-                                    <div className="flex flex-col items-center gap-2">
-                                      <Clock className="w-10 h-10 text-slate-200" />
-                                      <p className="text-slate-400 text-xs">Belum ada data kunjungan terbaru</p>
-                                    </div>
-                                  </td>
-                                </tr>
-                              )}
-                          </tbody>
-                        </table>
+
+                      <div className="space-y-2.5 sm:space-y-3">
+                        {stats?.recentRecords && stats.recentRecords.length > 0 ? (
+                          stats.recentRecords.slice(0, 5).map((rec: any) => {
+                            const nama = rec.balita?.namaLengkap || rec.ibuHamil?.namaLengkap || rec.lansia?.namaLengkap || "Peserta";
+                            const tipe = rec.balita ? "Balita" : rec.ibuHamil ? "Ibu Hamil" : "Lansia";
+                            const badgeColor = rec.balita ? "bg-teal-50 text-teal-700" : rec.ibuHamil ? "bg-pink-50 text-pink-700" : "bg-indigo-50 text-indigo-700";
+
+                            return (
+                              <div key={rec.id} className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:bg-slate-50/80 transition-all gap-2">
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 ${badgeColor}`}>
+                                    {tipe === "Balita" ? "B" : tipe === "Ibu Hamil" ? "H" : "L"}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="font-bold text-slate-800 text-xs sm:text-sm truncate">{nama}</p>
+                                    <p className="text-[10px] sm:text-[11px] text-slate-400 truncate">
+                                      {new Date(rec.tanggal).toLocaleDateString("id-ID", { day: "2-digit", month: "short" })}
+                                      {rec.statusGizi && ` • ${rec.statusGizi}`}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-right text-[11px] font-semibold text-slate-600 shrink-0">
+                                  {rec.beratBadan && <div>BB: {rec.beratBadan} kg</div>}
+                                  {rec.tinggiBadan && <div className="text-[9px] text-slate-400">TB: {rec.tinggiBadan} cm</div>}
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="py-8 text-center text-slate-400 text-xs">Belum ada pemeriksaan terbaru recorded.</div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Right side: Alert + Shortcut Widgets */}
-                    <div className="space-y-4">
+                    {/* Active Agenda */}
+                    <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm space-y-3.5 sm:space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-bold text-slate-800 text-sm sm:text-base">Agenda Kegiatan</h3>
+                        <Link href="/dashboard?tab=jadwal" className="text-xs text-teal-600 font-bold hover:underline">
+                          + Tambah
+                        </Link>
+                      </div>
 
-                      {/* Alert Stunting */}
-                      {(stats?.stuntingBalita ?? 0) > 0 ? (
-                        <div className="bg-gradient-to-br from-rose-50 to-pink-50 border border-rose-100 rounded-2xl p-5">
-                          <div className="flex items-center gap-2 mb-3">
-                            <div className="w-8 h-8 bg-rose-500 rounded-xl flex items-center justify-center">
-                              <ShieldAlert size={15} className="text-white" />
+                      <div className="space-y-2.5 sm:space-y-3">
+                        {agendaHariIni.length > 0 ? (
+                          agendaHariIni.map((j: any) => (
+                            <div key={j.id} className="p-3 rounded-xl border border-slate-100 bg-slate-50/50 space-y-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-xs font-bold text-slate-800 truncate">{j.namaKegiatan}</span>
+                                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 shrink-0">
+                                  {j.status}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500">
+                                <Clock size={11} className="text-teal-500 shrink-0" />
+                                <span className="truncate">{new Date(j.tanggal).toLocaleDateString("id-ID")} - {j.waktu}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-slate-500">
+                                <MapPin size={11} className="text-teal-500 shrink-0" />
+                                <span className="truncate">{j.lokasi}</span>
+                              </div>
                             </div>
-                            <h4 className="font-bold text-rose-700 text-sm">Peringatan Stunting!</h4>
-                          </div>
-                          <p className="text-xs text-rose-600/80 leading-relaxed mb-3">
-                            Terdeteksi <strong>{stats.stuntingBalita} balita</strong> dengan status stunting ({stuntingRate}%). Segera lakukan tindak lanjut.
-                          </p>
-                          <div className="bg-white rounded-xl p-3 border border-rose-100">
-                            <div className="w-full bg-rose-100 rounded-full h-1.5 mb-1.5">
-                              <div
-                                className="bg-rose-500 h-1.5 rounded-full transition-all"
-                                style={{ width: `${Math.min(parseFloat(stuntingRate), 100)}%` }}
-                              />
-                            </div>
-                            <p className="text-[10px] text-rose-500 font-semibold">{stuntingRate}% Stunting Rate</p>
-                          </div>
-                          <Link
-                            href="/dashboard?tab=balita"
-                            className="mt-3 w-full py-2 rounded-xl bg-rose-500 text-white text-xs font-bold hover:bg-rose-600 transition-colors flex items-center justify-center gap-1.5"
-                          >
-                            Lihat Data Balita <ArrowRight size={11} />
-                          </Link>
-                        </div>
-                      ) : (
-                        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-5">
-                          <div className="flex items-center gap-2 mb-2">
-                            <div className="w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center">
-                              <CheckCircle2 size={15} className="text-white" />
-                            </div>
-                            <h4 className="font-bold text-emerald-700 text-sm">Status Gizi Baik</h4>
-                          </div>
-                          <p className="text-xs text-emerald-600/80 leading-relaxed">
-                            Tidak ada kasus stunting terdeteksi. Pertahankan kualitas pelayanan!
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Shortcut Menu */}
-                      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                        <h4 className="font-bold text-slate-700 text-sm mb-3 flex items-center gap-1.5">
-                          <Sparkles size={14} className="text-teal-500" /> Akses Cepat
-                        </h4>
-                        <div className="space-y-2">
-                          {[
-                            { label: "Input Layanan Balita", href: "/dashboard?tab=layanan-balita", color: "text-teal-600 bg-teal-50 hover:bg-teal-100" },
-                            { label: "Input Layanan Bumil", href: "/dashboard?tab=layanan-ibuhamil", color: "text-pink-600 bg-pink-50 hover:bg-pink-100" },
-                            { label: "Input Layanan Lansia", href: "/dashboard?tab=layanan-lansia", color: "text-indigo-600 bg-indigo-50 hover:bg-indigo-100" },
-                            { label: "Tambah Jadwal", href: "/dashboard?tab=jadwal", color: "text-amber-600 bg-amber-50 hover:bg-amber-100" },
-                            { label: "Rekap Kehadiran", href: "/dashboard?tab=kehadiran", color: "text-slate-600 bg-slate-50 hover:bg-slate-100" },
-                          ].map((s) => (
-                            <Link
-                              key={s.label}
-                              href={s.href}
-                              className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${s.color}`}
-                            >
-                              {s.label}
-                              <ArrowRight size={12} />
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ---- SECTION 5: Progress / Summary Footer Row ---- */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    {/* Data Summary */}
-                    <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-5 text-white">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
-                          <Baby size={16} />
-                        </div>
-                        <p className="font-bold text-sm">Manajemen Data</p>
-                      </div>
-                      <div className="space-y-2">
-                        {[
-                          { label: "Balita Terdaftar", val: stats?.totalBalita ?? 0, max: 100 },
-                          { label: "Ibu Hamil", val: stats?.totalIbuHamil ?? 0, max: 50 },
-                          { label: "Lansia", val: stats?.totalLansia ?? 0, max: 80 },
-                        ].map((item) => (
-                          <div key={item.label}>
-                            <div className="flex justify-between text-[10px] font-medium text-blue-100 mb-1">
-                              <span>{item.label}</span>
-                              <span>{item.val} orang</span>
-                            </div>
-                            <div className="w-full bg-white/20 rounded-full h-1.5">
-                              <div
-                                className="bg-white h-1.5 rounded-full transition-all"
-                                style={{ width: `${Math.min((item.val / item.max) * 100, 100)}%` }}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Pelayanan Kesehatan */}
-                    <div className="bg-gradient-to-br from-pink-500 to-rose-600 rounded-2xl p-5 text-white">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
-                          <Stethoscope size={16} />
-                        </div>
-                        <p className="font-bold text-sm">Pelayanan Kesehatan</p>
-                      </div>
-                      <div className="space-y-3">
-                        {[
-                          { label: "Layanan Balita", count: stats?.layananBalitaCount ?? 0, icon: Baby },
-                          { label: "Layanan Ibu Hamil", count: stats?.layananIbuHamilCount ?? 0, icon: HeartPulse },
-                          { label: "Layanan Lansia", count: stats?.layananLansiaCount ?? 0, icon: Users },
-                        ].map((item) => (
-                          <div key={item.label} className="flex items-center gap-3 bg-white/15 rounded-xl px-3 py-2.5">
-                            <item.icon size={14} className="shrink-0 text-pink-100" />
-                            <div>
-                              <p className="text-[11px] font-bold">{item.label}</p>
-                              <p className="text-[9px] text-pink-200">{item.count} Pelayanan Tercatat</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Jadwal & Kehadiran */}
-                    <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-5 text-white">
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
-                          <Calendar size={16} />
-                        </div>
-                        <p className="font-bold text-sm">Jadwal & Kehadiran</p>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="bg-white/20 rounded-xl p-3">
-                          <p className="text-[10px] font-bold text-amber-100 mb-1">Total Kegiatan Terdaftar</p>
-                          <p className="text-2xl font-black">{stats?.totalJadwal ?? 0} <span className="text-sm font-normal">Kegiatan</span></p>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="bg-white/20 rounded-xl p-3 text-center">
-                            <p className="text-[9px] text-amber-100 mb-0.5">Total Hadir</p>
-                            <p className="text-lg font-black">{totalHadir}</p>
-                          </div>
-                          <div className="bg-white/20 rounded-xl p-3 text-center">
-                            <p className="text-[9px] text-amber-100 mb-0.5">Tidak Hadir</p>
-                            <p className="text-lg font-black">{totalTidakHadir}</p>
-                          </div>
-                        </div>
+                          ))
+                        ) : (
+                          <div className="py-8 text-center text-slate-400 text-xs">Tidak ada kegiatan terdekat.</div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -701,19 +515,19 @@ function PosyanduDashboardContent({ session }: any) {
             </div>
           )}
 
-          {activeTab === "balita" && <PosyanduBalitaTab session={session} />}
-          {activeTab === "ibuhamil" && <PosyanduIbuHamilTab session={session} />}
-          {activeTab === "lansia" && <PosyanduLansiaTab session={session} />}
-          {activeTab === "layanan-balita" && <PosyanduLayananBalitaTab session={session} />}
-          {activeTab === "layanan-ibuhamil" && <PosyanduLayananIbuHamilTab session={session} />}
-          {activeTab === "layanan-lansia" && <PosyanduLayananLansiaTab session={session} />}
-          {activeTab === "jadwal" && <PosyanduJadwalTab session={session} />}
-          {activeTab === "kehadiran" && <PosyanduKehadiranTab session={session} />}
-          {activeTab === "analisis" && <PosyanduAnalisisTab session={session} />}
-          {activeTab === "posyandu-register" && <PosyanduRegisterTab session={session} />}
-          {activeTab === "posyandu-jadwal" && <PosyanduJadwalAbsensiTab session={session} />}
-          {activeTab === "posyandu-inventaris" && <PosyanduInventarisTab session={session} />}
-          {activeTab === "pmt" && <KesraPmtTab session={session} />}
+          {activeTab === "balita" && <PosyanduBalitaTab session={session} selectedPosyandu={selectedPosyandu} />}
+          {activeTab === "ibuhamil" && <PosyanduIbuHamilTab session={session} selectedPosyandu={selectedPosyandu} />}
+          {activeTab === "lansia" && <PosyanduLansiaTab session={session} selectedPosyandu={selectedPosyandu} />}
+          {activeTab === "layanan-balita" && <PosyanduLayananBalitaTab session={session} selectedPosyandu={selectedPosyandu} />}
+          {activeTab === "layanan-ibuhamil" && <PosyanduLayananIbuHamilTab session={session} selectedPosyandu={selectedPosyandu} />}
+          {activeTab === "layanan-lansia" && <PosyanduLayananLansiaTab session={session} selectedPosyandu={selectedPosyandu} />}
+          {activeTab === "jadwal" && <PosyanduJadwalTab session={session} selectedPosyandu={selectedPosyandu} />}
+          {activeTab === "kehadiran" && <PosyanduKehadiranTab session={session} selectedPosyandu={selectedPosyandu} />}
+          {activeTab === "analisis" && <PosyanduAnalisisTab session={session} selectedPosyandu={selectedPosyandu} />}
+          {activeTab === "posyandu-register" && <PosyanduRegisterTab session={session} selectedPosyandu={selectedPosyandu} />}
+          {activeTab === "posyandu-jadwal" && <PosyanduJadwalAbsensiTab session={session} selectedPosyandu={selectedPosyandu} />}
+          {activeTab === "posyandu-inventaris" && <PosyanduInventarisTab session={session} selectedPosyandu={selectedPosyandu} />}
+          {activeTab === "pmt" && <KesraPmtTab session={session} selectedPosyandu={selectedPosyandu} />}
         </motion.div>
       </AnimatePresence>
     </div>

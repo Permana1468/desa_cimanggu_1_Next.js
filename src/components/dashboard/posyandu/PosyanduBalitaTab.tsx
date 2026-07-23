@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, Baby, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Baby, Trash2, CheckCircle2 } from "lucide-react";
 import { getPosyanduBalita, addPosyanduBalita, updatePosyanduBalitaStatus, deletePosyanduBalita } from "@/actions/posyandu";
+import { CitizenSearchAutocomplete } from "./CitizenSearchAutocomplete";
+import { getRWsForPosyandu, POSYANDU_UNITS } from "@/lib/posyandu";
 
 function hitungUsia(tanggalLahir: string | Date): string {
   const tgl = new Date(tanggalLahir);
@@ -12,7 +14,7 @@ function hitungUsia(tanggalLahir: string | Date): string {
   return `${Math.floor(bulan / 12)} Tahun ${bulan % 12} Bln`;
 }
 
-export function PosyanduBalitaTab({ session }: any) {
+export function PosyanduBalitaTab({ session, selectedPosyandu }: { session?: any; selectedPosyandu?: string }) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -21,7 +23,7 @@ export function PosyanduBalitaTab({ session }: any) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await getPosyanduBalita();
+      const res = await getPosyanduBalita(selectedPosyandu);
       setData(res);
     } catch (e) {
       console.error(e);
@@ -31,8 +33,7 @@ export function PosyanduBalitaTab({ session }: any) {
 
   useEffect(() => {
     fetchData();
-  }, []);
-
+  }, [selectedPosyandu]);
 
   const handleToggleStunting = async (id: string, currentStatus: boolean) => {
     await updatePosyanduBalitaStatus(id, !currentStatus);
@@ -65,7 +66,9 @@ export function PosyanduBalitaTab({ session }: any) {
             <Baby className="w-6 h-6 text-teal-500" />
             Data Balita
           </h2>
-          <p className="text-slate-500 text-sm mt-1">Kelola data balita dan pemantauan status gizi (RW: {session?.user?.rw})</p>
+          <p className="text-slate-500 text-sm mt-1">
+            Kelola data balita dan pemantauan status gizi
+          </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
@@ -127,9 +130,9 @@ export function PosyanduBalitaTab({ session }: any) {
                       <td className="px-4 py-3 font-semibold text-slate-800">{b.namaLengkap}</td>
                       <td className="px-4 py-3">
                         <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                          b.jenisKelamin === "L" ? "bg-blue-50 text-blue-700" : "bg-pink-50 text-pink-700"
+                          b.jenisKelamin === "L" || b.jenisKelamin === "LAKI_LAKI" ? "bg-blue-50 text-blue-700" : "bg-pink-50 text-pink-700"
                         }`}>
-                          {b.jenisKelamin === "L" ? "Laki-laki" : "Perempuan"}
+                          {b.jenisKelamin === "L" || b.jenisKelamin === "LAKI_LAKI" ? "Laki-laki" : "Perempuan"}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-slate-600">
@@ -175,30 +178,91 @@ export function PosyanduBalitaTab({ session }: any) {
       </div>
 
       {showModal && (
-        <ModalTambahBalita onClose={() => setShowModal(false)} onRefresh={fetchData} session={session} />
+        <ModalTambahBalita
+          onClose={() => setShowModal(false)}
+          onRefresh={fetchData}
+          session={session}
+          selectedPosyandu={selectedPosyandu}
+        />
       )}
     </div>
   );
 }
 
-function ModalTambahBalita({ onClose, onRefresh, session }: any) {
+function ModalTambahBalita({ onClose, onRefresh, session, selectedPosyandu }: any) {
   const [loading, setLoading] = useState(false);
-  const rwOptions = session?.user?.rw ? session.user.rw.split(",").map((s: string) => s.trim()) : [];
+  const [nik, setNik] = useState("");
+  const [namaLengkap, setNamaLengkap] = useState("");
+  const [tanggalLahir, setTanggalLahir] = useState("");
+  const [jenisKelamin, setJenisKelamin] = useState("L");
+  const [namaOrangTua, setNamaOrangTua] = useState("");
+  const [rt, setRt] = useState("001");
+  const [rw, setRw] = useState("");
+
+  // Determine valid RW options for the current Posyandu scope
+  let availableRws: string[] = [];
+
+  if (selectedPosyandu && selectedPosyandu !== "ALL") {
+    availableRws = getRWsForPosyandu(selectedPosyandu);
+  } else if (session?.user?.rw) {
+    availableRws = session.user.rw.split(",").map((s: string) => s.trim()).filter(Boolean);
+  }
+
+  if (availableRws.length === 0) {
+    availableRws = ["001", "002", "003", "004", "005", "006", "007", "008", "009"];
+  }
+
+  useEffect(() => {
+    if (availableRws.length > 0 && !rw) {
+      setRw(availableRws[0]);
+    }
+  }, [availableRws]);
+
+  const handleCitizenSelect = (citizen: any) => {
+    if (citizen.nik) setNik(citizen.nik);
+    if (citizen.namaLengkap) setNamaLengkap(citizen.namaLengkap);
+    if (citizen.tanggalLahir) {
+      const d = new Date(citizen.tanggalLahir);
+      setTanggalLahir(d.toISOString().split("T")[0]);
+    }
+    if (citizen.jenisKelamin) {
+      setJenisKelamin(citizen.jenisKelamin === "LAKI_LAKI" || citizen.jenisKelamin === "L" ? "L" : "P");
+    }
+    if (citizen.namaIbu || citizen.namaAyah) {
+      setNamaOrangTua(citizen.namaIbu || citizen.namaAyah);
+    }
+    if (citizen.rt) setRt(citizen.rt);
+    if (citizen.rw && availableRws.includes(citizen.rw)) {
+      setRw(citizen.rw);
+    } else if (availableRws.length > 0) {
+      setRw(availableRws[0]);
+    }
+  };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
-    const fd = new FormData(e.target);
+
+    let posyanduName = "Posyandu";
+    if (selectedPosyandu && selectedPosyandu !== "ALL") {
+      const matched = POSYANDU_UNITS.find(u => u.id === selectedPosyandu || u.code === selectedPosyandu);
+      if (matched) posyanduName = matched.name;
+    } else if (session?.user?.fullName) {
+      posyanduName = session.user.fullName;
+    }
+
     await addPosyanduBalita({
-      nik: fd.get("nik")?.toString() || null,
-      namaLengkap: fd.get("namaLengkap"),
-      tanggalLahir: new Date(fd.get("tanggalLahir") as string),
-      jenisKelamin: fd.get("jenisKelamin"),
-      namaOrangTua: fd.get("namaOrangTua"),
-      rt: fd.get("rt"),
-      rw: fd.get("rw"),
-      posyanduName: session?.user?.fullName || "Posyandu"
+      nik: nik || null,
+      namaLengkap,
+      tanggalLahir,
+      jenisKelamin,
+      namaOrangTua,
+      rt,
+      rw: rw || availableRws[0],
+      posyanduName,
+      posyanduFilter: selectedPosyandu
     });
+
     setLoading(false);
     onRefresh();
     onClose();
@@ -206,55 +270,108 @@ function ModalTambahBalita({ onClose, onRefresh, session }: any) {
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl">
-        <div className="flex justify-between items-center mb-6">
+      <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-5">
           <div>
             <h3 className="text-lg font-bold text-slate-800">Tambah Data Balita</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Isi data lengkap balita</p>
+            <p className="text-xs text-slate-500 mt-0.5">Isi data lengkap balita atau cari dari Data Kependudukan</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all text-xl">&times;</button>
         </div>
+
+        {/* Autocomplete Search Citizen */}
+        <div className="mb-5 bg-teal-50/50 p-3.5 rounded-xl border border-teal-100">
+          <CitizenSearchAutocomplete
+            onSelect={handleCitizenSelect}
+            posyanduFilter={selectedPosyandu}
+            label="Integrasi Data Kependudukan (Cari NIK / Nama Balita)"
+          />
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">NIK (Opsional)</label>
-              <input name="nik" type="text" maxLength={16} placeholder="16 digit NIK" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" />
+              <input
+                value={nik}
+                onChange={(e) => setNik(e.target.value)}
+                type="text"
+                maxLength={16}
+                placeholder="16 digit NIK Balita"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none font-mono"
+              />
             </div>
             <div className="col-span-2">
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nama Lengkap Balita *</label>
-              <input name="namaLengkap" required type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" />
+              <input
+                value={namaLengkap}
+                onChange={(e) => setNamaLengkap(e.target.value)}
+                required
+                type="text"
+                placeholder="Nama Balita"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tanggal Lahir *</label>
-              <input name="tanggalLahir" required type="date" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" />
+              <input
+                value={tanggalLahir}
+                onChange={(e) => setTanggalLahir(e.target.value)}
+                required
+                type="date"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Jenis Kelamin *</label>
-              <select name="jenisKelamin" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+              <select
+                value={jenisKelamin}
+                onChange={(e) => setJenisKelamin(e.target.value)}
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-white"
+              >
                 <option value="L">Laki-Laki</option>
                 <option value="P">Perempuan</option>
               </select>
             </div>
             <div className="col-span-2">
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nama Ibu / Orang Tua *</label>
-              <input name="namaOrangTua" required type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" />
+              <input
+                value={namaOrangTua}
+                onChange={(e) => setNamaOrangTua(e.target.value)}
+                required
+                type="text"
+                placeholder="Nama Ibu Kandung"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">RT *</label>
-              <input name="rt" required type="text" placeholder="001" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" />
+              <input
+                value={rt}
+                onChange={(e) => setRt(e.target.value)}
+                required
+                type="text"
+                placeholder="001"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">RW *</label>
-              <select name="rw" required className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-                {rwOptions.length > 0 ? rwOptions.map((rw: string) => (
-                  <option key={rw} value={rw}>{rw}</option>
-                )) : <option value="">-</option>}
+              <select
+                value={rw}
+                onChange={(e) => setRw(e.target.value)}
+                required
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-white font-medium text-slate-800"
+              >
+                {availableRws.map((rwVal: string) => (
+                  <option key={rwVal} value={rwVal}>RW. {rwVal}</option>
+                ))}
               </select>
             </div>
           </div>
           <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
             <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-xl border border-slate-200">Batal</button>
-            <button type="submit" disabled={loading} className="px-5 py-2 text-sm bg-teal-500 hover:bg-teal-600 text-white rounded-xl disabled:opacity-50 font-semibold">
+            <button type="submit" disabled={loading} className="px-5 py-2 text-sm bg-teal-500 hover:bg-teal-600 text-white rounded-xl disabled:opacity-50 font-semibold shadow-sm">
               {loading ? "Menyimpan..." : "Simpan Data"}
             </button>
           </div>

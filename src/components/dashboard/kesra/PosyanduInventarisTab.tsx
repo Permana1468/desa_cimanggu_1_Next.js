@@ -7,7 +7,7 @@ import { getPosyanduInventaris, addPosyanduInventaris, deletePosyanduInventaris,
 const KATEGORI = ["ANTROPOMETRI", "MEDIS", "UMUM", "KONSUMSI", "LAINNYA"];
 const KONDISI = ["BAIK", "RUSAK_RINGAN", "RUSAK_BERAT"];
 
-export function PosyanduInventarisTab({ session }: any) {
+export function PosyanduInventarisTab({ session, selectedPosyandu }: any) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any[]>([]);
   const [search, setSearch] = useState("");
