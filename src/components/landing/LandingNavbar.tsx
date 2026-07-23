@@ -131,13 +131,13 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
     return (
         <header className={`fixed top-0 w-full z-50 transition-all duration-500 ${
             isScrolled 
-                ? 'bg-[#080e1c]/90 backdrop-blur-xl border-b border-cyan-500/20 shadow-[0_10px_30px_rgba(6,182,212,0.15)] py-3' 
-                : 'bg-transparent py-6'
+                ? 'bg-[#080e1c]/95 backdrop-blur-xl border-b border-cyan-500/20 shadow-[0_10px_30px_rgba(6,182,212,0.15)] py-2.5 sm:py-3' 
+                : 'bg-transparent py-4 sm:py-6'
         }`}>
-            <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 flex justify-between items-center">
                 {/* Logo & Branding */}
-                <div className="flex items-center gap-3 group">
-                    <div className="relative w-10 h-10 transition-transform duration-300 group-hover:scale-110">
+                <div className="flex items-center gap-2.5 sm:gap-3 group">
+                    <div className="relative w-8 h-8 sm:w-10 sm:h-10 transition-transform duration-300 group-hover:scale-110 shrink-0">
                         <Image
                             src={siteData?.logo || "/images/logo-bogor.png"}
                             alt="Logo Desa"
@@ -148,16 +148,16 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                         />
                     </div>
                     <div className="flex flex-col justify-center">
-                        <div className="flex items-center gap-2">
-                            <span className="text-white font-black text-[15px] md:text-[17px] tracking-wide leading-none uppercase">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                            <span className="text-white font-black text-xs sm:text-[15px] md:text-[17px] tracking-wide leading-none uppercase">
                                 {siteData?.title || "DESA CIMANGGU I"}
                             </span>
-                            <span className="flex h-2 w-2 relative">
+                            <span className="flex h-2 w-2 relative shrink-0">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                             </span>
                         </div>
-                        <span className="text-yellow-400 font-semibold text-[11px] leading-none mt-1 tracking-wider">
+                        <span className="text-yellow-400 font-semibold text-[9px] sm:text-[11px] leading-none mt-1 tracking-wider">
                             Kecamatan Cibungbulang
                         </span>
                     </div>
@@ -284,42 +284,43 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
 
                 {/* Mobile Hamburger */}
                 <button
-                    className="lg:hidden text-slate-300 hover:text-white p-2 rounded-xl bg-slate-900/80 border border-cyan-500/30"
+                    className="lg:hidden text-slate-300 hover:text-white p-2 rounded-xl bg-slate-900/90 border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.2)] active:scale-95 transition-all"
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                    aria-label="Toggle Navigation Menu"
                 >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         {isMobileMenuOpen ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
                         ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16"></path>
                         )}
                     </svg>
                 </button>
             </div>
 
             {/* Mobile Menu Dropdown */}
-            <div className={`lg:hidden absolute top-full left-0 w-full bg-slate-950/98 backdrop-blur-2xl border-t border-cyan-500/30 transition-all duration-300 overflow-y-auto ${
-                isMobileMenuOpen ? 'max-h-[85vh] py-6 shadow-2xl' : 'max-h-0 py-0'
+            <div className={`lg:hidden absolute top-full left-0 w-full bg-slate-950/98 backdrop-blur-3xl border-b border-cyan-500/30 transition-all duration-300 overflow-y-auto ${
+                isMobileMenuOpen ? 'max-h-[85vh] py-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'
             }`}>
-                <nav className="flex flex-col px-8 gap-3">
+                <nav className="flex flex-col px-6 sm:px-8 gap-2.5 custom-scrollbar">
                     {navMenuItems.map((menu, idx) => {
                         if (menu.hasDropdown) {
                             const isExpanded = !!mobileExpanded[menu.id];
                             return (
-                                <div key={idx} className="flex flex-col">
+                                <div key={idx} className="flex flex-col bg-slate-900/40 border border-white/5 rounded-2xl p-3">
                                     <button
                                         onClick={() => toggleMobileExpand(menu.id)}
-                                        className="flex justify-between items-center text-[15px] font-bold text-slate-300 hover:text-yellow-400 py-2.5 border-b border-white/5"
+                                        className="flex justify-between items-center text-sm font-bold text-slate-200 hover:text-yellow-400 py-1"
                                     >
                                         <span>{menu.name}</span>
-                                        <ChevronDown size={16} className={`transform transition-transform duration-300 ${isExpanded ? 'rotate-180 text-yellow-400' : ''}`} />
+                                        <ChevronDown size={16} className={`transform transition-transform duration-300 ${isExpanded ? 'rotate-180 text-yellow-400' : 'text-slate-400'}`} />
                                     </button>
                                     {isExpanded && (
-                                        <div className="flex flex-col pl-4 border-l-2 border-cyan-500/30 gap-2 mt-2 mb-3">
+                                        <div className="flex flex-col pl-3 border-l-2 border-cyan-500/40 gap-2 mt-2 pt-2 border-t border-white/5">
                                             {menu.columns ? (
                                                 menu.columns.map((column, cIdx) => (
                                                     <div key={cIdx} className="space-y-1.5">
-                                                        <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest block mt-2">{column.title}</span>
+                                                        <span className="text-[10px] font-black text-cyan-400 uppercase tracking-widest block mt-1">{column.title}</span>
                                                         {column.items.map((subItem, sIdx) => (
                                                             <a
                                                                 key={sIdx}
@@ -328,7 +329,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                                                                     setIsMobileMenuOpen(false);
                                                                     setActiveIndex(idx);
                                                                 }}
-                                                                className="text-[14px] font-semibold text-slate-400 hover:text-yellow-400 block py-1"
+                                                                className="text-xs font-semibold text-slate-300 hover:text-yellow-400 block py-1.5 pl-2 rounded-lg hover:bg-cyan-500/10 transition-colors"
                                                             >
                                                                 {subItem.name}
                                                             </a>
@@ -344,7 +345,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                                                             setIsMobileMenuOpen(false);
                                                             setActiveIndex(idx);
                                                         }}
-                                                        className="text-[14px] font-semibold text-slate-400 hover:text-yellow-400 block py-1"
+                                                        className="text-xs font-semibold text-slate-300 hover:text-yellow-400 block py-1.5 pl-2 rounded-lg hover:bg-cyan-500/10 transition-colors"
                                                     >
                                                         {subItem.name}
                                                     </a>
@@ -361,7 +362,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                                 setActiveIndex(idx);
                                 setIsMobileMenuOpen(false);
                             },
-                            className: `text-[15px] font-bold tracking-wide transition-colors ${activeIndex === idx ? 'text-yellow-400' : 'text-slate-300 hover:text-white'} py-2.5 border-b border-white/5`
+                            className: `text-sm font-bold tracking-wide transition-colors ${activeIndex === idx ? 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30' : 'text-slate-200 hover:text-white border-white/5'} py-3 px-4 rounded-2xl border bg-slate-900/40`
                         };
 
                         return menu.isRoute ? (
@@ -373,9 +374,10 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                     <Link
                         href="/login"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-center py-3 rounded-xl font-black uppercase text-sm mt-4 shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                        className="bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 text-white text-center py-3.5 rounded-2xl font-black uppercase text-xs tracking-wider mt-2 shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center justify-center gap-2"
                     >
-                        Masuk ke Sistem
+                        <ShieldCheck size={18} />
+                        <span>Masuk ke Sistem</span>
                     </Link>
                 </nav>
             </div>

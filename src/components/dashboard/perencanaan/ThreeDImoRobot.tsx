@@ -332,10 +332,10 @@ export function ThreeDImoRobot({ expression = "normal", isPointing = false, isTi
   }, []);
 
   return (
-    // Increased container size (w-96 h-[32rem]) to give more room so hands and shadow aren't clipped
-    <div className="w-[28rem] h-[34rem] relative z-50 select-none -mb-8">
+    // Responsive container size for mobile (w-44 h-56) up to desktop (md:w-[28rem] md:h-[34rem])
+    <div className="w-44 h-56 sm:w-64 sm:h-72 md:w-[28rem] md:h-[34rem] relative z-50 select-none -mb-4 md:-mb-8 pointer-events-none">
       {/* Adjusted camera distance (z: 8.5) and fov to fit the entire robot perfectly */}
-      <Canvas camera={{ position: [0, -0.5, 8.5], fov: 42 }} dpr={[1, 1.2]} performance={{ min: 0.5 }}>
+      <Canvas camera={{ position: [0, -0.5, 8.5], fov: 42 }} dpr={[1, 1.2]} performance={{ min: 0.5 }} className="pointer-events-auto">
         {/* Lighting setup for glossy 3D look (Increased ambient light) */}
         <ambientLight intensity={1.2} />
         <directionalLight position={[10, 10, 5]} intensity={1.5} />

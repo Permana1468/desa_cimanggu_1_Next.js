@@ -102,7 +102,27 @@
 }
 
 /* ── BASE ────────────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
 body { margin: 0; transition: background-color 0.5s ease, color 0.5s ease; }
+
+/* ── LENIS SMOOTH SCROLL ────────────────────────────── */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
 
 
 

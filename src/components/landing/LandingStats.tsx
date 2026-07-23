@@ -107,55 +107,55 @@ export const LandingStats = ({ statsData }: LandingStatsProps) => {
     const perempuanPercentage = totalWarga > 0 ? (totalPerempuan / totalWarga) * 100 : 48.8;
 
     return (
-        <div className="space-y-24">
+        <div className="space-y-12 sm:space-y-24">
             {/* COMMAND CENTER HEADER & TAB CONTROL */}
             <ScrollReveal>
-                <div className="bg-slate-900/60 border border-cyan-500/20 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-[0_0_40px_rgba(6,182,212,0.15)] relative overflow-hidden">
+                <div className="bg-slate-900/60 border border-cyan-500/20 backdrop-blur-xl rounded-3xl p-5 sm:p-8 shadow-[0_0_40px_rgba(6,182,212,0.15)] relative overflow-hidden">
                     {/* Header Aura & Top Scanner */}
                     <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-                    <div className="flex flex-col lg:flex-row items-center justify-between gap-6 relative z-10">
+                    <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
                         <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <span className="flex h-3 w-3 relative">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                                <span className="flex h-2.5 sm:h-3 w-2.5 sm:w-3 relative">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                                    <span className="relative inline-flex rounded-full h-2.5 sm:h-3 w-2.5 sm:w-3 bg-emerald-500"></span>
                                 </span>
-                                <h3 className="text-cyan-400 font-extrabold tracking-[0.25em] uppercase text-xs">
+                                <h3 className="text-cyan-400 font-extrabold tracking-[0.2em] sm:tracking-[0.25em] uppercase text-[10px] sm:text-xs">
                                     COMMAND CENTER TELEMETRY
                                 </h3>
-                                <span className="bg-cyan-500/20 text-cyan-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-cyan-500/40">
+                                <span className="bg-cyan-500/20 text-cyan-300 text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full border border-cyan-500/40">
                                     LIVE SYNCED
                                 </span>
                             </div>
-                            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tight">
+                            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight">
                                 Data & Statistik Real-Time
                             </h2>
                         </div>
 
                         {/* Interactive Tab Switcher */}
-                        <div className="flex items-center bg-slate-950/80 p-1.5 rounded-2xl border border-white/10 shadow-inner">
+                        <div className="flex items-center w-full sm:w-auto bg-slate-950/80 p-1 sm:p-1.5 rounded-2xl border border-white/10 shadow-inner">
                             <button
                                 onClick={() => setActiveTab('wilayah')}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 ${
+                                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-300 ${
                                     activeTab === 'wilayah'
                                         ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]'
                                         : 'text-slate-400 hover:text-white'
                                 }`}
                             >
-                                <Layers size={15} />
-                                <span>Wilayah Administrasi</span>
+                                <Layers size={14} className="shrink-0" />
+                                <span>Wilayah</span>
                             </button>
                             <button
                                 onClick={() => setActiveTab('demografi')}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all duration-300 ${
+                                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-[11px] sm:text-xs font-bold transition-all duration-300 ${
                                     activeTab === 'demografi'
                                         ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-[0_0_15px_rgba(6,182,212,0.4)]'
                                         : 'text-slate-400 hover:text-white'
                                 }`}
                             >
-                                <PieChart size={15} />
-                                <span>Demografi & Gender</span>
+                                <PieChart size={14} className="shrink-0" />
+                                <span>Demografi</span>
                             </button>
                         </div>
                     </div>
@@ -165,7 +165,7 @@ export const LandingStats = ({ statsData }: LandingStatsProps) => {
             {/* TAB CONTENT 1: WILAYAH ADMINISTRATIF */}
             {activeTab === 'wilayah' && (
                 <section id="wilayah" className="scroll-mt-32">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
                         <ScrollReveal delay={0}>
                             <CyberStatCard
                                 icon={MapIcon}
@@ -202,15 +202,15 @@ export const LandingStats = ({ statsData }: LandingStatsProps) => {
 
             {/* TAB CONTENT 2: DEMOGRAFI & GENDER BREAKDOWN */}
             {(activeTab === 'demografi' || statsData) && (
-                <section id="statistik" className="scroll-mt-32 space-y-8">
+                <section id="statistik" className="scroll-mt-32 space-y-6 sm:space-y-8">
                     {/* Primary Demographic Cards */}
                     {statsData && (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
                             <CyberSmallCard
                                 label="Total Penduduk"
                                 value={statsData.totalWarga}
                                 color="cyan"
-                                badge="Warga Terdaftar"
+                                badge="Terdaftar"
                             />
                             <CyberSmallCard
                                 label="Total Kepala Keluarga"
@@ -222,39 +222,39 @@ export const LandingStats = ({ statsData }: LandingStatsProps) => {
                                 label="Laki-laki"
                                 value={statsData.totalLaki}
                                 color="blue"
-                                badge={`${lakiPercentage.toFixed(1)}% Ratio`}
+                                badge={`${lakiPercentage.toFixed(1)}%`}
                             />
                             <CyberSmallCard
                                 label="Perempuan"
                                 value={statsData.totalPerempuan}
                                 color="pink"
-                                badge={`${perempuanPercentage.toFixed(1)}% Ratio`}
+                                badge={`${perempuanPercentage.toFixed(1)}%`}
                             />
                         </div>
                     )}
 
                     {/* Interactive Visual Ratio Panel */}
                     <ScrollReveal>
-                        <div className="bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-3xl p-8 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-8">
-                            <div className="flex-1 space-y-4">
-                                <div className="flex items-center gap-2 text-yellow-400 text-xs font-bold uppercase tracking-widest">
-                                    <Activity size={16} /> Rasio Gender & Distribusi Demografi
+                        <div className="bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-3xl p-5 sm:p-8 shadow-2xl flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-6 sm:gap-8">
+                            <div className="flex-1 space-y-3 sm:space-y-4">
+                                <div className="flex items-center gap-2 text-yellow-400 text-[11px] sm:text-xs font-bold uppercase tracking-widest">
+                                    <Activity size={15} /> Rasio Gender & Distribusi Demografi
                                 </div>
-                                <h3 className="text-2xl font-bold text-white">Visualisasi Distribusi Penduduk</h3>
-                                <p className="text-slate-400 text-sm leading-relaxed">
+                                <h3 className="text-xl sm:text-2xl font-bold text-white">Visualisasi Distribusi Penduduk</h3>
+                                <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
                                     Perbandingan jumlah penduduk Laki-Laki dan Perempuan di Desa Cimanggu I tersinkronisasi secara otomatis melalui sistem sensus digital SDD.
                                 </p>
 
                                 {/* Visual Progress Bar */}
                                 <div className="space-y-2 pt-2">
-                                    <div className="flex justify-between text-xs font-bold">
+                                    <div className="flex justify-between text-[11px] sm:text-xs font-bold">
                                         <span className="text-cyan-400 flex items-center gap-1.5">
-                                            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block shadow-[0_0_8px_rgba(6,182,212,0.8)]"></span>
+                                            <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-cyan-400 inline-block shadow-[0_0_8px_rgba(6,182,212,0.8)]"></span>
                                             Laki-laki ({totalLaki.toLocaleString()})
                                         </span>
                                         <span className="text-pink-400 flex items-center gap-1.5">
                                             Perempuan ({totalPerempuan.toLocaleString()})
-                                            <span className="w-2.5 h-2.5 rounded-full bg-pink-400 inline-block shadow-[0_0_8px_rgba(244,114,182,0.8)]"></span>
+                                            <span className="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full bg-pink-400 inline-block shadow-[0_0_8px_rgba(244,114,182,0.8)]"></span>
                                         </span>
                                     </div>
                                     <div className="h-3 w-full bg-slate-950 rounded-full overflow-hidden flex p-0.5 border border-white/10">
@@ -271,9 +271,9 @@ export const LandingStats = ({ statsData }: LandingStatsProps) => {
                             </div>
 
                             {/* Radial Gauge Displays */}
-                            <div className="flex items-center gap-8 bg-slate-950/60 p-6 rounded-2xl border border-white/10 shadow-inner">
+                            <div className="flex items-center justify-around sm:justify-center gap-4 sm:gap-8 bg-slate-950/60 p-4 sm:p-6 rounded-2xl border border-white/10 shadow-inner">
                                 <CircularGauge percentage={lakiPercentage} color="#06b6d4" label="Laki-Laki" />
-                                <div className="w-px h-16 bg-white/10"></div>
+                                <div className="w-px h-14 sm:h-16 bg-white/10"></div>
                                 <CircularGauge percentage={perempuanPercentage} color="#f472b6" label="Perempuan" />
                             </div>
                         </div>

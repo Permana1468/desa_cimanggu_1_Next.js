@@ -63,40 +63,40 @@ export function PerencanaanDashboard({ session, stats }: { session: any, stats: 
   }
 
   return (
-    <div className="space-y-6 min-h-[calc(100vh-80px)] font-sans overflow-hidden relative">
+    <div className="space-y-4 sm:space-y-6 min-h-[calc(100vh-80px)] font-sans relative pb-28 md:pb-8">
       
       {/* HEADER CARD */}
-      <div className="relative z-10 bg-white border border-slate-200/80 rounded-3xl p-6 md:p-8 shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
-          <div className="space-y-3 text-slate-800">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold uppercase text-[10px] tracking-widest">
+      <div className="relative z-10 bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-8 relative z-10">
+          <div className="space-y-2.5 sm:space-y-3 text-slate-800">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold uppercase text-[9px] sm:text-[10px] tracking-widest">
               <Terminal size={14} className="animate-pulse text-emerald-600" /> 
               <span>MODUL AKTIF: PERENCANAAN DESA</span>
             </div>
             
-            <h1 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 uppercase">
+            <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight text-slate-900 uppercase">
               {roleName}
             </h1>
             
-            <p className="text-slate-500 max-w-xl text-sm md:text-base font-normal leading-relaxed">
+            <p className="text-slate-500 max-w-xl text-xs sm:text-sm md:text-base font-normal leading-relaxed">
               Selamat datang, <span className="text-slate-800 font-extrabold">{session?.user?.name}</span>. Memantau progres RAB dan serapan anggaran desa tahun berjalan secara real-time.
             </p>
           </div>
 
           {/* Key Metric Telemetry Cards */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 min-w-[150px] shadow-sm relative group">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 sm:p-5 min-w-0 shadow-sm relative group">
               <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping opacity-75" />
               <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-emerald-500" />
-              <span className="block text-[10px] font-black text-slate-500 mb-2 uppercase tracking-widest">Serapan Dana</span>
-              <span className="block text-3xl font-black text-slate-900 font-mono tracking-tight">
+              <span className="block text-[9px] sm:text-[10px] font-black text-slate-500 mb-1.5 sm:mb-2 uppercase tracking-widest truncate">Serapan Dana</span>
+              <span className="block text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight">
                 {serapan.toFixed(1)}%
               </span>
             </div>
             
-            <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-5 min-w-[150px] shadow-sm">
-              <span className="block text-[10px] font-black text-emerald-700 mb-2 uppercase tracking-widest">Sisa Anggaran</span>
-              <span className="block text-xl md:text-2xl font-black text-emerald-800 font-mono mt-1 tracking-tight">
+            <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-3.5 sm:p-5 min-w-0 shadow-sm">
+              <span className="block text-[9px] sm:text-[10px] font-black text-emerald-700 mb-1.5 sm:mb-2 uppercase tracking-widest truncate">Sisa Anggaran</span>
+              <span className="block text-lg sm:text-xl md:text-2xl font-black text-emerald-800 font-mono mt-0.5 sm:mt-1 tracking-tight">
                 Rp 450 Jt
               </span>
             </div>
@@ -105,63 +105,63 @@ export function PerencanaanDashboard({ session, stats }: { session: any, stats: 
       </div>
 
       {/* DASHBOARD CONTENT GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 relative z-10">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 relative z-10">
         {/* LEFT COLUMN: ANALISIS APBDES */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-[2rem] p-6 md:p-8 shadow-sm border border-slate-200/80">
-            <div className="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          <div className="bg-white rounded-2xl sm:rounded-[2rem] p-4 sm:p-6 md:p-8 shadow-sm border border-slate-200/80">
+            <div className="flex items-center justify-between mb-4 sm:mb-6 border-b border-slate-100 pb-3 sm:pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-center shadow-sm">
-                  <Wallet size={24} className="text-emerald-600" />
+                <div className="w-10 sm:w-12 h-10 sm:h-12 bg-emerald-50 border border-emerald-200 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm shrink-0">
+                  <Wallet size={22} className="text-emerald-600 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-extrabold text-slate-900 tracking-wide flex items-center gap-2">
+                  <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-wide flex items-center gap-2">
                     Analisis APBDes 2026
                     <Sparkles size={16} className="text-yellow-500" />
                   </h2>
-                  <p className="text-slate-500 text-xs font-medium mt-0.5">Alokasi & Realisasi Anggaran Berjalan</p>
+                  <p className="text-slate-500 text-[11px] sm:text-xs font-medium mt-0.5">Alokasi & Realisasi Anggaran Berjalan</p>
                 </div>
               </div>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {/* PENDAPATAN */}
-              <div className="p-5 bg-slate-50/80 border border-slate-200/80 rounded-2xl flex items-center justify-between hover:border-emerald-300 transition-all duration-300 group shadow-sm">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white border border-emerald-200 text-emerald-600 rounded-2xl flex items-center justify-center shadow-sm">
-                    <ArrowDownRight size={24} />
+              <div className="p-4 sm:p-5 bg-slate-50/80 border border-slate-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-emerald-300 transition-all duration-300 group shadow-sm">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 sm:w-12 h-10 sm:h-12 bg-white border border-emerald-200 text-emerald-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm shrink-0">
+                    <ArrowDownRight size={22} className="sm:w-6 sm:h-6" />
                   </div>
                   <div>
-                    <h4 className="font-extrabold text-slate-800 uppercase text-sm tracking-wide">Pendapatan Desa</h4>
-                    <span className="text-xs text-slate-500 font-mono">TARGET: RP 1.2M</span>
+                    <h4 className="font-extrabold text-slate-800 uppercase text-xs sm:text-sm tracking-wide">Pendapatan Desa</h4>
+                    <span className="text-[11px] sm:text-xs text-slate-500 font-mono">TARGET: RP 1.2M</span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="block font-black text-emerald-600 font-mono text-xl tracking-tight">
+                <div className="text-left sm:text-right border-t sm:border-t-0 border-slate-200/60 pt-2 sm:pt-0">
+                  <span className="block font-black text-emerald-600 font-mono text-lg sm:text-xl tracking-tight">
                     Rp 800.000.000
                   </span>
-                  <span className="inline-block mt-1 text-[10px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  <span className="inline-block mt-0.5 sm:mt-1 text-[9px] sm:text-[10px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                     66% TERCAPAI
                   </span>
                 </div>
               </div>
 
               {/* BELANJA */}
-              <div className="p-5 bg-slate-50/80 border border-slate-200/80 rounded-2xl flex items-center justify-between hover:border-rose-300 transition-all duration-300 group shadow-sm">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white border border-rose-200 text-rose-600 rounded-2xl flex items-center justify-center shadow-sm">
-                    <ArrowUpRight size={24} />
+              <div className="p-4 sm:p-5 bg-slate-50/80 border border-slate-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-rose-300 transition-all duration-300 group shadow-sm">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-10 sm:w-12 h-10 sm:h-12 bg-white border border-rose-200 text-rose-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm shrink-0">
+                    <ArrowUpRight size={22} className="sm:w-6 sm:h-6" />
                   </div>
                   <div>
-                    <h4 className="font-extrabold text-slate-800 uppercase text-sm tracking-wide">Belanja Desa</h4>
-                    <span className="text-xs text-slate-500 font-mono">PAGU: RP 1.2M</span>
+                    <h4 className="font-extrabold text-slate-800 uppercase text-xs sm:text-sm tracking-wide">Belanja Desa</h4>
+                    <span className="text-[11px] sm:text-xs text-slate-500 font-mono">PAGU: RP 1.2M</span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <span className="block font-black text-rose-600 font-mono text-xl tracking-tight">
+                <div className="text-left sm:text-right border-t sm:border-t-0 border-slate-200/60 pt-2 sm:pt-0">
+                  <span className="block font-black text-rose-600 font-mono text-lg sm:text-xl tracking-tight">
                     Rp 450.000.000
                   </span>
-                  <span className="inline-block mt-1 text-[10px] font-black text-rose-800 bg-rose-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                  <span className="inline-block mt-0.5 sm:mt-1 text-[9px] sm:text-[10px] font-black text-rose-800 bg-rose-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                     37% TERSERAP
                   </span>
                 </div>

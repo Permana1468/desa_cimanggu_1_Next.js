@@ -46,34 +46,34 @@ export const LandingAspiration = () => {
     return (
         <section id="aspirasi" className="scroll-mt-32">
             <ScrollReveal>
-                <div className="bg-slate-900/70 border border-yellow-500/30 rounded-[2.5rem] p-8 md:p-16 shadow-[0_0_50px_rgba(245,158,11,0.15)] relative overflow-hidden backdrop-blur-2xl">
+                <div className="bg-slate-900/70 border border-yellow-500/30 rounded-3xl sm:rounded-[2.5rem] p-5 sm:p-8 md:p-16 shadow-[0_0_50px_rgba(245,158,11,0.15)] relative overflow-hidden backdrop-blur-2xl">
                     {/* Glowing Tech Orbs */}
                     <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-500/10 rounded-full blur-[120px] pointer-events-none -mr-48 -mt-48"></div>
                     <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none -ml-40 -mb-40"></div>
 
-                    <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+                    <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center">
                         {/* Left Side Telemetry Intro */}
                         <div>
-                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-400 text-xs font-black uppercase tracking-widest mb-6 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
+                            <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full bg-yellow-500/15 border border-yellow-500/30 text-yellow-400 text-[10px] sm:text-xs font-black uppercase tracking-widest mb-4 sm:mb-6 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
                                 <Send size={14} /> Suara Warga Cyber Portal
                             </div>
 
-                            <h2 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight">
+                            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white mb-4 sm:mb-6 leading-tight">
                                 Sampaikan Aspirasi & <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500">Saran Anda</span>
                             </h2>
 
-                            <p className="text-slate-300 text-base md:text-lg leading-relaxed mb-8 font-light border-l-2 border-yellow-500/40 pl-4">
+                            <p className="text-slate-300 text-xs sm:text-base md:text-lg leading-relaxed mb-6 sm:mb-8 font-light border-l-2 border-yellow-500/40 pl-3.5 sm:pl-4">
                                 Partisipasi Anda sangat berarti bagi kemajuan Desa Cimanggu I. Kirimkan saran, keluhan, atau aspirasi pembangunan secara digital melalui formulir tersinkronisasi ini.
                             </p>
 
                             <div className="space-y-4">
-                                <div className="flex items-center gap-4 text-slate-300 bg-slate-950/60 p-4 rounded-2xl border border-white/10">
-                                    <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center border border-yellow-500/30">
-                                        <ShieldCheck size={20} className="text-yellow-400" />
+                                <div className="flex items-center gap-3.5 sm:gap-4 text-slate-300 bg-slate-950/60 p-3.5 sm:p-4 rounded-2xl border border-white/10">
+                                    <div className="w-9 sm:w-10 h-9 sm:h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center border border-yellow-500/30 shrink-0">
+                                        <ShieldCheck size={18} className="text-yellow-400 sm:w-5 sm:h-5" />
                                     </div>
                                     <div>
-                                        <h4 className="text-sm font-bold text-white">Tersambung Langsung ke Admin Desa</h4>
-                                        <p className="text-xs text-slate-400">Pesan terenkripsi dan langsung diproses oleh perangkat desa.</p>
+                                        <h4 className="text-xs sm:text-sm font-bold text-white">Tersambung Langsung ke Admin Desa</h4>
+                                        <p className="text-[10px] sm:text-xs text-slate-400">Pesan terenkripsi dan langsung diproses oleh perangkat desa.</p>
                                     </div>
                                 </div>
                             </div>
@@ -82,16 +82,16 @@ export const LandingAspiration = () => {
                         {/* Form Side */}
                         <div className="relative">
                             {submitSuccess && (
-                                <div className="mb-6 p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-sm font-bold flex items-center gap-3 animate-in fade-in duration-300 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
-                                    <CheckCircle2 size={20} className="text-emerald-400" />
+                                <div className="mb-4 sm:mb-6 p-3.5 sm:p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs sm:text-sm font-bold flex items-center gap-2.5 sm:gap-3 animate-in fade-in duration-300 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                                    <CheckCircle2 size={18} className="text-emerald-400 shrink-0" />
                                     <span>Aspirasi Anda berhasil dikirim! Terima kasih atas partisipasi Anda.</span>
                                 </div>
                             )}
 
-                            <form onSubmit={handleAspirationSubmit} className="space-y-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <form onSubmit={handleAspirationSubmit} className="space-y-3.5 sm:space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 ml-1">
+                                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 ml-1">
                                             Nama Warga
                                         </label>
                                         <input
@@ -101,11 +101,11 @@ export const LandingAspiration = () => {
                                             required
                                             value={aspirationForm.nama_warga}
                                             onChange={handleAspirationChange}
-                                            className="w-full bg-slate-950/80 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:outline-none focus:border-yellow-400 focus:shadow-[0_0_20px_rgba(250,204,21,0.25)] transition-all"
+                                            className="w-full bg-slate-950/80 border border-white/10 rounded-2xl py-3 px-4 sm:py-3.5 sm:px-5 text-xs sm:text-sm text-white focus:outline-none focus:border-yellow-400 focus:shadow-[0_0_20px_rgba(250,204,21,0.25)] transition-all"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 ml-1">
+                                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 ml-1">
                                             RT/RW Wilayah
                                         </label>
                                         <input
@@ -115,20 +115,20 @@ export const LandingAspiration = () => {
                                             required
                                             value={aspirationForm.rt_rw}
                                             onChange={handleAspirationChange}
-                                            className="w-full bg-slate-950/80 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:outline-none focus:border-yellow-400 focus:shadow-[0_0_20px_rgba(250,204,21,0.25)] transition-all"
+                                            className="w-full bg-slate-950/80 border border-white/10 rounded-2xl py-3 px-4 sm:py-3.5 sm:px-5 text-xs sm:text-sm text-white focus:outline-none focus:border-yellow-400 focus:shadow-[0_0_20px_rgba(250,204,21,0.25)] transition-all"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 ml-1">
+                                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 ml-1">
                                         Kategori Aspirasi
                                     </label>
                                     <select
                                         name="kategori"
                                         value={aspirationForm.kategori}
                                         onChange={handleAspirationChange}
-                                        className="w-full bg-slate-950/80 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:outline-none focus:border-yellow-400 focus:shadow-[0_0_20px_rgba(250,204,21,0.25)] transition-all appearance-none"
+                                        className="w-full bg-slate-950/80 border border-white/10 rounded-2xl py-3 px-4 sm:py-3.5 sm:px-5 text-xs sm:text-sm text-white focus:outline-none focus:border-yellow-400 focus:shadow-[0_0_20px_rgba(250,204,21,0.25)] transition-all appearance-none"
                                     >
                                         <option value="Infrastruktur" className="bg-slate-900">Infrastruktur & Jalan</option>
                                         <option value="Kesehatan" className="bg-slate-900">Kesehatan & Posyandu</option>
@@ -140,7 +140,7 @@ export const LandingAspiration = () => {
                                 </div>
 
                                 <div>
-                                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5 ml-1">
+                                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 ml-1">
                                         Isi Aspirasi / Pesan
                                     </label>
                                     <textarea
@@ -150,14 +150,14 @@ export const LandingAspiration = () => {
                                         required
                                         value={aspirationForm.isi_pesan}
                                         onChange={handleAspirationChange}
-                                        className="w-full bg-slate-950/80 border border-white/10 rounded-2xl py-3.5 px-5 text-white focus:outline-none focus:border-yellow-400 focus:shadow-[0_0_20px_rgba(250,204,21,0.25)] transition-all resize-none"
+                                        className="w-full bg-slate-950/80 border border-white/10 rounded-2xl py-3 px-4 sm:py-3.5 sm:px-5 text-xs sm:text-sm text-white focus:outline-none focus:border-yellow-400 focus:shadow-[0_0_20px_rgba(250,204,21,0.25)] transition-all resize-none"
                                     ></textarea>
                                 </div>
 
                                 <button
                                     type="submit"
                                     disabled={isSubmittingAspiration}
-                                    className="w-full py-4 bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 hover:from-yellow-400 hover:to-amber-400 text-slate-950 font-black rounded-2xl transition-all duration-300 shadow-[0_0_30px_rgba(245,158,11,0.4)] hover:shadow-[0_0_40px_rgba(245,158,11,0.7)] disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-wider text-sm"
+                                    className="w-full py-3.5 sm:py-4 bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-600 hover:from-yellow-400 hover:to-amber-400 text-slate-950 font-black rounded-2xl transition-all duration-300 shadow-[0_0_30px_rgba(245,158,11,0.4)] hover:shadow-[0_0_40px_rgba(245,158,11,0.7)] disabled:opacity-50 flex items-center justify-center gap-2 uppercase tracking-wider text-xs sm:text-sm"
                                 >
                                     {isSubmittingAspiration ? (
                                         <>
