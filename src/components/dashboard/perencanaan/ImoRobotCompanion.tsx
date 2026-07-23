@@ -1,8 +1,20 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { Camera, CameraOff, Volume2, VolumeX, Sparkles, X, Bot, MessageSquare, Send, Zap, ChevronUp, Eye, EyeOff, Lock } from "lucide-react";
-import { ThreeDImoRobot } from "./ThreeDImoRobot";
+
+const ThreeDImoRobot = dynamic(
+  () => import("./ThreeDImoRobot").then((mod) => mod.ThreeDImoRobot),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-[28rem] h-[34rem] flex items-center justify-center text-emerald-400 font-mono text-xs animate-pulse">
+        🤖 Loading 3D IMO-1...
+      </div>
+    ),
+  }
+);
 
 export type ExpressionType = "happy" | "normal" | "curious" | "winking" | "heart" | "motion" | "thinking" | "tickled" | "angry" | "bored";
 

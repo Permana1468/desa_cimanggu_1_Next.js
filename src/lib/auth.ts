@@ -131,6 +131,15 @@ export const authOptions: NextAuthOptions = {
   },
   providers,
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Allow relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allow callback URLs on the same origin (IP or hostname)
+      try {
+        if (new URL(url).origin === baseUrl) return url;
+      } catch (e) {}
+      return baseUrl;
+    },
     async jwt({ token, user }) {
       if (user) {
         const u = user as any;
@@ -139,7 +148,6 @@ export const authOptions: NextAuthOptions = {
         token.tenantId = u.tenantId;
         token.isFirstLogin = u.isFirstLogin;
         token.rt = u.rt;
-        token.rw = u.rw;
         token.rw = u.rw;
       }
       return token;
@@ -153,10 +161,9 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).rw = t.rw;
         (session.user as any).rt = t.rt;
         (session.user as any).isFirstLogin = t.isFirstLogin;
-        (session.user as any).rt = t.rt;
-        (session.user as any).rw = t.rw;
       }
       return session;
     },
   },
 };
+

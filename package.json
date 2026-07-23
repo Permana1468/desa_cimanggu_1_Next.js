@@ -7,6 +7,7 @@
     "build": "cross-env NODE_OPTIONS='--max-old-space-size=6144' next build",
     "start": "next start -H 0.0.0.0",
     "lint": "eslint",
+    "type-check": "cross-env NODE_OPTIONS='--max-old-space-size=6144' tsc --noEmit",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -30,6 +31,7 @@
     "framer-motion": "^12.38.0",
     "googleapis": "^172.0.0",
     "leaflet": "^1.9.4",
+    "lenis": "^1.3.25",
     "lucide-react": "^0.454.0",
     "mammoth": "^1.12.0",
     "next": "16.2.4",

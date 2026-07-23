@@ -28,7 +28,7 @@ Pastikan kamu mengelompokkan item ke dalam kategori yang tepat sesuai dokumen.
 Pastikan format JSON valid tanpa markdown \`\`\`json atau karakter lain di luar array. Jangan tambahkan teks apa pun selain JSON array.`;
 
     const cleanBase64 = base64Data.split(",")[1] || base64Data;
-    let contents: any[] = [prompt];
+    const contents: any[] = [prompt];
 
     if (mimeType === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || mimeType.includes("word")) {
       const buffer = Buffer.from(cleanBase64, "base64");

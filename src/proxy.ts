@@ -13,10 +13,21 @@ interface CustomJWT {
   isFirstLogin?: boolean;
 }
 
-// Simple in-memory rate limiter for Edge Runtime
+// Simple in-memory rate limiter with automatic stale key eviction
 const rateLimitMap = new Map<string, { count: number; timestamp: number }>();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
 const MAX_REQUESTS = 100; // max requests per window per IP
+const MAX_MAP_SIZE = 2000;
+
+function cleanupRateLimitMap(now: number) {
+  if (rateLimitMap.size > MAX_MAP_SIZE) {
+    for (const [key, value] of rateLimitMap.entries()) {
+      if (now - value.timestamp > RATE_LIMIT_WINDOW) {
+        rateLimitMap.delete(key);
+      }
+    }
+  }
+}
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -25,6 +36,7 @@ export async function proxy(req: NextRequest) {
   if (pathname.startsWith('/api/')) {
       const ip = req.headers.get('x-forwarded-for') || 'unknown';
       const now = Date.now();
+      cleanupRateLimitMap(now);
       const record = rateLimitMap.get(ip);
       
       if (record) {

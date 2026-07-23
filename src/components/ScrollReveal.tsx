@@ -12,26 +12,25 @@ const ScrollReveal = ({ children, delay = 0, className = "" }: ScrollRevealProps
     const domRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        const currentDomNode = domRef.current;
         const observer = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
                     setIsVisible(true);
-                    // Optional: Unobserve after revealing if you only want it to animate once
-                    // observer.unobserve(entry.target); 
                 }
             });
         }, {
-            threshold: 0.1, // Trigger when 10% of the element is visible
+            threshold: 0.1,
             rootMargin: '0px 0px -50px 0px'
         });
 
-        if (domRef.current) {
-            observer.observe(domRef.current);
+        if (currentDomNode) {
+            observer.observe(currentDomNode);
         }
 
         return () => {
-            if (domRef.current) {
-                observer.unobserve(domRef.current);
+            if (currentDomNode) {
+                observer.unobserve(currentDomNode);
             }
         };
     }, []);

@@ -25,16 +25,9 @@ interface RobotProps {
   onRobotClick?: () => void;
 }
 
-// Global mouse tracking for full screen response
-let globalMouse = { x: 0, y: 0 };
+// Mouse tracking for full screen response
+const globalMouse = { x: 0, y: 0 };
 let lastMouseMove = typeof Date !== 'undefined' ? Date.now() : 0;
-if (typeof window !== 'undefined') {
-  window.addEventListener('mousemove', (e) => {
-    globalMouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-    globalMouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    lastMouseMove = Date.now();
-  });
-}
 
 // Robot Head component
 function RobotHead({ expression, isTickled, isBored }: { expression: string; isTickled?: boolean; isBored?: boolean }) {
@@ -325,6 +318,19 @@ function RobotCharacter({ expression, isPointing, isTickled, onRobotClick }: Rob
 
 // The main exported component that wraps the Canvas
 export function ThreeDImoRobot({ expression = "normal", isPointing = false, isTickled = false, onRobotClick }: RobotProps) {
+  React.useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      globalMouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      globalMouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      lastMouseMove = Date.now();
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, []);
+
   return (
     // Increased container size (w-96 h-[32rem]) to give more room so hands and shadow aren't clipped
     <div className="w-[28rem] h-[34rem] relative z-50 select-none -mb-8">

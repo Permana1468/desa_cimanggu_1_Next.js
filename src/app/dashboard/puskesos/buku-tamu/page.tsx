@@ -38,7 +38,7 @@ const formatAlamat = (input: string) => {
     rw = rwMatch[1].padStart(3, '0');
   }
 
-  let formatted = [];
+  const formatted = [];
   if (kp) formatted.push(`KP. ${kp}`);
   if (rt) formatted.push(`RT. ${rt}`);
   if (rw) formatted.push(`RW. ${rw}`);

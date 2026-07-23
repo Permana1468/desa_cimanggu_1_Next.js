@@ -42,41 +42,56 @@ async function resolveTenantId() {
 export async function getVillageStats() {
   try {
     const tenantId = await resolveTenantId();
-    const totalWarga = await prisma.dataKependudukan.count({
-      where: { tenantId },
-    });
-    const totalLaki = await prisma.dataKependudukan.count({
-      where: { 
-        tenantId, 
-        OR: [
-          { jenisKelamin: "Laki-laki" },
-          { jenisKelamin: "L" }
-        ]
-      },
-    });
-    const totalPerempuan = await prisma.dataKependudukan.count({
-      where: { 
-        tenantId,
-        OR: [
-          { jenisKelamin: "Perempuan" },
-          { jenisKelamin: "P" }
-        ]
-      },
-    });
-    
-    const resultKK = await prisma.dataKependudukan.groupBy({
-      by: ['noKK'],
-      where: { tenantId },
-    });
+    const [totalWarga, totalLaki, totalPerempuan, totalKKCount] = await Promise.all([
+      prisma.dataKependudukan.count({
+        where: { tenantId },
+      }),
+      prisma.dataKependudukan.count({
+        where: { 
+          tenantId, 
+          OR: [
+            { jenisKelamin: "Laki-laki" },
+            { jenisKelamin: "L" }
+          ]
+        },
+      }),
+      prisma.dataKependudukan.count({
+        where: { 
+          tenantId,
+          OR: [
+            { jenisKelamin: "Perempuan" },
+            { jenisKelamin: "P" }
+          ]
+        },
+      }),
+      prisma.dataKependudukan.count({
+        where: {
+          tenantId,
+          OR: [
+            { hubunganKeluarga: "KEPALA_KELUARGA" },
+            { hubunganKeluarga: "Kepala Keluarga" }
+          ]
+        }
+      })
+    ]);
+
+    // Fallback to distinct groupBy only if totalKKCount returned 0 but totalWarga > 0
+    let totalKK = totalKKCount;
+    if (totalKK === 0 && totalWarga > 0) {
+      const resultKK = await prisma.dataKependudukan.groupBy({
+        by: ['noKK'],
+        where: { tenantId },
+      });
+      totalKK = resultKK.length;
+    }
 
     return {
       totalWarga,
       totalLaki,
       totalPerempuan,
-      totalKK: resultKK.length,
+      totalKK,
     };
   } catch (error) {
-    // Silently handle error
     return {
       totalWarga: 0,
       totalLaki: 0,
