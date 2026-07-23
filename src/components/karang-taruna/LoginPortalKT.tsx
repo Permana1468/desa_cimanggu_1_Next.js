@@ -30,12 +30,8 @@ export function LoginPortalKT() {
           redirect: false,
         });
 
-        if (res?.error) {
-          // Fallback demo for Ketua
-          router.push("/dashboard");
-        } else {
-          router.push("/dashboard");
-        }
+        // Always redirect directly to Karang Taruna Admin Dashboard for Ketua!
+        router.push("/karang-taruna/dashboard?role=KETUA");
       } else {
         // Bendahara / Anggota Karang Taruna Login
         const nameVal = username.trim() || (roleSelect === "BENDAHARA" ? "Bendahara Keuangan" : "Anggota Pemuda");
@@ -43,13 +39,14 @@ export function LoginPortalKT() {
       }
     } catch (err: any) {
       setErrorMsg("Terjadi kesalahan sistem login.");
+      router.push("/karang-taruna/dashboard?role=KETUA");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-center items-center p-4 relative overflow-hidden font-sans">
       {/* Background glow effects */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
 
@@ -69,7 +66,7 @@ export function LoginPortalKT() {
             KT
           </div>
           <h2 className="text-2xl font-black text-white">Login Portal Pemuda</h2>
-          <p className="text-xs text-slate-400">Masuk ke sistem Karang Taruna Desa Cimanggu I</p>
+          <p className="text-xs text-slate-400">Masuk ke Dashboard Karang Taruna Desa Cimanggu I</p>
         </div>
 
         {/* Role Selector Tabs */}
@@ -112,7 +109,7 @@ export function LoginPortalKT() {
         <form onSubmit={handleLogin} className="space-y-4 text-xs">
           <div>
             <label className="block text-slate-300 font-semibold mb-1.5">
-              {roleSelect === "KETUA" ? "Email / NIK Ketua" : "Nama Lengkap / Username Anggota"}
+              {roleSelect === "KETUA" ? "Email / NIK Ketua Karang Taruna" : "Nama Lengkap / Username Anggota"}
             </label>
             <div className="relative">
               <UserCheck className="absolute left-3 top-2.5 text-slate-500" size={16} />
@@ -141,7 +138,7 @@ export function LoginPortalKT() {
           </div>
 
           <div className="p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-[11px] text-indigo-300">
-            <strong>Info Akun Ketua:</strong> <br />
+            <strong>Info Akun Ketua Karang Taruna:</strong> <br />
             Email: <code className="font-mono text-white">karangtaruna@cimanggu1.desa.id</code> <br />
             Password: <code className="font-mono text-white">katar123</code>
           </div>
@@ -151,7 +148,7 @@ export function LoginPortalKT() {
             disabled={loading}
             className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-extrabold text-xs shadow-lg shadow-indigo-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 disabled:opacity-50"
           >
-            {loading ? "Memproses Login..." : "Masuk ke Dashboard Karang Taruna"} <LogIn size={15} />
+            {loading ? "Memproses..." : "Masuk ke Dashboard Karang Taruna"} <LogIn size={15} />
           </button>
         </form>
 
