@@ -1,11 +1,83 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Search, Baby, Trash2, Stethoscope } from "lucide-react";
-import { getPosyanduRecords, addPosyanduRecord, deletePosyanduRecord, getPosyanduBalita } from "@/actions/posyandu";
+import { Plus, Search, Baby, Trash2, Stethoscope, Sparkles, AlertTriangle, CheckCircle2, Calculator } from "lucide-react";
+import { getPosyanduRecords, addPosyanduRecord, deletePosyanduRecord, getPosyanduBalita, updatePosyanduBalitaStatus } from "@/actions/posyandu";
 
 const statusGiziOptions = ["Normal", "Gizi Kurang", "Stunting", "Gizi Buruk", "Gizi Lebih"];
 const imunisasiOptions = ["Tidak Ada", "BCG", "DPT-HB-Hib", "Polio", "Campak/MR", "PCV", "Rotavirus"];
+
+// Formula Perhitungan Otomatis Status Gizi berdasarkan Standar WHO / Kemenkes RI (BB/U & TB/U)
+function hitungUsiaBulan(tglLahir: string | Date, tglKunjungan: string | Date): number {
+  if (!tglLahir || !tglKunjungan) return 0;
+  const birth = new Date(tglLahir);
+  const visit = new Date(tglKunjungan);
+  const months = (visit.getFullYear() - birth.getFullYear()) * 12 + (visit.getMonth() - birth.getMonth());
+  return Math.max(0, months);
+}
+
+function hitungStatusGiziOtomatis(
+  tglLahir: string | Date,
+  tglKunjungan: string | Date,
+  bbKg: number,
+  tbCm: number,
+  jenisKelamin: string = "L"
+): { statusGizi: string; isStunting: boolean; usiaBulan: number; idealBB: number; idealTB: number; keteranganHasil: string } {
+  const bulan = hitungUsiaBulan(tglLahir, tglKunjungan);
+  const isMale = jenisKelamin === "L" || jenisKelamin === "LAKI_LAKI";
+
+  // WHO Standard Median Ideal Weight (kg) & Height (cm) per month (0 - 60 months)
+  const idealBB = isMale
+    ? 3.3 + (bulan * 0.25)
+    : 3.2 + (bulan * 0.24);
+
+  const idealTB = isMale
+    ? 50 + (bulan * 0.98)
+    : 49 + (bulan * 0.95);
+
+  let statusGizi = "Normal";
+  let isStunting = false;
+  let keteranganHasil = "";
+
+  if (bbKg > 0 && idealBB > 0) {
+    const ratioBB = bbKg / idealBB;
+    if (ratioBB < 0.65) {
+      statusGizi = "Gizi Buruk";
+      keteranganHasil = `Berat Badan (${bbKg} kg) jauh di bawah standar ideal (${idealBB.toFixed(1)} kg) untuk usia ${bulan} bulan.`;
+    } else if (ratioBB < 0.82) {
+      statusGizi = "Gizi Kurang";
+      keteranganHasil = `Berat Badan (${bbKg} kg) di bawah standar ideal (${idealBB.toFixed(1)} kg) untuk usia ${bulan} bulan.`;
+    } else if (ratioBB > 1.25) {
+      statusGizi = "Gizi Lebih";
+      keteranganHasil = `Berat Badan (${bbKg} kg) melebihi standar ideal (${idealBB.toFixed(1)} kg) untuk usia ${bulan} bulan.`;
+    } else {
+      statusGizi = "Normal";
+      keteranganHasil = `Berat Badan (${bbKg} kg) dalam batas normal ideal (${idealBB.toFixed(1)} kg) untuk usia ${bulan} bulan.`;
+    }
+  }
+
+  if (tbCm > 0 && idealTB > 0) {
+    const ratioTB = tbCm / idealTB;
+    if (ratioTB < 0.88) {
+      isStunting = true;
+      if (statusGizi === "Normal") {
+        statusGizi = "Stunting";
+        keteranganHasil = `Tinggi Badan (${tbCm} cm) di bawah kurva pertambahan usia (${idealTB.toFixed(1)} cm). Terindikasi Stunting.`;
+      } else {
+        keteranganHasil += ` Terindikasi Stunting (TB ${tbCm} cm vs Ideal ${idealTB.toFixed(1)} cm).`;
+      }
+    }
+  }
+
+  return {
+    statusGizi,
+    isStunting,
+    usiaBulan: bulan,
+    idealBB: Math.round(idealBB * 10) / 10,
+    idealTB: Math.round(idealTB * 10) / 10,
+    keteranganHasil
+  };
+}
 
 export function PosyanduLayananBalitaTab({ session, selectedPosyandu }: { session?: any; selectedPosyandu?: string }) {
   const [data, setData] = useState<any[]>([]);
@@ -35,6 +107,9 @@ export function PosyanduLayananBalitaTab({ session, selectedPosyandu }: { sessio
 
   const handleTambah = async (record: any) => {
     await addPosyanduRecord(record);
+    if (record.isStunting !== undefined && record.balitaId) {
+      await updatePosyanduBalitaStatus(record.balitaId, record.isStunting);
+    }
     fetchData();
   };
 
@@ -64,11 +139,11 @@ export function PosyanduLayananBalitaTab({ session, selectedPosyandu }: { sessio
             <Stethoscope className="w-6 h-6 text-teal-500" />
             Layanan Balita
           </h2>
-          <p className="text-slate-500 text-sm mt-1">Input data pelayanan kesehatan balita per kunjungan</p>
+          <p className="text-slate-500 text-sm mt-1">Input data pelayanan kesehatan balita per kunjungan dengan hitungan status gizi otomatis</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-colors font-semibold shadow-sm"
+          className="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-colors font-semibold shadow-sm cursor-pointer"
         >
           <Plus className="w-4 h-4" /> Input Pelayanan
         </button>
@@ -137,7 +212,7 @@ export function PosyanduLayananBalitaTab({ session, selectedPosyandu }: { sessio
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => handleDelete(d.id)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                          className="w-8 h-8 flex items-center justify-center rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer"
                           title="Hapus"
                         >
                           <Trash2 size={15} />
@@ -165,20 +240,50 @@ export function PosyanduLayananBalitaTab({ session, selectedPosyandu }: { sessio
 
 function ModalLayananBalita({ onClose, onSave, balitas }: any) {
   const [loading, setLoading] = useState(false);
+  const [balitaId, setBalitaId] = useState("");
+  const [tanggal, setTanggal] = useState(() => new Date().toISOString().split("T")[0]);
+  const [beratBadan, setBeratBadan] = useState("");
+  const [tinggiBadan, setTinggiBadan] = useState("");
+  const [lingkarKepala, setLingkarKepala] = useState("");
+  const [statusGizi, setStatusGizi] = useState("Normal");
+  const [imunisasi, setImunisasi] = useState("Tidak Ada");
+  const [keterangan, setKeterangan] = useState("");
+  const [autoInfo, setAutoInfo] = useState<any>(null);
+
+  // Auto Calculation Effect whenever balita, tanggal, BB or TB changes
+  useEffect(() => {
+    const selectedBalita = balitas.find((b: any) => b.id === balitaId);
+    const bb = parseFloat(beratBadan);
+    const tb = parseFloat(tinggiBadan);
+
+    if (selectedBalita && (bb > 0 || tb > 0)) {
+      const calc = hitungStatusGiziOtomatis(
+        selectedBalita.tanggalLahir,
+        tanggal,
+        bb || 0,
+        tb || 0,
+        selectedBalita.jenisKelamin
+      );
+      setStatusGizi(calc.statusGizi);
+      setAutoInfo(calc);
+    } else {
+      setAutoInfo(null);
+    }
+  }, [balitaId, tanggal, beratBadan, tinggiBadan, balitas]);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
-    const fd = new FormData(e.target);
     await onSave({
-      balitaId: fd.get("balitaId"),
-      tanggal: new Date(fd.get("tanggal") as string),
-      beratBadan: fd.get("beratBadan") ? parseFloat(fd.get("beratBadan") as string) : null,
-      tinggiBadan: fd.get("tinggiBadan") ? parseFloat(fd.get("tinggiBadan") as string) : null,
-      lingkarKepala: fd.get("lingkarKepala") ? parseFloat(fd.get("lingkarKepala") as string) : null,
-      statusGizi: fd.get("statusGizi"),
-      imunisasi: fd.get("imunisasi"),
-      keterangan: fd.get("keterangan"),
+      balitaId,
+      tanggal: new Date(tanggal),
+      beratBadan: beratBadan ? parseFloat(beratBadan) : null,
+      tinggiBadan: tinggiBadan ? parseFloat(tinggiBadan) : null,
+      lingkarKepala: lingkarKepala ? parseFloat(lingkarKepala) : null,
+      statusGizi,
+      imunisasi,
+      keterangan,
+      isStunting: autoInfo?.isStunting || false
     });
     setLoading(false);
     onClose();
@@ -188,60 +293,142 @@ function ModalLayananBalita({ onClose, onSave, balitas }: any) {
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-5">
-          <h3 className="text-lg font-bold text-slate-800">Catat Pelayanan Balita</h3>
-          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all text-xl">&times;</button>
+          <div>
+            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <Calculator className="w-5 h-5 text-teal-600" /> Catat Pelayanan Balita
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">Status gizi dihitung otomatis berdasarkan standar WHO</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all text-xl cursor-pointer">&times;</button>
         </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1.5">Pilih Balita *</label>
-            <select name="balitaId" required className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-white">
+            <select
+              value={balitaId}
+              onChange={(e) => setBalitaId(e.target.value)}
+              required
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-white font-medium text-slate-800"
+            >
               <option value="">-- Pilih Balita --</option>
               {balitas.map((b: any) => (
                 <option key={b.id} value={b.id}>{b.namaLengkap} ({b.nik ? `NIK: ${b.nik}` : `RT ${b.rt}/RW ${b.rw}`})</option>
               ))}
             </select>
           </div>
+
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1.5">Tanggal Kunjungan *</label>
-            <input name="tanggal" required type="date" defaultValue={new Date().toISOString().split("T")[0]} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" />
+            <input
+              value={tanggal}
+              onChange={(e) => setTanggal(e.target.value)}
+              required
+              type="date"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+            />
           </div>
+
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">BB (kg) *</label>
-              <input name="beratBadan" required type="number" step="0.1" placeholder="10.5" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" />
+              <input
+                value={beratBadan}
+                onChange={(e) => setBeratBadan(e.target.value)}
+                required
+                type="number"
+                step="0.1"
+                placeholder="10.5"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none font-bold text-slate-800"
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">TB (cm) *</label>
-              <input name="tinggiBadan" required type="number" step="0.1" placeholder="75.0" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" />
+              <input
+                value={tinggiBadan}
+                onChange={(e) => setTinggiBadan(e.target.value)}
+                required
+                type="number"
+                step="0.1"
+                placeholder="75.0"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none font-bold text-slate-800"
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">LK (cm)</label>
-              <input name="lingkarKepala" type="number" step="0.1" placeholder="45.0" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" />
+              <input
+                value={lingkarKepala}
+                onChange={(e) => setLingkarKepala(e.target.value)}
+                type="number"
+                step="0.1"
+                placeholder="45.0"
+                className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none font-bold text-slate-800"
+              />
             </div>
           </div>
+
+          {/* LIVE AUTOMATIC CALCULATION BADGE */}
+          {autoInfo && (
+            <div className="p-3 bg-gradient-to-r from-teal-50 to-emerald-50 border border-teal-200 rounded-xl space-y-1 text-xs animate-fade-in">
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold text-teal-800 flex items-center gap-1.5">
+                  <Sparkles size={14} className="text-teal-600 animate-pulse" /> Hasil Hitung Otomatis WHO:
+                </span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold border ${
+                  autoInfo.statusGizi === "Normal" ? "bg-green-100 text-green-800 border-green-300" :
+                  autoInfo.statusGizi === "Gizi Lebih" ? "bg-amber-100 text-amber-800 border-amber-300" :
+                  "bg-red-100 text-red-800 border-red-300"
+                }`}>
+                  {autoInfo.statusGizi} {autoInfo.isStunting && "• Stunting"}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600 leading-snug">
+                {autoInfo.keteranganHasil}
+              </p>
+            </div>
+          )}
+
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Status Gizi *</label>
-            <select name="statusGizi" required className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-white">
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5">Status Gizi * (Otomatis Terisi)</label>
+            <select
+              value={statusGizi}
+              onChange={(e) => setStatusGizi(e.target.value)}
+              required
+              className="w-full border-2 border-teal-500 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-white font-bold text-slate-900"
+            >
               {statusGiziOptions.map(opt => (
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
           </div>
+
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1.5">Imunisasi Diberikan</label>
-            <select name="imunisasi" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-white">
+            <select
+              value={imunisasi}
+              onChange={(e) => setImunisasi(e.target.value)}
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-white"
+            >
               {imunisasiOptions.map(opt => (
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
           </div>
+
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1.5">Catatan / Keterangan</label>
-            <textarea name="keterangan" rows={2} placeholder="Catatan tambahan..." className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none" />
+            <textarea
+              value={keterangan}
+              onChange={(e) => setKeterangan(e.target.value)}
+              rows={2}
+              placeholder="Catatan tambahan..."
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+            />
           </div>
+
           <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-xl border border-slate-200">Batal</button>
-            <button type="submit" disabled={loading} className="px-5 py-2 text-sm bg-teal-500 hover:bg-teal-600 text-white rounded-xl disabled:opacity-50 font-semibold shadow-sm">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">Batal</button>
+            <button type="submit" disabled={loading} className="px-5 py-2 text-sm bg-teal-500 hover:bg-teal-600 text-white rounded-xl disabled:opacity-50 font-semibold shadow-sm cursor-pointer">
               {loading ? "Menyimpan..." : "Simpan Layanan"}
             </button>
           </div>
