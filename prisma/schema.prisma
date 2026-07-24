@@ -187,6 +187,8 @@ model User {
 
   @@index([tenantId, role])
   @@index([tenantId, isActive])
+  @@index([email])
+  @@index([tenantId, fullName])
 }
 
 // ==============================
@@ -277,6 +279,8 @@ model DataKependudukan {
   @@index([tenantId, rt, rw, createdAt])
   @@index([tenantId, dusun])
   @@index([tenantId, jenisKelamin])
+  @@index([tenantId, namaLengkap])
+  @@index([nik])
 }
 
 // ==============================
@@ -551,20 +555,20 @@ model FinanceProposal {
   tenantId    String
   tenant      Tenant     @relation(fields: [tenantId], references: [id])
   trackings   Tracking[]
-  
+
   // New Musrenbang fields
-  lokasiRt       String?
-  lokasiRw       String?
-  lokasiDetail   String?
-  satuan         String?
-  prioritasKe    Int?
-  keterangan     String?
-  volume         String?
-  kubikasi       Float?
-  rab            Json?
-  
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  lokasiRt     String?
+  lokasiRw     String?
+  lokasiDetail String?
+  satuan       String?
+  prioritasKe  Int?
+  keterangan   String?
+  volume       String?
+  kubikasi     Float?
+  rab          Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([tenantId, status])
 }
@@ -1810,17 +1814,17 @@ model HargaSatuan {
 }
 
 model PuskesosBukuTamu {
-  id           String   @id @default(uuid())
-  tenantId     String
-  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  namaLengkap  String
-  nik          String?
-  alamat       String
-  noHp         String?
-  keperluan    String
-  tandaTangan  String   @db.Text
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  namaLengkap String
+  nik         String?
+  alamat      String
+  noHp        String?
+  keperluan   String
+  tandaTangan String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([tenantId])
 }

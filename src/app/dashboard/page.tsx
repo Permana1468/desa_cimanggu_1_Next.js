@@ -18,6 +18,7 @@ import { OperatorDashboard } from "@/components/dashboard/roles/OperatorDashboar
 import { PerencanaanDashboard } from "@/components/dashboard/roles/PerencanaanDashboard";
 import { PosyanduDashboard } from "@/components/dashboard/roles/PosyanduDashboard";
 import { PuskesosDashboard } from "@/components/dashboard/roles/PuskesosDashboard";
+import { KasiPelayananDashboard } from "@/components/dashboard/roles/KasiPelayananDashboard";
 
 export default async function VillageDashboardPage() {
   const session = await getServerSession(authOptions);
@@ -65,8 +66,12 @@ export default async function VillageDashboardPage() {
   }
 
   // 2. PELAYANAN & TATA USAHA (Administrasi Pemerintahan & Petugas)
-  if (["KAUR_TU", "KASI_PEMERINTAHAN", "KASI_PELAYANAN", "PERANGKAT_DESA", "PETUGAS_SENSUS"].includes(role)) {
+  if (["KAUR_TU", "KASI_PEMERINTAHAN", "PERANGKAT_DESA", "PETUGAS_SENSUS"].includes(role)) {
     return <PelayananDashboard session={session} stats={stats} />;
+  }
+  
+  if (role === "KASI_PELAYANAN") {
+    return <KasiPelayananDashboard session={session} stats={stats} />;
   }
 
   // 3. PERENCANAAN

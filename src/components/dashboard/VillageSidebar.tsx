@@ -1066,6 +1066,264 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                  {(!isCollapsed || isOpen) && <span className="text-sm">Pengaturan</span>}
                </Link>
              </div>
+          ) : role === "KASI_PELAYANAN" ? (
+             // === KASI PELAYANAN ACCORDION SIDEBAR ===
+             <div className="space-y-1">
+               {/* Dashboard Utama */}
+               <Link
+                 href="/dashboard?tab=overview"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   (tabParam || "overview") === "overview"
+                     ? "bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-600/20"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <LayoutDashboard size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Dashboard Utama</span>}
+               </Link>
+               
+               {/* Manajemen Antrian Loket */}
+               <Link
+                 href="/dashboard?tab=antrian-loket"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "antrian-loket"
+                     ? "bg-indigo-50 text-indigo-700 font-bold"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <Users size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Antrian Loket</span>}
+               </Link>
+
+               {/* Pusat Persuratan Dropdown */}
+               <div>
+                 <button
+                   onClick={() => (!isCollapsed || isOpen) && toggleGroup("persuratan")}
+                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                     ["buat-surat", "surat-masuk", "surat-keluar"].includes(tabParam || "")
+                       ? "bg-indigo-50 text-indigo-700 font-bold"
+                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                   } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                 >
+                   <FileText size={20} className="shrink-0" />
+                   {(!isCollapsed || isOpen) && (
+                     <>
+                       <span className="text-sm flex-1 text-left">Pusat Persuratan</span>
+                       <ChevronDown size={14} className={`transition-transform duration-200 ${openGroup === "persuratan" ? "rotate-180" : ""}`} />
+                     </>
+                   )}
+                 </button>
+                 <AnimatePresence>
+                   {(openGroup === "persuratan" && (!isCollapsed || isOpen)) && (
+                     <motion.div
+                       initial={{ height: 0, opacity: 0 }}
+                       animate={{ height: "auto", opacity: 1 }}
+                       exit={{ height: 0, opacity: 0 }}
+                       transition={{ duration: 0.2 }}
+                       className="overflow-hidden"
+                     >
+                       <div className="mt-1 ml-3 pl-3 border-l-2 border-indigo-100 space-y-1">
+                         {[
+                           { label: "Buat Surat Baru", tab: "buat-surat", icon: Plus },
+                           { label: "Agenda Surat Masuk", tab: "surat-masuk", icon: Folder },
+                           { label: "Agenda Surat Keluar", tab: "surat-keluar", icon: FolderArchive },
+                         ].map(({ label, tab, icon: Icon }) => (
+                           <Link
+                             key={tab}
+                             href={`/dashboard?tab=${tab}`}
+                             onClick={() => setIsOpen(false)}
+                             className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                               tabParam === tab ? "bg-indigo-500 text-white font-bold" : "text-slate-500 hover:bg-indigo-50 hover:text-indigo-800"
+                             }`}
+                           >
+                             <Icon size={16} />
+                             <span>{label}</span>
+                           </Link>
+                         ))}
+                       </div>
+                     </motion.div>
+                   )}
+                 </AnimatePresence>
+               </div>
+
+               {/* Manajemen Kependudukan */}
+               <Link
+                 href="/dashboard?tab=kependudukan"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "kependudukan"
+                     ? "bg-indigo-50 text-indigo-700 font-bold"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <Database size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Data Kependudukan</span>}
+               </Link>
+
+               {/* Tracking Layanan */}
+               <Link
+                 href="/dashboard?tab=tracking-layanan"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "tracking-layanan"
+                     ? "bg-indigo-50 text-indigo-700 font-bold"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <Clock size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Tracking Layanan</span>}
+               </Link>
+
+               {/* Layanan Umum Dropdown */}
+               <div>
+                 <button
+                   onClick={() => (!isCollapsed || isOpen) && toggleGroup("layanan-umum")}
+                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                     ["buku-tamu", "reporting", "tte"].includes(tabParam || "")
+                       ? "bg-indigo-50 text-indigo-700 font-bold"
+                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                   } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                 >
+                   <HeartHandshake size={20} className="shrink-0" />
+                   {(!isCollapsed || isOpen) && (
+                     <>
+                       <span className="text-sm flex-1 text-left">Layanan Umum</span>
+                       <ChevronDown size={14} className={`transition-transform duration-200 ${openGroup === "layanan-umum" ? "rotate-180" : ""}`} />
+                     </>
+                   )}
+                 </button>
+                 <AnimatePresence>
+                   {(openGroup === "layanan-umum" && (!isCollapsed || isOpen)) && (
+                     <motion.div
+                       initial={{ height: 0, opacity: 0 }}
+                       animate={{ height: "auto", opacity: 1 }}
+                       exit={{ height: 0, opacity: 0 }}
+                       transition={{ duration: 0.2 }}
+                       className="overflow-hidden"
+                     >
+                       <div className="mt-1 ml-3 pl-3 border-l-2 border-indigo-100 space-y-1">
+                         {[
+                           { label: "Buku Tamu Digital", tab: "buku-tamu", icon: ClipboardList },
+                           { label: "Laporan Pelayanan", tab: "reporting", icon: BarChart3 },
+                           { label: "Pengaturan TTE", tab: "tte", icon: ShieldCheck },
+                         ].map(({ label, tab, icon: Icon }) => (
+                           <Link
+                             key={tab}
+                             href={`/dashboard?tab=${tab}`}
+                             onClick={() => setIsOpen(false)}
+                             className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                               tabParam === tab ? "bg-indigo-500 text-white font-bold" : "text-slate-500 hover:bg-indigo-50 hover:text-indigo-800"
+                             }`}
+                           >
+                             <Icon size={16} />
+                             <span>{label}</span>
+                           </Link>
+                         ))}
+                       </div>
+                     </motion.div>
+                   )}
+                 </AnimatePresence>
+               </div>
+
+               {/* Laporan Posyandu Dropdown */}
+               <div>
+                 <button
+                   onClick={() => (!isCollapsed || isOpen) && toggleGroup("laporan-posyandu")}
+                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                     (tabParam || "").startsWith("posyandu-")
+                       ? "bg-indigo-50 text-indigo-700 font-bold"
+                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                   } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                 >
+                   <HeartPulse size={20} className="shrink-0" />
+                   {(!isCollapsed || isOpen) && (
+                     <>
+                       <span className="text-sm flex-1 text-left">Laporan Posyandu</span>
+                       <ChevronDown size={14} className={`transition-transform duration-200 ${openGroup === "laporan-posyandu" ? "rotate-180" : ""}`} />
+                     </>
+                   )}
+                 </button>
+                 <AnimatePresence>
+                   {(openGroup === "laporan-posyandu" && (!isCollapsed || isOpen)) && (
+                     <motion.div
+                       initial={{ height: 0, opacity: 0 }}
+                       animate={{ height: "auto", opacity: 1 }}
+                       exit={{ height: 0, opacity: 0 }}
+                       transition={{ duration: 0.2 }}
+                       className="overflow-hidden"
+                     >
+                       <div className="mt-1 ml-3 pl-3 border-l-2 border-indigo-100 space-y-1">
+                         {[
+                           { label: "Posyandu Mawar I", tab: "posyandu-mawar-1" },
+                           { label: "Posyandu Mawar II", tab: "posyandu-mawar-2" },
+                           { label: "Posyandu Mawar III", tab: "posyandu-mawar-3" },
+                           { label: "Posyandu Mawar IV", tab: "posyandu-mawar-4" },
+                           { label: "Posyandu Mawar V", tab: "posyandu-mawar-5" },
+                           { label: "Posyandu Mawar VI", tab: "posyandu-mawar-6" },
+                           { label: "Posyandu Mawar VII", tab: "posyandu-mawar-7" },
+                         ].map(({ label, tab }) => (
+                           <Link
+                             key={tab}
+                             href={`/dashboard?tab=${tab}`}
+                             onClick={() => setIsOpen(false)}
+                             className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                               tabParam === tab ? "bg-indigo-500 text-white font-bold" : "text-slate-500 hover:bg-indigo-50 hover:text-indigo-800"
+                             }`}
+                           >
+                             <Baby size={16} />
+                             <span>{label}</span>
+                           </Link>
+                         ))}
+                       </div>
+                     </motion.div>
+                   )}
+                 </AnimatePresence>
+               </div>
+
+               {/* Laporan Karang Taruna */}
+               <Link
+                 href="/dashboard?tab=karang-taruna"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "karang-taruna"
+                     ? "bg-indigo-50 text-indigo-700 font-bold"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <UserCircle size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Laporan Karang Taruna</span>}
+               </Link>
+
+               {/* Laporan Kegiatan */}
+               <Link
+                 href="/dashboard?tab=laporan-kegiatan"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   tabParam === "laporan-kegiatan"
+                     ? "bg-indigo-50 text-indigo-700 font-bold"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <Activity size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Laporan Kegiatan</span>}
+               </Link>
+
+               {/* Pengaturan */}
+               <Link
+                 href="/dashboard/settings"
+                 onClick={() => setIsOpen(false)}
+                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                   pathname === "/dashboard/settings"
+                     ? "bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-600/20"
+                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+               >
+                 <Settings size={20} />
+                 {(!isCollapsed || isOpen) && <span className="text-sm">Pengaturan</span>}
+               </Link>
+             </div>
           ) : (
             // === ALL OTHER ROLES: Generic list ===
             <div className="space-y-1.5">

@@ -60,6 +60,8 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: getDynamicDevOrigins(),
   cacheComponents: true,
   reactCompiler: true, // Auto-memoization for much faster rendering
+  compress: true, // Enable gzip/brotli compression
+  productionBrowserSourceMaps: false, // Disable sourcemaps in production for smaller builds
   compiler: {
     removeConsole: isProd ? { exclude: ["error", "warn"] } : false,
   },
