@@ -171,50 +171,325 @@ export async function generateSurat(templateCode: string, wargaId: string, custo
     }
 }
 
-export async function getLetterTemplates() {
+const SKKM_DEFAULT_FORM_SCHEMA = [
+    { label: "1. Nomor Register (Sebelum - Kesra)", name: "no_register", type: "text", placeholder: "Contoh: 012", required: true },
+    { label: "2. Pilih Warga (Integrasi Data Kependudukan)", name: "warga_id", type: "warga_select", required: true },
+    { label: "3. Nama Lengkap", name: "nama", type: "text", required: true },
+    { label: "4. NIK (Otomatis & Dikunci)", name: "nik", type: "text", required: true, readonly: true },
+    { label: "5. Jenis Kelamin", name: "jenis_kelamin", type: "select", options: "LAKI-LAKI, PEREMPUAN", required: true },
+    { label: "6. Tempat Lahir", name: "tempat_lahir", type: "text", required: true },
+    { label: "7. Tanggal Lahir", name: "tgl_lahir", type: "date", required: true },
+    { label: "8. Kewarganegaraan", name: "kewarganegaraan", type: "select", options: "Indonesia, Asing (WNA)", default: "Indonesia", required: true },
+    { label: "9. Agama", name: "agama", type: "select", options: "Islam, Kristen, Katholik, Hindu, Buddha, Khonghucu", required: true },
+    { label: "10. Alamat (Cukup Kp. RT/RW, Suffix Desa & Kec. Otomatis)", name: "alamat", type: "text", placeholder: "Contoh: Kp. Ciaruteun RT.002 RW.002", required: true },
+    { label: "11. Nama Ayah Kandung", name: "nama_ayah", type: "text", required: true },
+    { label: "12. Nama Ibu Kandung", name: "nama_ibu", type: "text", required: true },
+    { label: "13. Nomor KK", name: "no_kk", type: "text", required: true },
+    { label: "14. Surat Pengantar RT & RW", name: "rt_rw_pengantar", type: "text", placeholder: "RT.002 RW.002", required: true },
+    { label: "15. Nomor / Tanggal Surat Pengantar", name: "no_tgl_pengantar", type: "text", placeholder: " /05/06/2026", required: true },
+    { label: "16. Keperluan Administrasi Pendidikan Di (Nama Sekolah)", name: "pendidikan_di", type: "text", placeholder: "Contoh: SMA NEGERI 1 CIBUNGBULANG", required: true },
+    { label: "17. Penandatangan (DIKUNCI)", name: "nama_penandatangan", type: "text", default: "FAJAR TRI APRIANA", readonly: true, required: true }
+];
+
+export async function ensureDefaultSKKMTemplate(targetTenantId?: string) {
+    try {
+        const firstTenant = await prisma.tenant.findFirst();
+        let validTenantId = targetTenantId;
+        if (!validTenantId || validTenantId === "default") {
+            validTenantId = firstTenant?.id;
+        }
+        
+        if (!validTenantId) {
+            const createdTenant = await prisma.tenant.upsert({
+                where: { domain: "desa-cimanggu-i" },
+                update: {},
+                create: { name: "Desa Cimanggu I", domain: "desa-cimanggu-i" }
+            });
+            validTenantId = createdTenant.id;
+        }
+
+        const existing = await prisma.letterTemplate.findFirst({
+            where: { code: "SKKM" }
+        });
+
+        const safeVars = JSON.parse(JSON.stringify([
+            "no_register", "nama", "nik", "tempat_lahir", "tgl_lahir",
+            "jenis_kelamin", "kewarganegaraan", "agama", "alamat",
+            "nama_ayah", "nama_ibu", "no_kk", "rt_rw_pengantar",
+            "no_tgl_pengantar", "pendidikan_di", "tanggal_surat", "nama_penandatangan"
+        ]));
+        const safeSchema = JSON.parse(JSON.stringify(SKKM_DEFAULT_FORM_SCHEMA));
+
+        if (!existing) {
+            await prisma.letterTemplate.create({
+                data: {
+                    tenantId: validTenantId,
+                    name: "SURAT KETERANGAN KELUARGA MISKIN",
+                    code: "SKKM",
+                    fileUrl: "/templates/SKKM.docx",
+                    variables: safeVars,
+                    formSchema: safeSchema
+                } as any
+            });
+            console.log("Successfully seeded SKKM template for tenant:", validTenantId);
+        } else {
+            // Update form schema to guarantee latest 17 fields match exact prompt specs
+            await prisma.letterTemplate.update({
+                where: { id: existing.id },
+                data: {
+                    name: "SURAT KETERANGAN KELUARGA MISKIN",
+                    variables: safeVars,
+                    formSchema: safeSchema
+                } as any
+            });
+        }
+    } catch (e) {
+        console.error("Error seeding default SKKM template:", e);
+    }
+}
+
+export async function getWargaListForSurat() {
     try {
         const session = await getServerSession(authOptions);
-        if (!session?.user) throw new Error("Unauthorized");
-        const tenantId = (session.user as { tenantId: string }).tenantId;
+        if (!session?.user) return [];
+        let tenantId = (session.user as any).tenantId;
 
-        return await prisma.letterTemplate.findMany({
-            where: { tenantId },
-            orderBy: { name: 'asc' }
+        const whereClause = tenantId ? { tenantId } : {};
+
+        return await prisma.dataKependudukan.findMany({
+            where: whereClause,
+            select: {
+                id: true,
+                nik: true,
+                noKK: true,
+                namaLengkap: true,
+                jenisKelamin: true,
+                tempatLahir: true,
+                tanggalLahir: true,
+                agama: true,
+                alamat: true,
+                rt: true,
+                rw: true,
+                namaAyah: true,
+                namaIbu: true
+            },
+            orderBy: { namaLengkap: 'asc' },
+            take: 200
         });
     } catch (error) {
+        console.error("Error fetching warga list for surat:", error);
         return [];
     }
 }
 
-export async function createLetterTemplate(data: { name: string, code: string, fileUrl: string, variables?: any, formSchema?: any }) {
+export async function getLetterTemplates() {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
-        const tenantId = (session.user as { tenantId: string }).tenantId;
+        let tenantId = (session.user as any).tenantId;
 
-        return await prisma.letterTemplate.create({
-            data: {
-                ...data,
-                tenantId
-            }
+        const firstTenant = await prisma.tenant.findFirst();
+        if (!tenantId) {
+            tenantId = firstTenant?.id;
+        }
+
+        await ensureDefaultSKKMTemplate(tenantId);
+
+        return await prisma.letterTemplate.findMany({
+            orderBy: { name: 'asc' }
         });
-    } catch (error) {
-        throw error;
+    } catch (error: any) {
+        console.error("Error in getLetterTemplates:", error);
+        return [];
     }
 }
 
-export async function updateLetterTemplate(id: string, data: { name: string, code: string, fileUrl?: string, variables?: any, formSchema?: any }) {
+export async function createLetterTemplate(data: { name: string, code?: string, fileUrl?: string, variables?: any, formSchema?: any }) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
-        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        let tenantId = (session.user as any).tenantId;
+        if (!tenantId) {
+            const systemTenant = await prisma.tenant.findFirst();
+            tenantId = systemTenant?.id || "default";
+        }
+
+        const name = (data.name || "Template Surat Baru").trim();
+        let rawCode = (data.code || name).trim().toUpperCase().replace(/[^A-Z0-9_]/g, "_");
+        if (!rawCode) rawCode = `SURAT_${Date.now().toString().slice(-4)}`;
+
+        // Ensure unique code
+        let cleanCode = rawCode;
+        const existing = await prisma.letterTemplate.findFirst({
+            where: { code: cleanCode }
+        });
+        if (existing) {
+            cleanCode = `${rawCode}_${Date.now().toString().slice(-4)}`;
+        }
+
+        const fileUrl = data.fileUrl || `/templates/${cleanCode}.docx`;
+
+        // Format variables
+        let safeVariables: any = undefined;
+        if (Array.isArray(data.variables)) {
+            safeVariables = data.variables;
+        } else if (typeof data.variables === "string" && data.variables.trim()) {
+            safeVariables = data.variables.split(",").map((v: string) => v.trim()).filter(Boolean);
+        }
+
+        // Format formSchema
+        let safeFormSchema: any = undefined;
+        if (data.formSchema && Array.isArray(data.formSchema) && data.formSchema.length > 0) {
+            safeFormSchema = JSON.parse(JSON.stringify(data.formSchema));
+        }
+
+        const createData: any = {
+            name,
+            code: cleanCode,
+            fileUrl,
+            tenantId
+        };
+
+        if (safeVariables !== undefined) {
+            createData.variables = safeVariables;
+        }
+        if (safeFormSchema !== undefined) {
+            createData.formSchema = safeFormSchema;
+        }
+
+        return await prisma.letterTemplate.create({
+            data: createData
+        });
+    } catch (error: any) {
+        console.error("Error creating letter template:", error);
+        throw new Error(error?.message || "Gagal membuat template surat.");
+    }
+}
+
+export async function updateLetterTemplate(id: string, data: { name?: string, code?: string, fileUrl?: string, variables?: any, formSchema?: any }) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        const updateData: any = {};
+        if (data.name) updateData.name = data.name.trim();
+        if (data.code) updateData.code = data.code.trim().toUpperCase().replace(/[^A-Z0-9_]/g, "_");
+        if (data.fileUrl) updateData.fileUrl = data.fileUrl;
+
+        if (data.variables !== undefined) {
+            let safeVars: any[] = [];
+            if (Array.isArray(data.variables)) safeVars = data.variables;
+            else if (typeof data.variables === "string" && data.variables.trim()) {
+                safeVars = data.variables.split(",").map((v: string) => v.trim()).filter(Boolean);
+            }
+            updateData.variables = JSON.parse(JSON.stringify(safeVars));
+        }
+
+        if (data.formSchema !== undefined) {
+            let safeFields: any[] = [];
+            if (Array.isArray(data.formSchema)) safeFields = data.formSchema;
+            updateData.formSchema = JSON.parse(JSON.stringify(safeFields));
+        }
 
         return await prisma.letterTemplate.update({
-            where: { id, tenantId },
-            data
+            where: { id },
+            data: updateData
         });
-    } catch (error) {
-        throw error;
+    } catch (error: any) {
+        console.error("Error updating letter template:", error);
+        throw new Error(error?.message || "Gagal mengupdate template surat.");
+    }
+}
+
+export async function autoGenerateFormFields(templateId: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+
+        const template = await prisma.letterTemplate.findUnique({
+            where: { id: templateId }
+        });
+        if (!template) throw new Error("Template tidak ditemukan.");
+
+        let vars: string[] = [];
+        if (Array.isArray(template.variables) && (template.variables as any[]).length > 0) {
+            vars = (template.variables as any[]).map(v => String(v));
+        } else {
+            // Read docx file from public directory safely
+            const relativePath = template.fileUrl.startsWith("/") ? template.fileUrl.slice(1) : template.fileUrl;
+            const filePath = path.join(process.cwd(), "public", relativePath);
+            
+            if (fs.existsSync(filePath)) {
+                const content = fs.readFileSync(filePath, "binary");
+                const zip = new PizZip(content);
+                const xml = zip.file("word/document.xml")?.asText() || "";
+                // Match docxtemplater variables like {{nama}}, {nik}, etc.
+                const matches = xml.match(/\{{1,2}\s*([a-zA-Z0-9_]+)\s*\}}{1,2}/g) || [];
+                vars = Array.from(new Set(matches.map(m => m.replace(/[\{\}]/g, "").trim())));
+            }
+        }
+
+        if (vars.length === 0) {
+            vars = ["nama", "nik", "tempat_lahir", "tgl_lahir", "jenis_kelamin", "pekerjaan", "alamat", "rt", "rw", "keperluan"];
+        }
+
+        // Map variables to intelligent form fields
+        const fields = vars.map(v => {
+            const clean = String(v).toLowerCase();
+            let label = clean.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            let type: "text" | "textarea" | "date" | "number" | "select" = "text";
+            let options = "";
+
+            if (clean.includes("tgl") || clean.includes("tanggal")) {
+                type = "date";
+            } else if (clean.includes("alamat") || clean.includes("keterangan") || clean.includes("keperluan") || clean.includes("alasan")) {
+                type = "textarea";
+            } else if (clean.includes("rt") || clean.includes("rw") || clean.includes("jumlah") || clean.includes("penghasilan") || clean.includes("umur") || clean.includes("usia")) {
+                type = "number";
+            } else if (clean.includes("kelamin") || clean.includes("jk")) {
+                type = "select";
+                options = "LAKI-LAKI, PEREMPUAN";
+            } else if (clean.includes("agama")) {
+                type = "select";
+                options = "ISLAM, KRISTEN, KATHOLIK, HINDU, BUDDHA, KHONGHUCU";
+            } else if (clean.includes("status_kawin") || clean.includes("perkawinan")) {
+                type = "select";
+                options = "BELUM KAWIN, KAWIN, CERAI HIDUP, CERAI MATI";
+            } else if (clean.includes("status_usaha") || clean.includes("milik")) {
+                type = "select";
+                options = "Milik Sendiri, Sewa, Warisan";
+            }
+
+            return {
+                label,
+                name: String(v),
+                type,
+                options,
+                required: true
+            };
+        });
+
+        const safeFields = JSON.parse(JSON.stringify(fields));
+        const safeVars = JSON.parse(JSON.stringify(vars));
+
+        // Save generated fields to database template
+        try {
+            await prisma.letterTemplate.update({
+                where: { id: templateId },
+                data: { 
+                    formSchema: safeFields, 
+                    variables: safeVars 
+                } as any
+            });
+        } catch (dbErr) {
+            console.error("DB update error in autoGenerateFormFields:", dbErr);
+        }
+
+        return { success: true, fields: safeFields, variables: safeVars };
+    } catch (error: any) {
+        console.error("Error auto-generating form fields:", error);
+        return { success: false, error: error.message || "Gagal membuat form otomatis." };
     }
 }
 

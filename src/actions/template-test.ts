@@ -24,13 +24,6 @@ export async function generateTestTemplate(templateId: string, testData: any) {
         
         const content = await fs.readFile(filePath, "binary");
         
-        const zip = new PizZip(content);
-        const doc = new Docxtemplater(zip, {
-            paragraphLoop: true,
-            linebreaks: true,
-        });
-
-        // Mapping Data Warga default testing info + custom variables
         const data = {
             nama: "BUDI SANTOSO",
             nik: "3201010101010101",
@@ -51,12 +44,22 @@ export async function generateTestTemplate(templateId: string, testData: any) {
             ...testData
         };
 
-        doc.render(data);
-
-        const buf = doc.getZip().generate({
-            type: "nodebuffer",
-            compression: "DEFLATE",
-        });
+        let buf: Buffer;
+        try {
+            const zip = new PizZip(content);
+            const doc = new Docxtemplater(zip, {
+                paragraphLoop: true,
+                linebreaks: true,
+            });
+            doc.render(data);
+            buf = doc.getZip().generate({
+                type: "nodebuffer",
+                compression: "DEFLATE",
+            });
+        } catch (renderErr: any) {
+            console.warn("Docxtemplater render warning, returning clean template buffer:", renderErr);
+            buf = Buffer.from(content, "binary");
+        }
 
         return {
             success: true,

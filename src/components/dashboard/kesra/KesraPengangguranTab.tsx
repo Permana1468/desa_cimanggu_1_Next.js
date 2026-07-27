@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Search, Briefcase, FileText, Printer, Loader2, Sparkles, GraduationCap } from "lucide-react";
+import { Plus, Trash2, Search, Briefcase, Printer, Loader2, Sparkles, GraduationCap } from "lucide-react";
 import { getKesraPengangguranList, addKesraPengangguran, deleteKesraPengangguran, getKesraKependudukanList } from "@/actions/kesra";
 
-export function KesraPengangguranTab({ session }: any) {
+export function KesraPengangguranTab({ _session }: any) {
   const [data, setData] = useState<any[]>([]);
   const [kependudukan, setKependudukan] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

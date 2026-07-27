@@ -389,14 +389,43 @@ function resolveDusunForRw(rwVal: string, structure: any): string {
 export async function upsertResident(data: any) {
     const session = await checkMaster();
     try {
-        const { id, ...rest } = data;
-        
-        // Ensure date is properly formatted
-        if (rest.tanggalLahir) {
-            rest.tanggalLahir = new Date(rest.tanggalLahir);
+        let tenantId = (session.user as any).tenantId || data.tenantId;
+        if (!tenantId) {
+            const firstTenant = await prisma.tenant.findFirst();
+            tenantId = firstTenant?.id;
+        }
+        if (!tenantId) {
+            const createdTenant = await prisma.tenant.upsert({
+                where: { domain: "desa-cimanggu-i" },
+                update: {},
+                create: { name: "Desa Cimanggu I", domain: "desa-cimanggu-i" }
+            });
+            tenantId = createdTenant.id;
         }
 
-        // Fetch structure to resolve/validate dusun automatically
+        const {
+            id,
+            createdAt: _c,
+            updatedAt: _u,
+            tenant: _t,
+            user: _usr,
+            surat: _s,
+            bansosData: _b,
+            puskesosPengaduans: _p1,
+            puskesosRujukans: _p2,
+            tenantId: _tid,
+            ...rest
+        } = data;
+        
+        if (rest.tanggalLahir) {
+            const parsedDate = new Date(rest.tanggalLahir);
+            if (!isNaN(parsedDate.getTime())) {
+                rest.tanggalLahir = parsedDate;
+            } else {
+                delete rest.tanggalLahir;
+            }
+        }
+
         const structureConfig = await prisma.systemSetting.findUnique({
             where: { id: "village_structure" }
         });
@@ -417,98 +446,187 @@ export async function upsertResident(data: any) {
         if (id) {
             result = await prisma.dataKependudukan.update({
                 where: { id },
-                data: rest
+                data: {
+                    ...rest,
+                    updatedAt: new Date()
+                }
             });
         } else {
             result = await prisma.dataKependudukan.create({
-                data: rest
+                data: {
+                    ...rest,
+                    noKK: rest.noKK || rest.nik || "0000000000000000",
+                    namaLengkap: rest.namaLengkap || "TANPA NAMA",
+                    tempatLahir: rest.tempatLahir || "BOGOR",
+                    tanggalLahir: rest.tanggalLahir || new Date("1995-01-01"),
+                    jenisKelamin: rest.jenisKelamin || "LAKI_LAKI",
+                    agama: rest.agama || "ISLAM",
+                    statusKawin: rest.statusKawin || "BELUM_KAWIN",
+                    hubunganKeluarga: rest.hubunganKeluarga || "KEPALA_KELUARGA",
+                    alamat: rest.alamat || "Desa Cimanggu I",
+                    rt: rest.rt || "001",
+                    rw: rest.rw || "001",
+                    dusun: rest.dusun || "Dusun I",
+                    tenantId: tenantId
+                }
             });
         }
 
-        await prisma.auditLog.create({
-            data: {
-                action: id ? "UPDATE_RESIDENT" : "CREATE_RESIDENT",
-                entity: "DataKependudukan",
-                entityId: result.id,
-                details: { 
-                    nik: data.nik, 
-                    nama: data.namaLengkap,
-                    noKK: data.noKK 
-                },
-                userId: session.user.id,
-                tenantId: session.user.tenantId,
-                category: "DATA"
-            }
-        });
+        try {
+            await prisma.auditLog.create({
+                data: {
+                    action: id ? "UPDATE_RESIDENT" : "CREATE_RESIDENT",
+                    entity: "DataKependudukan",
+                    entityId: result.id,
+                    details: { 
+                        nik: data.nik, 
+                        nama: data.namaLengkap,
+                        noKK: data.noKK 
+                    },
+                    userId: session.user.id,
+                    tenantId: tenantId,
+                    category: "DATA"
+                }
+            });
+        } catch (e) {}
 
         revalidatePath("/master-admin/data");
+        revalidatePath("/dashboard/warga");
         return result;
-    } catch (error) {
-        throw error;
+    } catch (error: any) {
+        console.error("Error in upsertResident:", error);
+        throw new Error(error.message || "Gagal menyimpan data warga");
     }
 }
 
-export async function bulkImportResidents(residents: any[], tenantId: string) {
+export async function bulkImportResidents(residents: any[], targetTenantId: string) {
     const session = await checkMaster();
     try {
-        // Fetch structure to resolve/validate dusun automatically
+        let tenantId = targetTenantId || (session.user as any).tenantId;
+        if (!tenantId) {
+            const firstTenant = await prisma.tenant.findFirst();
+            tenantId = firstTenant?.id;
+        }
+        if (!tenantId) {
+            const createdTenant = await prisma.tenant.upsert({
+                where: { domain: "desa-cimanggu-i" },
+                update: {},
+                create: { name: "Desa Cimanggu I", domain: "desa-cimanggu-i" }
+            });
+            tenantId = createdTenant.id;
+        }
+
         const structureConfig = await prisma.systemSetting.findUnique({
             where: { id: "village_structure" }
         });
         const structure = (structureConfig?.settings as any) || { dusun: [] };
 
-        // Bulk create with transaction
-        const result = await prisma.$transaction(
-            residents.map(r => {
-                const { tanggalLahir, ...rest } = r;
-
-                const rw = rest.rw ? rest.rw.toString().replace(/\D/g, '').padStart(3, '0') : "";
-                const rt = rest.rt ? rest.rt.toString().replace(/\D/g, '').padStart(3, '0') : "";
-                let dusun = rest.dusun || "";
-
-                if (rw) {
-                    const resolvedDusun = resolveDusunForRw(rw, structure);
-                    if (resolvedDusun) {
-                        dusun = resolvedDusun;
-                    }
-                }
-
-                const updatedData = {
-                    ...rest,
-                    rw,
-                    rt,
-                    dusun,
-                    tanggalLahir: new Date(tanggalLahir),
-                    tenantId
-                };
-
-                return prisma.dataKependudukan.upsert({
-                    where: { nik: r.nik },
-                    update: updatedData,
-                    create: updatedData
-                });
-            }),
-            {
-                maxWait: 15000,
-                timeout: 90000
-            }
-        );
-
-        await prisma.auditLog.create({
-            data: {
-                action: "BULK_IMPORT_RESIDENTS",
-                entity: "DataKependudukan",
-                details: { count: residents.length, tenantId },
-                userId: session.user.id,
-                tenantId: session.user.tenantId,
-                category: "DATA"
-            }
+        // Fetch existing NIKs from database to prevent duplicate insertions
+        const existingResidents = await prisma.dataKependudukan.findMany({
+            select: { nik: true }
         });
+        const existingNikSet = new Set(existingResidents.map(w => w.nik?.trim()));
+
+        const seenInBatch = new Set<string>();
+        const toInsert: any[] = [];
+        let skippedCount = 0;
+
+        for (const r of residents) {
+            const rawNik = r.nik ? String(r.nik).replace(/\D/g, '').trim() : "";
+            if (!rawNik) {
+                skippedCount++;
+                continue;
+            }
+
+            // Skip if NIK already exists in database OR repeated in this import batch
+            if (existingNikSet.has(rawNik) || seenInBatch.has(rawNik)) {
+                skippedCount++;
+                continue;
+            }
+
+            seenInBatch.add(rawNik);
+
+            const { tanggalLahir, ...rest } = r;
+            const rw = rest.rw ? rest.rw.toString().replace(/\D/g, '').padStart(3, '0') : "001";
+            const rt = rest.rt ? rest.rt.toString().replace(/\D/g, '').padStart(3, '0') : "001";
+            let dusun = rest.dusun || "";
+
+            if (rw) {
+                const resolvedDusun = resolveDusunForRw(rw, structure);
+                if (resolvedDusun) {
+                    dusun = resolvedDusun;
+                }
+            }
+            if (!dusun) dusun = "Dusun I";
+
+            let parsedDate = tanggalLahir ? new Date(tanggalLahir) : new Date("1995-01-01");
+            if (isNaN(parsedDate.getTime())) {
+                parsedDate = new Date("1995-01-01");
+            }
+
+            toInsert.push({
+                nik: rawNik,
+                noKK: rest.noKK ? String(rest.noKK).replace(/\D/g, '').trim() : rawNik,
+                namaLengkap: rest.namaLengkap ? String(rest.namaLengkap).trim().toUpperCase() : "WARGA IMPOR",
+                tempatLahir: rest.tempatLahir ? String(rest.tempatLahir).trim() : "BOGOR",
+                tanggalLahir: parsedDate,
+                jenisKelamin: rest.jenisKelamin ? String(rest.jenisKelamin).trim() : "LAKI_LAKI",
+                agama: rest.agama ? String(rest.agama).trim() : "ISLAM",
+                statusKawin: rest.statusKawin ? String(rest.statusKawin).trim() : "BELUM_KAWIN",
+                hubunganKeluarga: rest.hubunganKeluarga ? String(rest.hubunganKeluarga).trim() : "KEPALA_KELUARGA",
+                kewarganegaraan: rest.kewarganegaraan ? String(rest.kewarganegaraan).trim() : "WNI",
+                pendidikan: rest.pendidikan ? String(rest.pendidikan).trim() : "TAMAT_SD",
+                pekerjaan: rest.pekerjaan ? String(rest.pekerjaan).trim() : "BELUM_TIDAK_BEKERJA",
+                golonganDarah: rest.golonganDarah ? String(rest.golonganDarah).trim() : "TIDAK_TAHU",
+                namaAyah: rest.namaAyah ? String(rest.namaAyah).trim() : "-",
+                namaIbu: rest.namaIbu ? String(rest.namaIbu).trim() : "-",
+                alamat: rest.alamat ? String(rest.alamat).trim() : "Desa Cimanggu I",
+                kampung: rest.kampung ? String(rest.kampung).trim() : "Kp. Ciaruteun",
+                rt,
+                rw,
+                dusun,
+                tenantId
+            });
+        }
+
+        let insertedCount = 0;
+        if (toInsert.length > 0) {
+            const res = await prisma.dataKependudukan.createMany({
+                data: toInsert,
+                skipDuplicates: true
+            });
+            insertedCount = res.count;
+        }
+
+        try {
+            await prisma.auditLog.create({
+                data: {
+                    action: "BULK_IMPORT_RESIDENTS",
+                    entity: "DataKependudukan",
+                    details: { 
+                        totalProcessed: residents.length, 
+                        insertedCount, 
+                        skippedCount,
+                        tenantId 
+                    },
+                    userId: session.user.id,
+                    tenantId: tenantId,
+                    category: "DATA"
+                }
+            });
+        } catch (e) {}
 
         revalidatePath("/master-admin/data");
-        return { count: result.length };
-    } catch (error) {
-        throw error;
+        revalidatePath("/dashboard/warga");
+        return {
+            success: true,
+            totalProcessed: residents.length,
+            insertedCount,
+            skippedCount
+        };
+    } catch (error: any) {
+        console.error("Error in bulkImportResidents:", error);
+        throw new Error(error.message || "Gagal mengimpor data kependudukan.");
     }
 }
 

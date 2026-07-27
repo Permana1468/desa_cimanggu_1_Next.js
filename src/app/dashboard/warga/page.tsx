@@ -217,8 +217,8 @@ export default function WargaManagementPage() {
             setShowModal(false);
             setEditingId(null);
             handleSearch();
-        } catch (error) {
-            alert("Terjadi kesalahan.");
+        } catch (error: any) {
+            alert("Gagal menyimpan data: " + (error.message || "Terjadi kesalahan sistem."));
         } finally {
             setSaving(false);
         }

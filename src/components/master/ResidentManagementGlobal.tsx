@@ -867,8 +867,8 @@ export function ResidentManagementGlobal({ initialResidents, tenants, villageStr
                 return;
             }
 
-            await bulkImportResidents(formattedData, formData.tenantId);
-            alert(`Berhasil mengimpor ${formattedData.length} data kependudukan!`);
+            const res = await bulkImportResidents(formattedData, formData.tenantId);
+            alert(`Impor data kependudukan selesai!\n\n• Total Data Diolah: ${res.totalProcessed || formattedData.length}\n• Data Baru Ditambahkan: ${res.insertedCount || 0}\n• Data Duplikat Dilewati: ${res.skippedCount || 0}`);
             window.location.reload(); 
         } catch (error: any) {
             console.error("Import Error: ", error);

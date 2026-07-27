@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, Plus, FileText, Download, Loader2, Printer, Trash2, Edit2, Activity, CheckCircle } from "lucide-react";
+import { Search, Plus, Download, Loader2, Printer, Trash2, Edit2, Activity, CheckCircle, FileText } from "lucide-react";
 import { getKesraUsulanUhcList, addKesraUsulanUhc, updateKesraUsulanUhc, deleteKesraUsulanUhc, updateKesraUsulanUhcStatus, getKesraKependudukanList } from "@/actions/kesra";
 import { backupUhcToDrive, wipeUhcData } from "@/actions/backup";
 import { CetakUsulanUhc } from "./CetakUsulanUhc";
@@ -27,7 +27,7 @@ const PARAM_OPTIONS = {
     param14: ["Mampu membayar Iuran JKN terendah secara mandiri", "Iuran JKN dibayarkan pihak lain", "Tidak Mampu membayar Iuran JKN/Tidak Memiliki JKN"]
 };
 
-export function KesraUsulanUhcTab({ session }: any) {
+export function KesraUsulanUhcTab({ _session }: any) {
   const [data, setData] = useState<any[]>([]);
   const [kependudukan, setKependudukan] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -398,7 +398,7 @@ export function KesraUsulanUhcTab({ session }: any) {
               <strong className="text-red-700">PERINGATAN:</strong> Tindakan ini akan menghapus <b>SEMUA</b> data Usulan UHC beserta file fotonya dari database dan server internal secara permanen. Lakukan ini <b>HANYA</b> jika Anda telah berhasil melakukan Backup ke Google Drive.
             </p>
             <div className="mb-4">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Ketik "SAYA YAKIN" untuk konfirmasi</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Ketik &quot;SAYA YAKIN&quot; untuk konfirmasi</label>
               <input 
                 type="text" 
                 value={wipeConfirm} 
@@ -421,7 +421,7 @@ export function KesraUsulanUhcTab({ session }: any) {
   );
 }
 
-export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }: any) {
+export function ModalUsulanUhc({ onClose, onRefresh, _kependudukan, initialData }: any) {
   const [loading, setLoading] = useState(false);
   const isCustomInitial = initialData?.rujukan?.startsWith("CUSTOM|");
   const initialRujukan = isCustomInitial ? "LAINNYA" : (initialData?.rujukan || "");

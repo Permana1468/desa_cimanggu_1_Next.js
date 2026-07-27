@@ -25,7 +25,7 @@ function HoverMask({ value }: { value: string }) {
   );
 }
 
-export function KesraKependudukanTab({ session }: any) {
+export function KesraKependudukanTab({ _session }: any) {
   const [warga, setWarga] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

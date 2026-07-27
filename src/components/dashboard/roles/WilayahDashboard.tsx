@@ -506,8 +506,8 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
       }
       setShowModal(false);
       loadWarga();
-    } catch (err) {
-      alert("Terjadi kesalahan data.");
+    } catch (err: any) {
+      alert("Gagal menyimpan data: " + (err?.message || "Terjadi kesalahan data."));
     }
   };
 

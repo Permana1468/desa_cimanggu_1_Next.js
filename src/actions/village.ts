@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { StatusSurat } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { revalidatePath } from "next/cache";
 import { buildWilayahFilterScope, buildReportFilterScope } from "./rt";
 
 function cleanDigits(val: string): string {
@@ -235,8 +236,22 @@ function resolveDusunForRw(rwVal: string, structure: any): string {
 export async function addWarga(data: any) {
     try {
         const session = await getServerSession(authOptions);
-        if (!session?.user) throw new Error("Unauthorized");
-        const tenantId = (session.user as { tenantId: string }).tenantId;
+        if (!session?.user) throw new Error("Unauthorized: Harap login terlebih dahulu.");
+
+        let tenantId = (session.user as any).tenantId;
+        if (!tenantId) {
+            const firstTenant = await prisma.tenant.findFirst();
+            tenantId = firstTenant?.id;
+        }
+        if (!tenantId) {
+            const createdTenant = await prisma.tenant.upsert({
+                where: { domain: "desa-cimanggu-i" },
+                update: {},
+                create: { name: "Desa Cimanggu I", domain: "desa-cimanggu-i" }
+            });
+            tenantId = createdTenant.id;
+        }
+
         const role = (session.user as any).role;
         const userRt = (session.user as any).rt;
         const userRw = (session.user as any).rw;
@@ -250,11 +265,9 @@ export async function addWarga(data: any) {
             rw = userRw;
         }
 
-        // Pad RT/RW
         if (rt) rt = rt.toString().replace(/\D/g, '').padStart(3, '0');
         if (rw) rw = rw.toString().replace(/\D/g, '').padStart(3, '0');
 
-        // Fetch structure to resolve/validate dusun automatically
         const structureConfig = await prisma.systemSetting.findUnique({
             where: { id: "village_structure" }
         });
@@ -267,18 +280,81 @@ export async function addWarga(data: any) {
                 dusun = resolvedDusun;
             }
         }
+        if (!dusun) dusun = "Dusun I";
 
-        return await prisma.dataKependudukan.create({
-            data: {
-                ...data,
-                rt,
-                rw,
-                dusun,
-                tenantId
+        const {
+            id: _id,
+            createdAt: _c,
+            updatedAt: _u,
+            tenant: _t,
+            user: _usr,
+            surat: _s,
+            bansosData: _b,
+            puskesosPengaduans: _p1,
+            puskesosRujukans: _p2,
+            tenantId: _tid,
+            ...cleanData
+        } = data;
+
+        let tanggalLahir = cleanData.tanggalLahir;
+        if (tanggalLahir) {
+            tanggalLahir = new Date(tanggalLahir);
+            if (isNaN(tanggalLahir.getTime())) {
+                tanggalLahir = new Date("1995-01-01");
             }
+        } else {
+            tanggalLahir = new Date("1995-01-01");
+        }
+
+        const nikStr = cleanData.nik ? String(cleanData.nik).trim() : "";
+        if (!nikStr) {
+            throw new Error("NIK wajib diisi!");
+        }
+
+        const existingNik = await prisma.dataKependudukan.findUnique({
+            where: { nik: nikStr }
         });
-    } catch (error) {
-        throw error;
+        if (existingNik) {
+            throw new Error(`NIK ${nikStr} sudah terdaftar atas nama ${existingNik.namaLengkap}.`);
+        }
+
+        const payload: any = {
+            nik: nikStr,
+            noKK: cleanData.noKK ? String(cleanData.noKK).trim() : (nikStr || "0000000000000000"),
+            namaLengkap: cleanData.namaLengkap ? String(cleanData.namaLengkap).trim().toUpperCase() : "TANPA NAMA",
+            tempatLahir: cleanData.tempatLahir ? String(cleanData.tempatLahir).trim() : "BOGOR",
+            tanggalLahir: tanggalLahir,
+            jenisKelamin: cleanData.jenisKelamin ? String(cleanData.jenisKelamin).trim() : "LAKI_LAKI",
+            agama: cleanData.agama ? String(cleanData.agama).trim() : "ISLAM",
+            statusKawin: cleanData.statusKawin ? String(cleanData.statusKawin).trim() : "BELUM_KAWIN",
+            hubunganKeluarga: cleanData.hubunganKeluarga ? String(cleanData.hubunganKeluarga).trim() : "KEPALA_KELUARGA",
+            kewarganegaraan: cleanData.kewarganegaraan ? String(cleanData.kewarganegaraan).trim() : "WNI",
+            pendidikan: cleanData.pendidikan ? String(cleanData.pendidikan).trim() : "TAMAT_SD",
+            pekerjaan: cleanData.pekerjaan ? String(cleanData.pekerjaan).trim() : "BELUM_TIDAK_BEKERJA",
+            golonganDarah: cleanData.golonganDarah ? String(cleanData.golonganDarah).trim() : "TIDAK_TAHU",
+            namaAyah: cleanData.namaAyah ? String(cleanData.namaAyah).trim() : "-",
+            namaIbu: cleanData.namaIbu ? String(cleanData.namaIbu).trim() : "-",
+            alamat: cleanData.alamat ? String(cleanData.alamat).trim() : "Desa Cimanggu I",
+            kampung: cleanData.kampung ? String(cleanData.kampung).trim() : "Kp. Ciaruteun",
+            rt: rt || "001",
+            rw: rw || "001",
+            dusun: dusun,
+            tenantId: tenantId
+        };
+
+        const result = await prisma.dataKependudukan.create({
+            data: payload
+        });
+
+        revalidatePath("/dashboard/warga");
+        revalidatePath("/dashboard");
+        revalidatePath("/master-admin/data");
+        revalidatePath("/dashboard/kesra");
+        revalidatePath("/dashboard/surat");
+        return result;
+    } catch (error: any) {
+        console.error("Error in addWarga:", error);
+        throw new Error(error.message || "Gagal menambahkan data warga");
     }
 }
 
@@ -314,11 +390,9 @@ export async function updateWarga(id: string, data: any) {
             rw = userRw;
         }
 
-        // Pad RT/RW
         if (rt) rt = rt.toString().replace(/\D/g, '').padStart(3, '0');
         if (rw) rw = rw.toString().replace(/\D/g, '').padStart(3, '0');
 
-        // Fetch structure to resolve/validate dusun automatically
         const structureConfig = await prisma.systemSetting.findUnique({
             where: { id: "village_structure" }
         });
@@ -332,18 +406,51 @@ export async function updateWarga(id: string, data: any) {
             }
         }
 
-        return await prisma.dataKependudukan.update({
+        const {
+            id: _id,
+            createdAt: _c,
+            updatedAt: _u,
+            tenant: _t,
+            user: _usr,
+            surat: _s,
+            bansosData: _b,
+            puskesosPengaduans: _p1,
+            puskesosRujukans: _p2,
+            tenantId: _tid,
+            ...cleanData
+        } = data;
+
+        let tanggalLahir = cleanData.tanggalLahir;
+        if (tanggalLahir) {
+            tanggalLahir = new Date(tanggalLahir);
+            if (isNaN(tanggalLahir.getTime())) {
+                delete cleanData.tanggalLahir;
+            } else {
+                cleanData.tanggalLahir = tanggalLahir;
+            }
+        }
+
+        if (rt) cleanData.rt = rt;
+        if (rw) cleanData.rw = rw;
+        if (dusun) cleanData.dusun = dusun;
+
+        const result = await prisma.dataKependudukan.update({
             where: { id },
             data: {
-                ...data,
-                rt,
-                rw,
-                dusun,
+                ...cleanData,
                 updatedAt: new Date()
             }
         });
-    } catch (error) {
-        throw error;
+
+        revalidatePath("/dashboard/warga");
+        revalidatePath("/dashboard");
+        revalidatePath("/master-admin/data");
+        revalidatePath("/dashboard/kesra");
+        revalidatePath("/dashboard/surat");
+        return result;
+    } catch (error: any) {
+        console.error("Error in updateWarga:", error);
+        throw new Error(error.message || "Gagal memperbarui data warga");
     }
 }
 
@@ -370,9 +477,16 @@ export async function deleteWarga(id: string) {
             }
         }
 
-        return await prisma.dataKependudukan.delete({
+        const deleted = await prisma.dataKependudukan.delete({
             where: { id }
         });
+
+        revalidatePath("/dashboard/warga");
+        revalidatePath("/dashboard");
+        revalidatePath("/master-admin/data");
+        revalidatePath("/dashboard/kesra");
+        revalidatePath("/dashboard/surat");
+        return deleted;
     } catch (error) {
         throw error;
     }

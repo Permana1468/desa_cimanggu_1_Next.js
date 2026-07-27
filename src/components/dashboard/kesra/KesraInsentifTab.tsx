@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Search, Banknote, Landmark, CheckSquare, Award, Check, FileText, Loader2, Sparkles } from "lucide-react";
+import { Trash2, FileText, Landmark, Plus, Banknote, Loader2, Sparkles, Search } from "lucide-react";
 import { getKesraInsentifList, addKesraInsentif, deleteKesraInsentif, payInsentifBulk } from "@/actions/kesra";
 
-export function KesraInsentifTab({ session }: any) {
+export function KesraInsentifTab({ _session }: any) {
   const [petugas, setPetugas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");

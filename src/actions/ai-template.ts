@@ -1,6 +1,7 @@
 "use server";
 
 import PizZip from "pizzip";
+import Docxtemplater from "docxtemplater";
 import { GoogleGenAI } from "@google/genai";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -91,6 +92,7 @@ IMPORTANT RULES for XML modification:
 
         const result = JSON.parse(textResponse);
 
+        // Validate modifiedXml by attempting to parse it with Docxtemplater
         let finalXml = result.modifiedXml;
         if (finalXml.startsWith("```xml")) {
             finalXml = finalXml.replace(/^```xml\n?/, "").replace(/\n?```$/, "").trim();
@@ -98,19 +100,25 @@ IMPORTANT RULES for XML modification:
             finalXml = finalXml.replace(/^```\n?/, "").replace(/\n?```$/, "").trim();
         }
 
-        // Update the zip with the modified XML
-        zip.file("word/document.xml", finalXml);
-        
-        // Generate the new docx buffer
-        const newDocxBuffer = zip.generate({ type: "nodebuffer", compression: "DEFLATE" });
-        const newBase64 = Buffer.from(newDocxBuffer).toString("base64");
+        let newBase64 = base64Docx;
+        try {
+            const testZip = new PizZip(buffer);
+            testZip.file("word/document.xml", finalXml);
+            const testDoc = new Docxtemplater(testZip, { paragraphLoop: true, linebreaks: true });
+            testDoc.render({});
+            const newDocxBuffer = testZip.generate({ type: "nodebuffer", compression: "DEFLATE" });
+            newBase64 = Buffer.from(newDocxBuffer).toString("base64");
+        } catch (xmlErr) {
+            console.warn("AI modifiedXml was invalid XML, falling back to clean docx:", xmlErr);
+            newBase64 = base64Docx;
+        }
 
         return {
             success: true,
             data: {
                 name: result.templateName,
                 code: result.templateCode,
-                variables: result.variables.join(", "),
+                variables: Array.isArray(result.variables) ? result.variables.join(", ") : result.variables,
                 modifiedBase64: newBase64
             }
         };

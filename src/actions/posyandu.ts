@@ -1,4 +1,5 @@
 "use server";
+// Triggering Next.js Turbopack HMR cache clearing
 
 import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
@@ -14,8 +15,10 @@ async function verifyPosyanduAccess(posyanduFilter?: string) {
     const rwString = (session.user as any).rw;
     const tenantId = (session.user as any).tenantId;
 
-    if (!["POSYANDU", "RW", "ADMIN_DESA", "KADES", "SEKDES", "KASI_KESEJAHTERAAN", "TP_PKK", "ADMIN_MASTER"].includes(role)) {
-        throw new Error("Akses ditolak. Fitur ini khusus untuk Posyandu dan Administrator.");
+    const isAllowedRole = ["POSYANDU", "RW", "ADMIN_DESA", "KADES", "SEKDES", "KASI_KESEJAHTERAAN", "KASI_PELAYANAN", "TP_PKK", "ADMIN_MASTER", "SYSTEM_ADMIN", "KASI", "KAUR"].includes(role) || role?.startsWith("KASI");
+
+    if (!isAllowedRole) {
+        throw new Error(`Akses ditolak. Fitur ini khusus untuk Posyandu dan Administrator. Role Anda: ${role}`);
     }
 
     let rws: string[] = [];
@@ -820,4 +823,88 @@ export async function deletePosyanduKehadiran(id: string) {
 
     revalidatePath("/dashboard");
     return { success: true };
+}
+
+export async function getPosyanduLaporanStats(posyanduName: string) {
+    const { tenantId } = await verifyPosyanduAccess();
+    
+    const nameVariations: any[] = [
+        { posyanduName: { equals: posyanduName, mode: "insensitive" } },
+        { posyanduName: { equals: posyanduName.replace(/posyandu\s+/i, "").trim(), mode: "insensitive" } }
+    ];
+
+    if (posyanduName.includes("Mawar I") && !posyanduName.includes("II") && !posyanduName.includes("IV")) {
+        nameVariations.push({ posyanduName: { equals: "Posyandu Mawar 1", mode: "insensitive" } }, { posyanduName: { equals: "Mawar 1", mode: "insensitive" } }, { posyanduName: { equals: "Posyandu Unit 001", mode: "insensitive" } });
+    } else if (posyanduName.includes("Mawar II") && !posyanduName.includes("III")) {
+        nameVariations.push({ posyanduName: { equals: "Posyandu Mawar 2", mode: "insensitive" } }, { posyanduName: { equals: "Mawar 2", mode: "insensitive" } }, { posyanduName: { equals: "Posyandu Unit 002", mode: "insensitive" } });
+    } else if (posyanduName.includes("Mawar III")) {
+        nameVariations.push({ posyanduName: { equals: "Posyandu Mawar 3", mode: "insensitive" } }, { posyanduName: { equals: "Mawar 3", mode: "insensitive" } }, { posyanduName: { equals: "Posyandu Unit 003", mode: "insensitive" } });
+    } else if (posyanduName.includes("Mawar IV")) {
+        nameVariations.push({ posyanduName: { equals: "Posyandu Mawar 4", mode: "insensitive" } }, { posyanduName: { equals: "Mawar 4", mode: "insensitive" } }, { posyanduName: { equals: "Posyandu Unit 004", mode: "insensitive" } });
+    } else if (posyanduName.includes("Mawar V") && !posyanduName.includes("VI") && !posyanduName.includes("IV")) {
+        nameVariations.push({ posyanduName: { equals: "Posyandu Mawar 5", mode: "insensitive" } }, { posyanduName: { equals: "Mawar 5", mode: "insensitive" } }, { posyanduName: { equals: "Posyandu Unit 005", mode: "insensitive" } });
+    } else if (posyanduName.includes("Mawar VI") && !posyanduName.includes("VII")) {
+        nameVariations.push({ posyanduName: { equals: "Posyandu Mawar 6", mode: "insensitive" } }, { posyanduName: { equals: "Mawar 6", mode: "insensitive" } }, { posyanduName: { equals: "Posyandu Unit 006", mode: "insensitive" } });
+    } else if (posyanduName.includes("Mawar VII")) {
+        nameVariations.push({ posyanduName: { equals: "Posyandu Mawar 7", mode: "insensitive" } }, { posyanduName: { equals: "Mawar 7", mode: "insensitive" } }, { posyanduName: { equals: "Posyandu Unit 007", mode: "insensitive" } });
+    }
+
+    const whereClause = tenantId ? { tenantId, OR: nameVariations } : { OR: nameVariations };
+
+    // Total Data
+    const totalBalita = await prisma.posyanduBalita.count({ where: whereClause });
+    const totalIbuHamil = await prisma.posyanduIbuHamil.count({ where: whereClause });
+    const totalLansia = await prisma.posyanduLansia.count({ where: whereClause });
+    const stuntingCount = await prisma.posyanduBalita.count({ where: { ...whereClause, statusStunting: true } });
+
+    // Weekly Chart Data (Current Month)
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const records = await prisma.posyanduRecord.findMany({
+        where: { 
+            ...(tenantId ? { tenantId } : {}), 
+            OR: [
+                { balita: { OR: nameVariations } },
+                { ibuHamil: { OR: nameVariations } },
+                { lansia: { OR: nameVariations } }
+            ],
+            tanggal: { gte: startOfMonth }
+        },
+        select: { tanggal: true, balitaId: true, ibuHamilId: true, lansiaId: true }
+    });
+
+    const weeklyStats = [
+        { label: 'Minggu 1', balita: 0, bumil: 0, lansia: 0 },
+        { label: 'Minggu 2', balita: 0, bumil: 0, lansia: 0 },
+        { label: 'Minggu 3', balita: 0, bumil: 0, lansia: 0 },
+        { label: 'Minggu 4', balita: 0, bumil: 0, lansia: 0 },
+    ];
+
+    records.forEach(r => {
+        const d = new Date(r.tanggal).getDate();
+        let weekIdx = 0;
+        if (d > 7 && d <= 14) weekIdx = 1;
+        else if (d > 14 && d <= 21) weekIdx = 2;
+        else if (d > 21) weekIdx = 3;
+
+        if (r.balitaId) weeklyStats[weekIdx].balita += 1;
+        if (r.ibuHamilId) weeklyStats[weekIdx].bumil += 1;
+        if (r.lansiaId) weeklyStats[weekIdx].lansia += 1;
+    });
+
+    const listBalita = await prisma.posyanduBalita.findMany({ where: whereClause, select: { namaLengkap: true, namaOrangTua: true, jenisKelamin: true, statusStunting: true } });
+    const listIbuHamil = await prisma.posyanduIbuHamil.findMany({ where: whereClause, select: { namaLengkap: true, usiaKandungan: true } });
+    const listLansia = await prisma.posyanduLansia.findMany({ where: whereClause, select: { namaLengkap: true, usia: true, jenisKelamin: true } });
+
+    return {
+        totalBalita,
+        totalIbuHamil,
+        totalLansia,
+        stuntingCount,
+        weeklyStats,
+        listBalita,
+        listIbuHamil,
+        listLansia
+    };
 }
