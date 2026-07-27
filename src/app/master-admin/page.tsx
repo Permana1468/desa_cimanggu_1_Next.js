@@ -10,7 +10,10 @@ import {
   ArrowRight,
   Shield,
   Key,
-  Globe
+  Globe,
+  Map,
+  History,
+  Settings
 } from "lucide-react";
 import Link from "next/link";
 import prisma from "@/lib/prisma";
@@ -19,6 +22,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { InfrastructureStatus } from "@/components/dashboard/InfrastructureStatus";
 import { OverviewCharts } from "@/components/master/OverviewChartsWrapper";
+import { SupabaseStorageStats } from "@/components/master/SupabaseStorageStats";
 
 export default async function MasterDashboardPage({ 
   searchParams 
@@ -133,6 +137,7 @@ export default async function MasterDashboardPage({
 
         {/* SIDEBAR STATUS */}
         <div className="space-y-8">
+            <SupabaseStorageStats />
             <InfrastructureStatus />
             <div className="bg-gradient-to-br from-indigo-600 to-blue-700 p-10 rounded-[3rem] text-white shadow-2xl shadow-blue-500/20 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
@@ -210,4 +215,3 @@ function LogItem({ user, action, time, category }: any) {
   )
 }
 
-import { History, Settings, Map } from "lucide-react";
