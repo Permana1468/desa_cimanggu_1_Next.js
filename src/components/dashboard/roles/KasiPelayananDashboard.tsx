@@ -1,3 +1,5 @@
+"use client";
+
 import { useSearchParams } from "next/navigation";
 import { DashboardUtama } from "../kasi-pelayanan/DashboardUtama";
 import { AntrianLoket } from "../kasi-pelayanan/AntrianLoket";
@@ -13,39 +15,47 @@ export function KasiPelayananDashboard({ session, stats }: { session: any, stats
   const searchParams = useSearchParams();
   const tabParam = searchParams ? searchParams.get("tab") : "overview";
 
-  // Rute berdasarkan tab
-  if (tabParam === "antrian-loket") {
-    return <AntrianLoket session={session} />;
-  }
-  
-  if (["buat-surat", "surat-masuk", "surat-keluar"].includes(tabParam || "")) {
-    return <PusatPersuratan session={session} tab={tabParam || "buat-surat"} />;
-  }
+  const renderContent = () => {
+    // Rute berdasarkan tab
+    if (tabParam === "antrian-loket") {
+      return <AntrianLoket session={session} />;
+    }
+    
+    if (["buat-surat", "surat-masuk", "surat-keluar"].includes(tabParam || "")) {
+      return <PusatPersuratan session={session} tab={tabParam || "buat-surat"} />;
+    }
 
-  if (tabParam === "kependudukan") {
-    return <ManajemenKependudukan session={session} />;
-  }
+    if (tabParam === "kependudukan") {
+      return <ManajemenKependudukan session={session} />;
+    }
 
-  if (tabParam === "tracking-layanan") {
-    return <TrackingLayanan session={session} />;
-  }
+    if (tabParam === "tracking-layanan") {
+      return <TrackingLayanan session={session} />;
+    }
 
-  if (["buku-tamu", "reporting", "tte"].includes(tabParam || "")) {
-    return <LayananUmum session={session} tab={tabParam || "buku-tamu"} />;
-  }
+    if (["buku-tamu", "reporting", "tte"].includes(tabParam || "")) {
+      return <LayananUmum session={session} tab={tabParam || "buku-tamu"} />;
+    }
 
-  if ((tabParam || "").startsWith("posyandu-")) {
-    return <LaporanPosyandu session={session} posyanduId={tabParam || "posyandu-mawar-1"} />;
-  }
+    if ((tabParam || "").startsWith("posyandu-")) {
+      return <LaporanPosyandu session={session} posyanduId={tabParam || "posyandu-mawar-1"} />;
+    }
 
-  if (tabParam === "karang-taruna") {
-    return <LaporanKarangTaruna session={session} />;
-  }
+    if (tabParam === "karang-taruna") {
+      return <LaporanKarangTaruna session={session} />;
+    }
 
-  if (tabParam === "laporan-kegiatan") {
-    return <LaporanKegiatan session={session} />;
-  }
+    if (tabParam === "laporan-kegiatan") {
+      return <LaporanKegiatan session={session} />;
+    }
 
-  // Default fallback (overview)
-  return <DashboardUtama session={session} stats={stats} />;
+    // Default fallback (overview)
+    return <DashboardUtama session={session} stats={stats} />;
+  };
+
+  return (
+    <div className="pb-32 md:pb-0">
+      {renderContent()}
+    </div>
+  );
 }

@@ -388,9 +388,9 @@ export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-5 sticky top-0 bg-white pb-4 border-b border-slate-100 z-10">
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-6">
+      <div className="bg-white rounded-2xl max-w-4xl w-full shadow-xl flex flex-col max-h-[95vh] overflow-hidden">
+        <div className="flex justify-between items-center p-4 md:p-6 border-b border-slate-100 bg-white shrink-0">
           <div>
             <h3 className="text-lg font-bold text-slate-800">{initialData ? "Update" : "Tambah"} Usulan UHC</h3>
             <p className="text-xs text-slate-500 mt-0.5">Isi 14 Parameter Kemiskinan</p>
@@ -398,7 +398,8 @@ export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all text-xl">&times;</button>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar">
+          <form id="uhcForm" onSubmit={handleSubmit} className="space-y-6">
           {/* Identitas Section */}
           <div>
               <h4 className="font-bold text-slate-700 text-sm mb-3">Identitas Pemohon & Pasien</h4>
@@ -552,14 +553,15 @@ export function ModalUsulanUhc({ onClose, onRefresh, kependudukan, initialData }
                   </div>
               </div>
           </div>
+          </form>
+        </div>
 
-          <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100 sticky bottom-0 bg-white">
-            <button type="button" onClick={onClose} className="px-4 py-2 text-xs text-slate-600 hover:bg-slate-50 rounded-xl border border-slate-200">Batal</button>
-            <button type="submit" disabled={loading} className="px-5 py-2 text-xs bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl disabled:opacity-50 font-semibold">
-              {loading ? "Menyimpan..." : "Simpan Usulan"}
-            </button>
-          </div>
-        </form>
+        <div className="flex justify-end gap-3 p-4 md:p-6 border-t border-slate-100 bg-white shrink-0">
+          <button type="button" onClick={onClose} className="px-4 py-2 text-xs text-slate-600 hover:bg-slate-50 rounded-xl border border-slate-200">Batal</button>
+          <button type="submit" form="uhcForm" disabled={loading} className="px-5 py-2 text-xs bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl disabled:opacity-50 font-semibold">
+            {loading ? "Menyimpan..." : "Simpan Usulan"}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -620,15 +622,15 @@ export function ModalSkkm({ onClose, onRefresh, onPrint, initialData }: any) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl flex flex-col max-h-[90vh]">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl z-10">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl flex flex-col max-h-[95vh] overflow-hidden">
+        <div className="p-4 md:p-6 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
           <h3 className="font-bold text-lg text-slate-800">Lengkapi Data SKKM</h3>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200">
             &times;
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto">
+        <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar">
           <form id="skkmForm" onSubmit={handleSubmit} className="space-y-6">
             
             <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-4">
@@ -731,7 +733,7 @@ export function ModalSkkm({ onClose, onRefresh, onPrint, initialData }: any) {
           </form>
         </div>
 
-        <div className="p-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/50 rounded-b-2xl sticky bottom-0">
+        <div className="p-4 md:p-6 border-t border-slate-100 flex justify-end gap-3 bg-white shrink-0">
           <button type="button" onClick={onClose} className="px-4 py-2 text-xs text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl font-medium">Batal</button>
           <button type="submit" form="skkmForm" disabled={loading} className="px-5 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-xl disabled:opacity-50 font-bold flex items-center gap-2 shadow-sm">
             {loading ? "Menyimpan..." : "Simpan & Cetak SKKM"}
@@ -777,15 +779,15 @@ export function ModalSptjm({ onClose, onPrint, initialData }: any) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh]">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white rounded-t-2xl z-10">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl flex flex-col max-h-[95vh] overflow-hidden">
+        <div className="p-4 md:p-6 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
           <h3 className="font-bold text-lg text-slate-800">Lengkapi Data SPTJM</h3>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200">
             &times;
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto">
+        <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar">
           <form id="sptjmForm" onSubmit={handleSubmit} className="space-y-6">
             
             <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-4">
@@ -828,7 +830,7 @@ export function ModalSptjm({ onClose, onPrint, initialData }: any) {
           </form>
         </div>
 
-        <div className="p-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/50 rounded-b-2xl sticky bottom-0">
+        <div className="p-4 md:p-6 border-t border-slate-100 flex justify-end gap-3 bg-white shrink-0">
           <button type="button" onClick={onClose} className="px-4 py-2 text-xs text-slate-600 hover:bg-slate-200 bg-slate-100 rounded-xl font-medium">Batal</button>
           <button type="submit" form="sptjmForm" className="px-5 py-2 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold flex items-center gap-2 shadow-sm">
             Cetak SPTJM

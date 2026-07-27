@@ -560,15 +560,22 @@ export async function getKesraUsulanUhcList() {
 }
 
 export async function addKesraUsulanUhc(data: any) {
-    const { tenantId } = await verifyKesraAccess();
-    const usulan = await prisma.kesraUsulanUhc.create({
-        data: {
-            ...data,
-            tenantId
+    try {
+        const { tenantId } = await verifyKesraAccess();
+        const usulan = await prisma.kesraUsulanUhc.create({
+            data: {
+                ...data,
+                tenantId
+            }
+        });
+        revalidatePath("/dashboard");
+        return { success: true, usulan };
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            throw new Error("NIK pasien tersebut sudah terdaftar dalam usulan UHC. Silakan gunakan fitur edit jika ingin mengubah data.");
         }
-    });
-    revalidatePath("/dashboard");
-    return { success: true, usulan };
+        throw new Error(error.message || "Gagal menyimpan usulan UHC.");
+    }
 }
 
 export async function updateKesraUsulanUhc(id: string, data: any) {

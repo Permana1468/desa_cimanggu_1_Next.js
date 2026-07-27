@@ -186,7 +186,7 @@ export async function getLetterTemplates() {
     }
 }
 
-export async function createLetterTemplate(data: { name: string, code: string, fileUrl: string, variables?: any }) {
+export async function createLetterTemplate(data: { name: string, code: string, fileUrl: string, variables?: any, formSchema?: any }) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
@@ -197,6 +197,21 @@ export async function createLetterTemplate(data: { name: string, code: string, f
                 ...data,
                 tenantId
             }
+        });
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function updateLetterTemplate(id: string, data: { name: string, code: string, fileUrl?: string, variables?: any, formSchema?: any }) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as { tenantId: string }).tenantId;
+
+        return await prisma.letterTemplate.update({
+            where: { id, tenantId },
+            data
         });
     } catch (error) {
         throw error;

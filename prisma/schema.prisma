@@ -325,6 +325,7 @@ model Surat {
   jenisSurat String // e.g., "SKU", "SKTM", "Domisili"
   status     StatusSurat @default(TERTUNDA)
   keperluan  String?
+  isianData  Json? // Stores the dynamic form values filled by Kasi Pelayanan
 
   wargaId String
   warga   DataKependudukan @relation(fields: [wargaId], references: [id])
@@ -349,13 +350,14 @@ model Surat {
 // 5.1 TEMPLATE PERSURATAN
 // ==============================
 model LetterTemplate {
-  id        String  @id @default(uuid())
-  name      String // e.g., "Surat Keterangan Usaha"
-  code      String  @unique // e.g., "SKU"
-  fileUrl   String // URL to the .docx template
-  version   Int     @default(1)
-  isActive  Boolean @default(true)
-  variables Json? // e.g., ["nama_usaha", "jenis_usaha"]
+  id         String  @id @default(uuid())
+  name       String // e.g., "Surat Keterangan Usaha"
+  code       String  @unique // e.g., "SKU"
+  fileUrl    String // URL to the .docx template
+  version    Int     @default(1)
+  isActive   Boolean @default(true)
+  variables  Json? // e.g., ["nama_usaha", "jenis_usaha"]
+  formSchema Json? // Blueprint of the form fields built by Admin
 
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id])
