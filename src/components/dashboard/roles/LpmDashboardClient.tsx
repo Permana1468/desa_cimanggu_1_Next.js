@@ -92,7 +92,7 @@ export function LpmDashboardClient() {
         if (status === "authenticated" && session?.user) {
             fetchLembagaData();
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     }, [status, session]);
 
     const handleAddProgram = async (e: React.FormEvent) => {

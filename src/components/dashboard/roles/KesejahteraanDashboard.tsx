@@ -44,6 +44,13 @@ import { PosyanduInventarisTab } from "../kesra/PosyanduInventarisTab";
 import { KesraKependudukanTab } from "../kesra/KesraKependudukanTab";
 import { KesraCloudTab } from "../kesra/KesraCloudTab";
 
+// LPJ Kesra Sub-Tabs
+import { LpjRegistrasiPembangunanTab } from "../kesra/lpj/LpjRegistrasiPembangunanTab";
+import { LpjPesananBarangTab } from "../kesra/lpj/LpjPesananBarangTab";
+import { LpjDaftarHadirPekerjaTab } from "../kesra/lpj/LpjDaftarHadirPekerjaTab";
+import { LpjTandaTerimaPekerjaTab } from "../kesra/lpj/LpjTandaTerimaPekerjaTab";
+import { LpjDaftarKtpPekerjaTab } from "../kesra/lpj/LpjDaftarKtpPekerjaTab";
+
 
 export function KesejahteraanDashboard({ session, stats }: { session: any, stats: any }) {
   return (
@@ -143,6 +150,16 @@ function KesejahteraanDashboardContent({ session, stats }: { session: any, stats
         return <PosyanduInventarisTab session={session} />;
       case "report":
         return <KesraReportTab session={session} />;
+      case "lpj-registrasi-pembangunan":
+        return <LpjRegistrasiPembangunanTab session={session} />;
+      case "lpj-pesanan-barang":
+        return <LpjPesananBarangTab session={session} />;
+      case "lpj-daftar-hadir-pekerja":
+        return <LpjDaftarHadirPekerjaTab session={session} />;
+      case "lpj-tanda-terima-pekerja":
+        return <LpjTandaTerimaPekerjaTab session={session} />;
+      case "lpj-daftar-ktp-pekerja":
+        return <LpjDaftarKtpPekerjaTab session={session} />;
       case "kependudukan":
         return <KesraKependudukanTab session={session} />;
       case "cloud":

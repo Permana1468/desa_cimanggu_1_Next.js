@@ -23,6 +23,8 @@ import {
   Clock,
   Map,
   HardHat,
+  CheckCircle2,
+  Fingerprint,
   Activity,
   PieChart,
   Archive,
@@ -245,6 +247,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
           {role === "POSYANDU" ? (
             // === POSYANDU ACCORDION SIDEBAR ===
             <div className="space-y-1">
+
               {/* Dashboard */}
               <Link
                 href="/dashboard?tab=overview"
@@ -757,19 +760,63 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                  </AnimatePresence>
                </div>
 
-               {/* Laporan LPJ */}
-               <Link
-                 href="/dashboard?tab=report"
-                 onClick={() => setIsOpen(false)}
-                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                   tabParam === "report"
-                     ? "bg-rose-600 text-white font-bold shadow-lg shadow-rose-600/20"
-                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
-                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
-               >
-                 <FileText size={20} />
-                 {(!isCollapsed || isOpen) && <span className="text-sm">Laporan LPJ Kesra</span>}
-               </Link>
+               {/* Group 4: Laporan LPJ Kesra Dropdown */}
+               <div>
+                 <button
+                   onClick={() => (!isCollapsed || isOpen) && toggleGroup("lpj-kesra")}
+                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                     ["lpj-registrasi-pembangunan", "lpj-pesanan-barang", "lpj-daftar-hadir-pekerja", "lpj-tanda-terima-pekerja", "lpj-daftar-ktp-pekerja", "report"].includes(tabParam || "")
+                       ? "bg-rose-50 text-rose-700 font-bold"
+                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                   } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                 >
+                   <FileText size={20} className="shrink-0" />
+                   {(!isCollapsed || isOpen) && (
+                     <>
+                       <span className="text-sm flex-1 text-left font-bold">Laporan LPJ Kesra</span>
+                       <ChevronDown
+                         size={14}
+                         className={`transition-transform duration-200 ${openGroup === "lpj-kesra" ? "rotate-180" : ""}`}
+                       />
+                     </>
+                   )}
+                 </button>
+                 <AnimatePresence>
+                   {(openGroup === "lpj-kesra" && (!isCollapsed || isOpen)) && (
+                     <motion.div
+                       initial={{ height: 0, opacity: 0 }}
+                       animate={{ height: "auto", opacity: 1 }}
+                       exit={{ height: 0, opacity: 0 }}
+                       transition={{ duration: 0.2 }}
+                       className="overflow-hidden"
+                     >
+                       <div className="mt-1 ml-3 pl-3 border-l-2 border-rose-100 space-y-1">
+                         {[
+                           { label: "1. Registrasi Pembangunan", tab: "lpj-registrasi-pembangunan", icon: Building2 },
+                           { label: "2. Pesanan Barang", tab: "lpj-pesanan-barang", icon: ShoppingBag },
+                           { label: "3. Daftar Hadir Pekerja", tab: "lpj-daftar-hadir-pekerja", icon: Users },
+                           { label: "4. Tanda Terima Pekerja", tab: "lpj-tanda-terima-pekerja", icon: CheckCircle2 },
+                           { label: "5. Daftar KTP Pekerja", tab: "lpj-daftar-ktp-pekerja", icon: Fingerprint },
+                         ].map(({ label, tab, icon: Icon }) => (
+                           <Link
+                             key={tab}
+                             href={`/dashboard?tab=${tab}`}
+                             onClick={() => setIsOpen(false)}
+                             className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                               tabParam === tab
+                                 ? "bg-rose-500 text-white font-bold"
+                                 : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                             }`}
+                           >
+                             <Icon size={16} />
+                             <span>{label}</span>
+                           </Link>
+                         ))}
+                       </div>
+                     </motion.div>
+                   )}
+                 </AnimatePresence>
+               </div>
 
                {/* Data Kependudukan */}
                <Link

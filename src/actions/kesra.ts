@@ -424,7 +424,43 @@ export async function getKesraKependudukanList() {
     const { tenantId } = await verifyKesraAccess();
     return await prisma.dataKependudukan.findMany({
         where: { tenantId },
-        include: { bansosData: true },
+        select: {
+            id: true,
+            nik: true,
+            noKK: true,
+            namaLengkap: true,
+            jenisKelamin: true,
+            tempatLahir: true,
+            tanggalLahir: true,
+            alamat: true,
+            kampung: true,
+            rt: true,
+            rw: true,
+            dusun: true,
+            agama: true,
+            statusKawin: true,
+            hubunganKeluarga: true,
+            pekerjaan: true,
+            pendidikan: true,
+            golonganDarah: true,
+            kewarganegaraan: true,
+            namaAyah: true,
+            namaIbu: true,
+            tenantId: true,
+            bansosData: {
+                select: {
+                    id: true,
+                    wargaId: true,
+                    desil: true,
+                    jenisBantuan: true,
+                    status: true,
+                    keterangan: true,
+                    nomorRegister: true,
+                    namaPenandatangan: true,
+                    nipdPenandatangan: true
+                }
+            }
+        },
         orderBy: { namaLengkap: "asc" }
     });
 }

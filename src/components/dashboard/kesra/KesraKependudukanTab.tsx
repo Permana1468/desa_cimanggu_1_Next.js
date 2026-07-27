@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Plus, Search, Edit, Users, X } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Plus, Search, Edit, Users, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { getWargaList, addWarga, updateWarga } from "@/actions/village";
 import { getFullVillageStructure as getVillageStructure } from "@/actions/rt";
 import { WARGA_FIELDS, DEFAULT_WARGA_FORM } from "@/lib/wargaSchema";
@@ -30,6 +30,10 @@ export function KesraKependudukanTab({ _session }: any) {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number | "ALL">(10);
+
   // Modal states
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -41,6 +45,10 @@ export function KesraKependudukanTab({ _session }: any) {
     fetchData();
     fetchVillageStructure();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   async function fetchVillageStructure() {
     try {
@@ -91,11 +99,23 @@ export function KesraKependudukanTab({ _session }: any) {
     setSaving(false);
   };
 
-  const filteredWarga = warga.filter(w => 
-    w.namaLengkap?.toLowerCase().includes(search.toLowerCase()) || 
-    w.nik?.includes(search) || 
-    w.noKK?.includes(search)
-  );
+  const filteredWarga = useMemo(() => {
+    return warga.filter(w => 
+      w.namaLengkap?.toLowerCase().includes(search.toLowerCase()) || 
+      w.nik?.includes(search) || 
+      w.noKK?.includes(search)
+    );
+  }, [warga, search]);
+
+  const totalItems = filteredWarga.length;
+  const effectiveLimit = itemsPerPage === "ALL" ? totalItems : itemsPerPage;
+  const totalPages = Math.ceil(totalItems / (effectiveLimit || 1));
+
+  const paginatedWarga = useMemo(() => {
+    if (itemsPerPage === "ALL") return filteredWarga;
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredWarga.slice(start, start + itemsPerPage);
+  }, [filteredWarga, currentPage, itemsPerPage]);
 
   return (
     <div className="space-y-6">
@@ -110,16 +130,21 @@ export function KesraKependudukanTab({ _session }: any) {
             Kelola data warga untuk keperluan kesejahteraan sosial (Tanpa akses Cetak).
           </p>
         </div>
-        <button 
-          onClick={handleOpenAdd}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/30"
-        >
-          <Plus size={18} /> Tambah Warga
-        </button>
+        <div className="flex items-center gap-3">
+          <span className="px-3.5 py-2 bg-emerald-50 text-emerald-700 font-bold text-xs rounded-xl border border-emerald-100/80">
+            Total Terintegrasi: {warga.length} Jiwa
+          </span>
+          <button 
+            onClick={handleOpenAdd}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-emerald-500/30 text-sm"
+          >
+            <Plus size={18} /> Tambah Warga
+          </button>
+        </div>
       </div>
 
-      {/* Search */}
-      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 items-center">
+      {/* Search & Limit Control */}
+      <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-4 items-center justify-between">
         <div className="relative flex-1 w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <input 
@@ -129,6 +154,24 @@ export function KesraKependudukanTab({ _session }: any) {
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
           />
+        </div>
+        <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">
+          <span className="text-xs font-bold text-slate-500">Tampilkan:</span>
+          <select
+            value={itemsPerPage}
+            onChange={(e) => {
+              const val = e.target.value === "ALL" ? "ALL" : Number(e.target.value);
+              setItemsPerPage(val);
+              setCurrentPage(1);
+            }}
+            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 cursor-pointer"
+          >
+            <option value={10}>10 Data</option>
+            <option value={25}>25 Data</option>
+            <option value={50}>50 Data</option>
+            <option value={100}>100 Data</option>
+            <option value="ALL">Semua Data</option>
+          </select>
         </div>
       </div>
 
@@ -149,7 +192,7 @@ export function KesraKependudukanTab({ _session }: any) {
                 <tr>
                   <td colSpan={4} className="px-6 py-8 text-center text-slate-500">Memuat data kependudukan...</td>
                 </tr>
-              ) : filteredWarga.length === 0 ? (
+              ) : paginatedWarga.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-slate-400">
@@ -160,7 +203,7 @@ export function KesraKependudukanTab({ _session }: any) {
                   </td>
                 </tr>
               ) : (
-                filteredWarga.map((w, idx) => (
+                paginatedWarga.map((w, idx) => (
                   <tr key={w.id || idx} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="font-bold text-slate-800"><HoverMask value={w.noKK || ""} /></div>
@@ -189,7 +232,6 @@ export function KesraKependudukanTab({ _session }: any) {
                         >
                           <Edit size={16} />
                         </button>
-                        {/* Cetak button intentionally omitted as per requirement */}
                       </div>
                     </td>
                   </tr>
@@ -197,6 +239,62 @@ export function KesraKependudukanTab({ _session }: any) {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t border-slate-100 bg-slate-50/50 text-xs">
+          <div className="text-slate-500 font-bold">
+            {totalItems === 0
+              ? "Tidak ada data warga."
+              : itemsPerPage === "ALL"
+              ? `Menampilkan seluruh ${totalItems} data warga terintegrasi.`
+              : `Menampilkan ${(currentPage - 1) * itemsPerPage + 1} - ${Math.min(currentPage * itemsPerPage, totalItems)} dari ${totalItems} data warga terintegrasi.`}
+          </div>
+
+          {itemsPerPage !== "ALL" && totalPages > 1 && (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                className="p-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum = i + 1;
+                if (currentPage > 3 && totalPages > 5) {
+                  if (currentPage + 2 <= totalPages) {
+                    pageNum = currentPage - 3 + i + 1;
+                  } else {
+                    pageNum = totalPages - 5 + i + 1;
+                  }
+                }
+                return (
+                  <button
+                    key={pageNum}
+                    type="button"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={`w-8 h-8 rounded-lg font-bold transition-colors ${
+                      currentPage === pageNum
+                        ? "bg-emerald-600 text-white shadow-sm"
+                        : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                className="p-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

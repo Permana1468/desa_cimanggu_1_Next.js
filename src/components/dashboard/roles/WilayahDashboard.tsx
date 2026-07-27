@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { 
   Users, MapPin, FileText, AlertTriangle, HeartPulse, TrendingUp, Search, 
-  CheckCircle2, ChevronRight, Banknote, Calendar, Plus, Trash2, ArrowUpRight, 
+  CheckCircle2, ChevronRight, ChevronLeft, Banknote, Calendar, Plus, Trash2, ArrowUpRight, 
   ArrowDownRight, Check, X, FileSpreadsheet, Loader2, Sparkles, PlusCircle,
   FileDown, Info, Edit, Eye, UserPlus, Milestone, Megaphone, AlertCircle, Package,
   Compass, Share2, Clipboard, Activity, Layers, Maximize, Minimize,
@@ -374,6 +374,10 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
   const [filterIncomplete, setFilterIncomplete] = useState(false);
   const [sortBy, setSortBy] = useState("default");
 
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState<number | "ALL">(10);
+
   const [formData, setFormData] = useState({
     ...DEFAULT_WARGA_FORM
   });
@@ -411,6 +415,10 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
     loadWarga();
   }, [filterRt, filterRw]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [query, filterRt, filterRw, sortBy, filterIncomplete]);
+
   const handleRwChange = (val: string) => {
     setFilterRw(val);
     setFilterRt("");
@@ -438,10 +446,8 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
 
   const handleOpenAdd = () => {
     setEditingId(null);
-    // Auto-prefill rt/rw/dusun based on role
     const prefillRw = (userRole === "RT" || userRole === "RW") ? userRw : "";
     const prefillRt = userRole === "RT" ? userRt : "";
-    // Resolve dusun from structure based on RW
     let prefillDusun = dusunName;
     if (userRole === "KADUS") prefillDusun = (session?.user as any)?.rw || "";
     setFormData({
@@ -561,13 +567,23 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
     });
   }, [wargaList, filterIncomplete, sortBy]);
 
+  const totalItems = displayedWarga.length;
+  const effectiveLimit = itemsPerPage === "ALL" ? totalItems : itemsPerPage;
+  const totalPages = Math.ceil(totalItems / (effectiveLimit || 1));
+
+  const paginatedWarga = useMemo(() => {
+    if (itemsPerPage === "ALL") return displayedWarga;
+    const start = (currentPage - 1) * itemsPerPage;
+    return displayedWarga.slice(start, start + itemsPerPage);
+  }, [displayedWarga, currentPage, itemsPerPage]);
+
   return (
     <div className="bg-white rounded-[2rem] p-6 border border-slate-200/60 shadow-sm space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h3 className="text-lg font-black text-slate-800 flex items-center gap-3">
             {session?.user?.role === "KADUS" ? `Manajemen Data Warga ${session?.user?.rw}` : session?.user?.role === "RW" ? "Manajemen Data Warga RW" : "Manajemen Data Warga RT"}
-            <span className="bg-teal-100 text-teal-700 px-3 py-1 text-[10px] rounded-full">Total: {displayedWarga.length} Warga</span>
+            <span className="bg-teal-100 text-teal-700 px-3 py-1 text-[10px] rounded-full font-bold">Total Terintegrasi: {displayedWarga.length} Warga</span>
           </h3>
           <p className="text-slate-500 text-xs mt-0.5">
             {session?.user?.role === "KADUS" ? "Kelola dan pantau seluruh warga di wilayah Dusun Anda." : session?.user?.role === "RW" ? "Kelola dan pantau seluruh warga di wilayah RW Anda." : "Kelola, tambah, edit, dan hapus warga di wilayah RT Anda saja."}
@@ -648,6 +664,21 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
           <option value="umur-asc">Urutkan: Umur (Muda ke Tua)</option>
           <option value="pendidikan">Urutkan: Pendidikan</option>
         </select>
+        <select
+          value={itemsPerPage}
+          onChange={(e) => {
+            const val = e.target.value === "ALL" ? "ALL" : Number(e.target.value);
+            setItemsPerPage(val);
+            setCurrentPage(1);
+          }}
+          className="bg-slate-50 border-none rounded-xl px-4 py-3 text-xs font-bold focus:ring-2 focus:ring-teal-500 transition-all text-slate-900 cursor-pointer"
+        >
+          <option value={10}>Tampilkan 10</option>
+          <option value={25}>Tampilkan 25</option>
+          <option value={50}>Tampilkan 50</option>
+          <option value={100}>Tampilkan 100</option>
+          <option value="ALL">Semua Data</option>
+        </select>
         <button 
           type="button"
           onClick={() => setFilterIncomplete(prev => !prev)}
@@ -670,7 +701,7 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
           <div className="py-20 text-center">
             <Loader2 className="animate-spin text-teal-600 mx-auto" size={32} />
           </div>
-        ) : displayedWarga.length > 0 ? (
+        ) : paginatedWarga.length > 0 ? (
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-wider">
@@ -683,7 +714,7 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 text-xs font-bold text-slate-700">
-              {displayedWarga.map((w: any) => (
+              {paginatedWarga.map((w: any) => (
                 <tr key={w.id} className="hover:bg-slate-50/50 transition-colors">
                   <td className="py-3.5 px-4">
                     <div className="flex items-center gap-2">
@@ -748,6 +779,62 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
           </table>
         ) : (
           <div className="py-16 text-center text-slate-400 font-bold">Tidak ada data warga ditemukan.</div>
+        )}
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100 text-xs">
+        <div className="text-slate-500 font-bold">
+          {totalItems === 0
+            ? "Tidak ada data warga."
+            : itemsPerPage === "ALL"
+            ? `Menampilkan seluruh ${totalItems} data warga.`
+            : `Menampilkan ${(currentPage - 1) * itemsPerPage + 1} - ${Math.min(currentPage * itemsPerPage, totalItems)} dari ${totalItems} data warga.`}
+        </div>
+
+        {itemsPerPage !== "ALL" && totalPages > 1 && (
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              className="p-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum = i + 1;
+              if (currentPage > 3 && totalPages > 5) {
+                if (currentPage + 2 <= totalPages) {
+                  pageNum = currentPage - 3 + i + 1;
+                } else {
+                  pageNum = totalPages - 5 + i + 1;
+                }
+              }
+              return (
+                <button
+                  key={pageNum}
+                  type="button"
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`w-8 h-8 rounded-lg font-bold transition-colors ${
+                    currentPage === pageNum
+                      ? "bg-teal-600 text-white shadow-sm"
+                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              className="p-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
         )}
       </div>
 

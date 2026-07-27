@@ -360,7 +360,31 @@ export async function getGlobalResidents(tenantId?: string) {
         const where = tenantId ? { tenantId } : {};
         return await prisma.dataKependudukan.findMany({
             where,
-            include: { tenant: { select: { name: true } } },
+            select: {
+                id: true,
+                nik: true,
+                noKK: true,
+                namaLengkap: true,
+                jenisKelamin: true,
+                tempatLahir: true,
+                tanggalLahir: true,
+                alamat: true,
+                kampung: true,
+                rt: true,
+                rw: true,
+                dusun: true,
+                pekerjaan: true,
+                agama: true,
+                pendidikan: true,
+                golonganDarah: true,
+                statusKawin: true,
+                hubunganKeluarga: true,
+                kewarganegaraan: true,
+                namaAyah: true,
+                namaIbu: true,
+                tenantId: true,
+                tenant: { select: { name: true } }
+            },
             orderBy: { createdAt: 'desc' }
         });
     } catch (error) {

@@ -171,15 +171,41 @@ export async function getWargaList(query?: string, rtFilter?: string, rwFilter?:
             whereCondition.nik = { notIn: inactiveNiks };
         }
 
-        if (query) {
+        if (query && query.trim()) {
+            const cleanQ = query.trim();
             whereCondition.OR = [
-                { namaLengkap: { contains: query, mode: 'insensitive' } },
-                { nik: { contains: query } }
+                { namaLengkap: { contains: cleanQ, mode: 'insensitive' } },
+                { nik: { contains: cleanQ } },
+                { noKK: { contains: cleanQ } }
             ];
         }
 
         return await prisma.dataKependudukan.findMany({
             where: whereCondition,
+            select: {
+                id: true,
+                nik: true,
+                noKK: true,
+                namaLengkap: true,
+                jenisKelamin: true,
+                tempatLahir: true,
+                tanggalLahir: true,
+                alamat: true,
+                kampung: true,
+                rt: true,
+                rw: true,
+                dusun: true,
+                agama: true,
+                statusKawin: true,
+                hubunganKeluarga: true,
+                pekerjaan: true,
+                pendidikan: true,
+                golonganDarah: true,
+                kewarganegaraan: true,
+                namaAyah: true,
+                namaIbu: true,
+                tenantId: true
+            },
             orderBy: [
                 { dusun: 'asc' },
                 { rw: 'asc' },

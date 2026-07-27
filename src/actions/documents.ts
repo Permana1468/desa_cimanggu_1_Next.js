@@ -252,7 +252,7 @@ export async function getWargaListForSurat() {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) return [];
-        let tenantId = (session.user as any).tenantId;
+        const tenantId = (session.user as any).tenantId;
 
         const whereClause = tenantId ? { tenantId } : {};
 
@@ -437,7 +437,7 @@ export async function autoGenerateFormFields(templateId: string) {
         // Map variables to intelligent form fields
         const fields = vars.map(v => {
             const clean = String(v).toLowerCase();
-            let label = clean.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const label = clean.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             let type: "text" | "textarea" | "date" | "number" | "select" = "text";
             let options = "";
 
