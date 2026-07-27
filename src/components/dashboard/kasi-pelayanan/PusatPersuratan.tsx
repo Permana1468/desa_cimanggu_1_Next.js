@@ -13,7 +13,8 @@ import {
   PenTool,
   Upload,
   ArrowRight,
-  Loader2
+  Loader2,
+  Filter
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getLetterTemplates } from "@/actions/documents";
