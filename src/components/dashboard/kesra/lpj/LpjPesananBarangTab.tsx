@@ -473,14 +473,14 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
 
     <table class="meta-table" style="margin-bottom: 10px;">
       <tr>
-        <td style="width: 50%;">
+        <td style="width: 46%;">
           <table>
             <tr><td style="width:75px;">Nomor</td><td>: &nbsp; ${order.nomorRegister}</td></tr>
             <tr><td>Lampiran</td><td>: &nbsp; --</td></tr>
             <tr><td>Perihal</td><td>: &nbsp; <b>Pesanan Barang</b></td></tr>
           </table>
         </td>
-        <td style="width: 50%; text-align: left; padding-left: 20px;">
+        <td style="width: 54%; text-align: left; padding-left: 0px;">
           Cimanggu I, ${formatDateIndo(order.tanggalPesanan)}<br>
           Kepada,<br>
           Yth, Toko “ <b>${order.toko}</b> ”<br>
