@@ -234,7 +234,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
     });
   };
 
-  // PRINT 3-DOCUMENT BUNDLE GENERATOR (PERFECT F4 / FOLIO SIZE - 100% PRECISE MATCH)
+  // PRINT 3-DOCUMENT BUNDLE GENERATOR (OPTIMIZED ELEGANT F4 MARGINS)
   const handlePrintBundle = (order: any) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
@@ -254,16 +254,16 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
     }
     html, body {
       font-family: 'Times New Roman', Times, serif;
-      font-size: 10pt;
+      font-size: 10.5pt;
       color: #000;
       background: #fff;
-      line-height: 1.3;
+      line-height: 1.35;
     }
 
-    /* DEFAULT F4 / FOLIO PORTRAIT STANDARD IN INDONESIA (215mm x 330mm) */
+    /* PERFECT INDONESIAN F4 / FOLIO MARGINS (Top 18mm, Sides 22mm, Bottom 15mm) */
     @page {
       size: 215mm 330mm;
-      margin: 10mm 15mm 10mm 15mm;
+      margin: 18mm 22mm 15mm 22mm;
     }
 
     .doc-page {
@@ -281,40 +281,40 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
       margin-bottom: 2px;
     }
     .kop-title-1 {
-      font-size: 13.5pt;
+      font-size: 14pt;
       font-weight: bold;
       letter-spacing: 0.5px;
       line-height: 1.2;
     }
     .kop-title-2 {
-      font-size: 13.5pt;
+      font-size: 14pt;
       font-weight: bold;
       letter-spacing: 0.5px;
       line-height: 1.2;
     }
     .kop-title-3 {
-      font-size: 12.5pt;
+      font-size: 13pt;
       font-weight: bold;
       letter-spacing: 0.5px;
       line-height: 1.2;
     }
     .kop-subtitle {
-      font-size: 8.5pt;
+      font-size: 9pt;
       font-style: italic;
       margin-top: 2px;
       line-height: 1.2;
     }
     .double-line {
       border-bottom: 3.5px double #000;
-      margin-top: 3px;
-      margin-bottom: 12px;
+      margin-top: 4px;
+      margin-bottom: 14px;
     }
 
     /* DOC TITLE */
     .doc-title {
       text-align: center;
-      margin-bottom: 12px;
-      font-size: 11pt;
+      margin-bottom: 14px;
+      font-size: 11.5pt;
       font-weight: bold;
     }
 
@@ -330,27 +330,27 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
 
     .meta-table td {
       vertical-align: top;
-      font-size: 10pt;
+      font-size: 10.5pt;
     }
 
     .opening-p, .statement-p, .delivery-p, .closing-p {
       text-align: justify;
       margin-top: 10px;
-      margin-bottom: 8px;
-      line-height: 1.35;
-      font-size: 10pt;
+      margin-bottom: 10px;
+      line-height: 1.4;
+      font-size: 10.5pt;
     }
 
     /* TABLE ITEMS DOC 1 */
     .tbl-doc1 {
       width: 100%;
-      margin: 8px 0;
+      margin: 10px 0;
       border: 1.5px solid #000;
     }
     .tbl-doc1 th, .tbl-doc1 td {
       border: 1px solid #000;
-      padding: 3.5px 6px;
-      font-size: 9.5pt;
+      padding: 4px 7px;
+      font-size: 10pt;
     }
     .tbl-doc1 th {
       font-weight: bold;
@@ -361,13 +361,13 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
     /* TABLE BAP DOC 2 */
     .tbl-bap {
       width: 100%;
-      margin: 8px 0;
+      margin: 10px 0;
       border: 1.5px solid #000;
     }
     .tbl-bap th, .tbl-bap td {
       border: 1px solid #000;
-      padding: 3px 5px;
-      font-size: 9.5pt;
+      padding: 3.5px 6px;
+      font-size: 10pt;
     }
     .tbl-bap th {
       font-weight: bold;
@@ -378,13 +378,13 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
     /* TABLE BAST DOC 3 */
     .tbl-bast {
       width: 100%;
-      margin: 8px 0;
+      margin: 10px 0;
       border: 1.5px solid #000;
     }
     .tbl-bast th, .tbl-bast td {
       border: 1px solid #000;
-      padding: 3.5px 6px;
-      font-size: 9.5pt;
+      padding: 4px 7px;
+      font-size: 10pt;
     }
     .tbl-bast th {
       font-weight: bold;
@@ -393,13 +393,13 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
     }
 
     .delivery-meta td {
-      padding: 1px 0;
-      font-size: 10pt;
+      padding: 1.5px 0;
+      font-size: 10.5pt;
     }
 
     .examiners-meta td {
-      padding: 1.5px 0;
-      font-size: 10pt;
+      padding: 2px 0;
+      font-size: 10.5pt;
     }
 
     /* PRINT CONTROLS */
@@ -440,12 +440,12 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
   </style>
 
   <style id="pgstyle">
-    @page { size: 215mm 330mm; margin: 10mm 15mm 10mm 15mm; }
+    @page { size: 215mm 330mm; margin: 18mm 22mm 15mm 22mm; }
   </style>
 
   <script>
     function setSize(sz, btnId) {
-      document.getElementById('pgstyle').textContent = '@page { size: ' + sz + '; margin: 10mm 15mm 10mm 15mm; }';
+      document.getElementById('pgstyle').textContent = '@page { size: ' + sz + '; margin: 18mm 22mm 15mm 22mm; }';
       document.querySelectorAll('.pcontrols button').forEach(function(b) { b.classList.remove('on'); });
       var el = document.getElementById(btnId); if (el) el.classList.add('on');
     }
@@ -471,7 +471,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
     </div>
     <div class="double-line"></div>
 
-    <table class="meta-table" style="margin-bottom: 8px;">
+    <table class="meta-table" style="margin-bottom: 10px;">
       <tr>
         <td style="width: 50%;">
           <table>
@@ -514,7 +514,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
     <p class="delivery-p">
       Untuk dikirim ke lokasi Kegiatan Infrastruktur ${order.sumberDana} ${order.namaKegiatanSampaiLokasi} pada :
     </p>
-    <table class="delivery-meta" style="margin-left: 30px; margin-bottom: 8px;">
+    <table class="delivery-meta" style="margin-left: 30px; margin-bottom: 10px;">
       <tr><td style="width: 90px;">Hari</td><td>: ${order.pengirimanHari}</td></tr>
       <tr><td>Tanggal</td><td>: ${formatDateIndo(order.pengirimanTanggal)}</td></tr>
       <tr><td>Jam</td><td>: ${order.pengirimanJam}</td></tr>
@@ -524,7 +524,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
       Demikian pesanan ini, disampaikan dan atas kerjasamanya yang baik, diucapkan terima kasih.
     </p>
 
-    <table style="width: 100%; margin-top: 15px; border: none;">
+    <table style="width: 100%; margin-top: 18px; border: none;">
       <tr>
         <td style="width: 50%; border: none;"></td>
         <td style="width: 50%; text-align: center; border: none;">
@@ -556,7 +556,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
       Pada hari ini &nbsp;<b>${terbilangBap.hari}</b>&nbsp; tanggal &nbsp;<b>${terbilangBap.tanggalWords}</b>&nbsp; bulan &nbsp;<b>${terbilangBap.bulanWords}</b>&nbsp; tahun &nbsp;<b>${terbilangBap.tahunWords}</b>, kami yang bertanda tangan dibawah ini :
     </p>
 
-    <table class="examiners-meta" style="margin-left: 20px; margin-bottom: 6px;">
+    <table class="examiners-meta" style="margin-left: 20px; margin-bottom: 8px;">
       <tr><td style="width:25px;">1.</td><td style="width:220px;"><b>${order.pemeriksa1}</b></td><td>( Jabatan : TPK/ Pemeriksa barang )</td></tr>
       <tr><td>2.</td><td><b>${order.pemeriksa2}</b></td><td>( Jabatan : TPK/ Pemeriksa barang )</td></tr>
       <tr><td>3.</td><td><b>${order.pemeriksa3}</b></td><td>( Jabatan : TPK/ Pemeriksa barang )</td></tr>
@@ -598,7 +598,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
       Demikian Berita Acara ini kami buat rangkap 3 (tiga) pada waktu dan tanggal tersebut
     </p>
 
-    <table style="width: 100%; margin-top: 15px; border: none;">
+    <table style="width: 100%; margin-top: 18px; border: none;">
       <tr>
         <td style="width: 45%; text-align: center; vertical-align: top; border: none;">
           Pelaksana Pengadaan Barang<br><br><br><br><br>
@@ -636,7 +636,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
       Pada hari ini &nbsp;<b>${terbilangBap.hari}</b>&nbsp; tanggal &nbsp;<b>${terbilangBap.tanggalWords}</b>&nbsp; bulan &nbsp;<b>${terbilangBap.bulanWords}</b>&nbsp; tahun &nbsp;<b>${terbilangBap.tahunWords}</b>, kami yang bertanda tangan dibawah ini :
     </p>
 
-    <table class="recipient-meta" style="margin-left: 20px; margin-bottom: 8px;">
+    <table class="recipient-meta" style="margin-left: 20px; margin-bottom: 10px;">
       <tr><td style="width:90px;">Nama</td><td>: &nbsp; <b>${order.namaKetuaTPK}</b></td></tr>
       <tr><td>Jabatan</td><td>: &nbsp; TPK / Penerima Barang</td></tr>
     </table>
@@ -670,7 +670,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
       Demikian Berita Acara ini kami buat rangkap 3 (tiga) pada waktu dan tanggal tersebut
     </p>
 
-    <table style="width: 100%; margin-top: 20px; border: none;">
+    <table style="width: 100%; margin-top: 22px; border: none;">
       <tr>
         <td style="width: 50%; text-align: center; vertical-align: top; border: none;">
           Yang Menerima;<br>
