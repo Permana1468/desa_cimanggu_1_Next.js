@@ -902,7 +902,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
               <CheckCircle2 size={22} />
             </span>
             <div>
-              <h1 className="text-xl font-bold text-slate-800">4. Tanda Terima Pekerja & Tanda Terima Upah</h1>
+              <h1 className="text-xl font-bold text-slate-800">5. Tanda Terima Pekerja & Tanda Terima Upah</h1>
               <p className="text-xs text-slate-500">Daftar Hadir Dan Tanda Terima Upah Tenaga Kerja Pembangunan Desa (Terintegrasi Otomatis)</p>
             </div>
           </div>

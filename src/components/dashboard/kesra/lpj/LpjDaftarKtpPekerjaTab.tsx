@@ -605,7 +605,7 @@ export function LpjDaftarKtpPekerjaTab({ session }: { session: any }) {
               <Fingerprint size={22} />
             </span>
             <div>
-              <h1 className="text-xl font-bold text-slate-800">5. Daftar KTP Pekerja</h1>
+              <h1 className="text-xl font-bold text-slate-800">3. Daftar KTP Pekerja</h1>
               <p className="text-xs text-slate-500">Lampiran Foto KTP Tenaga Kerja Pembangunan Desa (Format Resmi LPJ Kesra)</p>
             </div>
           </div>

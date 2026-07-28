@@ -794,9 +794,9 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                          {[
                            { label: "1. Registrasi Pembangunan", tab: "lpj-registrasi-pembangunan", icon: Building2 },
                            { label: "2. Pesanan Barang", tab: "lpj-pesanan-barang", icon: ShoppingBag },
-                           { label: "3. Daftar Hadir Pekerja", tab: "lpj-daftar-hadir-pekerja", icon: Users },
-                           { label: "4. Tanda Terima Pekerja", tab: "lpj-tanda-terima-pekerja", icon: CheckCircle2 },
-                           { label: "5. Daftar KTP Pekerja", tab: "lpj-daftar-ktp-pekerja", icon: Fingerprint },
+                           { label: "3. Daftar KTP Pekerja", tab: "lpj-daftar-ktp-pekerja", icon: Fingerprint },
+                           { label: "4. Daftar Hadir Pekerja", tab: "lpj-daftar-hadir-pekerja", icon: Users },
+                           { label: "5. Tanda Terima Pekerja", tab: "lpj-tanda-terima-pekerja", icon: CheckCircle2 },
                          ].map(({ label, tab, icon: Icon }) => (
                            <Link
                              key={tab}

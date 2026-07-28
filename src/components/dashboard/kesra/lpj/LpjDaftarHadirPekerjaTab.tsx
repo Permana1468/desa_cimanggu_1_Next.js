@@ -687,7 +687,7 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
               <Users size={22} />
             </span>
             <div>
-              <h1 className="text-xl font-bold text-slate-800">3. Daftar Hadir Pekerja (LPJ Kesra)</h1>
+              <h1 className="text-xl font-bold text-slate-800">4. Daftar Hadir Pekerja (LPJ Kesra)</h1>
               <p className="text-xs text-slate-500">Formulir & Rekapitulasi Absensi Harian Tenaga Kerja Pembangunan Desa</p>
             </div>
           </div>
