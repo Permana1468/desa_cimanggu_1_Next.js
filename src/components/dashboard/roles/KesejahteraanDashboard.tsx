@@ -24,7 +24,8 @@ import {
   Zap,
   Sliders,
   Check,
-  RotateCcw
+  RotateCcw,
+  X
 } from "lucide-react";
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
