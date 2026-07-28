@@ -400,7 +400,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
     }
   };
 
-  // PRINT LANDSCAPE DAFTAR HADIR DAN TANDA TERIMA UPAH TENAGA KERJA (100% REVISED PER REVISION 1, 2, 3, 4)
+  // PRINT LANDSCAPE DAFTAR HADIR DAN TANDA TERIMA UPAH TENAGA KERJA (PERFECT HEADER COLUMN ALIGNMENT)
   const handlePrintDocument = (record: any) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
@@ -493,7 +493,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
       padding: 1px 0;
     }
 
-    /* MAIN TABLE WITH CRISP SINGLE SOLID BLACK BORDERS ALWAYS (COLLAPSED & NO DOUBLE RIGHT LINE) */
+    /* MAIN TABLE WITH CRISP SINGLE SOLID BLACK BORDERS ALWAYS */
     table.tbl-ttd {
       width: 100%;
       border-collapse: collapse !important;
@@ -620,14 +620,14 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
       </tr>
     </table>
 
-    <!-- MAIN TABLE (REVISION 1: NO EXTRA LINE UNDER L/P, REVISION 2: CHECKMARK ONLY IN DATE CELLS, REVISION 3: NO '0' ROW, REVISION 4: INTEGRATED WORKER TTD & SINGLE RIGHT BORDER) -->
+    <!-- MAIN TABLE (PERFECT HEADER COLUMNS MATCHING JMLH HOK & NO EXTRA EMPTY COLUMNS) -->
     <table class="tbl-ttd">
       <thead>
         <tr>
           <th style="width: 28px;" rowspan="2">No</th>
           <th style="width: 180px;" rowspan="2">Nama</th>
-          <th style="width: 18px; padding: 4px 2px;">L</th>
-          <th style="width: 18px; padding: 4px 2px;">P</th>
+          <th style="width: 18px; padding: 4px 2px;" rowspan="2">L</th>
+          <th style="width: 18px; padding: 4px 2px;" rowspan="2">P</th>
           <th colspan="3">Kategori</th>
           <th colspan="${dateColumns.length}">Hari-Orang-Kerja (HOK)<br>Menurut Tanggal</th>
           <th colspan="3">Jmlh HOK</th>
@@ -658,7 +658,6 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
                        w.kategori === 'Tk' ? (record.upahTukang || 150000) : (record.upahPekerja || 120000);
           const totalWage = hadir * rate;
 
-          // Integrated TTD from Daftar Hadir / localStorage
           let savedSig = "";
           if (typeof window !== "undefined") {
             savedSig = localStorage.getItem(`lpj_worker_sig_${w.nama}`) || "";
