@@ -276,37 +276,64 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
     }
 
     /* KOP SURAT */
-    .kop-header {
-      text-align: center;
+    .kop-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 85px;
       margin-bottom: 2px;
     }
+    .kop-logo {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 80px;
+      width: auto;
+      object-fit: contain;
+    }
+    .kop-text-box {
+      text-align: center;
+      width: 100%;
+      padding-left: 85px;
+      padding-right: 10px;
+    }
     .kop-title-1 {
-      font-size: 14pt;
-      font-weight: bold;
+      font-size: 15pt;
+      font-weight: 900;
       letter-spacing: 0.5px;
-      line-height: 1.2;
+      line-height: 1.15;
+      font-family: Arial, Helvetica, sans-serif;
+      text-transform: uppercase;
     }
     .kop-title-2 {
-      font-size: 14pt;
-      font-weight: bold;
+      font-size: 15pt;
+      font-weight: 900;
       letter-spacing: 0.5px;
-      line-height: 1.2;
+      line-height: 1.15;
+      font-family: Arial, Helvetica, sans-serif;
+      text-transform: uppercase;
     }
     .kop-title-3 {
-      font-size: 13pt;
-      font-weight: bold;
+      font-size: 17pt;
+      font-weight: 900;
       letter-spacing: 0.5px;
       line-height: 1.2;
+      font-family: Arial, Helvetica, sans-serif;
+      text-transform: uppercase;
     }
     .kop-subtitle {
-      font-size: 9pt;
+      font-size: 9.5pt;
       font-style: italic;
-      margin-top: 2px;
-      line-height: 1.2;
+      margin-top: 3px;
+      font-family: Arial, Helvetica, sans-serif;
+      font-weight: 500;
+      text-decoration: underline;
     }
     .double-line {
-      border-bottom: 3.5px double #000;
-      margin-top: 4px;
+      border-bottom: 3.5px solid #000;
+      margin-top: 5px;
       margin-bottom: 14px;
     }
 
@@ -463,11 +490,14 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
 
   <!-- ==================== LAMPIRAN 1: SURAT PESANAN BARANG ==================== -->
   <div class="doc-page">
-    <div class="kop-header">
-      <div class="kop-title-1">TIM PELAKSANA KEGIATAN ( TPK )</div>
-      <div class="kop-title-2">DESA CIMANGGU I</div>
-      <div class="kop-title-3">KECAMATAN CIBUNGBULANG KABUPATEN BOGOR</div>
-      <div class="kop-subtitle">Jl. Ciaruteun Gardu Kp.Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Kecamatan Cibungbulang 16630 Bogor</div>
+    <div class="kop-container">
+      <img src="${window.location.origin}/images/logo-bogor.png" class="kop-logo" alt="Logo Kab Bogor" />
+      <div class="kop-text-box">
+        <div class="kop-title-1">PEMERINTAHAN KABUPATEN BOGOR</div>
+        <div class="kop-title-2">KECAMATAN CIBUNGBULANG</div>
+        <div class="kop-title-3">DESA CIMANGGU I</div>
+        <div class="kop-subtitle">Alamat: Jl Raya Gardu Seri No.50 Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Cibungbulang 16630 Bogor</div>
+      </div>
     </div>
     <div class="double-line"></div>
 
@@ -539,11 +569,14 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
 
   <!-- ==================== LAMPIRAN 2: BERITA ACARA PEMERIKSAAN BARANG ==================== -->
   <div class="doc-page">
-    <div class="kop-header">
-      <div class="kop-title-1">TIM PELAKSANA KEGIATAN ( TPK )</div>
-      <div class="kop-title-2">DESA CIMANGGU I</div>
-      <div class="kop-title-3">KECAMATAN CIBUNGBULANG KABUPATEN BOGOR</div>
-      <div class="kop-subtitle">Alamat: Jl Raya Gardu Seri No.60 Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Cibungbulang 16630 Bogor</div>
+    <div class="kop-container">
+      <img src="${window.location.origin}/images/logo-bogor.png" class="kop-logo" alt="Logo Kab Bogor" />
+      <div class="kop-text-box">
+        <div class="kop-title-1">PEMERINTAHAN KABUPATEN BOGOR</div>
+        <div class="kop-title-2">KECAMATAN CIBUNGBULANG</div>
+        <div class="kop-title-3">DESA CIMANGGU I</div>
+        <div class="kop-subtitle">Alamat: Jl Raya Gardu Seri No.50 Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Cibungbulang 16630 Bogor</div>
+      </div>
     </div>
     <div class="double-line"></div>
 
@@ -619,11 +652,14 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
 
   <!-- ==================== LAMPIRAN 3: BERITA ACARA PENERIMAAN BARANG ==================== -->
   <div class="doc-page">
-    <div class="kop-header">
-      <div class="kop-title-1">TIM PELAKSANA KEGIATAN ( TPK )</div>
-      <div class="kop-title-2">DESA CIMANGGU I</div>
-      <div class="kop-title-3">KECAMATAN CIBUNGBULANG KABUPATEN BOGOR</div>
-      <div class="kop-subtitle">Alamat: Jl Raya Gardu Seri No.60 Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Cibungbulang 16630 Bogor</div>
+    <div class="kop-container">
+      <img src="${window.location.origin}/images/logo-bogor.png" class="kop-logo" alt="Logo Kab Bogor" />
+      <div class="kop-text-box">
+        <div class="kop-title-1">PEMERINTAHAN KABUPATEN BOGOR</div>
+        <div class="kop-title-2">KECAMATAN CIBUNGBULANG</div>
+        <div class="kop-title-3">DESA CIMANGGU I</div>
+        <div class="kop-subtitle">Alamat: Jl Raya Gardu Seri No.50 Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Cibungbulang 16630 Bogor</div>
+      </div>
     </div>
     <div class="double-line"></div>
 
