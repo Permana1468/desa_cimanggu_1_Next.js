@@ -15,8 +15,7 @@ import {
   Unlock, 
   FileText, 
   Calendar,
-  Building2,
-  Check
+  Building2
 } from "lucide-react";
 
 // Helper: Calculate Backwards Dates for Hari-Orang-Kerja (HOK)
@@ -240,7 +239,7 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
     });
   };
 
-  // PRINT LANDSCAPE DAFTAR HADIR PEKERJA (100% PRECISE MATCH TO IMAGE)
+  // PRINT LANDSCAPE DAFTAR HADIR PEKERJA (PERFECT REVISION FOR HEADER LINE ALIGNMENT & SOFT GREY SHADING)
   const handlePrintDocument = (record: any) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
@@ -248,8 +247,8 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
     const sortedWorkers = sortWorkers(record.workers || []);
     const dateColumns = calculateBackwardsDates(record.tanggalTTD, record.masaKerjaHari || 5);
 
-    // Total table columns grid width (e.g. 20 total day slots like standard official template)
-    const MAX_GRID_DAYS = 20;
+    // Total grid columns for clean, spacious layout on F4 Landscape (10 columns default)
+    const TOTAL_GRID_DAYS = Math.max(10, dateColumns.length);
 
     printWindow.document.write(`<!DOCTYPE html>
 <html lang="id">
@@ -309,7 +308,7 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
     .top-meta td {
       vertical-align: top;
       border: none;
-      padding: 1px 0;
+      padding: 1.5px 0;
     }
 
     /* MAIN TABLE */
@@ -321,7 +320,7 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
     }
     table.tbl-hadir th, table.tbl-hadir td {
       border: 1px solid #000;
-      padding: 3px 2px;
+      padding: 4px 3px;
       font-size: 8.5pt;
       text-align: center;
       vertical-align: middle;
@@ -331,8 +330,14 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
       background-color: #ffffff;
     }
 
-    .bg-shaded {
-      background-color: #d1d5db !important;
+    /* SOFT GREY SHADING FOR EMPTY COLUMNS (ELEGANT & NOT DARK) */
+    .bg-shaded-header {
+      background-color: #e2e8f0 !important;
+      border: 1px solid #94a3b8 !important;
+    }
+    .bg-shaded-cell {
+      background-color: #f1f5f9 !important;
+      border: 1px solid #cbd5e1 !important;
     }
 
     /* SIGNATURES 4-COLUMNS */
@@ -434,44 +439,49 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
       </tr>
     </table>
 
-    <!-- MAIN TABLE DAFTAR HADIR -->
+    <!-- MAIN TABLE DAFTAR HADIR (PERFECTLY ALIGNED SINGLE HORIZONTAL ROW FOR L, P, Md, Tk, Pk & Dates) -->
     <table class="tbl-hadir">
       <thead>
         <tr>
-          <th style="width: 30px;" rowspan="3">No</th>
-          <th style="width: 180px;" rowspan="3">Nama</th>
-          <th colspan="2" rowspan="2">JK</th>
+          <th style="width: 32px;" rowspan="2">No</th>
+          <th style="width: 210px;" rowspan="2">Nama</th>
+          <th colspan="2">JK</th>
           <th colspan="3">Kategori</th>
-          <th colspan="${MAX_GRID_DAYS}">Hari-Orang-Kerja (HOK)<br>Menurut Tanggal</th>
+          <th colspan="${TOTAL_GRID_DAYS}">Hari-Orang-Kerja (HOK)<br>Menurut Tanggal</th>
         </tr>
         <tr>
-          <th style="width: 22px;" rowspan="2">Md</th>
-          <th style="width: 22px;" rowspan="2">Tk</th>
-          <th style="width: 22px;" rowspan="2">Pk</th>
-          ${dateColumns.map(d => `<th style="font-size: 7.5pt; padding: 2px 1px;">${d.dayIndex}</th>`).join('')}
-          ${Array.from({ length: Math.max(0, MAX_GRID_DAYS - dateColumns.length) }, (_, i) => `<th class="bg-shaded"></th>`).join('')}
-        </tr>
-        <tr>
-          <th style="width: 18px;">L</th>
-          <th style="width: 18px;">P</th>
-          ${dateColumns.map(d => `<th style="font-size: 6.5pt; font-weight: normal; padding: 2px 1px;">${d.dateStr}</th>`).join('')}
-          ${Array.from({ length: Math.max(0, MAX_GRID_DAYS - dateColumns.length) }, (_, i) => `<th class="bg-shaded"></th>`).join('')}
+          <th style="width: 22px;">L</th>
+          <th style="width: 22px;">P</th>
+          <th style="width: 25px;">Md</th>
+          <th style="width: 25px;">Tk</th>
+          <th style="width: 25px;">Pk</th>
+          ${dateColumns.map(d => `
+            <th style="padding: 2px 1px; min-width: 42px;">
+              <div style="font-size: 8pt; font-weight: bold;">${d.dayIndex}</div>
+              <div style="font-size: 6.5pt; font-weight: normal;">${d.dateStr}</div>
+            </th>
+          `).join('')}
+          ${Array.from({ length: Math.max(0, TOTAL_GRID_DAYS - dateColumns.length) }, () => `
+            <th class="bg-shaded-header"></th>
+          `).join('')}
         </tr>
       </thead>
       <tbody>
         ${sortedWorkers.map((w: any, idx: number) => `
           <tr>
-            <td>${idx + 1}</td>
+            <td style="text-align: center;">${idx + 1}</td>
             <td style="text-align: left; padding-left: 8px;">${w.nama}</td>
-            <td>${w.gender === 'L' ? '√' : ''}</td>
-            <td>${w.gender === 'P' ? '√' : ''}</td>
-            <td>${w.kategori === 'Md' ? '√' : ''}</td>
-            <td>${w.kategori === 'Tk' ? '√' : ''}</td>
-            <td>${w.kategori === 'Pk' ? '√' : ''}</td>
+            <td style="text-align: center;">${w.gender === 'L' ? '√' : ''}</td>
+            <td style="text-align: center;">${w.gender === 'P' ? '√' : ''}</td>
+            <td style="text-align: center;">${w.kategori === 'Md' ? '√' : ''}</td>
+            <td style="text-align: center;">${w.kategori === 'Tk' ? '√' : ''}</td>
+            <td style="text-align: center;">${w.kategori === 'Pk' ? '√' : ''}</td>
             ${dateColumns.map((_, dayIdx) => `
-              <td>${(w.isHadir && w.isHadir[dayIdx] !== false) ? '√' : ''}</td>
+              <td style="text-align: center;">${(w.isHadir && w.isHadir[dayIdx] !== false) ? '√' : ''}</td>
             `).join('')}
-            ${Array.from({ length: Math.max(0, MAX_GRID_DAYS - dateColumns.length) }, () => `<td class="bg-shaded"></td>`).join('')}
+            ${Array.from({ length: Math.max(0, TOTAL_GRID_DAYS - dateColumns.length) }, () => `
+              <td class="bg-shaded-cell"></td>
+            `).join('')}
           </tr>
         `).join('')}
       </tbody>
