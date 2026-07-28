@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { 
   Users,
   CheckCircle2, 
@@ -116,15 +116,15 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
-  // Initial Form Data Schema (100% Matching Attached Sample Image)
+  // Initial Form Data Schema
   const emptyForm = {
     desa: "CIMANGGU I",
     kecamatan: "CIBUNGBULANG",
     provinsi: "JAWA BARAT",
-    kegiatan: "Betonisasi Jalan Lingkungan dan Pelengkap (TPT)",
-    lokasiKegiatan: "Kp. Ciaruteun Rt. 004 Rw. 008",
-    masaKerjaHari: 10,
-    tanggalTTD: "2025-05-02",
+    kegiatan: "BETONISASI JALAN LINGKUNGAN DAN PELENGKAPNYA",
+    lokasiKegiatan: "Kp. Cimanggu Rt. 004 Rw. 001",
+    masaKerjaHari: 5,
+    tanggalTTD: "2025-04-27",
     upahMandor: 200000,
     upahTukang: 150000,
     upahPekerja: 120000,
@@ -133,23 +133,124 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
     sekretarisDesa: "FAJAR TRI APRIANA",
     ketuaTpk: "M. TONNY GUNAWAN",
     workers: [
-      { nama: "M. TONNY GUNAWAN", gender: "L", kategori: "Tk", jumlahHadirHari: 10, signatureUrl: "" },
-      { nama: "Ahmad Subagja", gender: "L", kategori: "Tk", jumlahHadirHari: 3, signatureUrl: "" },
-      { nama: "Ujang Iskandar", gender: "L", kategori: "Pk", jumlahHadirHari: 10, signatureUrl: "" },
-      { nama: "Ade Saepudin", gender: "L", kategori: "Pk", jumlahHadirHari: 10, signatureUrl: "" },
-      { nama: "Iyom Maryono", gender: "L", kategori: "Pk", jumlahHadirHari: 10, signatureUrl: "" },
-      { nama: "Siti Rahmawati", gender: "L", kategori: "Pk", jumlahHadirHari: 10, signatureUrl: "" },
-      { nama: "Budi Santoso", gender: "L", kategori: "Pk", jumlahHadirHari: 10, signatureUrl: "" },
-      { nama: "Agus Pratama", gender: "L", kategori: "Pk", jumlahHadirHari: 10, signatureUrl: "" },
-      { nama: "Dede Mulyana", gender: "L", kategori: "Pk", jumlahHadirHari: 10, signatureUrl: "" },
-      { nama: "Asep Herman", gender: "L", kategori: "Pk", jumlahHadirHari: 10, signatureUrl: "" },
-      { nama: "Endang Suherman", gender: "L", kategori: "Pk", jumlahHadirHari: 10, signatureUrl: "" },
-      { nama: "Jaka Tarub", gender: "L", kategori: "Pk", jumlahHadirHari: 10, signatureUrl: "" },
-      { nama: "Solihin", gender: "L", kategori: "Pk", jumlahHadirHari: 7, signatureUrl: "" }
+      { nama: "M. TONNY GUNAWAN", gender: "L", kategori: "Md", jumlahHadirHari: 5, signatureUrl: "" },
+      { nama: "Ahmad Subagja", gender: "L", kategori: "Tk", jumlahHadirHari: 5, signatureUrl: "" },
+      { nama: "Ujang Iskandar", gender: "L", kategori: "Tk", jumlahHadirHari: 5, signatureUrl: "" },
+      { nama: "Ade Saepudin", gender: "L", kategori: "Tk", jumlahHadirHari: 5, signatureUrl: "" },
+      { nama: "Iyom Maryono", gender: "L", kategori: "Tk", jumlahHadirHari: 5, signatureUrl: "" },
+      { nama: "Siti Rahmawati", gender: "P", kategori: "Pk", jumlahHadirHari: 5, signatureUrl: "" },
+      { nama: "Budi Santoso", gender: "L", kategori: "Pk", jumlahHadirHari: 5, signatureUrl: "" },
+      { nama: "Agus Pratama", gender: "L", kategori: "Pk", jumlahHadirHari: 5, signatureUrl: "" },
+      { nama: "Dede Mulyana", gender: "L", kategori: "Pk", jumlahHadirHari: 5, signatureUrl: "" },
+      { nama: "Asep Herman", gender: "L", kategori: "Pk", jumlahHadirHari: 5, signatureUrl: "" },
+      { nama: "Endang Suherman", gender: "L", kategori: "Pk", jumlahHadirHari: 5, signatureUrl: "" },
+      { nama: "Jaka Tarub", gender: "L", kategori: "Pk", jumlahHadirHari: 5, signatureUrl: "" },
+      { nama: "Solihin", gender: "L", kategori: "Pk", jumlahHadirHari: 5, signatureUrl: "" }
     ]
   };
 
   const [formData, setFormData] = useState(emptyForm);
+  const [data, setData] = useState<any[]>([]);
+
+  // AUTO-SYNC LOGIC: Load and merge records from Daftar Hadir + custom overrides + standalone records
+  const syncDataFromDaftarHadir = useCallback(() => {
+    if (typeof window === "undefined") return;
+
+    let dhRecords: any[] = [];
+    const savedDh = localStorage.getItem("lpj_daftar_hadir_records");
+    if (savedDh) {
+      try {
+        dhRecords = JSON.parse(savedDh);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // Fallback default if empty
+    if (dhRecords.length === 0) {
+      dhRecords = [{ id: "1", ...emptyForm }];
+    }
+
+    let overrides: Record<string, any> = {};
+    const savedOverrides = localStorage.getItem("lpj_tanda_terima_overrides");
+    if (savedOverrides) {
+      try {
+        overrides = JSON.parse(savedOverrides);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    let standalone: any[] = [];
+    const savedStandalone = localStorage.getItem("lpj_tanda_terima_standalone");
+    if (savedStandalone) {
+      try {
+        standalone = JSON.parse(savedStandalone);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // Map each Daftar Hadir record to Tanda Terima format
+    const syncedRecords = dhRecords.map((dh: any) => {
+      const ov = overrides[dh.id] || {};
+
+      const mappedWorkers = (dh.workers || []).map((w: any) => {
+        const defaultHadirCount = w.isHadir
+          ? w.isHadir.filter((h: boolean) => h !== false).length
+          : (dh.masaKerjaHari || 5);
+
+        const wOv = (ov.workers || []).find((ow: any) => ow.nama === w.nama);
+        const savedSig = localStorage.getItem(`lpj_worker_sig_${w.nama}`) || "";
+
+        return {
+          nama: w.nama,
+          gender: w.gender || "L",
+          kategori: w.kategori || "Pk",
+          jumlahHadirHari: wOv?.jumlahHadirHari !== undefined ? wOv.jumlahHadirHari : defaultHadirCount,
+          signatureUrl: w.signatureUrl || savedSig || ""
+        };
+      });
+
+      return {
+        id: dh.id,
+        isSynced: true,
+        desa: dh.desa,
+        kecamatan: dh.kecamatan,
+        provinsi: dh.provinsi,
+        kegiatan: dh.kegiatan,
+        lokasiKegiatan: dh.lokasiKegiatan,
+        masaKerjaHari: ov.masaKerjaHari !== undefined ? ov.masaKerjaHari : dh.masaKerjaHari,
+        tanggalTTD: dh.tanggalTTD,
+        upahMandor: ov.upahMandor !== undefined ? ov.upahMandor : 200000,
+        upahTukang: ov.upahTukang !== undefined ? ov.upahTukang : 150000,
+        upahPekerja: ov.upahPekerja !== undefined ? ov.upahPekerja : 120000,
+        kepalaDesa: dh.kepalaDesa,
+        kaurKeuangan: dh.kaurKeuangan,
+        sekretarisDesa: dh.sekretarisDesa,
+        ketuaTpk: dh.ketuaTpk,
+        workers: mappedWorkers
+      };
+    });
+
+    setData([...syncedRecords, ...standalone]);
+  }, []);
+
+  // Listen to realtime events and window focus
+  useEffect(() => {
+    syncDataFromDaftarHadir();
+
+    const handleUpdateEvent = () => syncDataFromDaftarHadir();
+    window.addEventListener("lpj_dh_updated", handleUpdateEvent);
+    window.addEventListener("storage", handleUpdateEvent);
+    window.addEventListener("focus", handleUpdateEvent);
+
+    return () => {
+      window.removeEventListener("lpj_dh_updated", handleUpdateEvent);
+      window.removeEventListener("storage", handleUpdateEvent);
+      window.removeEventListener("focus", handleUpdateEvent);
+    };
+  }, [syncDataFromDaftarHadir]);
 
   // Load saved default headers & signatures
   useEffect(() => {
@@ -174,14 +275,6 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
       }));
     }
   }, []);
-
-  // Main Data List
-  const [data, setData] = useState<any[]>([
-    {
-      id: "1",
-      ...emptyForm
-    }
-  ]);
 
   const filteredData = useMemo(() => {
     return data.filter(item => 
@@ -220,6 +313,32 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
 
   const handleDelete = (id: string) => {
     if (confirm("Apakah Anda yakin ingin menghapus data daftar hadir dan tanda terima upah ini?")) {
+      if (typeof window !== "undefined") {
+        // If synced record, remove overrides
+        const savedOverrides = localStorage.getItem("lpj_tanda_terima_overrides");
+        if (savedOverrides) {
+          try {
+            const ov = JSON.parse(savedOverrides);
+            delete ov[id];
+            localStorage.setItem("lpj_tanda_terima_overrides", JSON.stringify(ov));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+
+        // If standalone record, remove from standalone list
+        const savedStandalone = localStorage.getItem("lpj_tanda_terima_standalone");
+        if (savedStandalone) {
+          try {
+            const st = JSON.parse(savedStandalone);
+            const updatedSt = st.filter((s: any) => s.id !== id);
+            localStorage.setItem("lpj_tanda_terima_standalone", JSON.stringify(updatedSt));
+          } catch (e) {
+            console.error(e);
+          }
+        }
+      }
+
       setData(prev => prev.filter(d => d.id !== id));
     }
   };
@@ -247,29 +366,50 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
       return;
     }
 
-    if (typeof window !== "undefined") {
-      localStorage.setItem("lpj_dh_desa", formData.desa);
-      localStorage.setItem("lpj_dh_kecamatan", formData.kecamatan);
-      localStorage.setItem("lpj_dh_provinsi", formData.provinsi);
-      localStorage.setItem("lpj_dh_kepala_desa", formData.kepalaDesa);
-      localStorage.setItem("lpj_dh_kaur_keuangan", formData.kaurKeuangan);
-      localStorage.setItem("lpj_dh_sekretaris_desa", formData.sekretarisDesa);
-      localStorage.setItem("lpj_dh_ketua_tpk", formData.ketuaTpk);
-    }
-
     const sortedWorkers = sortWorkers(formData.workers);
 
-    if (editingId) {
-      setData(prev => prev.map(d => d.id === editingId ? { ...formData, workers: sortedWorkers, id: editingId } : d));
-    } else {
-      const newItem = {
-        ...formData,
-        workers: sortedWorkers,
-        id: Date.now().toString()
-      };
-      setData(prev => [newItem, ...prev]);
+    if (typeof window !== "undefined") {
+      const isEditingSynced = data.find(d => d.id === editingId)?.isSynced;
+
+      if (isEditingSynced && editingId) {
+        // Save as custom override for synced record
+        const savedOverrides = localStorage.getItem("lpj_tanda_terima_overrides");
+        let ov: Record<string, any> = {};
+        if (savedOverrides) {
+          try { ov = JSON.parse(savedOverrides); } catch (e) {}
+        }
+        ov[editingId] = {
+          masaKerjaHari: formData.masaKerjaHari,
+          upahMandor: formData.upahMandor,
+          upahTukang: formData.upahTukang,
+          upahPekerja: formData.upahPekerja,
+          workers: sortedWorkers
+        };
+        localStorage.setItem("lpj_tanda_terima_overrides", JSON.stringify(ov));
+      } else {
+        // Standalone record save/update
+        const savedStandalone = localStorage.getItem("lpj_tanda_terima_standalone");
+        let st: any[] = [];
+        if (savedStandalone) {
+          try { st = JSON.parse(savedStandalone); } catch (e) {}
+        }
+
+        if (editingId) {
+          st = st.map(s => s.id === editingId ? { ...formData, workers: sortedWorkers, id: editingId } : s);
+        } else {
+          const newItem = {
+            ...formData,
+            workers: sortedWorkers,
+            id: Date.now().toString(),
+            isSynced: false
+          };
+          st = [newItem, ...st];
+        }
+        localStorage.setItem("lpj_tanda_terima_standalone", JSON.stringify(st));
+      }
     }
 
+    syncDataFromDaftarHadir();
     setShowModal(false);
   };
 
@@ -371,10 +511,10 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
 
     const updatedRecord = { ...detailRecord, workers: updatedWorkers };
     setDetailRecord(updatedRecord);
-    setData(prev => prev.map(d => d.id === detailRecord.id ? updatedRecord : d));
 
     if (typeof window !== "undefined") {
       localStorage.setItem(`lpj_worker_sig_${detailRecord.workers[selectedWorkerIndex].nama}`, dataUrl);
+      window.dispatchEvent(new Event("lpj_dh_updated"));
     }
   };
 
@@ -393,20 +533,20 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
 
     const updatedRecord = { ...detailRecord, workers: updatedWorkers };
     setDetailRecord(updatedRecord);
-    setData(prev => prev.map(d => d.id === detailRecord.id ? updatedRecord : d));
 
     if (typeof window !== "undefined") {
       localStorage.setItem(`lpj_worker_sig_${worker.nama}`, autoSvgUrl);
+      window.dispatchEvent(new Event("lpj_dh_updated"));
     }
   };
 
-  // PRINT LANDSCAPE DAFTAR HADIR DAN TANDA TERIMA UPAH TENAGA KERJA (PERFECT HEADER COLUMN ALIGNMENT)
+  // PRINT LANDSCAPE DAFTAR HADIR DAN TANDA TERIMA UPAH TENAGA KERJA (AUTOMATICALLY SYNCED)
   const handlePrintDocument = (record: any) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
 
     const sortedWorkers = sortWorkers(record.workers || []);
-    const dateColumns = calculateBackwardsDates(record.tanggalTTD, record.masaKerjaHari || 10);
+    const dateColumns = calculateBackwardsDates(record.tanggalTTD, record.masaKerjaHari || 5);
 
     // Calculate Column Summaries
     let totalL = 0, totalP = 0;
@@ -620,7 +760,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
       </tr>
     </table>
 
-    <!-- MAIN TABLE (PERFECT HEADER COLUMNS MATCHING JMLH HOK & NO EXTRA EMPTY COLUMNS) -->
+    <!-- MAIN TABLE -->
     <table class="tbl-ttd">
       <thead>
         <tr>
@@ -697,7 +837,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
           `;
         }).join('')}
 
-        <!-- MAIN SUMMARY TOTALS ROW (NO '0' SUBROW, CLEAN SINGLE RIGHT BORDER) -->
+        <!-- MAIN SUMMARY TOTALS ROW -->
         <tr class="bg-summary">
           <td colspan="2" style="text-align: center; font-weight: bold;">Jumlah</td>
           <td style="text-align: center; font-weight: bold;">${totalL}</td>
@@ -763,7 +903,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
             </span>
             <div>
               <h1 className="text-xl font-bold text-slate-800">4. Tanda Terima Pekerja & Tanda Terima Upah</h1>
-              <p className="text-xs text-slate-500">Daftar Hadir Dan Tanda Terima Upah Tenaga Kerja Pembangunan Desa</p>
+              <p className="text-xs text-slate-500">Daftar Hadir Dan Tanda Terima Upah Tenaga Kerja Pembangunan Desa (Terintegrasi Otomatis)</p>
             </div>
           </div>
         </div>
@@ -774,7 +914,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors shadow-lg shadow-emerald-600/20"
           >
             <Plus size={16} />
-            <span>+ Buat Tanda Terima Upah</span>
+            <span>+ Buat Tanda Terima Upah (Mandiri)</span>
           </button>
         </div>
       </div>
@@ -839,7 +979,14 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
                 paginatedData.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-bold text-slate-800 max-w-xs">
-                      <div>{item.kegiatan}</div>
+                      <div className="flex items-center gap-1.5">
+                        <span>{item.kegiatan}</span>
+                        {item.isSynced && (
+                          <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-bold" title="Terintegrasi Otomatis dari Daftar Hadir">
+                            Tersinkron
+                          </span>
+                        )}
+                      </div>
                       <div className="text-xs font-normal text-slate-400">{item.desa}, {item.kecamatan}</div>
                     </td>
                     <td className="px-6 py-4 text-xs font-medium text-slate-700">{item.lokasiKegiatan}</td>
@@ -876,7 +1023,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
                         <button 
                           onClick={() => handleOpenEdit(item)}
                           className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
-                          title="Edit"
+                          title="Edit khusus Tanda Terima"
                         >
                           <Edit3 size={16} />
                         </button>
@@ -1169,7 +1316,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
                 </span>
                 <div>
                   <h2 className="text-lg font-bold text-slate-800">
-                    {editingId ? "Edit Tanda Terima Upah Pekerja" : "Form Pengisian Tanda Terima Upah Pekerja"}
+                    {editingId ? "Edit Khusus Tanda Terima Upah" : "Form Pengisian Tanda Terima Upah (Mandiri)"}
                   </h2>
                   <p className="text-xs text-slate-500">Kelola tarif harian, jumlah kehadiran HOK, dan honor upah pekerja</p>
                 </div>
@@ -1244,7 +1391,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
                     type="text"
                     value={formData.kegiatan}
                     onChange={(e) => setFormData({ ...formData, kegiatan: e.target.value })}
-                    placeholder="Contoh: Betonisasi Jalan Lingkungan dan Pelengkap (TPT)"
+                    placeholder="Contoh: BETONISASI JALAN LINGKUNGAN DAN PELENGKAPNYA"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold text-xs focus:ring-2 focus:ring-emerald-500/20"
                     required
                   />
@@ -1256,7 +1403,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
                     type="text"
                     value={formData.lokasiKegiatan}
                     onChange={(e) => setFormData({ ...formData, lokasiKegiatan: e.target.value })}
-                    placeholder="Contoh: Kp. Ciaruteun Rt. 004 Rw. 008"
+                    placeholder="Contoh: Kp. Cimanggu Rt. 004 Rw. 001"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-bold text-xs focus:ring-2 focus:ring-emerald-500/20"
                     required
                   />

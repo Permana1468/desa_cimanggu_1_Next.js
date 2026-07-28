@@ -143,6 +143,30 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
 
   const [formData, setFormData] = useState(emptyForm);
 
+  // Main Data List with Persistence & Realtime Broadcast
+  const [data, setData] = useState<any[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("lpj_daftar_hadir_records");
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+    return [{ id: "1", ...emptyForm }];
+  });
+
+  // Save to localStorage & broadcast update event whenever data changes
+  const saveAndBroadcastData = (newRecords: any[]) => {
+    setData(newRecords);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("lpj_daftar_hadir_records", JSON.stringify(newRecords));
+      window.dispatchEvent(new Event("lpj_dh_updated"));
+    }
+  };
+
   // Load saved default headers & signatures
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -166,14 +190,6 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
       }));
     }
   }, []);
-
-  // Main Data List
-  const [data, setData] = useState<any[]>([
-    {
-      id: "1",
-      ...emptyForm
-    }
-  ]);
 
   const filteredData = useMemo(() => {
     return data.filter(item => 
@@ -212,7 +228,8 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
 
   const handleDelete = (id: string) => {
     if (confirm("Apakah Anda yakin ingin menghapus data daftar hadir pekerja ini?")) {
-      setData(prev => prev.filter(d => d.id !== id));
+      const updated = data.filter(d => d.id !== id);
+      saveAndBroadcastData(updated);
     }
   };
 
@@ -241,17 +258,19 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
 
     const sortedWorkers = sortWorkers(formData.workers);
 
+    let updatedRecords: any[];
     if (editingId) {
-      setData(prev => prev.map(d => d.id === editingId ? { ...formData, workers: sortedWorkers, id: editingId } : d));
+      updatedRecords = data.map(d => d.id === editingId ? { ...formData, workers: sortedWorkers, id: editingId } : d);
     } else {
       const newItem = {
         ...formData,
         workers: sortedWorkers,
         id: Date.now().toString()
       };
-      setData(prev => [newItem, ...prev]);
+      updatedRecords = [newItem, ...data];
     }
 
+    saveAndBroadcastData(updatedRecords);
     setShowModal(false);
   };
 
@@ -353,11 +372,12 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
 
     const updatedRecord = { ...detailRecord, workers: updatedWorkers };
     setDetailRecord(updatedRecord);
-    setData(prev => prev.map(d => d.id === detailRecord.id ? updatedRecord : d));
+    const updatedAll = data.map(d => d.id === detailRecord.id ? updatedRecord : d);
+    saveAndBroadcastData(updatedAll);
 
-    // Save to shared localStorage so Tanda Terima automatically syncs TTD!
     if (typeof window !== "undefined") {
       localStorage.setItem(`lpj_worker_sig_${detailRecord.workers[selectedWorkerIndex].nama}`, dataUrl);
+      window.dispatchEvent(new Event("lpj_dh_updated"));
     }
   };
 
@@ -376,15 +396,16 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
 
     const updatedRecord = { ...detailRecord, workers: updatedWorkers };
     setDetailRecord(updatedRecord);
-    setData(prev => prev.map(d => d.id === detailRecord.id ? updatedRecord : d));
+    const updatedAll = data.map(d => d.id === detailRecord.id ? updatedRecord : d);
+    saveAndBroadcastData(updatedAll);
 
-    // Save to shared localStorage so Tanda Terima automatically syncs TTD!
     if (typeof window !== "undefined") {
       localStorage.setItem(`lpj_worker_sig_${worker.nama}`, autoSvgUrl);
+      window.dispatchEvent(new Event("lpj_dh_updated"));
     }
   };
 
-  // PRINT LANDSCAPE DAFTAR HADIR PEKERJA (L & P PERFECTLY CENTERED IN HEADER)
+  // PRINT LANDSCAPE DAFTAR HADIR PEKERJA
   const handlePrintDocument = (record: any) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
@@ -571,7 +592,7 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
       </tr>
     </table>
 
-    <!-- MAIN TABLE DAFTAR HADIR (L & P CLEANLY CENTERED IN HEADER WITHOUT EXTRA LINE BELOW) -->
+    <!-- MAIN TABLE DAFTAR HADIR -->
     <table class="tbl-hadir">
       <thead>
         <tr>
@@ -606,7 +627,7 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
             <td style="text-align: center;">${w.kategori === 'Tk' ? '√' : ''}</td>
             <td style="text-align: center;">${w.kategori === 'Pk' ? '√' : ''}</td>
             ${dateColumns.map((_, dayIdx) => {
-              const sigImg = w.signatureUrl || generateWorkerSignatureSvg(w.nama, dayIdx);
+              const sigImg = w.signatureUrl || (typeof window !== 'undefined' ? localStorage.getItem(`lpj_worker_sig_${w.nama}`) : '') || generateWorkerSignatureSvg(w.nama, dayIdx);
               return `
                 <td style="text-align: center; height: 26px;">
                   ${(w.isHadir && w.isHadir[dayIdx] !== false)
@@ -884,7 +905,7 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
 
                 {detailRecord.workers.map((w: any, idx: number) => {
                   const isSelected = selectedWorkerIndex === idx;
-                  const sigPreview = w.signatureUrl || generateWorkerSignatureSvg(w.nama, 0);
+                  const sigPreview = w.signatureUrl || (typeof window !== 'undefined' ? localStorage.getItem(`lpj_worker_sig_${w.nama}`) : '') || generateWorkerSignatureSvg(w.nama, 0);
 
                   return (
                     <div
@@ -1019,7 +1040,7 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
                       <span className="text-[11px] font-bold text-slate-500 block mb-1">Pratinjau TTD Aktif Pada Tabel:</span>
                       <div className="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-center">
                         <img 
-                          src={detailRecord.workers[selectedWorkerIndex].signatureUrl || generateWorkerSignatureSvg(detailRecord.workers[selectedWorkerIndex].nama, 0)} 
+                          src={detailRecord.workers[selectedWorkerIndex].signatureUrl || (typeof window !== 'undefined' ? localStorage.getItem(`lpj_worker_sig_${detailRecord.workers[selectedWorkerIndex].nama}`) : '') || generateWorkerSignatureSvg(detailRecord.workers[selectedWorkerIndex].nama, 0)} 
                           alt="Pratinjau TTD" 
                           className="h-10 w-auto"
                         />
