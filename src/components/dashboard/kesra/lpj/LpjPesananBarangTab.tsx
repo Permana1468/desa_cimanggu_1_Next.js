@@ -1,19 +1,19 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { 
-  ShoppingBag, 
-  Search, 
-  Plus, 
-  Printer, 
-  ChevronLeft, 
-  ChevronRight, 
-  Edit3, 
-  Trash2, 
-  X, 
-  Lock, 
-  Unlock, 
-  FileText, 
+import {
+  ShoppingBag,
+  Search,
+  Plus,
+  Printer,
+  ChevronLeft,
+  ChevronRight,
+  Edit3,
+  Trash2,
+  X,
+  Lock,
+  Unlock,
+  FileText,
   CheckCircle2,
   PackageCheck,
   Building2
@@ -35,7 +35,7 @@ function angkaKeTerbilang(n: number): string {
 
 function dateToTerbilangFull(dateStr: string): { hari: string; tanggalWords: string; bulanWords: string; tahunWords: string } {
   if (!dateStr) return { hari: "kamis", tanggalWords: "dua puluh tujuh", bulanWords: "juni", tahunWords: "dua ribu dua puluh empat" };
-  
+
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) {
     return { hari: "kamis", tanggalWords: "dua puluh tujuh", bulanWords: "juni", tahunWords: "dua ribu dua puluh empat" };
@@ -43,7 +43,7 @@ function dateToTerbilangFull(dateStr: string): { hari: string; tanggalWords: str
 
   const HARI_ID = ["minggu", "senin", "selasa", "rabu", "kamis", "jumat", "sabtu"];
   const BULAN_ID = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
-  
+
   const hari = HARI_ID[d.getDay()] || "kamis";
   const tgl = d.getDate();
   const bln = BULAN_ID[d.getMonth()] || "juni";
@@ -76,10 +76,10 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
 
   // Master options
   const [tokoOptions] = useState<string[]>([
-    "DELIMA JAYA",
+    "PB. DELIMA JAYA",
     "PB. ABBIE ARDAN",
-    "TB. CIMANGGU JAYA",
-    "TB. MAJU BERSAMA"
+    "F2. MULTI MEDIA",
+    "SINAR M"
   ]);
 
   const [sumberDanaOptions] = useState<string[]>([
@@ -93,11 +93,11 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
 
   // Initial Form Data Schema
   const emptyForm = {
-    nomorRegister: "007/TPK/VI/2024",
-    nomorBap: "008/TPK/VI/2024",
-    nomorBast: "009/TPK/VI/2024",
+    nomorRegister: "000.3.1/007 - PEM",
+    nomorBap: "000.3.1/008 - PEM",
+    nomorBast: "000.3.1/009 - PEM",
     tanggalPesanan: "2024-06-24",
-    toko: "DELIMA JAYA",
+    toko: "PB. DELIMA JAYA",
     sumberDana: "Dana Desa (DD)",
     namaKegiatanSampaiLokasi: "Betonisasi Jalan Lingkungan di Kp. Cimanggu Rt. 004 Rw. 001 Desa Cimanggu I Kecamatan Cibungbulang Kabupaten Bogor",
     pengirimanHari: "Kamis",
@@ -146,7 +146,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
   ]);
 
   const filteredData = useMemo(() => {
-    return data.filter(item => 
+    return data.filter(item =>
       item.nomorRegister.toLowerCase().includes(search.toLowerCase()) ||
       item.toko.toLowerCase().includes(search.toLowerCase()) ||
       item.namaKegiatanSampaiLokasi.toLowerCase().includes(search.toLowerCase())
@@ -496,7 +496,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
         <div class="kop-title-1">PEMERINTAHAN KABUPATEN BOGOR</div>
         <div class="kop-title-2">KECAMATAN CIBUNGBULANG</div>
         <div class="kop-title-3">DESA CIMANGGU I</div>
-        <div class="kop-subtitle">Alamat: Jl Raya Gardu Seri No.50 Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Cibungbulang 16630 Bogor</div>
+        <div class="kop-subtitle">Jl. Raya Gardu Seri Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Kec. Cibungbulang Kab. Bogor - 16630</div>
       </div>
     </div>
     <div class="double-line"></div>
@@ -575,7 +575,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
         <div class="kop-title-1">PEMERINTAHAN KABUPATEN BOGOR</div>
         <div class="kop-title-2">KECAMATAN CIBUNGBULANG</div>
         <div class="kop-title-3">DESA CIMANGGU I</div>
-        <div class="kop-subtitle">Alamat: Jl Raya Gardu Seri No.50 Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Cibungbulang 16630 Bogor</div>
+        <div class="kop-subtitle">Jl. Raya Gardu Seri Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Kec. Cibungbulang Kab. Bogor - 16630</div>
       </div>
     </div>
     <div class="double-line"></div>
@@ -670,7 +670,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
         <div class="kop-title-1">PEMERINTAHAN KABUPATEN BOGOR</div>
         <div class="kop-title-2">KECAMATAN CIBUNGBULANG</div>
         <div class="kop-title-3">DESA CIMANGGU I</div>
-        <div class="kop-subtitle">Alamat: Jl Raya Gardu Seri No.50 Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Cibungbulang 16630 Bogor</div>
+        <div class="kop-subtitle">Jl. Raya Gardu Seri Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Kec. Cibungbulang Kab. Bogor - 16630</div>
       </div>
     </div>
     <div class="double-line"></div>
@@ -752,14 +752,14 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
               <ShoppingBag size={22} />
             </span>
             <div>
-              <h1 className="text-xl font-bold text-slate-800">2. Pesanan Barang (LPJ Kesra)</h1>
+              <h1 className="text-xl font-bold text-slate-800">2. Pesanan Barang (LPJ)</h1>
               <p className="text-xs text-slate-500">Kelola Formulir Pesanan Barang, Berita Acara Pemeriksaan & Penerimaan Barang</p>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <button 
+          <button
             onClick={handleOpenAdd}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition-colors shadow-lg shadow-rose-600/20"
           >
@@ -858,16 +858,16 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
                     </td>
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <button 
+                        <button
                           onClick={() => handleOpenEdit(item)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           title="Edit"
                         >
                           <Edit3 size={16} />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDelete(item.id)}
-                          className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" 
+                          className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                           title="Hapus"
                         >
                           <Trash2 size={16} />
@@ -887,8 +887,8 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
             {totalItems === 0
               ? "Tidak ada data pesanan barang."
               : itemsPerPage === "ALL"
-              ? `Menampilkan seluruh ${totalItems} pesanan barang.`
-              : `Menampilkan ${(currentPage - 1) * (itemsPerPage as number) + 1} - ${Math.min(currentPage * (itemsPerPage as number), totalItems)} dari ${totalItems} pesanan.`}
+                ? `Menampilkan seluruh ${totalItems} pesanan barang.`
+                : `Menampilkan ${(currentPage - 1) * (itemsPerPage as number) + 1} - ${Math.min(currentPage * (itemsPerPage as number), totalItems)} dari ${totalItems} pesanan.`}
           </div>
 
           {itemsPerPage !== "ALL" && totalPages > 1 && (
@@ -906,11 +906,10 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
                   key={pg}
                   type="button"
                   onClick={() => setCurrentPage(pg)}
-                  className={`w-8 h-8 rounded-lg font-bold text-xs transition-colors ${
-                    currentPage === pg
-                      ? "bg-rose-600 text-white shadow-md shadow-rose-600/20"
-                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
-                  }`}
+                  className={`w-8 h-8 rounded-lg font-bold text-xs transition-colors ${currentPage === pg
+                    ? "bg-rose-600 text-white shadow-md shadow-rose-600/20"
+                    : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                    }`}
                 >
                   {pg}
                 </button>
@@ -944,7 +943,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
                   <p className="text-xs text-slate-500">Isi data untuk menghasilkan 3 paket dokumen resmi LPJ</p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setShowModal(false)}
                 className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
               >
@@ -962,7 +961,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Nomor Surat Pesanan</label>
-                    <input 
+                    <input
                       type="text"
                       value={formData.nomorRegister}
                       onChange={(e) => setFormData({ ...formData, nomorRegister: e.target.value })}
@@ -973,7 +972,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
                   </div>
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Nomor BA Pemeriksaan (BAP)</label>
-                    <input 
+                    <input
                       type="text"
                       value={formData.nomorBap}
                       onChange={(e) => setFormData({ ...formData, nomorBap: e.target.value })}
@@ -984,7 +983,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
                   </div>
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Nomor BA Penerimaan (BAST)</label>
-                    <input 
+                    <input
                       type="text"
                       value={formData.nomorBast}
                       onChange={(e) => setFormData({ ...formData, nomorBast: e.target.value })}
@@ -1000,7 +999,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div>
                   <label className="block font-bold text-slate-700 mb-1">2. Tanggal Pesanan (Isian Manual)</label>
-                  <input 
+                  <input
                     type="date"
                     value={formData.tanggalPesanan}
                     onChange={(e) => setFormData({ ...formData, tanggalPesanan: e.target.value })}
@@ -1127,7 +1126,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Hari Pengiriman</label>
-                    <input 
+                    <input
                       type="text"
                       value={formData.pengirimanHari}
                       onChange={(e) => setFormData({ ...formData, pengirimanHari: e.target.value })}
@@ -1138,7 +1137,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
                   </div>
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Tanggal Pengiriman</label>
-                    <input 
+                    <input
                       type="date"
                       value={formData.pengirimanTanggal}
                       onChange={(e) => setFormData({ ...formData, pengirimanTanggal: e.target.value })}
@@ -1148,7 +1147,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
                   </div>
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Jam Pengiriman</label>
-                    <input 
+                    <input
                       type="text"
                       value={formData.pengirimanJam}
                       onChange={(e) => setFormData({ ...formData, pengirimanJam: e.target.value })}
@@ -1181,7 +1180,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
                         <span>{isNamaKetuaLocked ? "Terkunci" : "Buka Kunci"}</span>
                       </button>
                     </div>
-                    <input 
+                    <input
                       type="text"
                       value={formData.namaKetuaTPK}
                       disabled={isNamaKetuaLocked}
@@ -1194,7 +1193,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
                   {/* Nama Pemilik Toko */}
                   <div>
                     <label className="block font-bold text-slate-700 mb-1">Nama Pemilik Toko (Pelaksana Pengadaan)</label>
-                    <input 
+                    <input
                       type="text"
                       value={formData.namaPemilikToko}
                       onChange={(e) => setFormData({ ...formData, namaPemilikToko: e.target.value })}
@@ -1211,7 +1210,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div>
                       <span className="text-[10px] font-bold text-slate-500">Pemeriksa 1:</span>
-                      <input 
+                      <input
                         type="text"
                         value={formData.pemeriksa1}
                         onChange={(e) => setFormData({ ...formData, pemeriksa1: e.target.value })}
@@ -1221,7 +1220,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
                     </div>
                     <div>
                       <span className="text-[10px] font-bold text-slate-500">Pemeriksa 2:</span>
-                      <input 
+                      <input
                         type="text"
                         value={formData.pemeriksa2}
                         onChange={(e) => setFormData({ ...formData, pemeriksa2: e.target.value })}
@@ -1231,7 +1230,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
                     </div>
                     <div>
                       <span className="text-[10px] font-bold text-slate-500">Pemeriksa 3:</span>
-                      <input 
+                      <input
                         type="text"
                         value={formData.pemeriksa3}
                         onChange={(e) => setFormData({ ...formData, pemeriksa3: e.target.value })}

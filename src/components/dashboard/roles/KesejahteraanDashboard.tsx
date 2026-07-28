@@ -61,6 +61,7 @@ import { LpjPesananBarangTab } from "../kesra/lpj/LpjPesananBarangTab";
 import { LpjDaftarHadirPekerjaTab } from "../kesra/lpj/LpjDaftarHadirPekerjaTab";
 import { LpjTandaTerimaPekerjaTab } from "../kesra/lpj/LpjTandaTerimaPekerjaTab";
 import { LpjDaftarKtpPekerjaTab } from "../kesra/lpj/LpjDaftarKtpPekerjaTab";
+import { LpjBastPekerjaanTab } from "../kesra/lpj/LpjBastPekerjaanTab";
 
 // RGB Theme Presets Configuration
 export const RGB_THEMES = [
@@ -245,6 +246,8 @@ function KesejahteraanDashboardContent({ session, stats }: { session: any, stats
         return <LpjDaftarHadirPekerjaTab session={session} />;
       case "lpj-tanda-terima-pekerja":
         return <LpjTandaTerimaPekerjaTab session={session} />;
+      case "lpj-bast-pekerjaan":
+        return <LpjBastPekerjaanTab session={session} />;
       case "kependudukan":
         return <KesraKependudukanTab session={session} />;
       case "cloud":

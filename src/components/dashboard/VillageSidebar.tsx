@@ -54,7 +54,8 @@ import {
   ShoppingBag,
   FolderArchive,
   Monitor,
-  Terminal
+  Terminal,
+  FileCheck
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -827,7 +828,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                   <button
                     onClick={() => (!isCollapsed || isOpen) && toggleGroup("lpj-kesra")}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                      ["lpj-registrasi-pembangunan", "lpj-pesanan-barang", "lpj-daftar-hadir-pekerja", "lpj-tanda-terima-pekerja", "lpj-daftar-ktp-pekerja", "report"].includes(tabParam || "")
+                      ["lpj-registrasi-pembangunan", "lpj-pesanan-barang", "lpj-daftar-hadir-pekerja", "lpj-tanda-terima-pekerja", "lpj-daftar-ktp-pekerja", "lpj-bast-pekerjaan", "report"].includes(tabParam || "")
                         ? getRgbGroupActiveBg()
                         : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                     } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
@@ -859,6 +860,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                             { label: "3. Daftar KTP Pekerja", tab: "lpj-daftar-ktp-pekerja", icon: Fingerprint, iconColor: "text-rose-500" },
                             { label: "4. Daftar Hadir Pekerja", tab: "lpj-daftar-hadir-pekerja", icon: Users, iconColor: "text-amber-500" },
                             { label: "5. Tanda Terima Pekerja", tab: "lpj-tanda-terima-pekerja", icon: CheckCircle2, iconColor: "text-emerald-500" },
+                            { label: "6. BAST Pekerjaan", tab: "lpj-bast-pekerjaan", icon: FileCheck, iconColor: "text-purple-500" },
                           ].map(({ label, tab, icon: Icon, iconColor }) => (
                             <Link
                               key={tab}
