@@ -116,13 +116,6 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
-  // Standard Daily Rates (Upah Harian)
-  const defaultRates = {
-    upahMandor: 200000,
-    upahTukang: 150000,
-    upahPekerja: 120000
-  };
-
   // Initial Form Data Schema (100% Matching Attached Sample Image)
   const emptyForm = {
     desa: "CIMANGGU I",
@@ -379,6 +372,10 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
     const updatedRecord = { ...detailRecord, workers: updatedWorkers };
     setDetailRecord(updatedRecord);
     setData(prev => prev.map(d => d.id === detailRecord.id ? updatedRecord : d));
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`lpj_worker_sig_${detailRecord.workers[selectedWorkerIndex].nama}`, dataUrl);
+    }
   };
 
   const generateAutoSignatureForSelected = () => {
@@ -397,9 +394,13 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
     const updatedRecord = { ...detailRecord, workers: updatedWorkers };
     setDetailRecord(updatedRecord);
     setData(prev => prev.map(d => d.id === detailRecord.id ? updatedRecord : d));
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`lpj_worker_sig_${worker.nama}`, autoSvgUrl);
+    }
   };
 
-  // PRINT LANDSCAPE DAFTAR HADIR DAN TANDA TERIMA UPAH TENAGA KERJA (100% PRECISE REPLICA OF ATTACHED IMAGE)
+  // PRINT LANDSCAPE DAFTAR HADIR DAN TANDA TERIMA UPAH TENAGA KERJA (100% REVISED PER REVISION 1, 2, 3, 4)
   const handlePrintDocument = (record: any) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
@@ -492,12 +493,14 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
       padding: 1px 0;
     }
 
-    /* MAIN TABLE WITH CRISP SOLID BLACK BORDERS ALWAYS */
+    /* MAIN TABLE WITH CRISP SINGLE SOLID BLACK BORDERS ALWAYS (COLLAPSED & NO DOUBLE RIGHT LINE) */
     table.tbl-ttd {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: collapse !important;
+      border-spacing: 0 !important;
       border: 1.5px solid #000;
       margin-bottom: 15px;
+      table-layout: auto;
     }
     table.tbl-ttd th, table.tbl-ttd td {
       border: 1px solid #000 !important;
@@ -508,7 +511,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
     }
     table.tbl-ttd th {
       font-weight: bold;
-      background-color: #cbd5e1; /* Soft blue-grey header fill matching image */
+      background-color: #cbd5e1;
     }
 
     .bg-summary {
@@ -617,38 +620,33 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
       </tr>
     </table>
 
-    <!-- MAIN TABLE DAFTAR HADIR DAN TANDA TERIMA (100% MATCHING OFFICIAL ATTACHED IMAGE) -->
+    <!-- MAIN TABLE (REVISION 1: NO EXTRA LINE UNDER L/P, REVISION 2: CHECKMARK ONLY IN DATE CELLS, REVISION 3: NO '0' ROW, REVISION 4: INTEGRATED WORKER TTD & SINGLE RIGHT BORDER) -->
     <table class="tbl-ttd">
       <thead>
         <tr>
-          <th style="width: 28px;" rowspan="3">No</th>
-          <th style="width: 180px;" rowspan="3">Nama</th>
-          <th style="width: 18px;" rowspan="2">L</th>
-          <th style="width: 18px;" rowspan="2">P</th>
+          <th style="width: 28px;" rowspan="2">No</th>
+          <th style="width: 180px;" rowspan="2">Nama</th>
+          <th style="width: 18px; padding: 4px 2px;">L</th>
+          <th style="width: 18px; padding: 4px 2px;">P</th>
           <th colspan="3">Kategori</th>
           <th colspan="${dateColumns.length}">Hari-Orang-Kerja (HOK)<br>Menurut Tanggal</th>
           <th colspan="3">Jmlh HOK</th>
           <th rowspan="2">Jumlah Upah<br>Total<br>(RP)</th>
-          <th style="width: 150px;" rowspan="3">Tanda Tangan / Cap Jempol<br>Tangan Kiri</th>
+          <th style="width: 150px;" rowspan="2">Tanda Tangan / Cap Jempol<br>Tangan Kiri</th>
         </tr>
         <tr>
-          <th style="width: 22px;" rowspan="2">Md</th>
-          <th style="width: 22px;" rowspan="2">Tk</th>
-          <th style="width: 22px;" rowspan="2">Pk</th>
+          <th style="width: 22px;">Md</th>
+          <th style="width: 22px;">Tk</th>
+          <th style="width: 22px;">Pk</th>
           ${dateColumns.map(d => `
-            <th style="font-size: 8pt; padding: 2px 1px;">${d.dayIndex}</th>
+            <th style="padding: 2px 1px;">
+              <div style="font-size: 8pt; font-weight: bold;">${d.dayIndex}</div>
+              <div style="font-size: 6.5pt; font-weight: normal;">${d.dateStr}</div>
+            </th>
           `).join('')}
-          <th style="width: 22px;" rowspan="2">Md</th>
-          <th style="width: 22px;" rowspan="2">Tk</th>
-          <th style="width: 22px;" rowspan="2">Pk</th>
-        </tr>
-        <tr>
-          <th></th>
-          <th></th>
-          ${dateColumns.map(d => `
-            <th style="font-size: 6.5pt; font-weight: normal; padding: 1px;">${d.dateStr}</th>
-          `).join('')}
-          <th style="font-size: 7pt;">(RP)</th>
+          <th style="width: 22px;">Md</th>
+          <th style="width: 22px;">Tk</th>
+          <th style="width: 22px;">Pk</th>
         </tr>
       </thead>
       <tbody>
@@ -660,7 +658,12 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
                        w.kategori === 'Tk' ? (record.upahTukang || 150000) : (record.upahPekerja || 120000);
           const totalWage = hadir * rate;
 
-          const sigImg = w.signatureUrl || generateWorkerSignatureSvg(w.nama, 0);
+          // Integrated TTD from Daftar Hadir / localStorage
+          let savedSig = "";
+          if (typeof window !== "undefined") {
+            savedSig = localStorage.getItem(`lpj_worker_sig_${w.nama}`) || "";
+          }
+          const sigImg = w.signatureUrl || savedSig || generateWorkerSignatureSvg(w.nama, 0);
 
           return `
             <tr>
@@ -673,10 +676,9 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
               <td style="text-align: center;">${w.kategori === 'Pk' ? '√' : ''}</td>
               ${dateColumns.map((_, dayIdx) => {
                 const isPresent = dayIdx < hadir;
-                const cellSig = w.signatureUrl || generateWorkerSignatureSvg(w.nama, dayIdx);
                 return `
-                  <td style="text-align: center; height: 24px;">
-                    ${isPresent ? `<img src="${cellSig}" style="max-height: 18px; max-width: 45px; vertical-align: middle;" alt="TTD" />` : ''}
+                  <td style="text-align: center; height: 24px; font-weight: bold;">
+                    ${isPresent ? '√' : ''}
                   </td>
                 `;
               }).join('')}
@@ -687,7 +689,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
                 ${formatRupiah(totalWage)}
               </td>
               <td style="padding: 0 4px; text-align: ${isOdd ? 'left' : 'right'}; vertical-align: middle; height: 26px;">
-                <div style="display: flex; items-center; justify-content: ${isOdd ? 'flex-start' : 'flex-end'}; gap: 4px;">
+                <div style="display: flex; align-items: center; justify-content: ${isOdd ? 'flex-start' : 'flex-end'}; gap: 4px;">
                   <span style="font-size: 7.5pt; font-weight: bold;">${rowNum}</span>
                   <img src="${sigImg}" style="max-height: 22px; max-width: 55px; vertical-align: middle;" alt="TTD" />
                 </div>
@@ -696,13 +698,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
           `;
         }).join('')}
 
-        <!-- SUBTOTAL ZERO ROW (MATCHING IMAGE EXACTLY) -->
-        <tr>
-          <td colspan="${7 + dateColumns.length + 5}" style="text-align: center; font-size: 8pt; padding: 2px;">0</td>
-          <td class="${sortedWorkers.length % 2 !== 0 ? 'bg-shaded' : ''}"></td>
-        </tr>
-
-        <!-- MAIN SUMMARY TOTALS ROW (MATCHING IMAGE EXACTLY) -->
+        <!-- MAIN SUMMARY TOTALS ROW (NO '0' SUBROW, CLEAN SINGLE RIGHT BORDER) -->
         <tr class="bg-summary">
           <td colspan="2" style="text-align: center; font-weight: bold;">Jumlah</td>
           <td style="text-align: center; font-weight: bold;">${totalL}</td>
@@ -987,7 +983,12 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
                   const rate = w.kategori === 'Md' ? (detailRecord.upahMandor || 200000) :
                                w.kategori === 'Tk' ? (detailRecord.upahTukang || 150000) : (detailRecord.upahPekerja || 120000);
                   const totalUpah = (w.jumlahHadirHari || 0) * rate;
-                  const sigPreview = w.signatureUrl || generateWorkerSignatureSvg(w.nama, 0);
+
+                  let savedSig = "";
+                  if (typeof window !== "undefined") {
+                    savedSig = localStorage.getItem(`lpj_worker_sig_${w.nama}`) || "";
+                  }
+                  const sigPreview = w.signatureUrl || savedSig || generateWorkerSignatureSvg(w.nama, 0);
 
                   return (
                     <div
@@ -1119,7 +1120,7 @@ export function LpjTandaTerimaPekerjaTab({ session }: { session: any }) {
                       <span className="text-[11px] font-bold text-slate-500 block mb-1">Pratinjau TTD Aktif Pada Tabel Tanda Terima:</span>
                       <div className="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-center">
                         <img 
-                          src={detailRecord.workers[selectedWorkerIndex].signatureUrl || generateWorkerSignatureSvg(detailRecord.workers[selectedWorkerIndex].nama, 0)} 
+                          src={detailRecord.workers[selectedWorkerIndex].signatureUrl || (typeof window !== 'undefined' ? localStorage.getItem(`lpj_worker_sig_${detailRecord.workers[selectedWorkerIndex].nama}`) : '') || generateWorkerSignatureSvg(detailRecord.workers[selectedWorkerIndex].nama, 0)} 
                           alt="Pratinjau TTD" 
                           className="h-10 w-auto"
                         />

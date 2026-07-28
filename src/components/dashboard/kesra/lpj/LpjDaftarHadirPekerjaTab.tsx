@@ -354,6 +354,11 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
     const updatedRecord = { ...detailRecord, workers: updatedWorkers };
     setDetailRecord(updatedRecord);
     setData(prev => prev.map(d => d.id === detailRecord.id ? updatedRecord : d));
+
+    // Save to shared localStorage so Tanda Terima automatically syncs TTD!
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`lpj_worker_sig_${detailRecord.workers[selectedWorkerIndex].nama}`, dataUrl);
+    }
   };
 
   const generateAutoSignatureForSelected = () => {
@@ -372,9 +377,14 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
     const updatedRecord = { ...detailRecord, workers: updatedWorkers };
     setDetailRecord(updatedRecord);
     setData(prev => prev.map(d => d.id === detailRecord.id ? updatedRecord : d));
+
+    // Save to shared localStorage so Tanda Terima automatically syncs TTD!
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`lpj_worker_sig_${worker.nama}`, autoSvgUrl);
+    }
   };
 
-  // PRINT LANDSCAPE DAFTAR HADIR PEKERJA (REPLACES CHECKMARK WITH REALISTIC HANDWRITTEN SIGNATURES)
+  // PRINT LANDSCAPE DAFTAR HADIR PEKERJA (L & P PERFECTLY CENTERED IN HEADER)
   const handlePrintDocument = (record: any) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
@@ -561,29 +571,27 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
       </tr>
     </table>
 
-    <!-- MAIN TABLE DAFTAR HADIR (REPLACES CHECKMARK WITH HANDWRITTEN SIGNATURES) -->
+    <!-- MAIN TABLE DAFTAR HADIR (L & P CLEANLY CENTERED IN HEADER WITHOUT EXTRA LINE BELOW) -->
     <table class="tbl-hadir">
       <thead>
         <tr>
-          <th style="width: 32px;" rowspan="3">No</th>
-          <th style="width: 240px;" rowspan="3">Nama</th>
+          <th style="width: 32px;" rowspan="2">No</th>
+          <th style="width: 240px;" rowspan="2">Nama</th>
           <th colspan="2">JK</th>
           <th colspan="3">Kategori</th>
           <th colspan="${dateColumns.length}">Hari-Orang-Kerja (HOK)<br>Menurut Tanggal</th>
         </tr>
         <tr>
-          <th style="width: 22px;" rowspan="2">L</th>
-          <th style="width: 22px;" rowspan="2">P</th>
-          <th style="width: 28px;" rowspan="2">Md</th>
-          <th style="width: 28px;" rowspan="2">Tk</th>
-          <th style="width: 28px;" rowspan="2">Pk</th>
+          <th style="width: 22px; padding: 4px 2px;">L</th>
+          <th style="width: 22px; padding: 4px 2px;">P</th>
+          <th style="width: 28px;">Md</th>
+          <th style="width: 28px;">Tk</th>
+          <th style="width: 28px;">Pk</th>
           ${dateColumns.map(d => `
-            <th style="font-size: 8.5pt; padding: 3px 2px;">${d.dayIndex}</th>
-          `).join('')}
-        </tr>
-        <tr>
-          ${dateColumns.map(d => `
-            <th style="font-size: 7.5pt; font-weight: normal; padding: 2px 1px;">${d.dateStr}</th>
+            <th style="padding: 2px 1px;">
+              <div style="font-size: 8pt; font-weight: bold;">${d.dayIndex}</div>
+              <div style="font-size: 6.5pt; font-weight: normal;">${d.dateStr}</div>
+            </th>
           `).join('')}
         </tr>
       </thead>
@@ -868,7 +876,7 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
 
             {/* TWO-COLUMN LAYOUT: WORKER LIST & SIGNATURE CANVAS */}
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-6">
-              {/* LEFT LIST: WORKERS (8 COLS) */}
+              {/* LEFT LIST: WORKERS (6 COLS) */}
               <div className="md:col-span-6 space-y-3 max-h-[500px] overflow-y-auto pr-1">
                 <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
                   Daftar Pekerja ({detailRecord.workers?.length || 0} Orang)
