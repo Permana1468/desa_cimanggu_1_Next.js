@@ -56,7 +56,7 @@ import {
   Monitor,
   Terminal
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SidebarThreeBackground } from "./roles/SidebarThreeBackground";
 
@@ -100,6 +100,70 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
   const [isOpen, setIsOpen] = useState(false);
   const [openGroup, setOpenGroup] = useState<string | null>("manajemen-data");
   const [showPlusMenu, setShowPlusMenu] = useState(false);
+  const [kesraRgbTheme, setKesraRgbTheme] = useState<string>("rose");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("kesra_rgb_theme") || "rose";
+      setKesraRgbTheme(saved);
+
+      const handleThemeChange = () => {
+        setKesraRgbTheme(localStorage.getItem("kesra_rgb_theme") || "rose");
+      };
+
+      window.addEventListener("kesra_rgb_theme_changed", handleThemeChange);
+      window.addEventListener("storage", handleThemeChange);
+      return () => {
+        window.removeEventListener("kesra_rgb_theme_changed", handleThemeChange);
+        window.removeEventListener("storage", handleThemeChange);
+      };
+    }
+  }, []);
+
+  const getRgbActiveBg = () => {
+    switch (kesraRgbTheme) {
+      case "spectrum":
+        return "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white font-bold shadow-lg shadow-purple-500/25 animate-gradient-x";
+      case "emerald":
+        return "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20";
+      case "amethyst":
+        return "bg-violet-600 text-white font-bold shadow-lg shadow-violet-600/20";
+      case "sunset":
+        return "bg-amber-600 text-white font-bold shadow-lg shadow-amber-600/20";
+      default:
+        return "bg-rose-600 text-white font-bold shadow-lg shadow-rose-600/20";
+    }
+  };
+
+  const getRgbSubActiveBg = () => {
+    switch (kesraRgbTheme) {
+      case "spectrum":
+        return "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white font-bold shadow-md animate-gradient-x";
+      case "emerald":
+        return "bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20";
+      case "amethyst":
+        return "bg-violet-600 text-white font-bold shadow-md shadow-violet-600/20";
+      case "sunset":
+        return "bg-amber-600 text-white font-bold shadow-md shadow-amber-600/20";
+      default:
+        return "bg-rose-500 text-white font-bold shadow-md shadow-rose-500/20";
+    }
+  };
+
+  const getRgbGroupActiveBg = () => {
+    switch (kesraRgbTheme) {
+      case "spectrum":
+        return "bg-purple-50 text-purple-700 font-bold border-l-4 border-purple-500";
+      case "emerald":
+        return "bg-emerald-50 text-emerald-700 font-bold border-l-4 border-emerald-500";
+      case "amethyst":
+        return "bg-violet-50 text-violet-700 font-bold border-l-4 border-violet-500";
+      case "sunset":
+        return "bg-amber-50 text-amber-700 font-bold border-l-4 border-amber-500";
+      default:
+        return "bg-rose-50 text-rose-700 font-bold border-l-4 border-rose-500";
+    }
+  };
 
   const toggleGroup = (group: string) => {
     setOpenGroup(prev => prev === group ? null : group);
@@ -605,247 +669,244 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                   )}
                 </button>
              </div>
-          ) : role === "KASI_KESEJAHTERAAN" ? (
-             // === KASI KESEJAHTERAAN ACCORDION SIDEBAR ===
-             <div className="space-y-1">
-               {/* Dashboard */}
-               <Link
-                 href="/dashboard?tab=overview"
-                 onClick={() => setIsOpen(false)}
-                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                   (tabParam || "overview") === "overview"
-                     ? "bg-rose-600 text-white font-bold shadow-lg shadow-rose-600/20"
-                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
-                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
-               >
-                 <LayoutDashboard size={20} />
-                 {(!isCollapsed || isOpen) && <span className="text-sm">Dashboard</span>}
-               </Link>
+           ) : role === "KASI_KESEJAHTERAAN" ? (
+              // === KASI KESEJAHTERAAN ACCORDION SIDEBAR WITH DYNAMIC RGB THEME & VIBRANT ANIMATED ICONS ===
+              <div className="space-y-1">
+                {/* Dashboard */}
+                <Link
+                  href="/dashboard?tab=overview"
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                    (tabParam || "overview") === "overview"
+                      ? getRgbActiveBg()
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                >
+                  <LayoutDashboard size={20} className="text-rose-500 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300 animate-pulse" />
+                  {(!isCollapsed || isOpen) && <span className="text-sm">Dashboard</span>}
+                </Link>
 
-               {/* Group 1: Kemiskinan & Sosial */}
-               <div>
-                 <button
-                   onClick={() => (!isCollapsed || isOpen) && toggleGroup("kemiskinan-sosial")}
-                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                     (() => {
-                       const isActiveGisGroup = ["warga-bansos", "gis-kemiskinan", "uhc", "usulan-uhc"].includes(tabParam || "");
-                       return isActiveGisGroup
-                         ? "bg-rose-50 text-rose-700 font-bold"
-                         : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium";
-                     })()
-                   } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
-                 >
-                   <HeartHandshake size={20} className="shrink-0" />
-                   {(!isCollapsed || isOpen) && (
-                     <>
-                       <span className="text-sm flex-1 text-left">Kemiskinan & Sosial</span>
-                       <ChevronDown
-                         size={14}
-                         className={`transition-transform duration-200 ${openGroup === "kemiskinan-sosial" ? "rotate-180" : ""}`}
-                       />
-                     </>
-                   )}
-                 </button>
-                 <AnimatePresence>
-                   {(openGroup === "kemiskinan-sosial" && (!isCollapsed || isOpen)) && (
-                     <motion.div
-                       initial={{ height: 0, opacity: 0 }}
-                       animate={{ height: "auto", opacity: 1 }}
-                       exit={{ height: 0, opacity: 0 }}
-                       transition={{ duration: 0.2 }}
-                       className="overflow-hidden"
-                     >
-                       <div className="mt-1 ml-3 pl-3 border-l-2 border-rose-100 space-y-1">
-                         {[
-                           { label: "Login SIKS-NG", href: "https://siks.kemensos.go.id/login", isExternal: true, icon: Globe },
-                           { label: "Data Bansos Warga", tab: "warga-bansos", icon: Award },
-                           { label: "Peta Kerentanan GIS", tab: "gis-kemiskinan", icon: Map },
-                           { label: "Monitoring UHC / KIS", tab: "uhc", icon: HeartPulse },
-                           { label: "Usulan UHC", tab: "usulan-uhc", icon: FileText },
-                           { label: "Portal UHC Kab. Bogor", href: "https://linktr.ee/UHCKABBOGOR", isExternal: true, icon: Globe },
-                           { label: "Edabu - BPJS Kesehatan", href: "https://edabu.bpjs-kesehatan.go.id/Edabu/Home/Login", isExternal: true, icon: Activity },
-                         ].map((item) => {
-                           const Icon = item.icon;
-                           if (item.isExternal) {
-                             return (
-                               <a
-                                 key={item.label}
-                                 href={item.href}
-                                 target="_blank"
-                                 rel="noopener noreferrer"
-                                 className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-                               >
-                                 <Icon size={16} />
-                                 <span>{item.label}</span>
-                               </a>
-                             );
-                           }
-                           return (
-                             <Link
-                               key={item.tab}
-                               href={`/dashboard?tab=${item.tab}`}
-                               onClick={() => setIsOpen(false)}
-                               className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
-                                 tabParam === item.tab
-                                   ? "bg-rose-500 text-white font-bold"
-                                   : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-                               }`}
-                             >
-                               <Icon size={16} />
-                               <span>{item.label}</span>
-                             </Link>
-                           );
-                         })}
-                       </div>
-                     </motion.div>
-                   )}
-                 </AnimatePresence>
-               </div>
+                {/* Group 1: Kemiskinan & Sosial */}
+                <div>
+                  <button
+                    onClick={() => (!isCollapsed || isOpen) && toggleGroup("kemiskinan-sosial")}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                      (() => {
+                        const isActiveGisGroup = ["warga-bansos", "gis-kemiskinan", "uhc", "usulan-uhc"].includes(tabParam || "");
+                        return isActiveGisGroup
+                          ? getRgbGroupActiveBg()
+                          : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium";
+                      })()
+                    } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                  >
+                    <HeartHandshake size={20} className="shrink-0 text-pink-500 group-hover:scale-125 group-hover:animate-bounce transition-all duration-300" />
+                    {(!isCollapsed || isOpen) && (
+                      <>
+                        <span className="text-sm flex-1 text-left">Kemiskinan & Sosial</span>
+                        <ChevronDown
+                          size={14}
+                          className={`transition-transform duration-200 ${openGroup === "kemiskinan-sosial" ? "rotate-180" : ""}`}
+                        />
+                      </>
+                    )}
+                  </button>
+                  <AnimatePresence>
+                    {(openGroup === "kemiskinan-sosial" && (!isCollapsed || isOpen)) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-1 ml-3 pl-3 border-l-2 border-slate-100 space-y-1">
+                          {[
+                            { label: "Login SIKS-NG", href: "https://siks.kemensos.go.id/login", isExternal: true, icon: Globe, iconColor: "text-blue-500" },
+                            { label: "Data Bansos Warga", tab: "warga-bansos", icon: Award, iconColor: "text-amber-500" },
+                            { label: "Peta Kerentanan GIS", tab: "gis-kemiskinan", icon: Map, iconColor: "text-emerald-500" },
+                            { label: "Monitoring UHC / KIS", tab: "uhc", icon: HeartPulse, iconColor: "text-rose-500" },
+                            { label: "Usulan UHC", tab: "usulan-uhc", icon: FileText, iconColor: "text-indigo-500" },
+                            { label: "Portal UHC Kab. Bogor", href: "https://linktr.ee/UHCKABBOGOR", isExternal: true, icon: Globe, iconColor: "text-teal-500" },
+                            { label: "Edabu - BPJS Kesehatan", href: "https://edabu.bpjs-kesehatan.go.id/Edabu/Home/Login", isExternal: true, icon: Activity, iconColor: "text-purple-500" },
+                          ].map((item) => {
+                            const Icon = item.icon;
+                            if (item.isExternal) {
+                              return (
+                                <a
+                                  key={item.label}
+                                  href={item.href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-800 group"
+                                >
+                                  <Icon size={16} className={`${item.iconColor} group-hover:scale-125 transition-transform duration-300`} />
+                                  <span>{item.label}</span>
+                                </a>
+                              );
+                            }
+                            return (
+                              <Link
+                                key={item.tab}
+                                href={`/dashboard?tab=${item.tab}`}
+                                onClick={() => setIsOpen(false)}
+                                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm group ${
+                                  tabParam === item.tab
+                                    ? getRgbSubActiveBg()
+                                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                                }`}
+                              >
+                                <Icon size={16} className={`${tabParam === item.tab ? "text-white" : item.iconColor} group-hover:scale-125 transition-transform duration-300`} />
+                                <span>{item.label}</span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
+                {/* Group 3: Pendidikan & Agama */}
+                <div>
+                  <button
+                    onClick={() => (!isCollapsed || isOpen) && toggleGroup("pendidikan-agama")}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                      ["ats", "insentif", "pengangguran"].includes(tabParam || "")
+                        ? getRgbGroupActiveBg()
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                    } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                  >
+                    <Compass size={20} className="shrink-0 text-amber-500 group-hover:scale-125 group-hover:rotate-45 transition-all duration-300" />
+                    {(!isCollapsed || isOpen) && (
+                      <>
+                        <span className="text-sm flex-1 text-left">Pendidikan & Agama</span>
+                        <ChevronDown
+                          size={14}
+                          className={`transition-transform duration-200 ${openGroup === "pendidikan-agama" ? "rotate-180" : ""}`}
+                        />
+                      </>
+                    )}
+                  </button>
+                  <AnimatePresence>
+                    {(openGroup === "pendidikan-agama" && (!isCollapsed || isOpen)) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-1 ml-3 pl-3 border-l-2 border-slate-100 space-y-1">
+                          {[
+                            { label: "Anak Putus Sekolah", tab: "ats", icon: Milestone, iconColor: "text-amber-500" },
+                            { label: "Insentif Guru Ngaji", tab: "insentif", icon: Banknote, iconColor: "text-emerald-500" },
+                            { label: "Data Pengangguran", tab: "pengangguran", icon: Briefcase, iconColor: "text-blue-500" },
+                          ].map(({ label, tab, icon: Icon, iconColor }) => (
+                            <Link
+                              key={tab}
+                              href={`/dashboard?tab=${tab}`}
+                              onClick={() => setIsOpen(false)}
+                              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm group ${
+                                tabParam === tab
+                                  ? getRgbSubActiveBg()
+                                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                              }`}
+                            >
+                              <Icon size={16} className={`${tabParam === tab ? "text-white" : iconColor} group-hover:scale-125 transition-transform duration-300`} />
+                              <span>{label}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
+                {/* Group 4: Laporan LPJ Kesra Dropdown */}
+                <div>
+                  <button
+                    onClick={() => (!isCollapsed || isOpen) && toggleGroup("lpj-kesra")}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                      ["lpj-registrasi-pembangunan", "lpj-pesanan-barang", "lpj-daftar-hadir-pekerja", "lpj-tanda-terima-pekerja", "lpj-daftar-ktp-pekerja", "report"].includes(tabParam || "")
+                        ? getRgbGroupActiveBg()
+                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                    } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                  >
+                    <FileText size={20} className="shrink-0 text-emerald-500 group-hover:scale-125 transition-all duration-300" />
+                    {(!isCollapsed || isOpen) && (
+                      <>
+                        <span className="text-sm flex-1 text-left font-bold">Laporan LPJ Kesra</span>
+                        <ChevronDown
+                          size={14}
+                          className={`transition-transform duration-200 ${openGroup === "lpj-kesra" ? "rotate-180" : ""}`}
+                        />
+                      </>
+                    )}
+                  </button>
+                  <AnimatePresence>
+                    {(openGroup === "lpj-kesra" && (!isCollapsed || isOpen)) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="mt-1 ml-3 pl-3 border-l-2 border-slate-100 space-y-1">
+                          {[
+                            { label: "1. Registrasi Pembangunan", tab: "lpj-registrasi-pembangunan", icon: Building2, iconColor: "text-indigo-500" },
+                            { label: "2. Pesanan Barang", tab: "lpj-pesanan-barang", icon: ShoppingBag, iconColor: "text-pink-500" },
+                            { label: "3. Daftar KTP Pekerja", tab: "lpj-daftar-ktp-pekerja", icon: Fingerprint, iconColor: "text-rose-500" },
+                            { label: "4. Daftar Hadir Pekerja", tab: "lpj-daftar-hadir-pekerja", icon: Users, iconColor: "text-amber-500" },
+                            { label: "5. Tanda Terima Pekerja", tab: "lpj-tanda-terima-pekerja", icon: CheckCircle2, iconColor: "text-emerald-500" },
+                          ].map(({ label, tab, icon: Icon, iconColor }) => (
+                            <Link
+                              key={tab}
+                              href={`/dashboard?tab=${tab}`}
+                              onClick={() => setIsOpen(false)}
+                              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm group ${
+                                tabParam === tab
+                                  ? getRgbSubActiveBg()
+                                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                              }`}
+                            >
+                              <Icon size={16} className={`${tabParam === tab ? "text-white" : iconColor} group-hover:scale-125 transition-transform duration-300`} />
+                              <span>{label}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
-               {/* Group 3: Pendidikan & Agama */}
-               <div>
-                 <button
-                   onClick={() => (!isCollapsed || isOpen) && toggleGroup("pendidikan-agama")}
-                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                     ["ats", "insentif", "pengangguran"].includes(tabParam || "")
-                       ? "bg-rose-50 text-rose-700 font-bold"
-                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
-                   } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
-                 >
-                   <Compass size={20} className="shrink-0" />
-                   {(!isCollapsed || isOpen) && (
-                     <>
-                       <span className="text-sm flex-1 text-left">Pendidikan & Agama</span>
-                       <ChevronDown
-                         size={14}
-                         className={`transition-transform duration-200 ${openGroup === "pendidikan-agama" ? "rotate-180" : ""}`}
-                       />
-                     </>
-                   )}
-                 </button>
-                 <AnimatePresence>
-                   {(openGroup === "pendidikan-agama" && (!isCollapsed || isOpen)) && (
-                     <motion.div
-                       initial={{ height: 0, opacity: 0 }}
-                       animate={{ height: "auto", opacity: 1 }}
-                       exit={{ height: 0, opacity: 0 }}
-                       transition={{ duration: 0.2 }}
-                       className="overflow-hidden"
-                     >
-                       <div className="mt-1 ml-3 pl-3 border-l-2 border-rose-100 space-y-1">
-                         {[
-                           { label: "Anak Putus Sekolah", tab: "ats", icon: Milestone },
-                           { label: "Insentif Guru Ngaji", tab: "insentif", icon: Banknote },
-                           { label: "Data Pengangguran", tab: "pengangguran", icon: Briefcase },
-                         ].map(({ label, tab, icon: Icon }) => (
-                           <Link
-                             key={tab}
-                             href={`/dashboard?tab=${tab}`}
-                             onClick={() => setIsOpen(false)}
-                             className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
-                               tabParam === tab
-                                 ? "bg-rose-500 text-white font-bold"
-                                 : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-                             }`}
-                           >
-                             <Icon size={16} />
-                             <span>{label}</span>
-                           </Link>
-                         ))}
-                       </div>
-                     </motion.div>
-                   )}
-                 </AnimatePresence>
-               </div>
+                {/* Data Kependudukan */}
+                <Link
+                  href="/dashboard?tab=kependudukan"
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                    tabParam === "kependudukan"
+                      ? getRgbActiveBg()
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                >
+                  <Users size={20} className="text-indigo-500 group-hover:scale-125 group-hover:-rotate-12 transition-all duration-300" />
+                  {(!isCollapsed || isOpen) && <span className="text-sm">Data Kependudukan</span>}
+                </Link>
 
-               {/* Group 4: Laporan LPJ Kesra Dropdown */}
-               <div>
-                 <button
-                   onClick={() => (!isCollapsed || isOpen) && toggleGroup("lpj-kesra")}
-                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                     ["lpj-registrasi-pembangunan", "lpj-pesanan-barang", "lpj-daftar-hadir-pekerja", "lpj-tanda-terima-pekerja", "lpj-daftar-ktp-pekerja", "report"].includes(tabParam || "")
-                       ? "bg-rose-50 text-rose-700 font-bold"
-                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
-                   } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
-                 >
-                   <FileText size={20} className="shrink-0" />
-                   {(!isCollapsed || isOpen) && (
-                     <>
-                       <span className="text-sm flex-1 text-left font-bold">Laporan LPJ Kesra</span>
-                       <ChevronDown
-                         size={14}
-                         className={`transition-transform duration-200 ${openGroup === "lpj-kesra" ? "rotate-180" : ""}`}
-                       />
-                     </>
-                   )}
-                 </button>
-                 <AnimatePresence>
-                   {(openGroup === "lpj-kesra" && (!isCollapsed || isOpen)) && (
-                     <motion.div
-                       initial={{ height: 0, opacity: 0 }}
-                       animate={{ height: "auto", opacity: 1 }}
-                       exit={{ height: 0, opacity: 0 }}
-                       transition={{ duration: 0.2 }}
-                       className="overflow-hidden"
-                     >
-                       <div className="mt-1 ml-3 pl-3 border-l-2 border-rose-100 space-y-1">
-                         {[
-                           { label: "1. Registrasi Pembangunan", tab: "lpj-registrasi-pembangunan", icon: Building2 },
-                           { label: "2. Pesanan Barang", tab: "lpj-pesanan-barang", icon: ShoppingBag },
-                           { label: "3. Daftar KTP Pekerja", tab: "lpj-daftar-ktp-pekerja", icon: Fingerprint },
-                           { label: "4. Daftar Hadir Pekerja", tab: "lpj-daftar-hadir-pekerja", icon: Users },
-                           { label: "5. Tanda Terima Pekerja", tab: "lpj-tanda-terima-pekerja", icon: CheckCircle2 },
-                         ].map(({ label, tab, icon: Icon }) => (
-                           <Link
-                             key={tab}
-                             href={`/dashboard?tab=${tab}`}
-                             onClick={() => setIsOpen(false)}
-                             className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg transition-all text-sm ${
-                               tabParam === tab
-                                 ? "bg-rose-500 text-white font-bold"
-                                 : "text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-                             }`}
-                           >
-                             <Icon size={16} />
-                             <span>{label}</span>
-                           </Link>
-                         ))}
-                       </div>
-                     </motion.div>
-                   )}
-                 </AnimatePresence>
-               </div>
-
-               {/* Data Kependudukan */}
-               <Link
-                 href="/dashboard?tab=kependudukan"
-                 onClick={() => setIsOpen(false)}
-                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                   tabParam === "kependudukan"
-                     ? "bg-rose-600 text-white font-bold shadow-lg shadow-rose-600/20"
-                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
-                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
-               >
-                 <Users size={20} />
-                 {(!isCollapsed || isOpen) && <span className="text-sm">Data Kependudukan</span>}
-               </Link>
-
-               {/* Cloud / Penyimpanan */}
-               <Link
-                 href="/dashboard?tab=cloud"
-                 onClick={() => setIsOpen(false)}
-                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-                   tabParam === "cloud"
-                     ? "bg-rose-600 text-white font-bold shadow-lg shadow-rose-600/20"
-                     : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
-                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
-               >
-                 <FolderArchive size={20} />
-                 {(!isCollapsed || isOpen) && <span className="text-sm">Cloud / Penyimpanan</span>}
-               </Link>
-
+                {/* Cloud / Penyimpanan */}
+                <Link
+                  href="/dashboard?tab=cloud"
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+                    tabParam === "cloud"
+                      ? getRgbActiveBg()
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
+                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                >
+                  <FolderArchive size={20} className="text-cyan-500 group-hover:scale-125 transition-all duration-300" />
+                  {(!isCollapsed || isOpen) && <span className="text-sm">Cloud / Penyimpanan</span>}
+                </Link>
 
                {/* Pengaturan */}
                <Link
