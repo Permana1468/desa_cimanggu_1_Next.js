@@ -633,16 +633,28 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
 
     <table style="width: 100%; margin-top: 18px; border: none;">
       <tr>
-        <td style="width: 45%; text-align: center; vertical-align: top; border: none;">
+        <td style="width: 38%; text-align: center; vertical-align: top; border: none;">
           Pelaksana Pengadaan Barang<br><br><br><br><br>
           <u><b>${order.namaPemilikToko}</b></u>
         </td>
-        <td style="width: 55%; text-align: left; vertical-align: top; border: none; padding-left: 20px;">
+        <td style="width: 62%; text-align: left; vertical-align: top; border: none; padding-left: 55px;">
           Pemeriksa Barang<br><br>
           <table style="width: 100%; border: none;">
-            <tr><td style="width:20px; border:none;">1</td><td style="width:160px; border:none;"><b>${order.pemeriksa1}</b></td><td style="border:none;">( ................ )</td></tr>
-            <tr><td style="border:none; padding-top:6px;">2</td><td style="border:none; padding-top:6px;"><b>${order.pemeriksa2}</b></td><td style="border:none; padding-top:6px;">( ................ )</td></tr>
-            <tr><td style="border:none; padding-top:6px;">3</td><td style="border:none; padding-top:6px;"><b>${order.pemeriksa3}</b></td><td style="border:none; padding-top:6px;">( ................ )</td></tr>
+            <tr>
+              <td style="width:20px; border:none; vertical-align: middle;">1</td>
+              <td style="width:210px; border:none; vertical-align: middle;"><b>${order.pemeriksa1}</b></td>
+              <td style="border:none; vertical-align: middle; white-space: nowrap;">( ........................................ )</td>
+            </tr>
+            <tr>
+              <td style="border:none; padding-top:12px; vertical-align: middle;">2</td>
+              <td style="border:none; padding-top:12px; vertical-align: middle;"><b>${order.pemeriksa2}</b></td>
+              <td style="border:none; padding-top:12px; vertical-align: middle; white-space: nowrap;">( ........................................ )</td>
+            </tr>
+            <tr>
+              <td style="border:none; padding-top:12px; vertical-align: middle;">3</td>
+              <td style="border:none; padding-top:12px; vertical-align: middle;"><b>${order.pemeriksa3}</b></td>
+              <td style="border:none; padding-top:12px; vertical-align: middle; white-space: nowrap;">( ........................................ )</td>
+            </tr>
           </table>
         </td>
       </tr>
