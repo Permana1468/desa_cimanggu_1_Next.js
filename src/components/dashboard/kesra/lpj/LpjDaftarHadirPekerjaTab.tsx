@@ -239,7 +239,7 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
     });
   };
 
-  // PRINT LANDSCAPE DAFTAR HADIR PEKERJA (PERFECT REVISION FOR HEADER LINE ALIGNMENT & SOFT GREY SHADING)
+  // PRINT LANDSCAPE DAFTAR HADIR PEKERJA (PERFECT HEADER SEPARATOR LINE & CRISP BLACK BORDER SHADING)
   const handlePrintDocument = (record: any) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
@@ -311,7 +311,7 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
       padding: 1.5px 0;
     }
 
-    /* MAIN TABLE */
+    /* MAIN TABLE WITH CRISP SOLID BLACK BORDERS ALWAYS */
     table.tbl-hadir {
       width: 100%;
       border-collapse: collapse;
@@ -319,7 +319,7 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
       margin-bottom: 15px;
     }
     table.tbl-hadir th, table.tbl-hadir td {
-      border: 1px solid #000;
+      border: 1px solid #000 !important;
       padding: 4px 3px;
       font-size: 8.5pt;
       text-align: center;
@@ -330,14 +330,10 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
       background-color: #ffffff;
     }
 
-    /* SOFT GREY SHADING FOR EMPTY COLUMNS (ELEGANT & NOT DARK) */
-    .bg-shaded-header {
-      background-color: #e2e8f0 !important;
-      border: 1px solid #94a3b8 !important;
-    }
+    /* SOFT GREY BACKGROUND FILL FOR EMPTY COLUMNS (WITH SOLID BLACK BORDERS) */
     .bg-shaded-cell {
-      background-color: #f1f5f9 !important;
-      border: 1px solid #cbd5e1 !important;
+      background-color: #d1d5db !important;
+      border: 1px solid #000 !important;
     }
 
     /* SIGNATURES 4-COLUMNS */
@@ -439,30 +435,35 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
       </tr>
     </table>
 
-    <!-- MAIN TABLE DAFTAR HADIR (PERFECTLY ALIGNED SINGLE HORIZONTAL ROW FOR L, P, Md, Tk, Pk & Dates) -->
+    <!-- MAIN TABLE DAFTAR HADIR (WITH CRISP SEPARATOR LINE FOR DAY INDEX & DATE ROW) -->
     <table class="tbl-hadir">
       <thead>
         <tr>
-          <th style="width: 32px;" rowspan="2">No</th>
-          <th style="width: 210px;" rowspan="2">Nama</th>
-          <th colspan="2">JK</th>
+          <th style="width: 32px;" rowspan="3">No</th>
+          <th style="width: 210px;" rowspan="3">Nama</th>
+          <th colspan="2" rowspan="2">JK</th>
           <th colspan="3">Kategori</th>
           <th colspan="${TOTAL_GRID_DAYS}">Hari-Orang-Kerja (HOK)<br>Menurut Tanggal</th>
         </tr>
         <tr>
-          <th style="width: 22px;">L</th>
-          <th style="width: 22px;">P</th>
-          <th style="width: 25px;">Md</th>
-          <th style="width: 25px;">Tk</th>
-          <th style="width: 25px;">Pk</th>
+          <th style="width: 25px;" rowspan="2">Md</th>
+          <th style="width: 25px;" rowspan="2">Tk</th>
+          <th style="width: 25px;" rowspan="2">Pk</th>
           ${dateColumns.map(d => `
-            <th style="padding: 2px 1px; min-width: 42px;">
-              <div style="font-size: 8pt; font-weight: bold;">${d.dayIndex}</div>
-              <div style="font-size: 6.5pt; font-weight: normal;">${d.dateStr}</div>
-            </th>
+            <th style="padding: 3px 1px; font-size: 8.5pt;">${d.dayIndex}</th>
           `).join('')}
           ${Array.from({ length: Math.max(0, TOTAL_GRID_DAYS - dateColumns.length) }, () => `
-            <th class="bg-shaded-header"></th>
+            <th class="bg-shaded-cell"></th>
+          `).join('')}
+        </tr>
+        <tr>
+          <th style="width: 20px;">L</th>
+          <th style="width: 20px;">P</th>
+          ${dateColumns.map(d => `
+            <th style="font-size: 6.5pt; font-weight: normal; padding: 2px 1px;">${d.dateStr}</th>
+          `).join('')}
+          ${Array.from({ length: Math.max(0, TOTAL_GRID_DAYS - dateColumns.length) }, () => `
+            <th class="bg-shaded-cell"></th>
           `).join('')}
         </tr>
       </thead>
