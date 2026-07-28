@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { 
   Users, 
   Search, 
@@ -15,7 +15,12 @@ import {
   Unlock, 
   FileText, 
   Calendar,
-  Building2
+  Building2,
+  Eye,
+  PenTool,
+  CheckCircle2,
+  RefreshCw,
+  FileSignature
 } from "lucide-react";
 
 // Helper: Calculate Backwards Dates for Hari-Orang-Kerja (HOK)
@@ -51,6 +56,39 @@ function formatDateIndo(dateStr: string): string {
   return `${d.getDate()} ${BULAN_ID[d.getMonth()]} ${d.getFullYear()}`;
 }
 
+// Generate Realistic Handwritten Organic Signature SVG
+function generateWorkerSignatureSvg(name: string, dayIndex: number = 0): string {
+  if (!name) return "";
+
+  const seed = name.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) + dayIndex * 17;
+  const parts = name.trim().split(" ");
+  const first = parts[0] || "A";
+  const last = parts[parts.length - 1] || "";
+  
+  const rand = (min: number, max: number, offset: number = 0) => {
+    const x = Math.sin(seed + offset * 11) * 10000;
+    return min + (x - Math.floor(x)) * (max - min);
+  };
+
+  const c1x = rand(8, 22, 1);
+  const c1y = rand(12, 28, 2);
+  const c2x = rand(40, 65, 3);
+  const c2y = rand(4, 18, 4);
+  const c3x = rand(75, 98, 5);
+  const c3y = rand(12, 32, 6);
+
+  const strokeColor = "#0f172a"; // Dark blue/black ink
+  const initial = first.charAt(0).toUpperCase();
+
+  const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 40" width="60" height="22">
+    <path d="M ${c1x} ${c1y} Q ${c1x + 12} ${c1y - 12}, ${c1x + 18} ${c1y - 2} T ${c2x} ${c2y} Q ${c2x + 12} ${c2y + 16}, ${c3x} ${c3y} M ${c1x - 4} ${c3y + 4} Q ${c2x} ${c3y + 7}, ${c3x + 8} ${c3y + 2}" 
+          fill="none" stroke="${strokeColor}" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+    <text x="6" y="26" font-family="'Brush Script MT', 'Dancing Script', cursive, serif" font-size="15" font-style="italic" font-weight="bold" fill="${strokeColor}" opacity="0.95">${initial}. ${last}</text>
+  </svg>`;
+
+  return "data:image/svg+xml;utf8," + encodeURIComponent(svgStr);
+}
+
 export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -60,9 +98,18 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // Detail & Signature Modal State
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [detailRecord, setDetailRecord] = useState<any | null>(null);
+  const [selectedWorkerIndex, setSelectedWorkerIndex] = useState<number>(0);
+
   // Lock toggles for header metadata & signatures
   const [isHeaderLocked, setIsHeaderLocked] = useState(true);
   const [isSignaturesLocked, setIsSignaturesLocked] = useState(true);
+
+  // Canvas Ref for Signature Drawing
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
 
   // Initial Form Data Schema
   const emptyForm = {
@@ -78,19 +125,19 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
     sekretarisDesa: "FAJAR TRI APRIANA",
     ketuaTpk: "M. TONNY GUNAWAN",
     workers: [
-      { nama: "M. TONNY GUNAWAN", gender: "L", kategori: "Md", isHadir: [true, true, true, true, true] },
-      { nama: "Ahmad Subagja", gender: "L", kategori: "Tk", isHadir: [true, true, true, true, true] },
-      { nama: "Ujang Iskandar", gender: "L", kategori: "Tk", isHadir: [true, true, true, true, true] },
-      { nama: "Ade Saepudin", gender: "L", kategori: "Tk", isHadir: [true, true, true, true, true] },
-      { nama: "Iyom Maryono", gender: "L", kategori: "Tk", isHadir: [true, true, true, true, true] },
-      { nama: "Siti Rahmawati", gender: "P", kategori: "Pk", isHadir: [true, true, true, true, true] },
-      { nama: "Budi Santoso", gender: "L", kategori: "Pk", isHadir: [true, true, true, true, true] },
-      { nama: "Agus Pratama", gender: "L", kategori: "Pk", isHadir: [true, true, true, true, true] },
-      { nama: "Dede Mulyana", gender: "L", kategori: "Pk", isHadir: [true, true, true, true, true] },
-      { nama: "Asep Herman", gender: "L", kategori: "Pk", isHadir: [true, true, true, true, true] },
-      { nama: "Endang Suherman", gender: "L", kategori: "Pk", isHadir: [true, true, true, true, true] },
-      { nama: "Jaka Tarub", gender: "L", kategori: "Pk", isHadir: [true, true, true, true, true] },
-      { nama: "Solihin", gender: "L", kategori: "Pk", isHadir: [true, true, true, true, true] }
+      { nama: "M. TONNY GUNAWAN", gender: "L", kategori: "Md", isHadir: [true, true, true, true, true], signatureUrl: "" },
+      { nama: "Ahmad Subagja", gender: "L", kategori: "Tk", isHadir: [true, true, true, true, true], signatureUrl: "" },
+      { nama: "Ujang Iskandar", gender: "L", kategori: "Tk", isHadir: [true, true, true, true, true], signatureUrl: "" },
+      { nama: "Ade Saepudin", gender: "L", kategori: "Tk", isHadir: [true, true, true, true, true], signatureUrl: "" },
+      { nama: "Iyom Maryono", gender: "L", kategori: "Tk", isHadir: [true, true, true, true, true], signatureUrl: "" },
+      { nama: "Siti Rahmawati", gender: "P", kategori: "Pk", isHadir: [true, true, true, true, true], signatureUrl: "" },
+      { nama: "Budi Santoso", gender: "L", kategori: "Pk", isHadir: [true, true, true, true, true], signatureUrl: "" },
+      { nama: "Agus Pratama", gender: "L", kategori: "Pk", isHadir: [true, true, true, true, true], signatureUrl: "" },
+      { nama: "Dede Mulyana", gender: "L", kategori: "Pk", isHadir: [true, true, true, true, true], signatureUrl: "" },
+      { nama: "Asep Herman", gender: "L", kategori: "Pk", isHadir: [true, true, true, true, true], signatureUrl: "" },
+      { nama: "Endang Suherman", gender: "L", kategori: "Pk", isHadir: [true, true, true, true, true], signatureUrl: "" },
+      { nama: "Jaka Tarub", gender: "L", kategori: "Pk", isHadir: [true, true, true, true, true], signatureUrl: "" },
+      { nama: "Solihin", gender: "L", kategori: "Pk", isHadir: [true, true, true, true, true], signatureUrl: "" }
     ]
   };
 
@@ -157,6 +204,12 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
     setShowModal(true);
   };
 
+  const handleOpenDetail = (item: any) => {
+    setDetailRecord(item);
+    setSelectedWorkerIndex(0);
+    setShowDetailModal(true);
+  };
+
   const handleDelete = (id: string) => {
     if (confirm("Apakah Anda yakin ingin menghapus data daftar hadir pekerja ini?")) {
       setData(prev => prev.filter(d => d.id !== id));
@@ -212,7 +265,8 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
           nama: "",
           gender: "L",
           kategori: "Pk",
-          isHadir: Array(prev.masaKerjaHari).fill(true)
+          isHadir: Array(prev.masaKerjaHari).fill(true),
+          signatureUrl: ""
         }
       ]
     }));
@@ -239,7 +293,88 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
     });
   };
 
-  // PRINT LANDSCAPE DAFTAR HADIR PEKERJA (PERFECT JK & KATEGORI HORIZONTAL LINE ALIGNMENT, NO EXTRA EMPTY COLUMNS)
+  // Signature Canvas Drawing Logic
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+
+    ctx.beginPath();
+    ctx.moveTo(clientX - rect.left, clientY - rect.top);
+    setIsDrawing(true);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#0f172a";
+    ctx.lineTo(clientX - rect.left, clientY - rect.top);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  };
+
+  const saveCanvasSignature = () => {
+    const canvas = canvasRef.current;
+    if (!canvas || !detailRecord) return;
+    const dataUrl = canvas.toDataURL("image/png");
+
+    const updatedWorkers = [...detailRecord.workers];
+    updatedWorkers[selectedWorkerIndex] = {
+      ...updatedWorkers[selectedWorkerIndex],
+      signatureUrl: dataUrl
+    };
+
+    const updatedRecord = { ...detailRecord, workers: updatedWorkers };
+    setDetailRecord(updatedRecord);
+    setData(prev => prev.map(d => d.id === detailRecord.id ? updatedRecord : d));
+  };
+
+  const generateAutoSignatureForSelected = () => {
+    if (!detailRecord) return;
+    const worker = detailRecord.workers[selectedWorkerIndex];
+    if (!worker) return;
+
+    const autoSvgUrl = generateWorkerSignatureSvg(worker.nama, 0);
+
+    const updatedWorkers = [...detailRecord.workers];
+    updatedWorkers[selectedWorkerIndex] = {
+      ...updatedWorkers[selectedWorkerIndex],
+      signatureUrl: autoSvgUrl
+    };
+
+    const updatedRecord = { ...detailRecord, workers: updatedWorkers };
+    setDetailRecord(updatedRecord);
+    setData(prev => prev.map(d => d.id === detailRecord.id ? updatedRecord : d));
+  };
+
+  // PRINT LANDSCAPE DAFTAR HADIR PEKERJA (REPLACES CHECKMARK WITH REALISTIC HANDWRITTEN SIGNATURES)
   const handlePrintDocument = (record: any) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
@@ -317,7 +452,7 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
     }
     table.tbl-hadir th, table.tbl-hadir td {
       border: 1px solid #000 !important;
-      padding: 4px 3px;
+      padding: 3px 2px;
       font-size: 8.5pt;
       text-align: center;
       vertical-align: middle;
@@ -426,12 +561,12 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
       </tr>
     </table>
 
-    <!-- MAIN TABLE DAFTAR HADIR (UNBROKEN PERFECT SINGLE HORIZONTAL LINE FOR L, P, Md, Tk, Pk TOP BORDERS & NO EXTRA EMPTY COLUMNS) -->
+    <!-- MAIN TABLE DAFTAR HADIR (REPLACES CHECKMARK WITH HANDWRITTEN SIGNATURES) -->
     <table class="tbl-hadir">
       <thead>
         <tr>
-          <th style="width: 35px;" rowspan="3">No</th>
-          <th style="width: 250px;" rowspan="3">Nama</th>
+          <th style="width: 32px;" rowspan="3">No</th>
+          <th style="width: 240px;" rowspan="3">Nama</th>
           <th colspan="2">JK</th>
           <th colspan="3">Kategori</th>
           <th colspan="${dateColumns.length}">Hari-Orang-Kerja (HOK)<br>Menurut Tanggal</th>
@@ -456,15 +591,23 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
         ${sortedWorkers.map((w: any, idx: number) => `
           <tr>
             <td style="text-align: center;">${idx + 1}</td>
-            <td style="text-align: left; padding-left: 10px;">${w.nama}</td>
+            <td style="text-align: left; padding-left: 8px;">${w.nama}</td>
             <td style="text-align: center;">${w.gender === 'L' ? '√' : ''}</td>
             <td style="text-align: center;">${w.gender === 'P' ? '√' : ''}</td>
             <td style="text-align: center;">${w.kategori === 'Md' ? '√' : ''}</td>
             <td style="text-align: center;">${w.kategori === 'Tk' ? '√' : ''}</td>
             <td style="text-align: center;">${w.kategori === 'Pk' ? '√' : ''}</td>
-            ${dateColumns.map((_, dayIdx) => `
-              <td style="text-align: center;">${(w.isHadir && w.isHadir[dayIdx] !== false) ? '√' : ''}</td>
-            `).join('')}
+            ${dateColumns.map((_, dayIdx) => {
+              const sigImg = w.signatureUrl || generateWorkerSignatureSvg(w.nama, dayIdx);
+              return `
+                <td style="text-align: center; height: 26px;">
+                  ${(w.isHadir && w.isHadir[dayIdx] !== false)
+                    ? `<img src="${sigImg}" style="max-height: 20px; max-width: 55px; vertical-align: middle;" alt="TTD ${w.nama}" />`
+                    : ''
+                  }
+                </td>
+              `;
+            }).join('')}
           </tr>
         `).join('')}
       </tbody>
@@ -617,17 +760,26 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
                       </button>
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center justify-center gap-1.5">
+                        {/* Detail & TTD Button */}
+                        <button
+                          onClick={() => handleOpenDetail(item)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors border border-indigo-200"
+                          title="Detail Pekerja & Tanda Tangan"
+                        >
+                          <Eye size={14} />
+                          <span>Detail & TTD</span>
+                        </button>
                         <button 
                           onClick={() => handleOpenEdit(item)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
                           title="Edit"
                         >
                           <Edit3 size={16} />
                         </button>
                         <button 
                           onClick={() => handleDelete(item.id)}
-                          className="p-2 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" 
+                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" 
                           title="Hapus"
                         >
                           <Trash2 size={16} />
@@ -687,6 +839,216 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
           )}
         </div>
       </div>
+
+      {/* DETAIL WORKERS & SIGNATURE MANAGEMENT MODAL */}
+      {showDetailModal && detailRecord && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[110] flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-5xl w-full max-h-[92vh] overflow-y-auto shadow-2xl border border-slate-100 p-6 md:p-8 my-6">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <span className="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl font-bold">
+                  <FileSignature size={22} />
+                </span>
+                <div>
+                  <h2 className="text-lg font-bold text-slate-800">
+                    Detail Pekerja & Pengelolaan Tanda Tangan
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Kegiatan: <span className="font-bold text-slate-700">{detailRecord.kegiatan}</span> • Total {detailRecord.workers?.length || 0} Tenaga Kerja
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowDetailModal(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* TWO-COLUMN LAYOUT: WORKER LIST & SIGNATURE CANVAS */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mt-6">
+              {/* LEFT LIST: WORKERS (8 COLS) */}
+              <div className="md:col-span-6 space-y-3 max-h-[500px] overflow-y-auto pr-1">
+                <h3 className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-2">
+                  Daftar Pekerja ({detailRecord.workers?.length || 0} Orang)
+                </h3>
+
+                {detailRecord.workers.map((w: any, idx: number) => {
+                  const isSelected = selectedWorkerIndex === idx;
+                  const sigPreview = w.signatureUrl || generateWorkerSignatureSvg(w.nama, 0);
+
+                  return (
+                    <div
+                      key={idx}
+                      onClick={() => setSelectedWorkerIndex(idx)}
+                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                        isSelected 
+                          ? "bg-indigo-50/70 border-indigo-500 shadow-md ring-2 ring-indigo-500/20" 
+                          : "bg-white border-slate-200 hover:border-indigo-300 hover:bg-slate-50/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`w-7 h-7 rounded-xl flex items-center justify-center font-bold text-xs ${
+                          w.kategori === 'Md' ? 'bg-amber-100 text-amber-800' :
+                          w.kategori === 'Tk' ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-700'
+                        }`}>
+                          {idx + 1}
+                        </span>
+                        <div>
+                          <div className="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+                            <span>{w.nama}</span>
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                              {w.gender}
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500">
+                            Kategori: <span className="font-bold text-slate-700">{w.kategori === 'Md' ? 'Mandor' : w.kategori === 'Tk' ? 'Tukang' : 'Pekerja'}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* TTD Preview Badge */}
+                      <div className="flex items-center gap-2">
+                        <img 
+                          src={sigPreview} 
+                          alt="TTD" 
+                          className="h-7 w-auto bg-white p-1 rounded-lg border border-slate-200 shadow-xs" 
+                        />
+                        {isSelected && (
+                          <CheckCircle2 size={16} className="text-indigo-600" />
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* RIGHT SIDE: SIGNATURE CANVAS & AUTO GENERATOR (6 COLS) */}
+              <div className="md:col-span-6 bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-4">
+                {detailRecord.workers[selectedWorkerIndex] ? (
+                  <>
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                      <div>
+                        <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Terpilih ({selectedWorkerIndex + 1})</span>
+                        <h4 className="font-bold text-sm text-slate-800">
+                          {detailRecord.workers[selectedWorkerIndex].nama}
+                        </h4>
+                      </div>
+                      <span className="px-2.5 py-1 rounded-full bg-indigo-100 text-indigo-800 font-bold text-xs">
+                        {detailRecord.workers[selectedWorkerIndex].kategori === 'Md' ? 'Mandor' : detailRecord.workers[selectedWorkerIndex].kategori === 'Tk' ? 'Tukang' : 'Pekerja'}
+                      </span>
+                    </div>
+
+                    {/* Canvas Drawing Area */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                        <span className="flex items-center gap-1">
+                          <PenTool size={14} className="text-indigo-600" />
+                          <span>Tanda Tangan Manual (Coret Kertas Digital)</span>
+                        </span>
+                        <span className="text-[10px] font-normal text-slate-400">Mouse / Touchscreen</span>
+                      </label>
+
+                      <div className="bg-white rounded-2xl border-2 border-dashed border-indigo-200 p-2 relative">
+                        <canvas
+                          ref={canvasRef}
+                          width={360}
+                          height={120}
+                          onMouseDown={startDrawing}
+                          onMouseMove={draw}
+                          onMouseUp={stopDrawing}
+                          onMouseLeave={stopDrawing}
+                          onTouchStart={startDrawing}
+                          onTouchMove={draw}
+                          onTouchEnd={stopDrawing}
+                          className="w-full h-28 bg-white cursor-crosshair rounded-xl touch-none"
+                        />
+                        <div className="absolute bottom-2 right-2 text-[10px] text-slate-400 font-bold pointer-events-none">
+                          Area TTD Pekerja
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Canvas Action Controls */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={clearCanvas}
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white text-slate-600 font-bold text-xs hover:bg-slate-100 transition-colors flex items-center gap-1"
+                      >
+                        <RefreshCw size={13} />
+                        <span>Hapus Canvas</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={saveCanvasSignature}
+                        className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-colors shadow-md shadow-indigo-600/20 flex items-center gap-1"
+                      >
+                        <PenTool size={13} />
+                        <span>Simpan Hasil TTD Manual</span>
+                      </button>
+                    </div>
+
+                    {/* Auto Signature Generator Option */}
+                    <div className="pt-3 border-t border-slate-200 space-y-2">
+                      <label className="block text-xs font-bold text-slate-700">
+                        Atau Generasikan TTD Otomatis (Rapi & Organik)
+                      </label>
+                      <button
+                        type="button"
+                        onClick={generateAutoSignatureForSelected}
+                        className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2"
+                      >
+                        <FileSignature size={15} />
+                        <span>Buat TTD Otomatis Presisi Rapi</span>
+                      </button>
+                    </div>
+
+                    {/* Current Signature Preview */}
+                    <div className="pt-2">
+                      <span className="text-[11px] font-bold text-slate-500 block mb-1">Pratinjau TTD Aktif Pada Tabel:</span>
+                      <div className="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-center">
+                        <img 
+                          src={detailRecord.workers[selectedWorkerIndex].signatureUrl || generateWorkerSignatureSvg(detailRecord.workers[selectedWorkerIndex].nama, 0)} 
+                          alt="Pratinjau TTD" 
+                          className="h-10 w-auto"
+                        />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-12 text-slate-400">
+                    <PenTool size={36} className="mx-auto mb-2 opacity-30" />
+                    <p className="font-semibold text-xs text-slate-600">Pilih pekerja di sebelah kiri untuk mengelola TTD.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex items-center justify-between pt-6 border-t border-slate-100 mt-6">
+              <button
+                type="button"
+                onClick={() => handlePrintDocument(detailRecord)}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-2 shadow-md shadow-emerald-600/20"
+              >
+                <Printer size={15} />
+                <span>Cetak Absensi Ber-TTD (F4)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowDetailModal(false)}
+                className="px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs shadow-md transition-colors"
+              >
+                Selesai
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* FORM MODAL (+ Buat Daftar Hadir Pekerja / Edit) */}
       {showModal && (
