@@ -239,16 +239,13 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
     });
   };
 
-  // PRINT LANDSCAPE DAFTAR HADIR PEKERJA (PERFECT HEADER SEPARATOR LINE & CRISP BLACK BORDER SHADING)
+  // PRINT LANDSCAPE DAFTAR HADIR PEKERJA (PERFECT JK & KATEGORI HORIZONTAL LINE ALIGNMENT, NO EXTRA EMPTY COLUMNS)
   const handlePrintDocument = (record: any) => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
 
     const sortedWorkers = sortWorkers(record.workers || []);
     const dateColumns = calculateBackwardsDates(record.tanggalTTD, record.masaKerjaHari || 5);
-
-    // Total grid columns for clean, spacious layout on F4 Landscape (10 columns default)
-    const TOTAL_GRID_DAYS = Math.max(10, dateColumns.length);
 
     printWindow.document.write(`<!DOCTYPE html>
 <html lang="id">
@@ -328,12 +325,6 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
     table.tbl-hadir th {
       font-weight: bold;
       background-color: #ffffff;
-    }
-
-    /* SOFT GREY BACKGROUND FILL FOR EMPTY COLUMNS (WITH SOLID BLACK BORDERS) */
-    .bg-shaded-cell {
-      background-color: #d1d5db !important;
-      border: 1px solid #000 !important;
     }
 
     /* SIGNATURES 4-COLUMNS */
@@ -435,35 +426,29 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
       </tr>
     </table>
 
-    <!-- MAIN TABLE DAFTAR HADIR (WITH CRISP SEPARATOR LINE FOR DAY INDEX & DATE ROW) -->
+    <!-- MAIN TABLE DAFTAR HADIR (UNBROKEN PERFECT SINGLE HORIZONTAL LINE FOR L, P, Md, Tk, Pk TOP BORDERS & NO EXTRA EMPTY COLUMNS) -->
     <table class="tbl-hadir">
       <thead>
         <tr>
-          <th style="width: 32px;" rowspan="3">No</th>
-          <th style="width: 210px;" rowspan="3">Nama</th>
-          <th colspan="2" rowspan="2">JK</th>
+          <th style="width: 35px;" rowspan="3">No</th>
+          <th style="width: 250px;" rowspan="3">Nama</th>
+          <th colspan="2">JK</th>
           <th colspan="3">Kategori</th>
-          <th colspan="${TOTAL_GRID_DAYS}">Hari-Orang-Kerja (HOK)<br>Menurut Tanggal</th>
+          <th colspan="${dateColumns.length}">Hari-Orang-Kerja (HOK)<br>Menurut Tanggal</th>
         </tr>
         <tr>
-          <th style="width: 25px;" rowspan="2">Md</th>
-          <th style="width: 25px;" rowspan="2">Tk</th>
-          <th style="width: 25px;" rowspan="2">Pk</th>
+          <th style="width: 22px;" rowspan="2">L</th>
+          <th style="width: 22px;" rowspan="2">P</th>
+          <th style="width: 28px;" rowspan="2">Md</th>
+          <th style="width: 28px;" rowspan="2">Tk</th>
+          <th style="width: 28px;" rowspan="2">Pk</th>
           ${dateColumns.map(d => `
-            <th style="padding: 3px 1px; font-size: 8.5pt;">${d.dayIndex}</th>
-          `).join('')}
-          ${Array.from({ length: Math.max(0, TOTAL_GRID_DAYS - dateColumns.length) }, () => `
-            <th class="bg-shaded-cell"></th>
+            <th style="font-size: 8.5pt; padding: 3px 2px;">${d.dayIndex}</th>
           `).join('')}
         </tr>
         <tr>
-          <th style="width: 20px;">L</th>
-          <th style="width: 20px;">P</th>
           ${dateColumns.map(d => `
-            <th style="font-size: 6.5pt; font-weight: normal; padding: 2px 1px;">${d.dateStr}</th>
-          `).join('')}
-          ${Array.from({ length: Math.max(0, TOTAL_GRID_DAYS - dateColumns.length) }, () => `
-            <th class="bg-shaded-cell"></th>
+            <th style="font-size: 7.5pt; font-weight: normal; padding: 2px 1px;">${d.dateStr}</th>
           `).join('')}
         </tr>
       </thead>
@@ -471,7 +456,7 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
         ${sortedWorkers.map((w: any, idx: number) => `
           <tr>
             <td style="text-align: center;">${idx + 1}</td>
-            <td style="text-align: left; padding-left: 8px;">${w.nama}</td>
+            <td style="text-align: left; padding-left: 10px;">${w.nama}</td>
             <td style="text-align: center;">${w.gender === 'L' ? '√' : ''}</td>
             <td style="text-align: center;">${w.gender === 'P' ? '√' : ''}</td>
             <td style="text-align: center;">${w.kategori === 'Md' ? '√' : ''}</td>
@@ -479,9 +464,6 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
             <td style="text-align: center;">${w.kategori === 'Pk' ? '√' : ''}</td>
             ${dateColumns.map((_, dayIdx) => `
               <td style="text-align: center;">${(w.isHadir && w.isHadir[dayIdx] !== false) ? '√' : ''}</td>
-            `).join('')}
-            ${Array.from({ length: Math.max(0, TOTAL_GRID_DAYS - dateColumns.length) }, () => `
-              <td class="bg-shaded-cell"></td>
             `).join('')}
           </tr>
         `).join('')}
