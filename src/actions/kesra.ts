@@ -86,35 +86,41 @@ export async function toggleKesraDtksFlag(id: string, currentFlag: boolean) {
 export async function importKesraDtks(records: any[]) {
     const { tenantId } = await verifyKesraAccess();
     
-    // Simple bulk create loop
+    // Chunked parallel execution for high-speed bulk import
     let imported = 0;
-    for (const r of records) {
-        try {
-            await prisma.kesraDtks.upsert({
-                where: { nik: r.nik },
-                update: {
-                    namaKepalaKeluarga: r.namaKepalaKeluarga,
-                    jumlahTanggungan: parseInt(r.jumlahTanggungan) || 0,
-                    penghasilan: parseFloat(r.penghasilan) || 0,
-                    jenisBantuan: r.jenisBantuan,
-                    statusKelayakan: r.statusKelayakan || "LAYAK",
-                    isFlagged: r.isFlagged || false
-                },
-                create: {
-                    nik: r.nik,
-                    namaKepalaKeluarga: r.namaKepalaKeluarga,
-                    jumlahTanggungan: parseInt(r.jumlahTanggungan) || 0,
-                    penghasilan: parseFloat(r.penghasilan) || 0,
-                    jenisBantuan: r.jenisBantuan,
-                    statusKelayakan: r.statusKelayakan || "LAYAK",
-                    isFlagged: r.isFlagged || false,
-                    tenantId
+    const chunkSize = 20;
+    for (let i = 0; i < records.length; i += chunkSize) {
+        const chunk = records.slice(i, i + chunkSize);
+        await Promise.all(
+            chunk.map(async (r) => {
+                try {
+                    await prisma.kesraDtks.upsert({
+                        where: { nik: r.nik },
+                        update: {
+                            namaKepalaKeluarga: r.namaKepalaKeluarga,
+                            jumlahTanggungan: parseInt(r.jumlahTanggungan) || 0,
+                            penghasilan: parseFloat(r.penghasilan) || 0,
+                            jenisBantuan: r.jenisBantuan,
+                            statusKelayakan: r.statusKelayakan || "LAYAK",
+                            isFlagged: r.isFlagged || false
+                        },
+                        create: {
+                            nik: r.nik,
+                            namaKepalaKeluarga: r.namaKepalaKeluarga,
+                            jumlahTanggungan: parseInt(r.jumlahTanggungan) || 0,
+                            penghasilan: parseFloat(r.penghasilan) || 0,
+                            jenisBantuan: r.jenisBantuan,
+                            statusKelayakan: r.statusKelayakan || "LAYAK",
+                            isFlagged: r.isFlagged || false,
+                            tenantId
+                        }
+                    });
+                    imported++;
+                } catch (e) {
+                    console.error("Failed to import NIK:", r.nik, e);
                 }
-            });
-            imported++;
-        } catch (e) {
-            console.error("Failed to import NIK:", r.nik, e);
-        }
+            })
+        );
     }
     
     revalidatePath("/dashboard");

@@ -73,6 +73,7 @@ export async function getChatContacts() {
         orderBy: {
             createdAt: "desc"
         },
+        take: 200,
         select: {
             message: true,
             createdAt: true,
@@ -147,7 +148,8 @@ export async function getChatHistory(contactId: string) {
         },
         orderBy: {
             createdAt: "asc"
-        }
+        },
+        take: 100
     });
 
     return messages;
