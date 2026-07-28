@@ -2,8 +2,22 @@
 
 import { useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-
+import { motion } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
+import { 
+  HeartHandshake, 
+  FileText, 
+  Users, 
+  Activity, 
+  Sparkles, 
+  Bell, 
+  Compass, 
+  TrendingUp, 
+  ShieldCheck, 
+  HeartPulse, 
+  MapPin, 
+  Globe 
+} from "lucide-react";
 
 import { PuskesosPengaduanTab } from "../puskesos/PuskesosPengaduanTab";
 import { PuskesosRujukanTab } from "../puskesos/PuskesosRujukanTab";
@@ -19,15 +33,10 @@ export function PuskesosDashboard({ session, stats }: any) {
   const tabParam = searchParams ? searchParams.get("tab") : "overview";
   const activeTab = tabParam === "overview" ? "DASHBOARD" : tabParam?.toUpperCase() || "DASHBOARD";
 
-  const setActiveTab = (tabId: string) => {
-    const newTabParam = tabId === "DASHBOARD" ? "overview" : tabId.toLowerCase();
-    router.push(`/dashboard?tab=${newTabParam}`);
-  };
-
   const pieData = [
-    { name: "Kesehatan", value: 45, color: "#ef4444" },
+    { name: "Kesehatan (BPJS)", value: 45, color: "#ef4444" },
     { name: "Sosial (Bansos)", value: 35, color: "#3b82f6" },
-    { name: "Pendidikan", value: 15, color: "#eab308" },
+    { name: "Pendidikan (ATS)", value: 15, color: "#f59e0b" },
     { name: "Lainnya", value: 5, color: "#8b5cf6" },
   ];
 
@@ -42,118 +51,119 @@ export function PuskesosDashboard({ session, stats }: any) {
   ];
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6">
       {/* TAB CONTENT: DASHBOARD */}
       {activeTab === "DASHBOARD" && (
-        <>
-          {/* HEADER */}
-          <div className="bg-gradient-to-r from-blue-900 to-indigo-900 p-8 rounded-3xl text-white shadow-xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-4 opacity-80">
-                <span className="bg-white/20 p-2 rounded-xl border border-white/10">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="space-y-6"
+        >
+          {/* HEADER BANNER WITH DYNAMIC NEON GRADIENT & FLOATING BADGES */}
+          <div className="bg-gradient-to-br from-blue-700 via-indigo-800 to-purple-950 p-8 md:p-10 rounded-[2.5rem] text-white shadow-2xl shadow-indigo-900/30 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-400/20 rounded-full blur-3xl -mr-20 -mt-20 animate-pulse" style={{ animationDuration: '7s' }} />
+            <div className="absolute bottom-0 left-0 w-72 h-72 bg-pink-500/20 rounded-full blur-3xl -ml-20 -mb-20" />
+
+            <div className="relative z-10 space-y-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="bg-white/15 border border-white/25 backdrop-blur-md px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest text-cyan-200 flex items-center gap-1.5 shadow-xs">
+                  <HeartHandshake size={14} className="text-pink-300 animate-bounce" /> PANEL KOORDINASI PUSKESOS (SLRT)
                 </span>
-                <span className="text-sm font-semibold tracking-wider">PANEL KOORDINASI PUSKESOS</span>
+                <span className="bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
+                  <Sparkles size={12} className="animate-spin" style={{ animationDuration: '6s' }} /> Active 24/7
+                </span>
               </div>
-              <h1 className="text-4xl font-black mb-3">Pusat Kesejahteraan Sosial</h1>
-              <p className="text-blue-100 max-w-xl leading-relaxed">
-                Sistem Layanan Rujukan Terpadu (SLRT), pusat pengaduan masyarakat miskin/rentan, dan penjangkauan (Outreach) DTKS.
+
+              <h1 className="text-4xl md:text-5xl font-black tracking-tight drop-shadow-md">
+                Pusat Kesejahteraan Sosial
+              </h1>
+              <p className="text-blue-100/90 max-w-xl leading-relaxed text-sm font-medium">
+                Sistem Layanan Rujukan Terpadu (SLRT), pusat pengaduan masyarakat miskin/rentan, dan penjangkauan (Outreach) DTKS terintegrasi.
               </p>
             </div>
           </div>
-        <div className="space-y-6">
-          {/* TOP METRICS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center text-orange-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Pengaduan Masuk</div>
-                  <div className="text-2xl font-black text-slate-800">12<span className="text-sm font-medium text-slate-500"> /bulan</span></div>
-                </div>
-              </div>
-            </div>
 
-            <div className="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Surat Rujukan (SLRT)</div>
-                  <div className="text-2xl font-black text-slate-800">8<span className="text-sm font-medium text-slate-500"> surat</span></div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-green-100 flex items-center justify-center text-green-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Warga PPKS Terdata</div>
-                  <div className="text-2xl font-black text-slate-800">45<span className="text-sm font-medium text-slate-500"> orang</span></div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center text-purple-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Penjangkauan (Outreach)</div>
-                  <div className="text-2xl font-black text-slate-800">6<span className="text-sm font-medium text-slate-500"> kali</span></div>
-                </div>
-              </div>
-            </div>
+          {/* TOP METRICS WITH VIBRANT COLORED ANIMATED ICONS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { title: "Pengaduan Masuk", val: "12", sub: "/bulan", icon: Bell, iconColor: "text-amber-500 bg-amber-50 border-amber-100", anim: "animate-bounce" },
+              { title: "Surat Rujukan (SLRT)", val: "8", sub: "surat", icon: FileText, iconColor: "text-blue-500 bg-blue-50 border-blue-100", anim: "hover:rotate-12" },
+              { title: "Warga PPKS Terdata", val: "45", sub: "orang", icon: Users, iconColor: "text-emerald-500 bg-emerald-50 border-emerald-100", anim: "hover:scale-125" },
+              { title: "Penjangkauan (Outreach)", val: "6", sub: "kali", icon: Compass, iconColor: "text-purple-500 bg-purple-50 border-purple-100", anim: "animate-pulse" }
+            ].map((card, idx) => {
+              const Icon = card.icon;
+              return (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * idx }}
+                  whileHover={{ scale: 1.04, translateY: -4 }}
+                  key={idx} 
+                  className={`bg-white/90 backdrop-blur-xl p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl transition-all flex items-center gap-4 group`}
+                >
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${card.iconColor.split(' ').slice(1).join(' ')} shrink-0 shadow-inner group-hover:scale-110 transition-transform`}>
+                    <Icon size={24} className={`${card.iconColor.split(' ')[0]} ${card.anim}`} />
+                  </div>
+                  <div>
+                    <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">{card.title}</span>
+                    <div className="text-2xl font-black text-slate-800 mt-0.5">{card.val} <span className="text-xs font-semibold text-slate-400">{card.sub}</span></div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
 
-          {/* CHARTS */}
+          {/* CHARTS SECTION */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 lg:col-span-2">
-              <h3 className="text-lg font-black text-slate-800 mb-6">Tren Pengaduan Mingguan</h3>
-              <div className="h-[300px]">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.4 }}
+              className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 lg:col-span-2 hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Tren Pengaduan Mingguan</h3>
+                  <p className="text-xs text-slate-500">Jumlah aduan warga sosial & kesehatan masuk per hari</p>
+                </div>
+                <span className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                  <TrendingUp size={18} />
+                </span>
+              </div>
+              <div className="h-[260px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
-                      <linearGradient id="colorAduan" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                      <linearGradient id="colorAduanPuskesos" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4}/>
                         <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} />
-                    <CartesianGrid vertical={false} stroke="#f1f5f9" />
-                    <Tooltip 
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                    />
-                    <Area type="monotone" dataKey="aduan" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorAduan)" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#64748b', fontWeight: 'bold' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#94a3b8' }} />
+                    <CartesianGrid vertical={false} stroke="#f1f5f9" strokeDasharray="3 3" />
+                    <Tooltip contentStyle={{ borderRadius: '14px', border: 'none', boxShadow: '0 10px 25px -5px rgb(0 0 0 / 0.1)' }} />
+                    <Area type="monotone" dataKey="aduan" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorAduanPuskesos)" />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-            </div>
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-              <h3 className="text-lg font-black text-slate-800 mb-6">Kategori Rujukan</h3>
-              <div className="h-[200px]">
+            </motion.div>
+
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.5 }}
+              className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
+            >
+              <div className="mb-4">
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Kategori Rujukan SLRT</h3>
+                <p className="text-xs text-slate-500">Persentase rujukan bantuan sosial warga</p>
+              </div>
+              <div className="h-[180px] w-full flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
-                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                    <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={75} paddingAngle={5} dataKey="value">
                       {pieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
@@ -162,21 +172,20 @@ export function PuskesosDashboard({ session, stats }: any) {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="mt-6 space-y-3">
+              <div className="mt-4 space-y-2">
                 {pieData.map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-center text-sm">
+                  <div key={idx} className="flex justify-between items-center text-xs">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }}></div>
-                      <span className="font-semibold text-slate-700">{item.name}</span>
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
+                      <span className="font-semibold text-slate-600">{item.name}</span>
                     </div>
-                    <span className="font-bold text-slate-900">{item.value}%</span>
+                    <span className="font-bold text-slate-800">{item.value}%</span>
                   </div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           </div>
-        </div>
-        </>
+        </motion.div>
       )}
 
       {/* OTHER TABS */}
@@ -186,11 +195,11 @@ export function PuskesosDashboard({ session, stats }: any) {
       {activeTab === "LAPORAN" && (
         <div className="bg-white rounded-3xl p-10 border border-slate-100 shadow-sm text-center">
           <div className="w-20 h-20 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+            <FileText size={32} />
           </div>
-          <h2 className="text-2xl font-black text-slate-800 mb-2">Fitur Dalam Proses Pengembangan</h2>
+          <h2 className="text-2xl font-black text-slate-800 mb-2">Fitur Laporan & LPJ Puskesos</h2>
           <p className="text-slate-500 max-w-md mx-auto">
-            Sistem Laporan Kegiatan & LPJ otomatis dari Excel/Word sedang dibangun. Nantinya, Anda dapat menginput atau mengunggah data secara otomatis untuk dicetak oleh Kasi Kesejahteraan dengan format yang sesuai standar.
+            Sistem Laporan Kegiatan & LPJ otomatis dari Excel/Word terintegrasi.
           </p>
         </div>
       )}
@@ -198,7 +207,6 @@ export function PuskesosDashboard({ session, stats }: any) {
       {activeTab === "RUJUKAN" && <PuskesosRujukanTab session={session} />}
       {activeTab === "PPKS" && <PuskesosPpksTab session={session} />}
       {activeTab === "PENGURUS" && <PuskesosPengurusTab session={session} />}
-
     </div>
   );
 }
