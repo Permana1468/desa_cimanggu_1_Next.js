@@ -566,6 +566,18 @@ export function LpjDaftarHadirPekerjaTab({ session }: { session: any }) {
   </div>
 
   <div class="doc-page">
+    <!-- OFFICIAL KOP SURAT DESA -->
+    <div class="kop-container" style="position: relative; display: flex; align-items: center; justify-content: center; min-height: 85px; margin-bottom: 2px;">
+      <img src="${window.location.origin}/images/logo-bogor.png" style="position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 80px; width: auto; object-fit: contain;" alt="Logo Kab Bogor" />
+      <div style="text-align: center; width: 100%; padding-left: 85px; padding-right: 10px;">
+        <div style="font-size: 15pt; font-weight: 900; letter-spacing: 0.5px; line-height: 1.15; font-family: Arial, Helvetica, sans-serif; text-transform: uppercase;">PEMERINTAH KABUPATEN BOGOR</div>
+        <div style="font-size: 15pt; font-weight: 900; letter-spacing: 0.5px; line-height: 1.15; font-family: Arial, Helvetica, sans-serif; text-transform: uppercase;">KECAMATAN CIBUNGBULANG</div>
+        <div style="font-size: 17pt; font-weight: 900; letter-spacing: 0.5px; line-height: 1.2; font-family: Arial, Helvetica, sans-serif; text-transform: uppercase;">DESA CIMANGGU I</div>
+        <div style="font-size: 9.5pt; font-style: italic; margin-top: 3px; font-family: Arial, Helvetica, sans-serif; font-weight: 500; text-decoration: underline;">Jl. Raya Gardu Seri Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Kec. Cibungbulang Kab. Bogor - 16630</div>
+      </div>
+    </div>
+    <div style="border-bottom: 3.5px solid #000; margin-top: 5px; margin-bottom: 12px;"></div>
+
     <!-- TITLE HEADER -->
     <div class="title-header">
       <div class="title-main">DAFTAR HADIR PEKERJA</div>
