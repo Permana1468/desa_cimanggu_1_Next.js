@@ -384,7 +384,7 @@ export default function AparaturPage() {
     });
   }, [aparatur, selectedKategori, search]);
 
-  // Print 2-Sided ID Card Handler (Depan & Belakang dengan QR Code Kotak - Standard CR-80)
+  // Print 2-Sided ID Card Handler (Depan & Belakang dengan QR Code Kotak - Standard 1 Lembar A4/F4)
   const handlePrintCard = (person: any) => {
     const barcodeCode = person.barcodeId || person.nik || `APR-DESA-${person.id.slice(0, 5)}`;
     const qrBase64 = generateQrCodeBase64(barcodeCode);
@@ -401,80 +401,123 @@ export default function AparaturPage() {
   <title>ID CARD ABSENSI (2 SISI) - ${person.name}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { 
+    
+    @page {
+      size: A4 portrait;
+      margin: 10mm 15mm;
+    }
+
+    body { 
       font-family: Arial, Helvetica, sans-serif; 
-      background: #cbd5e1; 
+      background: #f1f5f9; 
+      margin: 0;
+      padding: 20px;
       display: flex; 
       flex-direction: column;
       align-items: center; 
-      justify-content: center;
+      justify-content: flex-start;
       min-height: 100vh;
-      padding: 30px 20px;
-    }
-    
-    /* STANDARD VERTICAL ID CARD (CR-80: 54mm x 85.6mm) */
-    @page {
-      size: 54mm 85.6mm;
-      margin: 0;
     }
 
-    .no-print-btn {
+    /* PRINT CONTROLS */
+    .pcontrols {
+      display: flex;
+      gap: 10px;
       margin-bottom: 25px;
-      padding: 14px 28px;
+      background: #ffffff;
+      padding: 12px 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      border: 1px solid #cbd5e1;
+    }
+    .pcontrols button {
+      padding: 10px 18px;
+      border-radius: 10px;
+      border: 1.5px solid #0f172a;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: bold;
+      background: #f8fafc;
+      color: #0f172a;
+      transition: all 0.15s;
+    }
+    .pcontrols button:hover, .pcontrols button.on {
       background: #16a34a;
       color: #ffffff;
-      border: none;
-      border-radius: 14px;
-      font-weight: bold;
-      font-size: 14px;
-      cursor: pointer;
-      box-shadow: 0 6px 16px rgba(22, 163, 74, 0.35);
-      transition: all 0.2s;
+      border-color: #16a34a;
     }
-    .no-print-btn:hover { background: #15803d; transform: translateY(-2px); }
+
+    .print-sheet {
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      border: 1px solid #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .sheet-title {
+      font-size: 13px;
+      font-weight: 900;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 20px;
+      text-align: center;
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 8px;
+      width: 100%;
+    }
 
     .card-wrapper {
       display: flex;
       flex-direction: row;
       gap: 30px;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      flex-wrap: wrap;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
 
     .id-card {
-      width: 54mm;
-      height: 85.6mm;
+      width: 58mm;
+      height: 92mm;
       background: #ffffff;
-      border: 1.5px solid #0f172a;
-      border-radius: 3.5mm;
-      padding: 2.5mm;
+      border: 2px solid #0f172a;
+      border-radius: 4mm;
+      padding: 3mm;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
       position: relative;
       overflow: hidden;
+      box-sizing: border-box;
       background-image: radial-gradient(#cbd5e1 0.75px, transparent 0.75px);
       background-size: 6px 6px;
-      page-break-after: always;
+      page-break-inside: avoid;
+      break-inside: avoid;
     }
 
     /* CARD HEADER */
     .card-header {
-      width: calc(100% + 5mm);
-      margin: -2.5mm -2.5mm 2mm -2.5mm;
-      padding: 2.5mm 1mm;
+      width: calc(100% + 6mm);
+      margin: -3mm -3mm 2mm -3mm;
+      padding: 3mm 1.5mm;
       background: #0f172a;
       color: #ffffff;
       text-align: center;
-      border-bottom: 1.5px solid #0f172a;
+      border-bottom: 2px solid #0f172a;
     }
     .card-header-logo {
-      height: 8.5mm;
+      height: 9mm;
       width: auto;
-      margin-bottom: 0.8mm;
+      margin-bottom: 1mm;
       object-fit: contain;
     }
     .card-header h2 {
@@ -488,14 +531,14 @@ export default function AparaturPage() {
       font-size: 5.5pt;
       font-weight: bold;
       opacity: 0.85;
-      margin-top: 0.4mm;
+      margin-top: 0.5mm;
       text-transform: uppercase;
     }
 
     /* SISI DEPAN - FRONT SIDE CONTENT */
     .photo-box {
-      width: 24mm;
-      height: 28mm;
+      width: 25mm;
+      height: 30mm;
       border-radius: 2.5mm;
       border: 1.5px solid #0f172a;
       overflow: hidden;
@@ -512,7 +555,7 @@ export default function AparaturPage() {
       object-fit: cover;
     }
     .photo-box .initials {
-      font-size: 18pt;
+      font-size: 20pt;
       font-weight: 900;
       color: #334155;
     }
@@ -523,7 +566,7 @@ export default function AparaturPage() {
       margin-bottom: 1.5mm;
     }
     .person-name {
-      font-size: 8.5pt;
+      font-size: 9pt;
       font-weight: 900;
       color: #0f172a;
       line-height: 1.15;
@@ -555,13 +598,13 @@ export default function AparaturPage() {
     }
 
     .front-footer {
-      width: calc(100% + 5mm);
-      margin: 0 -2.5mm -2.5mm -2.5mm;
+      width: calc(100% + 6mm);
+      margin: 0 -3mm -3mm -3mm;
       padding: 1.5mm 0;
       background: #0f172a;
       color: #ffffff;
       text-align: center;
-      font-size: 5pt;
+      font-size: 5.5pt;
       font-weight: 800;
       letter-spacing: 0.5px;
       text-transform: uppercase;
@@ -579,8 +622,8 @@ export default function AparaturPage() {
       padding: 2mm 0;
     }
     .qr-container {
-      width: 32mm;
-      height: 32mm;
+      width: 35mm;
+      height: 35mm;
       background: #ffffff;
       border: 1.5px solid #0f172a;
       border-radius: 3mm;
@@ -612,66 +655,88 @@ export default function AparaturPage() {
       font-size: 5pt;
       color: #475569;
       font-weight: 600;
-      line-height: 1.2;
+      line-height: 1.25;
       padding: 0 1mm;
     }
 
     @media print {
-      body { background: transparent; padding: 0; }
-      .no-print-btn { display: none !important; }
-      .card-wrapper { gap: 0; display: block; }
-      .id-card { box-shadow: none; border: 1px solid #000; margin: 0 auto; }
+      body { background: transparent !important; padding: 0 !important; }
+      .no-print { display: none !important; }
+      .print-sheet { box-shadow: none !important; border: none !important; padding: 0 !important; }
+      .id-card { box-shadow: none !important; border: 2px solid #000 !important; }
     }
   </style>
+
+  <style id="pgstyle">
+    @page { size: A4 portrait; margin: 10mm 15mm; }
+  </style>
+
+  <script>
+    function setSize(sz, btnId) {
+      document.getElementById('pgstyle').textContent = '@page { size: ' + sz + '; margin: 10mm 15mm; }';
+      document.querySelectorAll('.pcontrols button').forEach(function(b) { b.classList.remove('on'); });
+      var el = document.getElementById(btnId); if (el) el.classList.add('on');
+    }
+  </script>
 </head>
 <body>
-  <button onclick="window.print()" class="no-print-btn">&#128438; Cetak ID Card Absensi (2 Sisi - Depan & Belakang)</button>
 
-  <div class="card-wrapper">
-    <!-- SISI DEPAN (FRONT SIDE) -->
-    <div class="id-card">
-      <div class="card-header">
-        <img src="${origin}/images/logo-bogor.png" class="card-header-logo" alt="Logo Kab Bogor" />
-        <h2>PEMERINTAH DESA CIMANGGU I</h2>
-        <p>KARTU ABSENSI RESMI APARATUR</p>
-      </div>
+  <!-- PRINT CONTROL BAR -->
+  <div class="pcontrols no-print">
+    <button id="ba4" class="on" onclick="setSize('A4 portrait','ba4')">Kertas A4 (1 Lembar)</button>
+    <button id="bf4" onclick="setSize('215mm 330mm','bf4')">Kertas F4 / Folio (1 Lembar)</button>
+    <button onclick="window.print()" style="background:#16a34a;color:#fff;border-color:#16a34a;">&#128438; Cetak Dokumen Sekarang</button>
+  </div>
 
-      <div class="photo-box">
-        ${person.photo ? `<img src="${person.photo}" alt="${person.name}" />` : `<div class="initials">${person.name.charAt(0)}</div>`}
-      </div>
+  <div class="print-sheet">
+    <div class="sheet-title">Cetak ID Card Absensi Aparatur Desa &bull; Sisi Depan & Belakang</div>
 
-      <div class="info-box">
-        <div class="person-name">${person.name}</div>
-        <div class="person-pos">${person.position}</div>
-        <span class="person-kat">${kat}</span>
-      </div>
-
-      <div class="front-footer">
-        DESA CIMANGGU I &bull; SISI DEPAN
-      </div>
-    </div>
-
-    <!-- SISI BELAKANG (BACK SIDE - KHUSUS QR CODE KOTAK) -->
-    <div class="id-card">
-      <div class="card-header">
-        <img src="${origin}/images/logo-bogor.png" class="card-header-logo" alt="Logo Kab Bogor" />
-        <h2>PEMERINTAH DESA CIMANGGU I</h2>
-        <p>QR CODE BARCODE ABSENSI</p>
-      </div>
-
-      <div class="back-content">
-        <div class="qr-container">
-          <img src="${qrBase64}" class="qr-img" alt="QR Code Kotak ${barcodeCode}" />
+    <div class="card-wrapper">
+      <!-- SISI DEPAN (FRONT SIDE) -->
+      <div class="id-card">
+        <div class="card-header">
+          <img src="${origin}/images/logo-bogor.png" class="card-header-logo" alt="Logo Kab Bogor" />
+          <h2>PEMERINTAH DESA CIMANGGU I</h2>
+          <p>KARTU ABSENSI RESMI APARATUR</p>
         </div>
-        <div class="barcode-text">${barcodeCode}</div>
-        <p class="back-desc">
-          Gunakan QR Code Kotak ini pada Mesin Scanner Absensi Desa Cimanggu I.<br>
-          Jika kartu ini ditemukan, harap dikembalikan ke Kantor Desa.
-        </p>
+
+        <div class="photo-box">
+          ${person.photo ? `<img src="${person.photo}" alt="${person.name}" />` : `<div class="initials">${person.name.charAt(0)}</div>`}
+        </div>
+
+        <div class="info-box">
+          <div class="person-name">${person.name}</div>
+          <div class="person-pos">${person.position}</div>
+          <span class="person-kat">${kat}</span>
+        </div>
+
+        <div class="front-footer">
+          DESA CIMANGGU I &bull; SISI DEPAN
+        </div>
       </div>
 
-      <div class="front-footer">
-        SCANNER READY &bull; SISI BELAKANG
+      <!-- SISI BELAKANG (BACK SIDE - KHUSUS QR CODE KOTAK) -->
+      <div class="id-card">
+        <div class="card-header">
+          <img src="${origin}/images/logo-bogor.png" class="card-header-logo" alt="Logo Kab Bogor" />
+          <h2>PEMERINTAH DESA CIMANGGU I</h2>
+          <p>QR CODE BARCODE ABSENSI</p>
+        </div>
+
+        <div class="back-content">
+          <div class="qr-container">
+            <img src="${qrBase64}" class="qr-img" alt="QR Code Kotak ${barcodeCode}" />
+          </div>
+          <div class="barcode-text">${barcodeCode}</div>
+          <p class="back-desc">
+            Gunakan QR Code Kotak ini pada Mesin Scanner Absensi Desa Cimanggu I.<br>
+            Jika kartu ini ditemukan, harap dikembalikan ke Kantor Desa.
+          </p>
+        </div>
+
+        <div class="front-footer">
+          SCANNER READY &bull; SISI BELAKANG
+        </div>
       </div>
     </div>
   </div>
