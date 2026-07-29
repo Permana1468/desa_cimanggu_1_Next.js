@@ -236,29 +236,52 @@ export function EAbsensiTab({ session }: { session?: any }) {
     return DEFAULT_APARATUR_DATABASE;
   };
 
+  const handleDeleteSingleLog = (id: string) => {
+    const updated = logs.filter(l => l.id !== id);
+    saveLogs(updated);
+  };
+
   // Process Scanned Code from Hardware Scanner or Manual Input
+  const lastProcessedRef = useRef<{ code: string; time: number }>({ code: "", time: 0 });
+
   const processScanCode = (codeRaw: string) => {
-    const code = codeRaw.trim().toUpperCase();
+    let code = codeRaw.trim().toUpperCase();
     if (!code) return;
 
+    // Remove duplicate repetitive patterns (e.g. PEMERINTAH DESA - 006PEMERINTAH DESA - 006 -> PEMERINTAH DESA - 006)
+    const matchRepeat = code.match(/^([A-Z0-9\s-]+?)\1+$/);
+    if (matchRepeat && matchRepeat[1]) {
+      code = matchRepeat[1].trim();
+    }
+
     const cleanScan = code.replace(/[^A-Z0-9]/g, "");
+    if (!cleanScan) return;
+
     const db = getAparaturDB();
 
+    // Find Aparatur from Database
     const matched = db.find(
       (a: any) => {
         const bCode = (a.barcodeId || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
         const nikCode = (a.nik || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
         const idCode = (a.id || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
-        const nameCode = (a.name || a.nama || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 
         return (
-          (bCode && bCode === cleanScan) || 
-          (nikCode && nikCode === cleanScan) || 
-          (idCode && idCode === cleanScan) ||
-          (cleanScan.length >= 4 && (bCode.includes(cleanScan) || nameCode.includes(cleanScan)))
+          (bCode && (cleanScan === bCode || cleanScan.includes(bCode) || bCode.includes(cleanScan))) || 
+          (nikCode && (cleanScan === nikCode || cleanScan.includes(nikCode))) || 
+          (idCode && (cleanScan === idCode || cleanScan.includes(idCode)))
         );
       }
     );
+
+    const aparaturBarcodeId = matched ? (matched.barcodeId || matched.nik || code) : code;
+
+    // Prevent duplicate bursts within 1500ms
+    const nowMs = Date.now();
+    if (lastProcessedRef.current.code === aparaturBarcodeId && nowMs - lastProcessedRef.current.time < 1500) {
+      return;
+    }
+    lastProcessedRef.current = { code: aparaturBarcodeId, time: nowMs };
 
     const now = new Date();
     const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -267,7 +290,7 @@ export function EAbsensiTab({ session }: { session?: any }) {
 
     // Determine Check-in vs Check-out for today
     const todayLogsForPerson = logs.filter(
-      l => (l.barcodeId === code || (matched && l.nama === matched.nama)) && l.waktuScan.startsWith(formattedDate)
+      l => (l.barcodeId === aparaturBarcodeId || (matched && (l.nama === matched.name || l.nama === matched.nama))) && l.waktuScan.startsWith(formattedDate)
     );
     const tipe = todayLogsForPerson.length % 2 === 0 ? "MASUK" : "PULANG";
 
@@ -275,10 +298,9 @@ export function EAbsensiTab({ session }: { session?: any }) {
     const isLate = now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() > 0);
     const status = tipe === "MASUK" ? (isLate ? "Terlambat" : "Tepat Waktu") : "Selesai Tugas";
 
-    const aparaturName = matched ? (matched.nama || matched.name || `APARATUR (${code})`) : `APARATUR (${code})`;
-    const aparaturPosition = matched ? (matched.jabatan || matched.position || "Aparatur Desa") : "Aparatur Desa";
+    const aparaturName = matched ? (matched.name || matched.nama || `APARATUR (${code})`) : `APARATUR (${code})`;
+    const aparaturPosition = matched ? (matched.position || matched.jabatan || "Aparatur Desa") : "Aparatur Desa";
     const aparaturKategori = matched ? (matched.kategori || "Perangkat Desa") : "Perangkat Desa";
-    const aparaturBarcodeId = matched ? (matched.barcodeId || matched.nik || code) : code;
 
     const newLogEntry = {
       id: `LOG-${Date.now()}`,
@@ -576,12 +598,13 @@ export function EAbsensiTab({ session }: { session?: any }) {
                 <th className="px-6 py-4">Jabatan</th>
                 <th className="px-6 py-4 text-center">Tipe</th>
                 <th className="px-6 py-4 text-center">Status</th>
+                <th className="px-6 py-4 text-right">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
               {filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center text-slate-400">
+                  <td colSpan={9} className="px-6 py-12 text-center text-slate-400">
                     Belum ada data scan absensi yang terekam.
                   </td>
                 </tr>
@@ -621,6 +644,15 @@ export function EAbsensiTab({ session }: { session?: any }) {
                       }`}>
                         {log.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => handleDeleteSingleLog(log.id)}
+                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                        title="Hapus baris log ini"
+                      >
+                        <Trash2 size={15} />
+                      </button>
                     </td>
                   </tr>
                 ))
