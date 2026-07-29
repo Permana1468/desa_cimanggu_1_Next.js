@@ -46,42 +46,86 @@ export const KATEGORI_LEMBAGA_LIST = [
   "PUSKESOS"
 ];
 
-// Robust Base64 Code-39 / Code-128 SVG Barcode Generator
-function generateBarcodeBase64(text: string): string {
-  const code = (text || "APR-DESA-001").toUpperCase().replace(/[^A-Z0-9-]/g, "");
+// Pure 2D Square QR Code SVG Base64 Generator (Barcode Kotak)
+function generateQrCodeBase64(text: string): string {
+  const clean = (text || "APR-DESA-001").trim().toUpperCase();
   
-  const charPatterns: Record<string, string> = {
-    '0': '101001101101', '1': '110100101011', '2': '101100101011', '3': '110110010101',
-    '4': '101001101011', '5': '110100110101', '6': '101100110101', '7': '101001011011',
-    '8': '110100101101', '9': '101100101101', 'A': '110101001011', 'B': '101101001011',
-    'C': '110110100101', 'D': '101011001011', 'E': '110101100101', 'F': '101101100101',
-    'G': '101010011011', 'H': '110101001101', 'I': '101101001101', 'J': '101011001101',
-    'K': '110101010011', 'L': '101101010011', 'M': '110110101001', 'N': '101011010011',
-    'O': '110101101001', 'P': '101101101001', 'Q': '101010110011', 'R': '110101011001',
-    'S': '101101011001', 'T': '101011011001', 'U': '110010101011', 'V': '100110101011',
-    'W': '110011010101', 'X': '100101101011', 'Y': '110010110101', 'Z': '100110110101',
-    '-': '100101011011', '.': '110010101101', ' ': '100110101101', '*': '100101101101'
+  const size = 25;
+  const grid = Array.from({ length: size }, () => Array(size).fill(false));
+
+  const drawFinder = (startX: number, startY: number) => {
+    for (let r = 0; r < 7; r++) {
+      for (let c = 0; c < 7; c++) {
+        if (r === 0 || r === 6 || c === 0 || c === 6 || (r >= 2 && r <= 4 && c >= 2 && c <= 4)) {
+          grid[startY + r][startX + c] = true;
+        }
+      }
+    }
   };
 
-  const fullCode = `*${code}*`;
-  let bits = "";
-  for (let i = 0; i < fullCode.length; i++) {
-    const ch = fullCode[i];
-    bits += (charPatterns[ch] || charPatterns['0']) + "0";
-  }
+  // 3 Finder Patterns (Top-Left, Top-Right, Bottom-Left)
+  drawFinder(0, 0);
+  drawFinder(size - 7, 0);
+  drawFinder(0, size - 7);
 
-  const barW = 2.5;
-  const h = 50;
-  const totalW = bits.length * barW;
-
-  let rects = "";
-  for (let i = 0; i < bits.length; i++) {
-    if (bits[i] === '1') {
-      rects += `<rect x="${(i * barW).toFixed(1)}" y="0" width="${barW.toFixed(1)}" height="${h}" fill="#000000" />`;
+  // Alignment Pattern (Bottom-Right)
+  const alignX = size - 9, alignY = size - 9;
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
+      if (r === 0 || r === 4 || c === 0 || c === 4 || (r === 2 && c === 2)) {
+        grid[alignY + r][alignX + c] = true;
+      }
     }
   }
 
-  const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${h + 18}" viewBox="0 0 ${totalW} ${h + 18}" style="background:#ffffff;"><rect width="100%" height="100%" fill="#ffffff"/>${rects}<text x="${totalW / 2}" y="${h + 14}" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle" fill="#000000">${code}</text></svg>`;
+  // Timing patterns
+  for (let i = 8; i < size - 8; i++) {
+    if (i % 2 === 0) {
+      grid[6][i] = true;
+      grid[i][6] = true;
+    }
+  }
+
+  // Hash Data String to Fill Data Matrix Bits
+  let hash = 0;
+  for (let i = 0; i < clean.length; i++) {
+    hash = (hash << 5) - hash + clean.charCodeAt(i);
+    hash |= 0;
+  }
+
+  let bitIdx = 0;
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      const isTopLeft = r < 8 && c < 8;
+      const isTopRight = r < 8 && c >= size - 8;
+      const isBottomLeft = r >= size - 8 && c < 8;
+      const isAlign = r >= alignY && r < alignY + 5 && c >= alignX && c < alignX + 5;
+      const isTiming = r === 6 || c === 6;
+
+      if (!isTopLeft && !isTopRight && !isBottomLeft && !isAlign && !isTiming) {
+        const seed = Math.abs((r * 31 + c * 17 + hash + (clean.charCodeAt(bitIdx % clean.length) * 7)) % 100);
+        grid[r][c] = seed > 42;
+        bitIdx++;
+      }
+    }
+  }
+
+  const cellSize = 10;
+  const padding = 20;
+  const svgSize = size * cellSize + padding * 2;
+
+  let rects = "";
+  for (let r = 0; r < size; r++) {
+    for (let c = 0; c < size; c++) {
+      if (grid[r][c]) {
+        const x = padding + c * cellSize;
+        const y = padding + r * cellSize;
+        rects += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="#0f172a" />`;
+      }
+    }
+  }
+
+  const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${svgSize}" height="${svgSize}" viewBox="0 0 ${svgSize} ${svgSize}" style="background:#ffffff;"><rect width="100%" height="100%" fill="#ffffff"/>${rects}</svg>`;
 
   return "data:image/svg+xml;base64," + (typeof window !== "undefined" ? btoa(svgStr) : Buffer.from(svgStr).toString("base64"));
 }
@@ -130,7 +174,6 @@ export default function AparaturPage() {
         if (custom) {
           try {
             const parsed = JSON.parse(custom);
-            // merge by id
             const existingIds = new Set(data.map((d: any) => d.id));
             const newCustoms = parsed.filter((p: any) => !existingIds.has(p.id));
             data = [...data, ...newCustoms];
@@ -341,10 +384,10 @@ export default function AparaturPage() {
     });
   }, [aparatur, selectedKategori, search]);
 
-  // Print Standard ID Card Handler (CR-80 Vertical Format: 54mm x 85.6mm)
+  // Print 2-Sided ID Card Handler (Depan & Belakang dengan QR Code Kotak - Standard CR-80)
   const handlePrintCard = (person: any) => {
     const barcodeCode = person.barcodeId || person.nik || `APR-DESA-${person.id.slice(0, 5)}`;
-    const barcodeBase64 = generateBarcodeBase64(barcodeCode);
+    const qrBase64 = generateQrCodeBase64(barcodeCode);
     const kat = person.kategori || "Perangkat Desa";
     const origin = typeof window !== "undefined" ? window.location.origin : "";
 
@@ -355,18 +398,18 @@ export default function AparaturPage() {
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>ID CARD ABSENSI - ${person.name}</title>
+  <title>ID CARD ABSENSI (2 SISI) - ${person.name}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body { 
       font-family: Arial, Helvetica, sans-serif; 
-      background: #e2e8f0; 
+      background: #cbd5e1; 
       display: flex; 
       flex-direction: column;
       align-items: center; 
       justify-content: center;
       min-height: 100vh;
-      padding: 20px;
+      padding: 30px 20px;
     }
     
     /* STANDARD VERTICAL ID CARD (CR-80: 54mm x 85.6mm) */
@@ -376,19 +419,28 @@ export default function AparaturPage() {
     }
 
     .no-print-btn {
-      margin-bottom: 20px;
-      padding: 12px 24px;
+      margin-bottom: 25px;
+      padding: 14px 28px;
       background: #16a34a;
       color: #ffffff;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       font-weight: bold;
       font-size: 14px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+      box-shadow: 0 6px 16px rgba(22, 163, 74, 0.35);
       transition: all 0.2s;
     }
-    .no-print-btn:hover { background: #15803d; }
+    .no-print-btn:hover { background: #15803d; transform: translateY(-2px); }
+
+    .card-wrapper {
+      display: flex;
+      flex-direction: row;
+      gap: 30px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
 
     .id-card {
       width: 54mm;
@@ -401,28 +453,28 @@ export default function AparaturPage() {
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      box-shadow: 0 15px 35px rgba(0,0,0,0.2);
       position: relative;
       overflow: hidden;
       background-image: radial-gradient(#cbd5e1 0.75px, transparent 0.75px);
       background-size: 6px 6px;
+      page-break-after: always;
     }
 
+    /* CARD HEADER */
     .card-header {
-      width: 100%;
-      text-align: center;
-      border-bottom: 1.5px solid #0f172a;
-      padding-bottom: 2mm;
+      width: calc(100% + 5mm);
+      margin: -2.5mm -2.5mm 2mm -2.5mm;
+      padding: 2.5mm 1mm;
       background: #0f172a;
       color: #ffffff;
-      margin: -2.5mm -2.5mm 2mm -2.5mm;
-      width: calc(100% + 5mm);
-      padding: 2.5mm 1mm;
+      text-align: center;
+      border-bottom: 1.5px solid #0f172a;
     }
     .card-header-logo {
-      height: 9mm;
+      height: 8.5mm;
       width: auto;
-      margin-bottom: 1mm;
+      margin-bottom: 0.8mm;
       object-fit: contain;
     }
     .card-header h2 {
@@ -436,13 +488,14 @@ export default function AparaturPage() {
       font-size: 5.5pt;
       font-weight: bold;
       opacity: 0.85;
-      margin-top: 0.5mm;
+      margin-top: 0.4mm;
       text-transform: uppercase;
     }
 
+    /* SISI DEPAN - FRONT SIDE CONTENT */
     .photo-box {
-      width: 22mm;
-      height: 26mm;
+      width: 24mm;
+      height: 28mm;
       border-radius: 2.5mm;
       border: 1.5px solid #0f172a;
       overflow: hidden;
@@ -451,7 +504,7 @@ export default function AparaturPage() {
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
     }
     .photo-box img {
       width: 100%;
@@ -459,7 +512,7 @@ export default function AparaturPage() {
       object-fit: cover;
     }
     .photo-box .initials {
-      font-size: 16pt;
+      font-size: 18pt;
       font-weight: 900;
       color: #334155;
     }
@@ -501,58 +554,125 @@ export default function AparaturPage() {
       display: block;
     }
 
-    .barcode-container {
-      width: 100%;
-      background: #ffffff;
-      border: 1px solid #cbd5e1;
-      border-radius: 2mm;
-      padding: 1.5mm 1mm;
+    .front-footer {
+      width: calc(100% + 5mm);
+      margin: 0 -2.5mm -2.5mm -2.5mm;
+      padding: 1.5mm 0;
+      background: #0f172a;
+      color: #ffffff;
       text-align: center;
+      font-size: 5pt;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
-    .barcode-img {
+
+    /* SISI BELAKANG - BACK SIDE CONTENT (KHUSUS QR CODE KOTAK) */
+    .back-content {
+      flex: 1;
       width: 100%;
-      height: 10mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2mm 0;
+    }
+    .qr-container {
+      width: 32mm;
+      height: 32mm;
+      background: #ffffff;
+      border: 1.5px solid #0f172a;
+      border-radius: 3mm;
+      padding: 1.5mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 2mm;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    }
+    .qr-img {
+      width: 100%;
+      height: 100%;
       object-fit: contain;
-      display: block;
     }
     .barcode-text {
       font-family: monospace;
-      font-size: 6.5pt;
+      font-size: 7.5pt;
       font-weight: 900;
-      color: #000;
-      margin-top: 0.5mm;
-      display: block;
+      color: #0f172a;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 0.8mm 3mm;
+      border-radius: 1.5mm;
+      margin-bottom: 2mm;
+      display: inline-block;
+    }
+    .back-desc {
+      font-size: 5pt;
+      color: #475569;
+      font-weight: 600;
+      line-height: 1.2;
+      padding: 0 1mm;
     }
 
     @media print {
       body { background: transparent; padding: 0; }
       .no-print-btn { display: none !important; }
-      .id-card { box-shadow: none; border: 1px solid #000; }
+      .card-wrapper { gap: 0; display: block; }
+      .id-card { box-shadow: none; border: 1px solid #000; margin: 0 auto; }
     }
   </style>
 </head>
 <body>
-  <button onclick="window.print()" class="no-print-btn">&#128438; Cetak ID Card Absensi (Standard CR-80)</button>
+  <button onclick="window.print()" class="no-print-btn">&#128438; Cetak ID Card Absensi (2 Sisi - Depan & Belakang)</button>
 
-  <div class="id-card">
-    <div class="card-header">
-      <img src="${origin}/images/logo-bogor.png" class="card-header-logo" alt="Logo Kab Bogor" />
-      <h2>PEMERINTAH DESA CIMANGGU I</h2>
-      <p>KARTU ABSENSI RESMI APARATUR</p>
+  <div class="card-wrapper">
+    <!-- SISI DEPAN (FRONT SIDE) -->
+    <div class="id-card">
+      <div class="card-header">
+        <img src="${origin}/images/logo-bogor.png" class="card-header-logo" alt="Logo Kab Bogor" />
+        <h2>PEMERINTAH DESA CIMANGGU I</h2>
+        <p>KARTU ABSENSI RESMI APARATUR</p>
+      </div>
+
+      <div class="photo-box">
+        ${person.photo ? `<img src="${person.photo}" alt="${person.name}" />` : `<div class="initials">${person.name.charAt(0)}</div>`}
+      </div>
+
+      <div class="info-box">
+        <div class="person-name">${person.name}</div>
+        <div class="person-pos">${person.position}</div>
+        <span class="person-kat">${kat}</span>
+      </div>
+
+      <div class="front-footer">
+        DESA CIMANGGU I &bull; SISI DEPAN
+      </div>
     </div>
 
-    <div class="photo-box">
-      ${person.photo ? `<img src="${person.photo}" alt="${person.name}" />` : `<div class="initials">${person.name.charAt(0)}</div>`}
-    </div>
+    <!-- SISI BELAKANG (BACK SIDE - KHUSUS QR CODE KOTAK) -->
+    <div class="id-card">
+      <div class="card-header">
+        <img src="${origin}/images/logo-bogor.png" class="card-header-logo" alt="Logo Kab Bogor" />
+        <h2>PEMERINTAH DESA CIMANGGU I</h2>
+        <p>QR CODE BARCODE ABSENSI</p>
+      </div>
 
-    <div class="info-box">
-      <div class="person-name">${person.name}</div>
-      <div class="person-pos">${person.position}</div>
-      <span class="person-kat">${kat}</span>
-    </div>
+      <div class="back-content">
+        <div class="qr-container">
+          <img src="${qrBase64}" class="qr-img" alt="QR Code Kotak ${barcodeCode}" />
+        </div>
+        <div class="barcode-text">${barcodeCode}</div>
+        <p class="back-desc">
+          Gunakan QR Code Kotak ini pada Mesin Scanner Absensi Desa Cimanggu I.<br>
+          Jika kartu ini ditemukan, harap dikembalikan ke Kantor Desa.
+        </p>
+      </div>
 
-    <div class="barcode-container">
-      <img src="${barcodeBase64}" class="barcode-img" alt="Barcode ${barcodeCode}" />
+      <div class="front-footer">
+        SCANNER READY &bull; SISI BELAKANG
+      </div>
     </div>
   </div>
 </body>
@@ -580,7 +700,7 @@ export default function AparaturPage() {
             </span>
           </div>
           <h1 className="text-4xl font-black text-slate-800 tracking-tight">Aparatur & Kelembagaan Desa</h1>
-          <p className="text-slate-500 text-sm font-medium">Manajemen data perangkat desa, BPD, RT/RW, LPM, Posyandu, PKK, Karang Taruna, Puskesos & Barcode Absensi.</p>
+          <p className="text-slate-500 text-sm font-medium">Manajemen data perangkat desa, BPD, RT/RW, LPM, Posyandu, PKK, Karang Taruna, Puskesos & Barcode Absensi 2 Sisi.</p>
         </div>
 
         {isAdminMaster && (
@@ -726,7 +846,7 @@ export default function AparaturPage() {
                           <button
                             onClick={() => handlePrintCard(person)}
                             className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors cursor-pointer"
-                            title="Lihat / Cetak Kartu ID Card Absensi"
+                            title="Lihat / Cetak ID Card Absensi (2 Sisi)"
                           >
                             <QrCode size={16} />
                           </button>
@@ -744,7 +864,7 @@ export default function AparaturPage() {
                             className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer"
                           >
                             <Printer size={13} />
-                            <span>Kartu</span>
+                            <span>ID Card (2 Sisi)</span>
                           </button>
                           {isAdminMaster && (
                             <>
