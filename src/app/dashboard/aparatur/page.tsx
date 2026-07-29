@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { 
   getAparaturDesaList, 
   addAparaturDesa, 
+  updateAparaturDesa,
   deleteAparaturDesa, 
   updateAparaturSK 
 } from "@/actions/village";
@@ -29,7 +30,8 @@ import {
   Filter,
   Search,
   ScanLine,
-  CheckCircle2
+  CheckCircle2,
+  Pencil
 } from "lucide-react";
 
 // List 8 Kategori Lembaga
@@ -44,29 +46,44 @@ export const KATEGORI_LEMBAGA_LIST = [
   "PUSKESOS"
 ];
 
-// Helper Code128 SVG Generator (Pure SVG Barcode Generator)
-function generateBarcodeSvg(text: string) {
-  const code = text.toUpperCase().replace(/[^A-Z0-9-]/g, "");
-  let pattern = "10101100110"; // Start pattern
-  for (let i = 0; i < code.length; i++) {
-    const charCode = code.charCodeAt(i);
-    const binary = (charCode * 12345).toString(2).padStart(11, "0");
-    pattern += binary;
-  }
-  pattern += "1100011101011"; // Stop pattern
+// Robust Base64 Code-39 / Code-128 SVG Barcode Generator
+function generateBarcodeBase64(text: string): string {
+  const code = (text || "APR-DESA-001").toUpperCase().replace(/[^A-Z0-9-]/g, "");
+  
+  const charPatterns: Record<string, string> = {
+    '0': '101001101101', '1': '110100101011', '2': '101100101011', '3': '110110010101',
+    '4': '101001101011', '5': '110100110101', '6': '101100110101', '7': '101001011011',
+    '8': '110100101101', '9': '101100101101', 'A': '110101001011', 'B': '101101001011',
+    'C': '110110100101', 'D': '101011001011', 'E': '110101100101', 'F': '101101100101',
+    'G': '101010011011', 'H': '110101001101', 'I': '101101001101', 'J': '101011001101',
+    'K': '110101010011', 'L': '101101010011', 'M': '110110101001', 'N': '101011010011',
+    'O': '110101101001', 'P': '101101101001', 'Q': '101010110011', 'R': '110101011001',
+    'S': '101101011001', 'T': '101011011001', 'U': '110010101011', 'V': '100110101011',
+    'W': '110011010101', 'X': '100101101011', 'Y': '110010110101', 'Z': '100110110101',
+    '-': '100101011011', '.': '110010101101', ' ': '100110101101', '*': '100101101101'
+  };
 
-  const barWidth = 3;
-  const height = 65;
-  const totalWidth = pattern.length * barWidth;
+  const fullCode = `*${code}*`;
+  let bits = "";
+  for (let i = 0; i < fullCode.length; i++) {
+    const ch = fullCode[i];
+    bits += (charPatterns[ch] || charPatterns['0']) + "0";
+  }
+
+  const barW = 2.5;
+  const h = 50;
+  const totalW = bits.length * barW;
 
   let rects = "";
-  for (let i = 0; i < pattern.length; i++) {
-    if (pattern[i] === "1") {
-      rects += `<rect x="${i * barWidth}" y="0" width="${barWidth}" height="${height}" fill="#000" />`;
+  for (let i = 0; i < bits.length; i++) {
+    if (bits[i] === '1') {
+      rects += `<rect x="${(i * barW).toFixed(1)}" y="0" width="${barW.toFixed(1)}" height="${h}" fill="#000000" />`;
     }
   }
 
-  return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${totalWidth} ${height + 20}">${rects}<text x="${totalWidth / 2}" y="${height + 15}" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle" fill="#000">${code}</text></svg>`;
+  const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${h + 18}" viewBox="0 0 ${totalW} ${h + 18}" style="background:#ffffff;"><rect width="100%" height="100%" fill="#ffffff"/>${rects}<text x="${totalW / 2}" y="${h + 14}" font-family="monospace" font-size="12" font-weight="bold" text-anchor="middle" fill="#000000">${code}</text></svg>`;
+
+  return "data:image/svg+xml;base64," + (typeof window !== "undefined" ? btoa(svgStr) : Buffer.from(svgStr).toString("base64"));
 }
 
 export default function AparaturPage() {
@@ -76,8 +93,8 @@ export default function AparaturPage() {
   const [aparatur, setAparatur] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showSKModal, setShowSKModal] = useState(false);
-  const [showCardModal, setShowCardModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [selectedAparatur, setSelectedAparatur] = useState<any>(null);
 
@@ -86,6 +103,7 @@ export default function AparaturPage() {
   const [search, setSearch] = useState<string>("");
 
   const [formData, setFormData] = useState({
+    id: "",
     name: "",
     nik: "",
     barcodeId: "",
@@ -112,7 +130,10 @@ export default function AparaturPage() {
         if (custom) {
           try {
             const parsed = JSON.parse(custom);
-            data = [...data, ...parsed];
+            // merge by id
+            const existingIds = new Set(data.map((d: any) => d.id));
+            const newCustoms = parsed.filter((p: any) => !existingIds.has(p.id));
+            data = [...data, ...newCustoms];
           } catch (e) {}
         }
       }
@@ -127,15 +148,20 @@ export default function AparaturPage() {
     fetchAparatur();
   }, []);
 
-  // Save Custom List to LocalStorage
-  const saveCustomAparatur = (newItem: any) => {
+  // Save / Update Custom List to LocalStorage
+  const saveCustomAparatur = (item: any) => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("aparatur_custom_list");
       let list: any[] = [];
       if (saved) {
         try { list = JSON.parse(saved); } catch (e) {}
       }
-      list = [newItem, ...list];
+      const existingIdx = list.findIndex(l => l.id === item.id);
+      if (existingIdx >= 0) {
+        list[existingIdx] = { ...list[existingIdx], ...item };
+      } else {
+        list = [item, ...list];
+      }
       localStorage.setItem("aparatur_custom_list", JSON.stringify(list));
     }
   };
@@ -177,27 +203,70 @@ export default function AparaturPage() {
           photo: formData.photo,
           level
         });
-      } catch (err) {
-        // Fallback to local storage persistence
-        saveCustomAparatur(newItem);
-      }
+      } catch (err) {}
 
       saveCustomAparatur(newItem);
       setShowAddModal(false);
       fetchAparatur();
-      setFormData({
-        name: "",
-        nik: "",
-        barcodeId: "",
-        email: "",
-        phoneNumber: "",
-        kategori: "Perangkat Desa",
-        role: "ADMIN_DESA",
-        position: "",
-        photo: ""
-      });
+      resetForm();
     } catch (error) {
       alert("Gagal menambahkan aparatur.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleOpenEdit = (person: any) => {
+    setSelectedAparatur(person);
+    setFormData({
+      id: person.id,
+      name: person.name || "",
+      nik: person.nik || "",
+      barcodeId: person.barcodeId || person.nik || "",
+      email: person.email || "",
+      phoneNumber: person.phoneNumber || "",
+      kategori: person.kategori || "Perangkat Desa",
+      role: person.role || "ADMIN_DESA",
+      position: person.position || "",
+      photo: person.photo || ""
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAparatur) return;
+    setSaving(true);
+    try {
+      const updatedItem = {
+        ...selectedAparatur,
+        name: formData.name,
+        nik: formData.nik,
+        barcodeId: formData.barcodeId || formData.nik,
+        kategori: formData.kategori,
+        position: formData.position,
+        role: formData.role,
+        email: formData.email,
+        phoneNumber: formData.phoneNumber,
+        photo: formData.photo
+      };
+
+      try {
+        await updateAparaturDesa(selectedAparatur.id, {
+          name: formData.name,
+          nik: formData.nik,
+          role: formData.role,
+          position: formData.position,
+          photo: formData.photo
+        });
+      } catch (err) {}
+
+      saveCustomAparatur(updatedItem);
+      setShowEditModal(false);
+      fetchAparatur();
+      resetForm();
+    } catch (error) {
+      alert("Gagal memperbarui data aparatur.");
     } finally {
       setSaving(false);
     }
@@ -237,6 +306,21 @@ export default function AparaturPage() {
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      id: "",
+      name: "",
+      nik: "",
+      barcodeId: "",
+      email: "",
+      phoneNumber: "",
+      kategori: "Perangkat Desa",
+      role: "ADMIN_DESA",
+      position: "",
+      photo: ""
+    });
+  };
+
   // Filtered List based on Dropdown Kategori Lembaga & Search
   const filteredAparatur = useMemo(() => {
     return aparatur.filter(person => {
@@ -250,16 +334,19 @@ export default function AparaturPage() {
       const matchSearch = 
         person.name.toLowerCase().includes(search.toLowerCase()) ||
         person.position.toLowerCase().includes(search.toLowerCase()) ||
-        (person.nik && person.nik.includes(search));
+        (person.nik && person.nik.includes(search)) ||
+        (person.barcodeId && person.barcodeId.toLowerCase().includes(search.toLowerCase()));
 
       return matchCategory && matchSearch;
     });
   }, [aparatur, selectedKategori, search]);
 
-  // Print Kartu Barcode Absensi Handler
+  // Print Standard ID Card Handler (CR-80 Vertical Format: 54mm x 85.6mm)
   const handlePrintCard = (person: any) => {
     const barcodeCode = person.barcodeId || person.nik || `APR-DESA-${person.id.slice(0, 5)}`;
-    const barcodeSvg = generateBarcodeSvg(barcodeCode);
+    const barcodeBase64 = generateBarcodeBase64(barcodeCode);
+    const kat = person.kategori || "Perangkat Desa";
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
 
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
@@ -268,40 +355,204 @@ export default function AparaturPage() {
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Kartu Absensi Barcode - ${person.name}</title>
+  <title>ID CARD ABSENSI - ${person.name}</title>
   <style>
-    body { font-family: Arial, sans-serif; background: #f8fafc; padding: 20px; display: flex; justify-content: center; }
-    .card { width: 320px; background: #ffffff; border: 2px solid #0f172a; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-    .card-header { background: linear-gradient(135deg, #0f172a, #1e293b); color: #fff; padding: 15px; text-align: center; }
-    .card-header h2 { font-size: 14px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: 1px; }
-    .card-header p { font-size: 10px; opacity: 0.8; margin: 2px 0 0 0; font-weight: bold; }
-    .card-body { padding: 20px; text-align: center; }
-    .photo { width: 80px; height: 80px; border-radius: 16px; object-fit: cover; margin: 0 auto 12px auto; border: 2px solid #e2e8f0; }
-    .name { font-size: 16px; font-weight: 900; color: #0f172a; margin-bottom: 2px; text-transform: uppercase; }
-    .pos { font-size: 11px; font-weight: bold; color: #64748b; margin-bottom: 15px; text-transform: uppercase; }
-    .barcode-box { background: #f1f5f9; padding: 12px; border-radius: 12px; border: 1px border-slate-300; }
-    .barcode-img { width: 100%; max-height: 80px; object-fit: contain; }
-    @media print { .no-print { display: none; } }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { 
+      font-family: Arial, Helvetica, sans-serif; 
+      background: #e2e8f0; 
+      display: flex; 
+      flex-direction: column;
+      align-items: center; 
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    /* STANDARD VERTICAL ID CARD (CR-80: 54mm x 85.6mm) */
+    @page {
+      size: 54mm 85.6mm;
+      margin: 0;
+    }
+
+    .no-print-btn {
+      margin-bottom: 20px;
+      padding: 12px 24px;
+      background: #16a34a;
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+      transition: all 0.2s;
+    }
+    .no-print-btn:hover { background: #15803d; }
+
+    .id-card {
+      width: 54mm;
+      height: 85.6mm;
+      background: #ffffff;
+      border: 1.5px solid #0f172a;
+      border-radius: 3.5mm;
+      padding: 2.5mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+      position: relative;
+      overflow: hidden;
+      background-image: radial-gradient(#cbd5e1 0.75px, transparent 0.75px);
+      background-size: 6px 6px;
+    }
+
+    .card-header {
+      width: 100%;
+      text-align: center;
+      border-bottom: 1.5px solid #0f172a;
+      padding-bottom: 2mm;
+      background: #0f172a;
+      color: #ffffff;
+      margin: -2.5mm -2.5mm 2mm -2.5mm;
+      width: calc(100% + 5mm);
+      padding: 2.5mm 1mm;
+    }
+    .card-header-logo {
+      height: 9mm;
+      width: auto;
+      margin-bottom: 1mm;
+      object-fit: contain;
+    }
+    .card-header h2 {
+      font-size: 7.5pt;
+      font-weight: 900;
+      letter-spacing: 0.3px;
+      line-height: 1.1;
+      text-transform: uppercase;
+    }
+    .card-header p {
+      font-size: 5.5pt;
+      font-weight: bold;
+      opacity: 0.85;
+      margin-top: 0.5mm;
+      text-transform: uppercase;
+    }
+
+    .photo-box {
+      width: 22mm;
+      height: 26mm;
+      border-radius: 2.5mm;
+      border: 1.5px solid #0f172a;
+      overflow: hidden;
+      margin-bottom: 1.5mm;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .photo-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .photo-box .initials {
+      font-size: 16pt;
+      font-weight: 900;
+      color: #334155;
+    }
+
+    .info-box {
+      text-align: center;
+      width: 100%;
+      margin-bottom: 1.5mm;
+    }
+    .person-name {
+      font-size: 8.5pt;
+      font-weight: 900;
+      color: #0f172a;
+      line-height: 1.15;
+      text-transform: uppercase;
+      margin-bottom: 0.8mm;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .person-pos {
+      font-size: 6.5pt;
+      font-weight: 800;
+      color: #2563eb;
+      text-transform: uppercase;
+      background: #eff6ff;
+      border: 0.8px solid #bfdbfe;
+      padding: 0.8mm 2mm;
+      border-radius: 1.5mm;
+      display: inline-block;
+      margin-bottom: 0.8mm;
+    }
+    .person-kat {
+      font-size: 5.5pt;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      display: block;
+    }
+
+    .barcode-container {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 2mm;
+      padding: 1.5mm 1mm;
+      text-align: center;
+    }
+    .barcode-img {
+      width: 100%;
+      height: 10mm;
+      object-fit: contain;
+      display: block;
+    }
+    .barcode-text {
+      font-family: monospace;
+      font-size: 6.5pt;
+      font-weight: 900;
+      color: #000;
+      margin-top: 0.5mm;
+      display: block;
+    }
+
+    @media print {
+      body { background: transparent; padding: 0; }
+      .no-print-btn { display: none !important; }
+      .id-card { box-shadow: none; border: 1px solid #000; }
+    }
   </style>
 </head>
 <body>
-  <div style="text-align: center;">
-    <div class="no-print" style="margin-bottom: 15px;">
-      <button onclick="window.print()" style="padding: 10px 20px; background: #16a34a; color: #fff; border: none; border-radius: 10px; font-weight: bold; cursor: pointer;">Cetak Kartu Absensi</button>
+  <button onclick="window.print()" class="no-print-btn">&#128438; Cetak ID Card Absensi (Standard CR-80)</button>
+
+  <div class="id-card">
+    <div class="card-header">
+      <img src="${origin}/images/logo-bogor.png" class="card-header-logo" alt="Logo Kab Bogor" />
+      <h2>PEMERINTAH DESA CIMANGGU I</h2>
+      <p>KARTU ABSENSI RESMI APARATUR</p>
     </div>
-    <div class="card">
-      <div class="card-header">
-        <h2>PEMERINTAH DESA CIMANGGU I</h2>
-        <p>KARTU ABSENSI RESMI APARATUR</p>
-      </div>
-      <div class="card-body">
-        <img src="${person.photo || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(person.name)}" class="photo" alt="${person.name}" />
-        <div class="name">${person.name}</div>
-        <div class="pos">${person.position}</div>
-        <div class="barcode-box">
-          <img src="${barcodeSvg}" class="barcode-img" alt="Barcode ${barcodeCode}" />
-        </div>
-      </div>
+
+    <div class="photo-box">
+      ${person.photo ? `<img src="${person.photo}" alt="${person.name}" />` : `<div class="initials">${person.name.charAt(0)}</div>`}
+    </div>
+
+    <div class="info-box">
+      <div class="person-name">${person.name}</div>
+      <div class="person-pos">${person.position}</div>
+      <span class="person-kat">${kat}</span>
+    </div>
+
+    <div class="barcode-container">
+      <img src="${barcodeBase64}" class="barcode-img" alt="Barcode ${barcodeCode}" />
     </div>
   </div>
 </body>
@@ -334,7 +585,7 @@ export default function AparaturPage() {
 
         {isAdminMaster && (
           <button 
-            onClick={() => setShowAddModal(true)}
+            onClick={() => { resetForm(); setShowAddModal(true); }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-600/20 transition-all active:scale-95 flex items-center gap-2 group cursor-pointer"
           >
             <UserPlus size={18} className="group-hover:rotate-12 transition-transform" /> Tambah Aparatur Baru
@@ -474,8 +725,8 @@ export default function AparaturPage() {
                           </span>
                           <button
                             onClick={() => handlePrintCard(person)}
-                            className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors"
-                            title="Lihat / Cetak Kartu Barcode Absensi"
+                            className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors cursor-pointer"
+                            title="Lihat / Cetak Kartu ID Card Absensi"
                           >
                             <QrCode size={16} />
                           </button>
@@ -490,7 +741,7 @@ export default function AparaturPage() {
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => handlePrintCard(person)}
-                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold transition-all shadow-sm flex items-center gap-1"
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer"
                           >
                             <Printer size={13} />
                             <span>Kartu</span>
@@ -498,15 +749,22 @@ export default function AparaturPage() {
                           {isAdminMaster && (
                             <>
                               <button 
+                                onClick={() => handleOpenEdit(person)}
+                                className="p-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-xl transition-all shadow-sm cursor-pointer"
+                                title="Edit Data Identitas Aparatur"
+                              >
+                                <Pencil size={16} />
+                              </button>
+                              <button 
                                 onClick={() => { setSelectedAparatur(person); setSkData({ skNumber: person.skNumber || "", skUrl: person.skUrl || "" }); setShowSKModal(true); }}
-                                className="p-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-900 hover:text-white transition-all shadow-sm"
+                                className="p-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-900 hover:text-white transition-all shadow-sm cursor-pointer"
                                 title="Manajemen SK"
                               >
                                 <FileText size={16} />
                               </button>
                               <button 
                                 onClick={() => handleDelete(person.id)}
-                                className="p-2 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-100 transition-all shadow-sm"
+                                className="p-2 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-100 transition-all shadow-sm cursor-pointer"
                                 title="Hapus Aparatur"
                               >
                                 <Trash2 size={16} />
@@ -524,7 +782,7 @@ export default function AparaturPage() {
         </div>
       </div>
 
-      {/* ADD APARATUR MODAL WITH 8 KATEGORI LEMBAGA DROPDOWN */}
+      {/* ADD APARATUR MODAL */}
       {showAddModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowAddModal(false)} />
@@ -625,7 +883,7 @@ export default function AparaturPage() {
                 </div>
 
                 <div className="md:col-span-2">
-                  <ImageUpload onUploadSuccess={(url) => setFormData({ ...formData, photo: url })} defaultValue={formData.photo} label="Foto Aparatur" />
+                  <ImageUpload onUploadSuccess={(url) => setFormData({ ...formData, photo: url })} defaultValue={formData.photo} label="Foto Aparatur (Otomatis Muncul di ID Card)" />
                 </div>
               </div>
 
@@ -635,6 +893,117 @@ export default function AparaturPage() {
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold text-xs uppercase tracking-widest shadow-xl shadow-blue-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
               >
                 {saving ? <Loader2 className="animate-spin" size={20} /> : <><Save size={18} /> Simpan Data & Barcode Aparatur</>}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT APARATUR MODAL */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowEditModal(false)} />
+          <div className="bg-white rounded-3xl w-full max-w-2xl relative z-10 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-amber-600 text-white">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight">Edit Data Identitas Aparatur</h2>
+                <p className="text-amber-100 text-xs font-medium">Perbarui data diri, jabatan, foto, & barcode absensi</p>
+              </div>
+              <button onClick={() => setShowEditModal(false)} className="p-2 hover:bg-amber-700 rounded-xl transition-all">
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEdit} className="p-6 overflow-y-auto space-y-6 custom-scrollbar bg-white">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Kategori Lembaga (Dropdown 8 Lembaga)</label>
+                  <select
+                    value={formData.kategori}
+                    onChange={(e) => setFormData({ ...formData, kategori: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 font-bold text-slate-900 focus:border-amber-500 focus:bg-white transition-all outline-none"
+                  >
+                    {KATEGORI_LEMBAGA_LIST.map((kat, idx) => (
+                      <option key={idx} value={kat}>
+                        {idx + 1}. {kat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Jabatan Struktur</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.position}
+                    onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 font-semibold text-slate-900 focus:border-amber-500 focus:bg-white transition-all outline-none"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block font-bold text-slate-700 mb-1">Nama Lengkap Aparatur</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 font-bold text-slate-900 focus:border-amber-500 focus:bg-white transition-all outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">NIK</label>
+                  <input
+                    type="text"
+                    value={formData.nik}
+                    onChange={(e) => setFormData({ ...formData, nik: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 font-semibold text-slate-900 focus:border-amber-500 focus:bg-white transition-all outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Barcode ID Absensi</label>
+                  <input
+                    type="text"
+                    value={formData.barcodeId}
+                    onChange={(e) => setFormData({ ...formData, barcodeId: e.target.value.toUpperCase() })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 font-mono font-bold text-slate-900 focus:border-amber-500 focus:bg-white transition-all outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Email Resmi</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 font-semibold text-slate-900 focus:border-amber-500 focus:bg-white transition-all outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">No. WhatsApp</label>
+                  <input
+                    type="text"
+                    value={formData.phoneNumber}
+                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 font-semibold text-slate-900 focus:border-amber-500 focus:bg-white transition-all outline-none"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <ImageUpload onUploadSuccess={(url) => setFormData({ ...formData, photo: url })} defaultValue={formData.photo} label="Foto Aparatur (Otomatis Muncul di ID Card)" />
+                </div>
+              </div>
+
+              <button 
+                type="submit" 
+                disabled={saving} 
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white py-4 rounded-xl font-bold text-xs uppercase tracking-widest shadow-xl shadow-amber-600/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              >
+                {saving ? <Loader2 className="animate-spin" size={20} /> : <><Save size={18} /> Simpan Perubahan Identitas</>}
               </button>
             </form>
           </div>
