@@ -10,6 +10,7 @@ import {
 } from "@/actions/village";
 import { useSession } from "next-auth/react";
 import { ImageUpload } from "@/components/dashboard/ImageUpload";
+import QRCode from "qrcode";
 import { 
   Users, 
   Mail, 
@@ -385,9 +386,22 @@ export default function AparaturPage() {
   }, [aparatur, selectedKategori, search]);
 
   // Print 2-Sided ID Card Handler (Depan & Belakang dengan QR Code Kotak - Standard 1 Lembar A4/F4)
-  const handlePrintCard = (person: any) => {
+  const handlePrintCard = async (person: any) => {
     const barcodeCode = person.barcodeId || person.nik || `APR-DESA-${person.id.slice(0, 5)}`;
-    const qrBase64 = generateQrCodeBase64(barcodeCode);
+    let qrBase64 = "";
+    try {
+      qrBase64 = await QRCode.toDataURL(barcodeCode, {
+        margin: 1,
+        width: 350,
+        errorCorrectionLevel: "M",
+        color: {
+          dark: "#0f172a",
+          light: "#ffffff"
+        }
+      });
+    } catch (e) {
+      console.error(e);
+    }
     const kat = person.kategori || "Perangkat Desa";
     const origin = typeof window !== "undefined" ? window.location.origin : "";
 

@@ -1,0 +1,1436 @@
+
+> temp-app@0.1.0 lint
+> eslint
+
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/next.config.ts
+  10:25  warning  Generic Object Injection Sink                                                                                        security/detect-object-injection
+  19:12  warning  'e' is defined but never used                                                                                        @typescript-eslint/no-unused-vars
+  59:3   error    Use "@ts-expect-error" instead of "@ts-ignore", as "@ts-ignore" will do nothing if the following line is error-free  @typescript-eslint/ban-ts-comment
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/prisma/seed.ts
+  27:9  warning  'adminMaster' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/check_ai.js
+  1:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:22  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/check_sensus_final.js
+  1:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:22  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/create-table.js
+  1:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:22  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/migrate-buku-tamu.js
+  1:20  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/migrate-pg.js
+  1:20  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/remove_remaining.js
+  1:12  error    A `require()` style import is forbidden                                     @typescript-eslint/no-require-imports
+  4:17  warning  Found readFileSync from package "fs" with non literal argument at index 0   security/detect-non-literal-fs-filename
+  6:3   warning  Found writeFileSync from package "fs" with non literal argument at index 0  security/detect-non-literal-fs-filename
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/remove_unstable.js
+   1:12  error    A `require()` style import is forbidden                                     @typescript-eslint/no-require-imports
+   2:14  error    A `require()` style import is forbidden                                     @typescript-eslint/no-require-imports
+   5:3   warning  Found readdirSync from package "fs" with non literal argument at index 0    security/detect-non-literal-fs-filename
+   7:23  warning  Found statSync from package "fs" with non literal argument at index 0       security/detect-non-literal-fs-filename
+   8:5   warning  Expected an assignment or function call and instead saw an expression       @typescript-eslint/no-unused-expressions
+  15:19  warning  Found readFileSync from package "fs" with non literal argument at index 0   security/detect-non-literal-fs-filename
+  18:7   warning  Found writeFileSync from package "fs" with non literal argument at index 0  security/detect-non-literal-fs-filename
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/remove_unstable_safe.js
+   1:12  error    A `require()` style import is forbidden                                     @typescript-eslint/no-require-imports
+   2:14  error    A `require()` style import is forbidden                                     @typescript-eslint/no-require-imports
+   5:3   warning  Found readdirSync from package "fs" with non literal argument at index 0    security/detect-non-literal-fs-filename
+   7:23  warning  Found statSync from package "fs" with non literal argument at index 0       security/detect-non-literal-fs-filename
+   8:5   warning  Expected an assignment or function call and instead saw an expression       @typescript-eslint/no-unused-expressions
+  15:19  warning  Found readFileSync from package "fs" with non literal argument at index 0   security/detect-non-literal-fs-filename
+  24:7   warning  Found writeFileSync from package "fs" with non literal argument at index 0  security/detect-non-literal-fs-filename
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/reset_sensus.js
+  1:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:22  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:16  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  5:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/test-db.js
+  1:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:22  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/test.js
+  1:20  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/test_auth.js
+  1:7   warning  'http' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  1:14  error    A `require()` style import is forbidden    @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/test_latest.js
+  1:20  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:25  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/test_login.js
+  1:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/test_models.js
+  1:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:22  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/test_sdk.js
+  1:20  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:25  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/test_users2.js
+  1:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:22  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/scripts/verify_sensus.js
+  1:26  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:22  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:18  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  4:1   error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/ai.ts
+  29:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/audit.ts
+  19:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/backup.ts
+   50:36  warning  Found readFile from package "fs" with non literal argument at index 0         security/detect-non-literal-fs-filename
+   50:36  error    A `require()` style import is forbidden                                       @typescript-eslint/no-require-imports
+   53:18  warning  'e' is defined but never used                                                 @typescript-eslint/no-unused-vars
+   69:32  warning  Found readFile from package "fs" with non literal argument at index 0         security/detect-non-literal-fs-filename
+   69:32  error    A `require()` style import is forbidden                                       @typescript-eslint/no-require-imports
+   71:13  warning  'e' is defined but never used                                                 @typescript-eslint/no-unused-vars
+  171:28  error    A `require()` style import is forbidden                                       @typescript-eslint/no-require-imports
+  217:23  warning  Found unlink from package "fs/promises" with non literal argument at index 0  security/detect-non-literal-fs-filename
+  219:22  warning  'e' is defined but never used                                                 @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/bansos.ts
+  139:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/cms.ts
+  32:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/dashboard.ts
+   74:11  warning  'session' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  121:14  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+  173:14  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+  244:14  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/documents.ts
+   93:14  warning  'error' is defined but never used                                           @typescript-eslint/no-unused-vars
+  132:14  warning  Found existsSync from package "fs" with non literal argument at index 0     security/detect-non-literal-fs-filename
+  136:25  warning  Found readFileSync from package "fs" with non literal argument at index 0   security/detect-non-literal-fs-filename
+  423:17  warning  Found existsSync from package "fs" with non literal argument at index 0     security/detect-non-literal-fs-filename
+  424:33  warning  Found readFileSync from package "fs" with non literal argument at index 0   security/detect-non-literal-fs-filename
+  509:9   warning  Found writeFileSync from package "fs" with non literal argument at index 0  security/detect-non-literal-fs-filename
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/gis.ts
+   28:12  warning  'error' is defined but never used     @typescript-eslint/no-unused-vars
+  212:50  warning  'tenantId' is defined but never used  @typescript-eslint/no-unused-vars
+  335:7   warning  Generic Object Injection Sink         security/detect-object-injection
+  335:22  warning  Generic Object Injection Sink         security/detect-object-injection
+  398:12  warning  'error' is defined but never used     @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/google.ts
+  32:14  warning  'error' is defined but never used            @typescript-eslint/no-unused-vars
+  46:14  warning  'error' is defined but never used            @typescript-eslint/no-unused-vars
+  69:15  warning  'result' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/hargaSatuan-ai.ts
+  72:18  warning  'e2' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/kadus.ts
+  72:9   warning  Generic Object Injection Sink  security/detect-object-injection
+  72:33  warning  Generic Object Injection Sink  security/detect-object-injection
+  75:9   warning  Generic Object Injection Sink  security/detect-object-injection
+  75:34  warning  Generic Object Injection Sink  security/detect-object-injection
+  84:29  warning  Generic Object Injection Sink  security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/kesra.ts
+  313:13  warning  'tenantId' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  586:21  warning  '_id' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  586:26  warning  'createdAt' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  586:37  warning  'updatedAt' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  586:58  warning  '_tenantId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/landing.ts
+   94:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  115:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  134:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  146:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  159:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/master.ts
+   32:14  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+  164:14  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+  258:14  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+  299:13  warning  Generic Object Injection Sink                 security/detect-object-injection
+  299:27  warning  Generic Object Injection Sink                 security/detect-object-injection
+  305:20  warning  Generic Object Injection Sink                 security/detect-object-injection
+  316:14  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+  339:14  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+  351:14  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+  366:14  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+  408:24  warning  '_c' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  409:24  warning  '_u' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  410:21  warning  '_t' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  411:19  warning  '_usr' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  412:20  warning  '_s' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  413:25  warning  '_b' is assigned a value but never used       @typescript-eslint/no-unused-vars
+  414:33  warning  '_p1' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  415:31  warning  '_p2' is assigned a value but never used      @typescript-eslint/no-unused-vars
+  416:23  warning  '_tid' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  491:18  warning  'e' is defined but never used                 @typescript-eslint/no-unused-vars
+  617:18  warning  'e' is defined but never used                 @typescript-eslint/no-unused-vars
+  635:11  warning  'session' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  693:14  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+  705:14  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+  760:14  warning  'error' is defined but never used             @typescript-eslint/no-unused-vars
+  797:15  warning  'result' is assigned a value but never used   @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/posyandu.ts
+    8:29  warning  'getPosyanduUnit' is defined but never used  @typescript-eslint/no-unused-vars
+  493:29  warning  Generic Object Injection Sink                security/detect-object-injection
+  497:27  warning  Generic Object Injection Sink                security/detect-object-injection
+  498:28  warning  Generic Object Injection Sink                security/detect-object-injection
+  499:9   warning  Generic Object Injection Sink                security/detect-object-injection
+  503:22  warning  Variable Assigned to Object Injection Sink   security/detect-object-injection
+  891:25  warning  Generic Object Injection Sink                security/detect-object-injection
+  892:27  warning  Generic Object Injection Sink                security/detect-object-injection
+  893:25  warning  Generic Object Injection Sink                security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/rt.ts
+   201:15  warning  'userRt' is assigned a value but never used    @typescript-eslint/no-unused-vars
+   272:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+   290:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+   390:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+   418:13  warning  'tenantId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   444:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+   474:13  warning  'tenantId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   500:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+   529:13  warning  'tenantId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   555:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+   583:13  warning  'tenantId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   609:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+   637:13  warning  'tenantId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   663:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+   692:13  warning  'tenantId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   718:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+   745:13  warning  'tenantId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   771:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+   800:13  warning  'tenantId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   820:13  warning  'tenantId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   847:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+   874:13  warning  'tenantId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   903:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+  1000:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+  1013:14  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+  1234:39  warning  Function Call Object Injection Sink            security/detect-object-injection
+  1305:13  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1305:41  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1306:18  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1306:41  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1307:13  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1308:13  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1326:18  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1326:42  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1327:38  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1328:44  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1329:13  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1345:13  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1345:48  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1346:13  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1356:46  warning  Variable Assigned to Object Injection Sink     security/detect-object-injection
+  1360:29  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1361:26  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1362:27  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1363:34  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1477:17  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1479:17  warning  Generic Object Injection Sink                  security/detect-object-injection
+  1481:17  warning  Generic Object Injection Sink                  security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/rumahWarga.ts
+  6:10  warning  'revalidatePath' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/surat-generate.ts
+  43:31  warning  Found readFile from package "fs/promises" with non literal argument at index 0  security/detect-non-literal-fs-filename
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/template-test.ts
+  25:31  warning  Found readFile from package "fs/promises" with non literal argument at index 0  security/detect-non-literal-fs-filename
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/tracking.ts
+  71:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/actions/village.ts
+   29:14  warning  'error' is defined but never used          @typescript-eslint/no-unused-vars
+   72:14  warning  'error' is defined but never used          @typescript-eslint/no-unused-vars
+  190:14  warning  'error' is defined but never used          @typescript-eslint/no-unused-vars
+  286:17  warning  '_id' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  287:24  warning  '_c' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  288:24  warning  '_u' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  289:21  warning  '_t' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  290:19  warning  '_usr' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  291:20  warning  '_s' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  292:25  warning  '_b' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  293:33  warning  '_p1' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  294:31  warning  '_p2' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  295:23  warning  '_tid' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  410:17  warning  '_id' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  411:24  warning  '_c' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  412:24  warning  '_u' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  413:21  warning  '_t' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  414:19  warning  '_usr' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  415:20  warning  '_s' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  416:25  warning  '_b' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  417:33  warning  '_p1' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  418:31  warning  '_p2' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  419:23  warning  '_tid' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  522:14  warning  'error' is defined but never used          @typescript-eslint/no-unused-vars
+  558:14  warning  'error' is defined but never used          @typescript-eslint/no-unused-vars
+  599:14  warning  'error' is defined but never used          @typescript-eslint/no-unused-vars
+  631:14  warning  'error' is defined but never used          @typescript-eslint/no-unused-vars
+  664:14  warning  'error' is defined but never used          @typescript-eslint/no-unused-vars
+  710:14  warning  'error' is defined but never used          @typescript-eslint/no-unused-vars
+  739:14  warning  'error' is defined but never used          @typescript-eslint/no-unused-vars
+  798:14  warning  'error' is defined but never used          @typescript-eslint/no-unused-vars
+  838:14  warning  'error' is defined but never used          @typescript-eslint/no-unused-vars
+  884:14  warning  'error' is defined but never used          @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/api/ai/scan-apbdes/route.ts
+   86:35  warning  Variable Assigned to Object Injection Sink  security/detect-object-injection
+  124:18  warning  'parseError' is defined but never used      @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/api/ai/scan-template/route.ts
+  30:31  warning  Variable Assigned to Object Injection Sink  security/detect-object-injection
+  79:18  warning  'e' is defined but never used               @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/api/drive/config/route.ts
+  26:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  40:16  warning  'e' is defined but never used      @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/api/drive/route.ts
+  19:14  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/api/upload/route.ts
+  22:14  warning  'e' is defined but never used                                                    @typescript-eslint/no-unused-vars
+  27:11  warning  Found writeFile from package "fs/promises" with non literal argument at index 0  security/detect-non-literal-fs-filename
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/api/village-profile/route.ts
+  8:14  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/aparatur/page.tsx
+    7:5   warning  'updateAparaturDesa' is defined but never used                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   23:5   warning  'ChevronDown' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   60:18  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   86:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   98:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  111:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  127:11  warning  'kades' is assigned a value but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+  128:11  warning  'sekdes' is assigned a value but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  129:11  warning  'staff' is assigned a value but never used                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+  182:57  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  304:10  warning  'SectionTitle' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  313:10  warning  'EmptySlot' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  324:10  warning  'AparaturCard' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+  346:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/apbdes/page.tsx
+    6:64  warning  'Wallet' is defined but never used    @typescript-eslint/no-unused-vars
+    6:72  warning  'Sparkles' is defined but never used  @typescript-eslint/no-unused-vars
+   61:18  warning  'error' is defined but never used     @typescript-eslint/no-unused-vars
+   93:18  warning  'error' is defined but never used     @typescript-eslint/no-unused-vars
+  114:18  warning  'error' is defined but never used     @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/arsip/page.tsx
+  46:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/bumdes/page.tsx
+   24:5   warning  'PieChart' is defined but never used   @typescript-eslint/no-unused-vars
+   25:5   warning  'BarChart3' is defined but never used  @typescript-eslint/no-unused-vars
+  110:18  warning  'error' is defined but never used      @typescript-eslint/no-unused-vars
+  133:18  warning  'error' is defined but never used      @typescript-eslint/no-unused-vars
+  146:18  warning  'error' is defined but never used      @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/finance/page.tsx
+  9:11  warning  'session' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/format-dokumen/page.tsx
+  13:11  warning  'tenantId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/infrastruktur/page.tsx
+    7:10   warning  'Building' is defined but never used                                                                         @typescript-eslint/no-unused-vars
+   33:8    warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+   98:9    warning  Generic Object Injection Sink                                                                                security/detect-object-injection
+   98:31   warning  Generic Object Injection Sink                                                                                security/detect-object-injection
+  101:25   warning  Generic Object Injection Sink                                                                                security/detect-object-injection
+  102:27   warning  Generic Object Injection Sink                                                                                security/detect-object-injection
+  103:29   warning  Generic Object Injection Sink                                                                                security/detect-object-injection
+  106:13   warning  Generic Object Injection Sink                                                                                security/detect-object-injection
+  107:13   warning  Generic Object Injection Sink                                                                                security/detect-object-injection
+  108:13   warning  Generic Object Injection Sink                                                                                security/detect-object-injection
+  109:13   warning  Generic Object Injection Sink                                                                                security/detect-object-injection
+  189:18   warning  'error' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+  451:18   warning  'error' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+  653:108  warning  'i' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/kelembagaan/page.tsx
+   28:5   warning  'DollarSign' is defined but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+   29:5   warning  'Briefcase' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  100:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  142:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  155:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  197:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  209:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  605:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/laporan/kegiatan-perangkat/page.tsx
+  11:20  warning  'setKegiatan' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/laporan/pesanan-barang/page.tsx
+   3:57  warning  'CheckCircle2' is defined but never used         @typescript-eslint/no-unused-vars
+  11:19  warning  'setPesanan' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/monitoring/page.tsx
+  26:8  warning  React Hook useEffect has a missing dependency: 'loadLogs'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/profil/page.tsx
+    6:35  warning  'ShieldCheck' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+   62:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   94:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  199:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  295:53  warning  Generic Object Injection Sink                                                                                                                                                                                                                                                            security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/puskesos/buku-tamu/page.tsx
+   82:6   warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array                                                                                                                                                                              react-hooks/exhaustive-deps
+  220:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/puskesos/laporan-pengajuan/page.tsx
+  35:6  warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/settings/landing/page.tsx
+  112:18  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  129:18  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  143:18  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  224:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  345:41  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  345:41  warning  img elements must have an alt prop, either with meaningful text, or an empty string for decorative images                                                                                                                                                                                jsx-a11y/alt-text
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/settings/page.tsx
+  199:18  warning  'err' is defined but never used                     @typescript-eslint/no-unused-vars
+  306:24  warning  'setDescriptor' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  350:18  warning  'err' is defined but never used                     @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/setup-account/page.tsx
+  15:11  warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  46:18  warning  'err' is defined but never used              @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/surat/page.tsx
+   36:5    warning  'UserCheck' is defined but never used                            @typescript-eslint/no-unused-vars
+   96:12   warning  'selectedWargaId' is assigned a value but never used             @typescript-eslint/no-unused-vars
+  127:26   warning  'e' is defined but never used                                    @typescript-eslint/no-unused-vars
+  169:9    warning  Generic Object Injection Sink                                    security/detect-object-injection
+  169:9    warning  Generic Object Injection Sink                                    security/detect-object-injection
+  170:33   warning  Generic Object Injection Sink                                    security/detect-object-injection
+  171:13   warning  Generic Object Injection Sink                                    security/detect-object-injection
+  240:18   warning  'error' is defined but never used                                @typescript-eslint/no-unused-vars
+  344:18   warning  'error' is defined but never used                                @typescript-eslint/no-unused-vars
+  382:36   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  382:48   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  383:36   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  383:54   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  384:36   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  384:50   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  493:88   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  493:116  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  992:97   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  992:109  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/verifikasi-warga/page.tsx
+  14:11  warning  'userRole' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/dashboard/warga/page.tsx
+   14:5   warning  'Download' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   15:5   warning  'Calendar' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   16:5   warning  'MapPin' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+   26:5   warning  'Fingerprint' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+   27:13  warning  'HomeIcon' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   30:14  warning  'HeartIcon' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+   31:5   warning  'GraduationCap' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+   32:5   warning  'Users2' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+   33:5   warning  'Globe' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+   34:12  warning  'MapIcon' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+   35:5   warning  'ShieldCheck' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+   36:17  warning  'ActivityIcon' is defined but never used                                                                         @typescript-eslint/no-unused-vars
+  151:8   warning  React Hook useEffect has a missing dependency: 'handleSearch'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  193:18  warning  'error' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+  258:18  warning  'error' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+  278:18  warning  'error' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+  588:60  warning  Generic Object Injection Sink                                                                                    security/detect-object-injection
+  771:10  warning  'FormInput' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/kelembagaan/page.tsx
+   29:5   warning  'Mail' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+   30:5   warning  'Phone' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   31:5   warning  'Shield' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+  122:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  135:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  163:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  176:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  322:53  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/login/page.tsx
+   11:53  warning  'Sparkles' is defined but never used         @typescript-eslint/no-unused-vars
+   40:11  warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   57:22  warning  'err' is defined but never used              @typescript-eslint/no-unused-vars
+  110:18  warning  'err' is defined but never used              @typescript-eslint/no-unused-vars
+  144:18  warning  'err' is defined but never used              @typescript-eslint/no-unused-vars
+  194:42  warning  Generic Object Injection Sink                security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/master-admin/page.tsx
+    4:3  warning  'Clock' is defined but never used             @typescript-eslint/no-unused-vars
+    8:3  warning  'TrendingUp' is defined but never used        @typescript-eslint/no-unused-vars
+   33:9  warning  'session' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  158:9  warning  'colors' is assigned a value but never used   @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/master-admin/stats/page.tsx
+  176:42  warning  Generic Object Injection Sink  security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/master-admin/umkm/MasterAdminUmkmClient.tsx
+  4:25  warning  'Filter' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/page.tsx
+  387:158  warning  Generic Object Injection Sink  security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/resident/info/page.tsx
+  2:24  warning  'Users' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/resident/layout.tsx
+   4:8  warning  'Link' is defined but never used      @typescript-eslint/no-unused-vars
+   6:5  warning  'User' is defined but never used      @typescript-eslint/no-unused-vars
+   7:5  warning  'FileText' is defined but never used  @typescript-eslint/no-unused-vars
+   8:5  warning  'Home' is defined but never used      @typescript-eslint/no-unused-vars
+   9:5  warning  'Bell' is defined but never used      @typescript-eslint/no-unused-vars
+  10:5  warning  'Settings' is defined but never used  @typescript-eslint/no-unused-vars
+  11:5  warning  'LogOut' is defined but never used    @typescript-eslint/no-unused-vars
+  12:5  warning  'Menu' is defined but never used      @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/resident/page.tsx
+   9:5  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+  10:5  warning  'AlertCircle' is defined but never used   @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/resident/settings/page.tsx
+  4:10  warning  'Settings' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/resident/surat/baru/page.tsx
+  6:10  warning  'FileText' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/sensus-app/admin/dashboard/page.tsx
+  2:10  warning  'LayoutDashboard' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/sensus-app/admin/peta/page.tsx
+  7:8  warning  'prisma' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/sensus-app/login/page.tsx
+  35:18  warning  'err' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/sensus-app/surveyor/page.tsx
+  61:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/umkm/CartContext.tsx
+  32:56  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/umkm/cart/page.tsx
+  35:37  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/umkm/checkout/page.tsx
+   47:27  warning  Variable Assigned to Object Injection Sink                                                                                                                                                                                                                                               security/detect-object-injection
+  116:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/umkm/login/page.tsx
+  160:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/umkm/page.tsx
+    2:131  warning  'ScanLine' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+    2:149  warning  'Maximize' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  264:33   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  264:33   warning  img elements must have an alt prop, either with meaningful text, or an empty string for decorative images                                                                                                                                                                                jsx-a11y/alt-text
+  273:33   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  273:33   warning  img elements must have an alt prop, either with meaningful text, or an empty string for decorative images                                                                                                                                                                                jsx-a11y/alt-text
+  289:33   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  289:33   warning  img elements must have an alt prop, either with meaningful text, or an empty string for decorative images                                                                                                                                                                                jsx-a11y/alt-text
+  295:33   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  295:33   warning  img elements must have an alt prop, either with meaningful text, or an empty string for decorative images                                                                                                                                                                                jsx-a11y/alt-text
+  399:29   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  426:25   warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  431:29   warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/umkm/product/[id]/page.tsx
+   50:38  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+   51:36  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+   82:45  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  127:41  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/umkm/register/page.tsx
+  113:8   warning  React Hook useEffect has missing dependencies: 'handlePointerMove' and 'handlePointerUp'. Either include them or remove the dependency array                                                                                                                                             react-hooks/exhaustive-deps
+  340:41  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  356:49  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/umkm/seller/CreateStoreForm.tsx
+  6:17  warning  'ShoppingBag' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/umkm/seller/SellerDashboardClient.tsx
+    4:10  warning  'Search' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+    4:24  warning  'Filter' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+    4:32  warning  'LayoutGrid' is defined but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+    4:62  warning  'Info' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+    4:86  warning  'ImageIcon' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  153:53  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/app/umkm/seller/layout.tsx
+  2:49  warning  'TrendingUp' is defined but never used   @typescript-eslint/no-unused-vars
+  2:73  warning  'Settings' is defined but never used     @typescript-eslint/no-unused-vars
+  2:94  warning  'ChevronDown' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/FloatingChat.tsx
+  138:8  warning  React Hook useEffect has missing dependencies: 'contacts.length' and 'fetchContacts'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  182:8  warning  React Hook useEffect has a missing dependency: 'fetchMessages'. Either include it or remove the dependency array                          react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/ImageUpload.tsx
+    4:30  warning  'ImageIcon' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   18:5   warning  'bucket' is assigned a value but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  104:25  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/InfrastructureStatus.tsx
+   4:10  warning  'Server' is defined but never used          @typescript-eslint/no-unused-vars
+   4:18  warning  'Database' is defined but never used        @typescript-eslint/no-unused-vars
+   4:28  warning  'Zap' is defined but never used             @typescript-eslint/no-unused-vars
+  16:17  warning  'error' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/VerifikasiWargaClient.tsx
+  4:10  warning  'Users' is defined but never used    @typescript-eslint/no-unused-vars
+  4:17  warning  'Shield' is defined but never used   @typescript-eslint/no-unused-vars
+  4:39  warning  'XCircle' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/arsip-laporan/ArsipLaporanClient.tsx
+   20:14  warning  Generic Object Injection Sink  security/detect-object-injection
+   20:24  warning  Generic Object Injection Sink  security/detect-object-injection
+   21:9   warning  Generic Object Injection Sink  security/detect-object-injection
+   27:14  warning  Generic Object Injection Sink  security/detect-object-injection
+   27:35  warning  Generic Object Injection Sink  security/detect-object-injection
+   70:87  warning  Generic Object Injection Sink  security/detect-object-injection
+   97:30  warning  Generic Object Injection Sink  security/detect-object-injection
+  102:33  warning  Generic Object Injection Sink  security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/bansos/BansosClient.tsx
+    5:19  warning  'HeartHandshake' is defined but never used  @typescript-eslint/no-unused-vars
+    5:43  warning  'Filter' is defined but never used          @typescript-eslint/no-unused-vars
+   29:11  warning  'role' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  283:51  warning  Generic Object Injection Sink               security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/format-dokumen/FormatDokumenClient.tsx
+  37:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kasi-pelayanan/AntrianLoket.tsx
+  25:32  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kasi-pelayanan/DashboardUtama.tsx
+    7:3   warning  'Clock' is defined but never used                      @typescript-eslint/no-unused-vars
+   19:25  warning  'setNotifications' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  118:34  warning  Generic Object Injection Sink                          security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kasi-pelayanan/LaporanKarangTaruna.tsx
+   3:10  warning  'motion' is defined but never used   @typescript-eslint/no-unused-vars
+  14:39  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kasi-pelayanan/LaporanKegiatan.tsx
+  14:35  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kasi-pelayanan/LaporanPosyandu.tsx
+  11:3   warning  'Activity' is defined but never used  @typescript-eslint/no-unused-vars
+  28:35  warning  'session' is defined but never used   @typescript-eslint/no-unused-vars
+  38:27  warning  Generic Object Injection Sink         security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kasi-pelayanan/LayananUmum.tsx
+  17:31  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kasi-pelayanan/ManajemenKependudukan.tsx
+   5:3   warning  'Users' is defined but never used    @typescript-eslint/no-unused-vars
+  14:41  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kasi-pelayanan/PusatPersuratan.tsx
+  10:3   warning  'CheckCircle2' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+  11:3   warning  'Clock' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+  14:3   warning  'Upload' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+  22:35  warning  'session' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+  29:10  warning  'loading' is assigned a value but never used                                                                      @typescript-eslint/no-unused-vars
+  29:19  warning  'setLoading' is assigned a value but never used                                                                   @typescript-eslint/no-unused-vars
+  33:6   warning  React Hook useEffect has a missing dependency: 'loadTemplates'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kasi-pelayanan/TrackingLayanan.tsx
+  22:35  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/CetakSkkm.tsx
+   6:43  warning  'isBundle' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  83:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/CetakSptjm.tsx
+    6:44  warning  'isBundle' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  107:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/CetakUsulanUhc.tsx
+    5:8   warning  'Image' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   16:7   warning  'PARAM_OPTIONS' is assigned a value but never used                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   97:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  514:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  528:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  542:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  556:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/KesraAtsTab.tsx
+  4:32  warning  'Award' is defined but never used        @typescript-eslint/no-unused-vars
+  4:39  warning  'MapPin' is defined but never used       @typescript-eslint/no-unused-vars
+  4:56  warning  'AlertCircle' is defined but never used  @typescript-eslint/no-unused-vars
+  4:69  warning  'RefreshCw' is defined but never used    @typescript-eslint/no-unused-vars
+  7:31  warning  'session' is defined but never used      @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/KesraCloudTab.tsx
+  4:64   warning  'Save' is defined but never used          @typescript-eslint/no-unused-vars
+  4:123  warning  'Key' is defined but never used           @typescript-eslint/no-unused-vars
+  4:128  warning  'Mail' is defined but never used          @typescript-eslint/no-unused-vars
+  4:134  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+  4:156  warning  'LinkIcon' is defined but never used      @typescript-eslint/no-unused-vars
+  6:33   warning  'session' is defined but never used       @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/KesraDtksTab.tsx
+   78:24  warning  Generic Object Injection Sink        security/detect-object-injection
+   94:16  warning  'err' is defined but never used      @typescript-eslint/no-unused-vars
+  268:48  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/KesraGisTab.tsx
+    4:52  warning  'User' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+    4:73  warning  'AlertCircle' is defined but never used                                                                                              @typescript-eslint/no-unused-vars
+   26:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array                         react-hooks/exhaustive-deps
+  143:18  warning  'e' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+  177:6   warning  React Hook useEffect has missing dependencies: 'boundaries' and 'renderMarkers'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  333:47  warning  'session' is defined but never used                                                                                                  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/KesraInsentifTab.tsx
+  7:36  warning  '_session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/KesraKependudukanTab.tsx
+  28:40  warning  '_session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/KesraPengangguranTab.tsx
+  4:52  warning  'Loader2' is defined but never used   @typescript-eslint/no-unused-vars
+  4:61  warning  'Sparkles' is defined but never used  @typescript-eslint/no-unused-vars
+  7:40  warning  '_session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/KesraPmtTab.tsx
+  10:31  warning  'session' is defined but never used           @typescript-eslint/no-unused-vars
+  10:40  warning  'selectedPosyandu' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/KesraReportTab.tsx
+  4:20  warning  'Calendar' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/KesraStuntingTab.tsx
+   4:10   warning  'TrendingDown' is defined but never used  @typescript-eslint/no-unused-vars
+   4:72   warning  'UserCheck' is defined but never used     @typescript-eslint/no-unused-vars
+   4:97   warning  'ChevronRight' is defined but never used  @typescript-eslint/no-unused-vars
+   4:111  warning  'Activity' is defined but never used      @typescript-eslint/no-unused-vars
+   8:36   warning  'session' is defined but never used       @typescript-eslint/no-unused-vars
+  40:78   warning  'gender' is defined but never used        @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/KesraUhcTab.tsx
+  4:39  warning  'CheckCircle' is defined but never used  @typescript-eslint/no-unused-vars
+  4:52  warning  'FileText' is defined but never used     @typescript-eslint/no-unused-vars
+  7:31  warning  'session' is defined but never used      @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/KesraUsulanUhcTab.tsx
+   30:37  warning  '_session' is defined but never used       @typescript-eslint/no-unused-vars
+  424:54  warning  '_kependudukan' is defined but never used  @typescript-eslint/no-unused-vars
+  863:5   warning  Generic Object Injection Sink              security/detect-object-injection
+  863:30  warning  Generic Object Injection Sink              security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/KesraWargaBansosTab.tsx
+    8:39  warning  'session' is defined but never used            @typescript-eslint/no-unused-vars
+   54:11  warning  'autoDate' is assigned a value but never used  @typescript-eslint/no-unused-vars
+   73:23  warning  Generic Object Injection Sink                  security/detect-object-injection
+  406:28  warning  'e' is defined but never used                  @typescript-eslint/no-unused-vars
+  497:16  warning  'e' is defined but never used                  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/PosyanduInventarisTab.tsx
+  10:41  warning  'session' is defined but never used           @typescript-eslint/no-unused-vars
+  10:50  warning  'selectedPosyandu' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/PosyanduJadwalAbsensiTab.tsx
+  10:44  warning  'session' is defined but never used           @typescript-eslint/no-unused-vars
+  10:53  warning  'selectedPosyandu' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/PosyanduRegisterTab.tsx
+   17:39  warning  'session' is defined but never used           @typescript-eslint/no-unused-vars
+   17:48  warning  'selectedPosyandu' is defined but never used  @typescript-eslint/no-unused-vars
+  169:35  warning  Generic Object Injection Sink                 security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/ServerCetakSkkm.tsx
+   5:49  warning  'isBundle' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  78:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/ServerCetakSptjm.tsx
+    5:50  warning  'isBundle' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  102:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/kesra/ServerCetakUsulanUhc.tsx
+   14:7   warning  'PARAM_OPTIONS' is assigned a value but never used                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   91:15  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  507:33  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  521:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  535:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  549:17  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/perencanaan/CetakHargaSatuan.tsx
+  82:18  warning  Generic Object Injection Sink  security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/perencanaan/CyberPlanHargaSatuanTab.tsx
+    4:36  warning  'Edit2' is defined but never used  @typescript-eslint/no-unused-vars
+  217:22  warning  Generic Object Injection Sink      security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/perencanaan/CyberPlanRabTab.tsx
+  131:18  warning  Generic Object Injection Sink    security/detect-object-injection
+  139:18  warning  Generic Object Injection Sink    security/detect-object-injection
+  144:18  warning  Generic Object Injection Sink    security/detect-object-injection
+  236:18  warning  Generic Object Injection Sink    security/detect-object-injection
+  249:28  warning  'idx' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/perencanaan/ImoRobotCompanion.tsx
+    5:91   warning  'ChevronUp' is defined but never used             @typescript-eslint/no-unused-vars
+    5:102  warning  'Eye' is defined but never used                   @typescript-eslint/no-unused-vars
+    5:107  warning  'EyeOff' is defined but never used                @typescript-eslint/no-unused-vars
+    5:121  warning  'AlertCircle' is defined but never used           @typescript-eslint/no-unused-vars
+  150:14   warning  'e' is defined but never used                     @typescript-eslint/no-unused-vars
+  182:20   warning  'setIsLocked' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  221:14   warning  'err' is defined but never used                   @typescript-eslint/no-unused-vars
+  336:24   warning  Generic Object Injection Sink                     security/detect-object-injection
+  339:24   warning  Generic Object Injection Sink                     security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/perencanaan/ThreeDImoRobot.tsx
+  3:25  warning  'useMemo' is defined but never used      @typescript-eslint/no-unused-vars
+  5:25  warning  'Environment' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/posyandu/CitizenSearchAutocomplete.tsx
+  147:52  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  147:60  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/posyandu/PosyanduAnalisisTab.tsx
+   4:46  warning  'TrendingUp' is defined but never used                                                                         @typescript-eslint/no-unused-vars
+   4:58  warning  'TrendingDown' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+   4:72  warning  'Minus' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+   8:45  warning  'LineChart' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+   8:56  warning  'Line' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+  13:39  warning  'session' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+  30:6   warning  React Hook useEffect has a missing dependency: 'fetchStats'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/posyandu/PosyanduBalitaTab.tsx
+    6:22  warning  'MapPin' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+    6:40  warning  'ShieldAlert' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+    6:53  warning  'Sparkles' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+    6:63  warning  'Clock' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+    7:3   warning  'FileText' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+    7:25  warning  'ChevronRight' is defined but never used                                                                      @typescript-eslint/no-unused-vars
+    7:52  warning  'Award' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+    7:59  warning  'Phone' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   46:18  warning  Variable Assigned to Object Injection Sink                                                                    security/detect-object-injection
+   47:20  warning  Generic Object Injection Sink                                                                                 security/detect-object-injection
+  117:7   warning  Generic Object Injection Sink                                                                                 security/detect-object-injection
+  117:7   warning  Generic Object Injection Sink                                                                                 security/detect-object-injection
+  153:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  844:6   warning  React Hook useEffect has a missing dependency: 'rw'. Either include it or remove the dependency array         react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/posyandu/PosyanduIbuHamilTab.tsx
+    6:13  warning  'User' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+    6:19  warning  'MapPin' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+    6:27  warning  'Activity' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+    6:37  warning  'ShieldAlert' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+    6:50  warning  'Phone' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+    6:57  warning  'Stethoscope' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+    7:3   warning  'CheckCircle2' is defined but never used                                                                      @typescript-eslint/no-unused-vars
+    7:17  warning  'Clock' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+    7:24  warning  'FileText' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+    7:34  warning  'AlertTriangle' is defined but never used                                                                     @typescript-eslint/no-unused-vars
+   38:18  warning  Variable Assigned to Object Injection Sink                                                                    security/detect-object-injection
+   39:20  warning  Generic Object Injection Sink                                                                                 security/detect-object-injection
+  109:7   warning  Generic Object Injection Sink                                                                                 security/detect-object-injection
+  109:7   warning  Generic Object Injection Sink                                                                                 security/detect-object-injection
+  145:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  698:6   warning  React Hook useEffect has a missing dependency: 'rw'. Either include it or remove the dependency array         react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/posyandu/PosyanduJadwalTab.tsx
+  16:37  warning  'session' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+  35:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/posyandu/PosyanduKehadiranTab.tsx
+  14:40  warning  'session' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+  34:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/posyandu/PosyanduLansiaTab.tsx
+    6:13  warning  'User' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+    6:19  warning  'MapPin' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+    6:37  warning  'ShieldAlert' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+    6:50  warning  'HeartPulse' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+    7:3   warning  'Stethoscope' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+    7:16  warning  'CheckCircle2' is defined but never used                                                                      @typescript-eslint/no-unused-vars
+    7:30  warning  'Clock' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+    7:37  warning  'FileText' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+   38:18  warning  Variable Assigned to Object Injection Sink                                                                    security/detect-object-injection
+   39:20  warning  Generic Object Injection Sink                                                                                 security/detect-object-injection
+  109:7   warning  Generic Object Injection Sink                                                                                 security/detect-object-injection
+  109:7   warning  Generic Object Injection Sink                                                                                 security/detect-object-injection
+  145:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  694:6   warning  React Hook useEffect has a missing dependency: 'rw'. Either include it or remove the dependency array         react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/posyandu/PosyanduLayananBalitaTab.tsx
+    4:24  warning  'Baby' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+    4:61  warning  'AlertTriangle' is defined but never used                                                                     @typescript-eslint/no-unused-vars
+    4:76  warning  'CheckCircle2' is defined but never used                                                                      @typescript-eslint/no-unused-vars
+   82:44  warning  'session' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+  106:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/posyandu/PosyanduLayananIbuHamilTab.tsx
+   4:44  warning  'Stethoscope' is defined but never used                                                                       @typescript-eslint/no-unused-vars
+   9:46  warning  'session' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+  33:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/posyandu/PosyanduLayananLansiaTab.tsx
+   9:44  warning  'session' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+  33:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/puskesos/PuskesosGisTab.tsx
+    4:52  warning  'User' is defined but never used                                                                                                     @typescript-eslint/no-unused-vars
+    4:73  warning  'AlertCircle' is defined but never used                                                                                              @typescript-eslint/no-unused-vars
+   44:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array                         react-hooks/exhaustive-deps
+  144:18  warning  'e' is defined but never used                                                                                                        @typescript-eslint/no-unused-vars
+  178:6   warning  React Hook useEffect has missing dependencies: 'boundaries' and 'renderMarkers'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  334:47  warning  'session' is defined but never used                                                                                                  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/puskesos/PuskesosPengaduanTab.tsx
+   5:33  warning  'Filter' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+  21:14  warning  'error' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  30:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  37:14  warning  'error' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/puskesos/PuskesosPengurusTab.tsx
+  21:14  warning  'error' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  38:14  warning  'error' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  47:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/puskesos/PuskesosPpksTab.tsx
+  21:14  warning  'error' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  37:14  warning  'error' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  46:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/puskesos/PuskesosRujukanTab.tsx
+  21:14  warning  'error' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  30:6   warning  React Hook useEffect has a missing dependency: 'fetchData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/puskesos/PuskesosUhcTab.tsx
+  2:36  warning  'X' is defined but never used                  @typescript-eslint/no-unused-vars
+  3:33  warning  'addKesraUsulanUhc' is defined but never used  @typescript-eslint/no-unused-vars
+  6:34  warning  'session' is defined but never used            @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/puskesos/PuskesosWargaTab.tsx
+    4:18  warning  'Award' is defined but never used    @typescript-eslint/no-unused-vars
+    4:25  warning  'Printer' is defined but never used  @typescript-eslint/no-unused-vars
+    7:36  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+  147:28  warning  'e' is defined but never used        @typescript-eslint/no-unused-vars
+  220:16  warning  'e' is defined but never used        @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/EkonomiDashboard.tsx
+   4:3   warning  'TrendingUp' is defined but never used     @typescript-eslint/no-unused-vars
+   5:3   warning  'PackageSearch' is defined but never used  @typescript-eslint/no-unused-vars
+   8:8   warning  'Link' is defined but never used           @typescript-eslint/no-unused-vars
+  10:45  warning  'stats' is defined but never used          @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/ExecutiveDashboard.tsx
+  184:20  warning  Generic Object Injection Sink  security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/FinancePageClient.tsx
+   5:27  warning  'Edit2' is defined but never used                 @typescript-eslint/no-unused-vars
+   5:42  warning  'CheckCircle2' is defined but never used          @typescript-eslint/no-unused-vars
+   6:10  warning  'updateProposalStatus' is defined but never used  @typescript-eslint/no-unused-vars
+  30:18  warning  'error' is defined but never used                 @typescript-eslint/no-unused-vars
+  43:18  warning  'error' is defined but never used                 @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/KadusDashboard.tsx
+   4:10  warning  'useSearchParams' is defined but never used    @typescript-eslint/no-unused-vars
+   7:10  warning  'MapPin' is defined but never used             @typescript-eslint/no-unused-vars
+   7:18  warning  'FileText' is defined but never used           @typescript-eslint/no-unused-vars
+   7:28  warning  'AlertTriangle' is defined but never used      @typescript-eslint/no-unused-vars
+   7:43  warning  'TrendingUp' is defined but never used         @typescript-eslint/no-unused-vars
+   7:55  warning  'Search' is defined but never used             @typescript-eslint/no-unused-vars
+   8:3   warning  'ChevronRight' is defined but never used       @typescript-eslint/no-unused-vars
+   8:17  warning  'Building' is defined but never used           @typescript-eslint/no-unused-vars
+   8:27  warning  'Plus' is defined but never used               @typescript-eslint/no-unused-vars
+   8:33  warning  'Trash2' is defined but never used             @typescript-eslint/no-unused-vars
+   9:16  warning  'ArrowRight' is defined but never used         @typescript-eslint/no-unused-vars
+   9:37  warning  'Info' is defined but never used               @typescript-eslint/no-unused-vars
+  15:50  warning  'initialStats' is defined but never used       @typescript-eslint/no-unused-vars
+  17:9   warning  'tenantId' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/KelembagaanDashboard.tsx
+   4:3   warning  'Target' is defined but never used    @typescript-eslint/no-unused-vars
+   5:3   warning  'Trophy' is defined but never used    @typescript-eslint/no-unused-vars
+   6:3   warning  'Activity' is defined but never used  @typescript-eslint/no-unused-vars
+   8:8   warning  'Link' is defined but never used      @typescript-eslint/no-unused-vars
+  10:49  warning  'stats' is defined but never used     @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/KesejahteraanDashboard.tsx
+   5:18  warning  'AnimatePresence' is defined but never used  @typescript-eslint/no-unused-vars
+   8:3   warning  'Stethoscope' is defined but never used      @typescript-eslint/no-unused-vars
+  10:3   warning  'FileText' is defined but never used         @typescript-eslint/no-unused-vars
+  12:3   warning  'Database' is defined but never used         @typescript-eslint/no-unused-vars
+  17:3   warning  'TrendingDown' is defined but never used     @typescript-eslint/no-unused-vars
+  18:3   warning  'ShieldAlert' is defined but never used      @typescript-eslint/no-unused-vars
+  60:51  warning  'stats' is defined but never used            @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/KeuanganDashboard.tsx
+   3:3   warning  'TrendingUp' is defined but never used  @typescript-eslint/no-unused-vars
+   9:8   warning  'Link' is defined but never used        @typescript-eslint/no-unused-vars
+  11:46  warning  'stats' is defined but never used       @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/LpmDashboardClient.tsx
+   20:5   warning  'MapPin' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   22:5   warning  'CheckCircle2' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   30:5   warning  'HardHat' is defined but never used                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+   38:11  warning  'router' is assigned a value but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  129:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  142:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  170:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  183:18  warning  'error' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  217:11  warning  'completedProgramsCount' is assigned a value but never used                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+  315:60  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  490:49  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/LuxuryRingChart.tsx
+  62:80  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/LuxuryRingChart.tsx:62:80
+  60 |
+  61 |   // Progress ring
+> 62 |   const progressGeom = new THREE.TorusGeometry(1, 0.12, 16, 64, Math.max(0.01, targetRotation.current));
+     |                                                                                ^^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  63 |   const progressMat = new THREE.MeshStandardMaterial({ 
+  64 |     color: color, 
+  65 |     emissive: color,   react-hooks/refs
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/OperatorDashboard.tsx
+   3:3   warning  'Database' is defined but never used     @typescript-eslint/no-unused-vars
+   6:3   warning  'Users' is defined but never used        @typescript-eslint/no-unused-vars
+  13:3   warning  'MailWarning' is defined but never used  @typescript-eslint/no-unused-vars
+  17:37  warning  'session' is defined but never used      @typescript-eslint/no-unused-vars
+  17:46  warning  'stats' is defined but never used        @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/PelayananDashboard.tsx
+   3:3   warning  'FileText' is defined but never used      @typescript-eslint/no-unused-vars
+   7:3   warning  'ChevronRight' is defined but never used  @typescript-eslint/no-unused-vars
+  10:8   warning  'Link' is defined but never used          @typescript-eslint/no-unused-vars
+  12:47  warning  'stats' is defined but never used         @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/PerencanaanDashboard.tsx
+  22:49  warning  'stats' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/PosyanduDashboard.tsx
+  22:13  warning  'AlertTriangle' is defined but never used                                                                      @typescript-eslint/no-unused-vars
+  22:28  warning  'Baby' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+  22:34  warning  'Calendar' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+  23:13  warning  'Users' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+  24:56  warning  'ShieldAlert' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+  25:14  warning  'Sparkles' is defined but never used                                                                           @typescript-eslint/no-unused-vars
+  25:32  warning  'ChevronDown' is defined but never used                                                                        @typescript-eslint/no-unused-vars
+  30:45  warning  'AreaChart' is defined but never used                                                                          @typescript-eslint/no-unused-vars
+  30:56  warning  'Area' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+  80:6   warning  React Hook useEffect has a missing dependency: 'fetchStats'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/PuskesosDashboard.tsx
+   3:10  warning  'useState' is defined but never used               @typescript-eslint/no-unused-vars
+  16:46  warning  'stats' is defined but never used                  @typescript-eslint/no-unused-vars
+  22:9   warning  'setActiveTab' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/WargaDashboard.tsx
+   3:3   warning  'Clock' is defined but never used         @typescript-eslint/no-unused-vars
+   4:3   warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+   5:3   warning  'AlertCircle' is defined but never used   @typescript-eslint/no-unused-vars
+  11:8   warning  'Link' is defined but never used          @typescript-eslint/no-unused-vars
+  12:10  warning  'StatusSurat' is defined but never used   @typescript-eslint/no-unused-vars
+  14:43  warning  'stats' is defined but never used         @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/WilayahDashboard.tsx
+     6:55  warning  'TrendingUp' is defined but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+     7:17  warning  'ChevronRight' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+     7:31  warning  'Banknote' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+     8:19  warning  'Check' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+     8:29  warning  'FileSpreadsheet' is defined but never used                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+     8:55  warning  'Sparkles' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+     8:65  warning  'PlusCircle' is defined but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+     9:3   warning  'FileDown' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+     9:13  warning  'Info' is defined but never used                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+    10:31  warning  'Activity' is defined but never used                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+    10:41  warning  'Layers' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+    11:3   warning  'Fingerprint' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+    11:40  warning  'UserX' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+    13:11  warning  'LucideUser' is defined but never used                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+    14:12  warning  'LucideUsers' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+    15:12  warning  'HeartIcon' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+    16:3   warning  'GraduationCap' is defined but never used                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+    17:3   warning  'Users2' is defined but never used                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+    18:3   warning  'Globe' is defined but never used                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+    19:10  warning  'MapIcon' is defined but never used                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+    20:3   warning  'ShieldCheck' is defined but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+    21:15  warning  'ActivityIcon' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+    49:52  warning  'initialStats' is defined but never used                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
+   119:6   warning  React Hook useEffect has a missing dependency: 'fetchStats'. Either include it or remove the dependency array                                                                                                                                                                            react-hooks/exhaustive-deps
+   201:10  warning  'TabButton' is defined but never used                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+   412:6   warning  React Hook useEffect has a missing dependency: 'loadWarga'. Either include it or remove the dependency array                                                                                                                                                                             react-hooks/exhaustive-deps
+   488:14  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+   994:10  warning  'showPrint' is assigned a value but never used                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   994:21  warning  'setShowPrint' is assigned a value but never used                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  1247:36  warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array                                                                                                                                                                              react-hooks/exhaustive-deps
+  1305:19  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  1353:38  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  1460:14  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  1588:14  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  1601:14  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  1761:6   warning  React Hook useEffect has a missing dependency: 'fetchReportData'. Either include it or remove the dependency array                                                                                                                                                                       react-hooks/exhaustive-deps
+  1810:6   warning  React Hook useEffect has a missing dependency: 'loadData'. Either include it or remove the dependency array                                                                                                                                                                              react-hooks/exhaustive-deps
+  2011:14  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  2033:14  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  2055:14  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  2077:14  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  2100:14  warning  'err' is defined but never used                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+  2860:26  warning  'rt' is defined but never used                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  2860:30  warning  'rw' is defined but never used                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  3493:9   warning  'rt' is assigned a value but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  3494:9   warning  'rw' is assigned a value but never used                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
+  3495:9   warning  'tenantId' is assigned a value but never used                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  3605:6   warning  React Hook useEffect has a missing dependency: 'fetchInitialData'. Either include it or remove the dependency array                                                                                                                                                                      react-hooks/exhaustive-deps
+  3643:6   warning  React Hook useEffect has a missing dependency: 'triggerSync'. Either include it or remove the dependency array                                                                                                                                                                           react-hooks/exhaustive-deps
+  3672:20  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  3688:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  3703:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  3795:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  3802:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  3849:6   warning  React Hook useEffect has missing dependencies: 'redrawAll' and 'session?.user?.role'. Either include them or remove the dependency array                                                                                                                                                 react-hooks/exhaustive-deps
+  3920:6   warning  React Hook useEffect has a missing dependency: 'handleSaveBoundary'. Either include it or remove the dependency array                                                                                                                                                                    react-hooks/exhaustive-deps
+  3924:6   warning  React Hook useEffect has a missing dependency: 'redrawAll'. Either include it or remove the dependency array                                                                                                                                                                             react-hooks/exhaustive-deps
+  4022:14  warning  'e' is defined but never used                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/katar/KatarEOffice.tsx
+  9:32  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/katar/KatarEconomy.tsx
+  10:32  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/katar/KatarFinance.tsx
+  4:16  warning  'Download' is defined but never used  @typescript-eslint/no-unused-vars
+  9:32  warning  'session' is defined but never used   @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/katar/KatarGallery.tsx
+  9:32  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/katar/KatarInventory.tsx
+  9:34  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/katar/KatarMembers.tsx
+  18:32  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/katar/KatarOverview.tsx
+  7:33  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/katar/KatarPrograms.tsx
+  18:33  warning  'session' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/kelembagaan/MusrenbangFormClient.tsx
+   7:48  warning  'desaName' is defined but never used  @typescript-eslint/no-unused-vars
+  31:14  warning  'error' is defined but never used     @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/operator/ContentManagement.tsx
+   5:10  warning  'Globe' is defined but never used        @typescript-eslint/no-unused-vars
+   5:26  warning  'ImageIcon' is defined but never used    @typescript-eslint/no-unused-vars
+   5:84  warning  'AlertCircle' is defined but never used  @typescript-eslint/no-unused-vars
+   8:37  warning  'session' is defined but never used      @typescript-eslint/no-unused-vars
+  34:14  warning  'error' is defined but never used        @typescript-eslint/no-unused-vars
+  49:14  warning  'error' is defined but never used        @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/roles/operator/SistemLog.tsx
+  3:35  warning  'ShieldAlert' is defined but never used  @typescript-eslint/no-unused-vars
+  6:29  warning  'session' is defined but never used      @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/dashboard/rw/RwInstitutionsTab.tsx
+  4:42  warning  'Search' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/documents/SKKMLetterPreview.tsx
+  71:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/gis/InteractiveVillageMap.tsx
+   10:3   warning  'MapPin' is defined but never used                                                                                                                        @typescript-eslint/no-unused-vars
+  105:14  warning  'err' is defined but never used                                                                                                                           @typescript-eslint/no-unused-vars
+  128:16  warning  'e' is defined but never used                                                                                                                             @typescript-eslint/no-unused-vars
+  159:16  warning  'e' is defined but never used                                                                                                                             @typescript-eslint/no-unused-vars
+  215:16  warning  'e' is defined but never used                                                                                                                             @typescript-eslint/no-unused-vars
+  268:18  warning  'e' is defined but never used                                                                                                                             @typescript-eslint/no-unused-vars
+  317:6   warning  React Hook useEffect has missing dependencies: 'drawBoundaries', 'initialBoundaries', and 'tenantId'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  336:16  warning  'e' is defined but never used                                                                                                                             @typescript-eslint/no-unused-vars
+  339:6   warning  React Hook useEffect has a missing dependency: 'drawBoundaries'. Either include it or remove the dependency array                                         react-hooks/exhaustive-deps
+  346:17  warning  Generic Object Injection Sink                                                                                                                             security/detect-object-injection
+  550:48  warning  'index' is defined but never used                                                                                                                         @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/landing/LandingAspiration.tsx
+   3:16  warning  'FileText' is defined but never used  @typescript-eslint/no-unused-vars
+  39:18  warning  'error' is defined but never used     @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/landing/LandingNavbar.tsx
+   33:26  warning  Variable Assigned to Object Injection Sink  security/detect-object-injection
+   44:20  warning  Variable Assigned to Object Injection Sink  security/detect-object-injection
+   55:26  warning  Variable Assigned to Object Injection Sink  security/detect-object-injection
+   77:54  warning  Generic Object Injection Sink               security/detect-object-injection
+  194:48  warning  Generic Object Injection Sink               security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/landing/LandingNews.tsx
+  58:88  warning  'idx' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/landing/LandingStats.tsx
+  306:19   warning  Generic Object Injection Sink  security/detect-object-injection
+  349:215  warning  Generic Object Injection Sink  security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/landing/TechNightCanvas.tsx
+  155:27  warning  Variable Assigned to Object Injection Sink  security/detect-object-injection
+  175:32  warning  Variable Assigned to Object Injection Sink  security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/AiIntegrationClient.tsx
+  6:19  warning  'ExternalLink' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/ConfigClient.tsx
+   5:23  warning  'Globe' is defined but never used         @typescript-eslint/no-unused-vars
+   5:51  warning  'Save' is defined but never used          @typescript-eslint/no-unused-vars
+   7:5   warning  'Upload' is defined but never used        @typescript-eslint/no-unused-vars
+   7:13  warning  'Bell' is defined but never used          @typescript-eslint/no-unused-vars
+   7:19  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+   7:42  warning  'Play' is defined but never used          @typescript-eslint/no-unused-vars
+  27:18  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  39:18  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+  51:18  warning  'error' is defined but never used         @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/GisDashboardClient.tsx
+    6:59  warning  'Wifi' is defined but never used  @typescript-eslint/no-unused-vars
+  105:14  warning  'err' is defined but never used   @typescript-eslint/no-unused-vars
+  195:18  warning  'e' is defined but never used     @typescript-eslint/no-unused-vars
+  203:18  warning  'e' is defined but never used     @typescript-eslint/no-unused-vars
+  239:16  warning  'err' is defined but never used   @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/GisManagementClient.tsx
+   10:3   warning  'Map' is defined but never used                                                                                                                    @typescript-eslint/no-unused-vars
+   17:3   warning  'Undo' is defined but never used                                                                                                                   @typescript-eslint/no-unused-vars
+   68:3   warning  'villageStructure' is defined but never used                                                                                                       @typescript-eslint/no-unused-vars
+  112:16  warning  'err' is defined but never used                                                                                                                    @typescript-eslint/no-unused-vars
+  139:16  warning  'e' is defined but never used                                                                                                                      @typescript-eslint/no-unused-vars
+  202:16  warning  'err' is defined but never used                                                                                                                    @typescript-eslint/no-unused-vars
+  237:18  warning  'e' is defined but never used                                                                                                                      @typescript-eslint/no-unused-vars
+  299:6   warning  React Hook useEffect has missing dependencies: 'drawAllSavedPolygons' and 'initialBoundaries'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  329:16  warning  'e' is defined but never used                                                                                                                      @typescript-eslint/no-unused-vars
+  332:6   warning  React Hook useEffect has a missing dependency: 'drawAllSavedPolygons'. Either include it or remove the dependency array                            react-hooks/exhaustive-deps
+  391:9   warning  'handleUndoVertex' is assigned a value but never used                                                                                              @typescript-eslint/no-unused-vars
+  463:14  warning  'err' is defined but never used                                                                                                                    @typescript-eslint/no-unused-vars
+  505:14  warning  'err' is defined but never used                                                                                                                    @typescript-eslint/no-unused-vars
+  586:16  warning  'err' is defined but never used                                                                                                                    @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/GoogleIntegrationClient.tsx
+   7:14  warning  'HardDrive' is defined but never used                 @typescript-eslint/no-unused-vars
+   7:30  warning  'FileSpreadsheet' is defined but never used           @typescript-eslint/no-unused-vars
+   7:47  warning  'FileText' is defined but never used                  @typescript-eslint/no-unused-vars
+   8:33  warning  'RefreshCw' is defined but never used                 @typescript-eslint/no-unused-vars
+  20:12  warning  'isPending' is assigned a value but never used        @typescript-eslint/no-unused-vars
+  20:23  warning  'startTransition' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/MasterShell.tsx
+  6:16  warning  'LayoutDashboard' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/OverviewCharts.tsx
+  4:5   warning  'LineChart' is defined but never used      @typescript-eslint/no-unused-vars
+  4:16  warning  'Line' is defined but never used           @typescript-eslint/no-unused-vars
+  4:29  warning  'YAxis' is defined but never used          @typescript-eslint/no-unused-vars
+  4:36  warning  'CartesianGrid' is defined but never used  @typescript-eslint/no-unused-vars
+  5:58  warning  'Cell' is defined but never used           @typescript-eslint/no-unused-vars
+  7:22  warning  'Users' is defined but never used          @typescript-eslint/no-unused-vars
+  7:29  warning  'Database' is defined but never used       @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/RbacManager.tsx
+  4:10  warning  'Shield' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/ResidentManagementGlobal.tsx
+     5:44  warning  'Download' is defined but never used        @typescript-eslint/no-unused-vars
+     7:32  warning  'MoreHorizontal' is defined but never used  @typescript-eslint/no-unused-vars
+     8:22  warning  'UserPlus' is defined but never used        @typescript-eslint/no-unused-vars
+     9:38  warning  'History' is defined but never used         @typescript-eslint/no-unused-vars
+     9:47  warning  'Settings' is defined but never used        @typescript-eslint/no-unused-vars
+   270:18  warning  'error' is defined but never used           @typescript-eslint/no-unused-vars
+   283:18  warning  'error' is defined but never used           @typescript-eslint/no-unused-vars
+   314:18  warning  'error' is defined but never used           @typescript-eslint/no-unused-vars
+   341:18  warning  'error' is defined but never used           @typescript-eslint/no-unused-vars
+   363:53  warning  'index' is defined but never used           @typescript-eslint/no-unused-vars
+   604:18  warning  'error' is defined but never used           @typescript-eslint/no-unused-vars
+   707:21  warning  Unsafe Regular Expression                   security/detect-unsafe-regex
+  1658:41  warning  Function Call Object Injection Sink         security/detect-object-injection
+  1670:27  warning  Variable Assigned to Object Injection Sink  security/detect-object-injection
+  1678:25  warning  Variable Assigned to Object Injection Sink  security/detect-object-injection
+  1682:30  warning  Variable Assigned to Object Injection Sink  security/detect-object-injection
+  1683:29  warning  Generic Object Injection Sink               security/detect-object-injection
+  1694:21  warning  Generic Object Injection Sink               security/detect-object-injection
+  1695:41  warning  Generic Object Injection Sink               security/detect-object-injection
+  1697:33  warning  Generic Object Injection Sink               security/detect-object-injection
+  1700:25  warning  Generic Object Injection Sink               security/detect-object-injection
+  1702:25  warning  Generic Object Injection Sink               security/detect-object-injection
+  1705:21  warning  Generic Object Injection Sink               security/detect-object-injection
+  1719:21  warning  Generic Object Injection Sink               security/detect-object-injection
+  1720:32  warning  Generic Object Injection Sink               security/detect-object-injection
+  1736:13  warning  Generic Object Injection Sink               security/detect-object-injection
+  1737:13  warning  Generic Object Injection Sink               security/detect-object-injection
+  1738:28  warning  Generic Object Injection Sink               security/detect-object-injection
+  1740:13  warning  Generic Object Injection Sink               security/detect-object-injection
+  1762:13  warning  Generic Object Injection Sink               security/detect-object-injection
+  1762:31  warning  Generic Object Injection Sink               security/detect-object-injection
+  1762:58  warning  Generic Object Injection Sink               security/detect-object-injection
+  1791:17  warning  Generic Object Injection Sink               security/detect-object-injection
+  1791:54  warning  Generic Object Injection Sink               security/detect-object-injection
+  1809:9   warning  Unsafe Regular Expression                   security/detect-unsafe-regex
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/SupabaseStorageStats.tsx
+   3:20  warning  'HardDrive' is defined but never used          @typescript-eslint/no-unused-vars
+  17:14  warning  'e' is defined but never used                  @typescript-eslint/no-unused-vars
+  18:9   warning  'errorMsg' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/TemplateManagementClient.tsx
+  6:28  warning  'Settings' is defined but never used  @typescript-eslint/no-unused-vars
+  7:12  warning  'Upload' is defined but never used    @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/TenantManagementClient.tsx
+   4:27  warning  'CheckCircle2' is defined but never used      @typescript-eslint/no-unused-vars
+  23:19  warning  'updated' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/UserMaintenanceClient.tsx
+   4:31  warning  'ShieldAlert' is defined but never used       @typescript-eslint/no-unused-vars
+  30:19  warning  'updated' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/UserManagementClient.tsx
+   5:5   warning  'Users' is defined but never used               @typescript-eslint/no-unused-vars
+   5:42  warning  'XCircle' is defined but never used             @typescript-eslint/no-unused-vars
+   6:37  warning  'AlertTriangle' is defined but never used       @typescript-eslint/no-unused-vars
+   7:39  warning  'ChevronRight' is defined but never used        @typescript-eslint/no-unused-vars
+   8:32  warning  'ArrowRight' is defined but never used          @typescript-eslint/no-unused-vars
+  12:10  warning  'formatRelativeTime' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/VisualStats.tsx
+  15:5   warning  'BarChart' is defined but never used  @typescript-eslint/no-unused-vars
+  16:5   warning  'Bar' is defined but never used       @typescript-eslint/no-unused-vars
+  17:5   warning  'Legend' is defined but never used    @typescript-eslint/no-unused-vars
+  19:43  warning  'Activity' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/WargaUsersClient.tsx
+   5:5   warning  'Users' is defined but never used                      @typescript-eslint/no-unused-vars
+   5:42  warning  'XCircle' is defined but never used                    @typescript-eslint/no-unused-vars
+   6:37  warning  'AlertTriangle' is defined but never used              @typescript-eslint/no-unused-vars
+   7:39  warning  'ChevronRight' is defined but never used               @typescript-eslint/no-unused-vars
+   8:32  warning  'ArrowRight' is defined but never used                 @typescript-eslint/no-unused-vars
+  12:10  warning  'formatRelativeTime' is defined but never used         @typescript-eslint/no-unused-vars
+  15:11  warning  'UserManagementClientProps' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/WhatsappIntegrationClient.tsx
+   4:10  warning  'MessageCircle' is defined but never used  @typescript-eslint/no-unused-vars
+  33:14  warning  'err' is defined but never used            @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/master/WilayahManagementClient.tsx
+   6:5   warning  'MapPin' is defined but never used             @typescript-eslint/no-unused-vars
+   6:27  warning  'Edit2' is defined but never used              @typescript-eslint/no-unused-vars
+   6:34  warning  'Save' is defined but never used               @typescript-eslint/no-unused-vars
+   6:43  warning  'ChevronRight' is defined but never used       @typescript-eslint/no-unused-vars
+   7:5   warning  'ChevronDown' is defined but never used        @typescript-eslint/no-unused-vars
+   7:24  warning  'Building2' is defined but never used          @typescript-eslint/no-unused-vars
+   7:40  warning  'Users' is defined but never used              @typescript-eslint/no-unused-vars
+  12:11  warning  'RT' is defined but never used                 @typescript-eslint/no-unused-vars
+  38:12  warning  'activeRW' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  45:18  warning  'error' is defined but never used              @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/providers/SessionTimeoutHandler.tsx
+  11:17  warning  'session' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/resident/ResidentSidebar.tsx
+  20:5  warning  'MessageSquare' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/sensus/AdminSidebar.tsx
+  16:8  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/components/sensus/AdminVerifierClient.tsx
+   6:90  warning  'Filter' is defined but never used  @typescript-eslint/no-unused-vars
+  34:25  warning  Generic Object Injection Sink       security/detect-object-injection
+  61:18  warning  'error' is defined but never used   @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/lib/auth.ts
+    5:10  warning  'PrismaAdapter' is defined but never used  @typescript-eslint/no-unused-vars
+  140:16  warning  'e' is defined but never used              @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/lib/formatters.ts
+   9:32  warning  Generic Object Injection Sink  security/detect-object-injection
+  10:16  warning  Generic Object Injection Sink  security/detect-object-injection
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/lib/gdrive.ts
+  28:19  warning  'clientEmail' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/services/api.ts
+  3:17  warning  'url' is defined but never used   @typescript-eslint/no-unused-vars
+  6:18  warning  'url' is defined but never used   @typescript-eslint/no-unused-vars
+  6:31  warning  'data' is defined but never used  @typescript-eslint/no-unused-vars
+
+/media/aldyansyah/DATA_STORAGE/desa_cimanggu_1_Next.js/src/types/next-auth.d.ts
+  2:8  warning  'NextAuth' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 973 problems (67 errors, 906 warnings)
+
+npm error Missing script: "test"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /home/aldyansyah/.npm/_logs/2026-07-27T12_23_02_826Z-debug-0.log
+
+> temp-app@0.1.0 build
+> cross-env NODE_OPTIONS='--max-old-space-size=6144' next build
+
+▲ Next.js 16.2.4 (Turbopack)
+- Environments: .env
+- Cache Components enabled
+- Experiments (use with caution):
+  · optimizePackageImports
+  · serverActions
+
+  Creating an optimized production build ...

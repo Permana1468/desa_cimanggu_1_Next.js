@@ -1,0 +1,43 @@
+npm warn EBADENGINE Unsupported engine {
+npm warn EBADENGINE   package: '@prisma/streams-local@0.1.2',
+npm warn EBADENGINE   required: { bun: '>=1.3.6', node: '>=22.0.0' },
+npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+npm warn EBADENGINE }
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported
+npm warn deprecated lodash.isequal@4.5.0: This package is deprecated. Use require('node:util').isDeepStrictEqual instead.
+npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated fstream@1.0.12: This package is no longer supported.
+npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+
+> temp-app@0.1.0 postinstall
+> prisma generate
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.prisma.
+warn Preview feature "driverAdapters" is deprecated. The functionality can be used without specifying it as a preview feature.
+
+✔ Generated Prisma Client (v7.8.0) to ./node_modules/@prisma/client in 1.92s
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+
+
+added 929 packages, and audited 930 packages in 59s
+
+302 packages are looking for funding
+  run `npm fund` for details
+
+16 vulnerabilities (1 low, 4 moderate, 9 high, 2 critical)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues possible, run:
+  npm audit fix --force
+
+Some issues need review, and may require choosing
+a different dependency.
+
+Run `npm audit` for details.
