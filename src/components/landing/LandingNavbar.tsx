@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronDown, ChevronRight, ShieldCheck, Sparkles, Sun, Moon } from 'lucide-react';
+import { ChevronDown, ChevronRight, ShieldCheck, Sparkles, Sun, Moon, QrCode } from 'lucide-react';
 import { useLandingTheme } from './LandingThemeProvider';
 
 interface LandingNavbarProps {
@@ -274,16 +274,26 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                 </nav>
 
                 {/* Right Action Area */}
-                <div className="hidden lg:flex items-center gap-4">
+                <div className="hidden lg:flex items-center gap-3">
                     {/* Theme Toggle Button */}
                     <button
                         onClick={toggleNightMode}
-                        className="p-2.5 rounded-full border border-cyan-500/30 text-yellow-400 bg-slate-900/60 backdrop-blur-md shadow-[0_0_15px_rgba(250,204,21,0.2)] hover:scale-110 transition-transform flex items-center justify-center relative overflow-hidden group"
+                        className="p-2.5 rounded-full border border-cyan-500/30 text-yellow-400 bg-slate-900/60 backdrop-blur-md shadow-[0_0_15px_rgba(250,204,21,0.2)] hover:scale-110 transition-transform flex items-center justify-center relative overflow-hidden group cursor-pointer"
                         title={isNightMode ? "Ganti ke Mode Normal" : "Ganti ke Mode Malam"}
                     >
                         <div className="absolute inset-0 bg-yellow-400/10 group-hover:bg-yellow-400/20 transition-colors" />
                         {isNightMode ? <Sun size={18} className="animate-spin-slow" /> : <Moon size={18} className="text-slate-200" />}
                     </button>
+
+                    {/* Public Absensi Circular Kiosk Button */}
+                    <Link
+                        href="/absensi"
+                        className="p-2.5 rounded-full border border-emerald-500/40 text-emerald-400 bg-slate-900/80 backdrop-blur-md shadow-[0_0_15px_rgba(16,185,129,0.35)] hover:scale-110 hover:border-emerald-400 transition-all flex items-center justify-center relative overflow-hidden group cursor-pointer"
+                        title="Halaman Absensi Full Screen (Public Kiosk Scanner)"
+                    >
+                        <div className="absolute inset-0 bg-emerald-500/10 group-hover:bg-emerald-500/25 transition-colors" />
+                        <QrCode size={18} className="animate-pulse text-emerald-300" />
+                    </Link>
 
                     <Link 
                         href="/login"  
