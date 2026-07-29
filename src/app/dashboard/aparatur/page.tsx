@@ -47,6 +47,46 @@ export const KATEGORI_LEMBAGA_LIST = [
   "PUSKESOS"
 ];
 
+// Robust Base64 Code-39 1D Linear Barcode Generator
+function generateBarcodeBase64(text: string): string {
+  const code = (text || "APR-DESA-001").toUpperCase().replace(/[^A-Z0-9-]/g, "");
+  
+  const charPatterns: Record<string, string> = {
+    '0': '101001101101', '1': '110100101011', '2': '101100101011', '3': '110110010101',
+    '4': '101001101011', '5': '110100110101', '6': '101100110101', '7': '101001011011',
+    '8': '110100101101', '9': '101100101101', 'A': '110101001011', 'B': '101101001011',
+    'C': '110110100101', 'D': '101011001011', 'E': '110101100101', 'F': '101101100101',
+    'G': '101010011011', 'H': '110101001101', 'I': '101101001101', 'J': '101011001101',
+    'K': '110101010011', 'L': '101101010011', 'M': '110110101001', 'N': '101011010011',
+    'O': '110101101001', 'P': '101101101001', 'Q': '101010110011', 'R': '110101011001',
+    'S': '101101011001', 'T': '101011011001', 'U': '110010101011', 'V': '100110101011',
+    'W': '110011010101', 'X': '100101101011', 'Y': '110010110101', 'Z': '100110110101',
+    '-': '100101011011', '.': '110010101101', ' ': '100110101101', '*': '100101101101'
+  };
+
+  const fullCode = `*${code}*`;
+  let bits = "";
+  for (let i = 0; i < fullCode.length; i++) {
+    const ch = fullCode[i];
+    bits += (charPatterns[ch] || charPatterns['0']) + "0";
+  }
+
+  const barW = 2.5;
+  const h = 45;
+  const totalW = bits.length * barW;
+
+  let rects = "";
+  for (let i = 0; i < bits.length; i++) {
+    if (bits[i] === '1') {
+      rects += `<rect x="${(i * barW).toFixed(1)}" y="0" width="${barW.toFixed(1)}" height="${h}" fill="#000000" />`;
+    }
+  }
+
+  const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="${h + 16}" viewBox="0 0 ${totalW} ${h + 16}" style="background:#ffffff;"><rect width="100%" height="100%" fill="#ffffff"/>${rects}<text x="${totalW / 2}" y="${h + 13}" font-family="monospace" font-size="11" font-weight="bold" text-anchor="middle" fill="#000000">${code}</text></svg>`;
+
+  return "data:image/svg+xml;base64," + (typeof window !== "undefined" ? btoa(svgStr) : Buffer.from(svgStr).toString("base64"));
+}
+
 // Pure 2D Square QR Code SVG Base64 Generator (Barcode Kotak)
 function generateQrCodeBase64(text: string): string {
   const clean = (text || "APR-DESA-001").trim().toUpperCase();
@@ -385,17 +425,18 @@ export default function AparaturPage() {
     });
   }, [aparatur, selectedKategori, search]);
 
-  // Print 2-Sided ID Card Handler (Depan & Belakang dengan QR Code Kotak - Standard 1 Lembar A4/F4)
+  // Print 2-Sided ID Card Handler (Depan & Belakang dengan QR Code Kotak + 1D Barcode - Standard 1 Lembar A4/F4)
   const handlePrintCard = async (person: any) => {
     const barcodeCode = person.barcodeId || person.nik || `APR-DESA-${person.id.slice(0, 5)}`;
+    const barcode1DBase64 = generateBarcodeBase64(barcodeCode);
     let qrBase64 = "";
     try {
       qrBase64 = await QRCode.toDataURL(barcodeCode, {
-        margin: 1,
-        width: 350,
-        errorCorrectionLevel: "M",
+        margin: 2,
+        width: 400,
+        errorCorrectionLevel: "H",
         color: {
-          dark: "#0f172a",
+          dark: "#000000",
           light: "#ffffff"
         }
       });
@@ -741,10 +782,12 @@ export default function AparaturPage() {
           <div class="qr-container">
             <img src="${qrBase64}" class="qr-img" alt="QR Code Kotak ${barcodeCode}" />
           </div>
+          <div style="width: 100%; text-align: center; margin-bottom: 1.5mm;">
+            <img src="${barcode1DBase64}" style="width: 90%; height: 7mm; object-fit: contain; margin: 0 auto; display: block;" alt="Barcode 1D ${barcodeCode}" />
+          </div>
           <div class="barcode-text">${barcodeCode}</div>
           <p class="back-desc">
-            Gunakan QR Code Kotak ini pada Mesin Scanner Absensi Desa Cimanggu I.<br>
-            Jika kartu ini ditemukan, harap dikembalikan ke Kantor Desa.
+            Scan QR Code / Barcode ini pada Mesin Scanner Absensi Desa Cimanggu I.
           </p>
         </div>
 

@@ -148,12 +148,54 @@ export function EAbsensiTab({ session }: { session?: any }) {
     }
   }, []);
 
-  // Keep scanner input focused for USB Hardware Scanner
+  // Keep scanner input focused & GLOBAL USB HARDWARE SCANNER KEYSTROKE LISTENER
+  const scanBufferRef = useRef<string>("");
+  const lastKeyTimeRef = useRef<number>(0);
+
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
     }
-  }, []);
+
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      if (activeEl && activeEl.tagName === "INPUT" && activeEl !== inputRef.current && (activeEl as HTMLInputElement).type === "text") {
+        return;
+      }
+
+      const now = Date.now();
+      const timeDiff = now - lastKeyTimeRef.current;
+      lastKeyTimeRef.current = now;
+
+      if (e.key === "Enter") {
+        if (scanBufferRef.current.trim().length > 0) {
+          const codeToProcess = scanBufferRef.current.trim();
+          scanBufferRef.current = "";
+          processScanCode(codeToProcess);
+          setScanInput("");
+        }
+      } else if (e.key.length === 1) {
+        if (timeDiff > 250) {
+          scanBufferRef.current = "";
+        }
+        scanBufferRef.current += e.key;
+      }
+    };
+
+    const handleGlobalClick = () => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    window.addEventListener("click", handleGlobalClick);
+
+    return () => {
+      window.removeEventListener("keydown", handleGlobalKeyDown);
+      window.removeEventListener("click", handleGlobalClick);
+    };
+  }, [logs]);
 
   // Save logs to localStorage on change
   const saveLogs = (newLogs: any[]) => {
