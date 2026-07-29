@@ -24,7 +24,12 @@ import {
   Activity,
   Wifi,
   WifiOff,
-  Radio
+  Radio,
+  Settings,
+  Sliders,
+  X,
+  Save,
+  FileText
 } from "lucide-react";
 
 // Double-Tone High-Pitch Scanner Chime (BEEP-BEEP)
@@ -131,7 +136,34 @@ export function EAbsensiTab({ session }: { session?: any }) {
   const [isScannerConnected, setIsScannerConnected] = useState(true);
   const [scannerDeviceName, setScannerDeviceName] = useState("Iware USB 2D/1D Scanner");
 
+  // Attendance Settings State (Jam Masuk, Jam Pulang, Toleransi)
+  const [settings, setSettings] = useState({
+    jamMasuk: "07:00",
+    jamPulang: "16:00",
+    toleransiMenit: 0
+  });
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load Settings from localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedSettings = localStorage.getItem("e_absensi_settings");
+      if (savedSettings) {
+        try {
+          setSettings(JSON.parse(savedSettings));
+        } catch (e) {}
+      }
+    }
+  }, []);
+
+  const saveSettings = (newSettings: any) => {
+    setSettings(newSettings);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("e_absensi_settings", JSON.stringify(newSettings));
+    }
+  };
 
   // Web HID & USB HID Scanner Connection Listener
   useEffect(() => {
@@ -294,8 +326,12 @@ export function EAbsensiTab({ session }: { session?: any }) {
     );
     const tipe = todayLogsForPerson.length % 2 === 0 ? "MASUK" : "PULANG";
 
-    // Determine Status (Hadir Tepat Waktu vs Terlambat - Threshold 08:00)
-    const isLate = now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() > 0);
+    // Determine Status (Hadir Tepat Waktu vs Terlambat based on Settings jamMasuk + toleransiMenit)
+    const [targetH, targetM] = (settings.jamMasuk || "07:00").split(":").map(Number);
+    const targetMinutes = targetH * 60 + targetM + Number(settings.toleransiMenit || 0);
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const isLate = currentMinutes > targetMinutes;
     const status = tipe === "MASUK" ? (isLate ? "Terlambat" : "Tepat Waktu") : "Selesai Tugas";
 
     const aparaturName = matched ? (matched.name || matched.nama || `APARATUR (${code})`) : `APARATUR (${code})`;
@@ -333,6 +369,132 @@ export function EAbsensiTab({ session }: { session?: any }) {
       saveLogs([]);
       setLastScannedAparatur(null);
     }
+  };
+
+  // Print Official Formatted Report Window Handler
+  const handlePrintReport = () => {
+    if (filteredLogs.length === 0) {
+      alert("Tidak ada data presensi yang dipilih untuk dicetak!");
+      return;
+    }
+
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const dateNowStr = new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+
+    const rowsHtml = filteredLogs.map((log, i) => `
+      <tr>
+        <td style="text-align:center; padding: 6px; border: 1px solid #000;">${i + 1}</td>
+        <td style="padding: 6px; border: 1px solid #000; font-family: monospace;">${log.waktuScan || '-'}</td>
+        <td style="padding: 6px; border: 1px solid #000; font-family: monospace;">${log.barcodeId || '-'}</td>
+        <td style="padding: 6px; border: 1px solid #000; font-weight: bold;">${log.nama || '-'}</td>
+        <td style="padding: 6px; border: 1px solid #000;">${log.kategori || '-'}</td>
+        <td style="padding: 6px; border: 1px solid #000;">${log.jabatan || '-'}</td>
+        <td style="text-align:center; padding: 6px; border: 1px solid #000; font-weight: bold;">${log.tipe || '-'}</td>
+        <td style="text-align:center; padding: 6px; border: 1px solid #000; font-weight: bold; color: ${log.status === 'Terlambat' ? '#b91c1c' : '#15803d'};">${log.status || '-'}</td>
+      </tr>
+    `).join("");
+
+    printWindow.document.write(`<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>LAPORAN REKAPITULASI PRESENSI APARATUR DESA CIMANGGU I</title>
+  <style>
+    @page { size: F4 portrait; margin: 15mm 20mm; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Times New Roman', Times, serif; color: #000; padding: 20px; background: #fff; line-height: 1.3; }
+    
+    .kop-surat { display: flex; align-items: center; border-bottom: 4px double #000; padding-bottom: 12px; margin-bottom: 20px; }
+    .kop-logo { width: 70px; height: auto; margin-right: 15px; }
+    .kop-text { flex: 1; text-align: center; }
+    .kop-text h3 { font-size: 15pt; font-weight: bold; text-transform: uppercase; margin: 0; }
+    .kop-text h2 { font-size: 17pt; font-weight: bold; text-transform: uppercase; margin: 2px 0; }
+    .kop-text h1 { font-size: 20pt; font-weight: bold; text-transform: uppercase; margin: 2px 0; letter-spacing: 1px; }
+    .kop-text p { font-size: 9.5pt; font-style: italic; margin: 0; }
+
+    .doc-title { text-align: center; margin-bottom: 20px; }
+    .doc-title h2 { font-size: 14pt; text-decoration: underline; font-weight: bold; text-transform: uppercase; }
+    .doc-title p { font-size: 11pt; font-weight: bold; margin-top: 4px; }
+
+    .meta-info { font-size: 11pt; margin-bottom: 15px; display: flex; justify-content: space-between; }
+    
+    table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-bottom: 30px; }
+    th { background: #f2f2f2; border: 1px solid #000; padding: 8px 6px; text-transform: uppercase; font-size: 9.5pt; }
+    
+    .ttd-section { display: flex; justify-content: space-between; font-size: 11pt; margin-top: 40px; page-break-inside: avoid; }
+    .ttd-box { text-align: center; width: 45%; }
+    .ttd-space { height: 75px; }
+
+    @media print {
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="no-print" style="margin-bottom: 20px; text-align: right;">
+    <button onclick="window.print()" style="padding: 10px 20px; background: #16a34a; color: #fff; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">🖨️ Cetak Laporan Presensi</button>
+  </div>
+
+  <!-- KOP SURAT RESMI -->
+  <div class="kop-surat">
+    <img src="${origin}/images/logo-bogor.png" class="kop-logo" alt="Logo Kab Bogor" />
+    <div class="kop-text">
+      <h3>PEMERINTAH KABUPATEN BOGOR</h3>
+      <h2>KECAMATAN CIBUNGBULANG</h2>
+      <h1>DESA CIMANGGU I</h1>
+      <p>Jl. Raya Gardu Seri Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Kec. Cibungbulang Kab. Bogor - 16630</p>
+    </div>
+  </div>
+
+  <div class="doc-title">
+    <h2>LAPORAN REKAPITULASI PRESENSI APARATUR DESA</h2>
+    <p>Target Jam Masuk: ${settings.jamMasuk || '07:00'} WIB &bull; Filter Lembaga: ${filterKategori}</p>
+  </div>
+
+  <div class="meta-info">
+    <div><strong>Jumlah Record:</strong> ${filteredLogs.length} Data Absensi</div>
+    <div><strong>Tanggal Cetak:</strong> ${dateNowStr}</div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 30px;">NO</th>
+        <th>WAKTU SCAN</th>
+        <th>BARCODE ID / NIK</th>
+        <th>NAMA APARATUR</th>
+        <th>KATEGORI LEMBAGA</th>
+        <th>JABATAN</th>
+        <th style="width: 60px;">TIPE</th>
+        <th style="width: 90px;">STATUS</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rowsHtml}
+    </tbody>
+  </table>
+
+  <div class="ttd-section">
+    <div class="ttd-box">
+      <p>Mengetahui,</p>
+      <p><strong>KEPALA DESA CIMANGGU I</strong></p>
+      <div class="ttd-space"></div>
+      <p><strong><u>HERNAWAN M. SODIK</u></strong></p>
+    </div>
+
+    <div class="ttd-box">
+      <p>Cimanggu I, ${dateNowStr}</p>
+      <p><strong>SEKRETARIS DESA CIMANGGU I</strong></p>
+      <div class="ttd-space"></div>
+      <p><strong><u>M. TONNY GUNAWAN</u></strong></p>
+    </div>
+  </div>
+</body>
+</html>`);
+    printWindow.document.close();
   };
 
   const handleExportCSV = () => {
@@ -555,7 +717,25 @@ export function EAbsensiTab({ session }: { session?: any }) {
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
+          <button
+            onClick={() => setShowSettingsModal(true)}
+            className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+            title="Atur Jam Masuk & Jam Pulang Absensi"
+          >
+            <Sliders size={14} />
+            <span>Pengaturan Jam ({settings.jamMasuk || "07:00"})</span>
+          </button>
+
+          <button
+            onClick={handlePrintReport}
+            className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+            title="Cetak Format Laporan Presensi Resmi (Kop Surat & TTD)"
+          >
+            <Printer size={14} />
+            <span>Cetak Format Laporan</span>
+          </button>
+
           <button
             onClick={handleExportCSV}
             className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
@@ -573,6 +753,72 @@ export function EAbsensiTab({ session }: { session?: any }) {
           </button>
         </div>
       </div>
+
+      {/* MODAL PENGATURAN JAM KERJA & ABSENSI */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowSettingsModal(false)} />
+          <div className="bg-white rounded-3xl w-full max-w-md relative z-10 shadow-2xl overflow-hidden flex flex-col">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-emerald-700 text-white">
+              <div className="flex items-center gap-2">
+                <Settings size={20} />
+                <h2 className="text-base font-bold tracking-tight">Pengaturan Jam Masuk & Absensi</h2>
+              </div>
+              <button onClick={() => setShowSettingsModal(false)} className="p-1.5 hover:bg-emerald-800 rounded-xl transition-all cursor-pointer">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 text-xs bg-white">
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Batas Jam Masuk (Tepat Waktu)</label>
+                <input
+                  type="time"
+                  value={settings.jamMasuk}
+                  onChange={(e) => setSettings({ ...settings, jamMasuk: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 font-mono font-bold text-slate-900 focus:border-emerald-500 transition-all outline-none"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">*Jika scan masuk melebihi jam ini, status otomatis TERLAMBAT.</p>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Jam Minimal Pulang</label>
+                <input
+                  type="time"
+                  value={settings.jamPulang}
+                  onChange={(e) => setSettings({ ...settings, jamPulang: e.target.value })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 font-mono font-bold text-slate-900 focus:border-emerald-500 transition-all outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 mb-1">Toleransi Keterlambatan (Menit)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="60"
+                  value={settings.toleransiMenit}
+                  onChange={(e) => setSettings({ ...settings, toleransiMenit: parseInt(e.target.value) || 0 })}
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 font-bold text-slate-900 focus:border-emerald-500 transition-all outline-none"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">Misal 15 menit: Jam masuk 07:00 + 15 menit = 07:15 masih Tepat Waktu.</p>
+              </div>
+
+              <button
+                onClick={() => {
+                  saveSettings(settings);
+                  setShowSettingsModal(false);
+                  alert("✓ Pengaturan Jam Kerja & Absensi Berhasil Disimpan!");
+                }}
+                className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Save size={16} />
+                <span>Simpan Pengaturan</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TABEL HASIL SCAN ABSENSI */}
       <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">

@@ -104,13 +104,26 @@ export default function PublicAbsensiKioskPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Load E-Absensi logs from localStorage
+  const [settings, setSettings] = useState({
+    jamMasuk: "07:00",
+    jamPulang: "16:00",
+    toleransiMenit: 0
+  });
+
+  // Load E-Absensi logs & settings from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedLogs = localStorage.getItem("e_absensi_logs");
       if (savedLogs) {
         try {
           setLogs(JSON.parse(savedLogs));
+        } catch (e) {}
+      }
+
+      const savedSettings = localStorage.getItem("e_absensi_settings");
+      if (savedSettings) {
+        try {
+          setSettings(JSON.parse(savedSettings));
         } catch (e) {}
       }
     }
@@ -250,8 +263,12 @@ export default function PublicAbsensiKioskPage() {
     );
     const tipe = todayLogsForPerson.length % 2 === 0 ? "MASUK" : "PULANG";
 
-    // Determine Status (Threshold 08:00)
-    const isLate = now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() > 0);
+    // Determine Status (Hadir Tepat Waktu vs Terlambat based on Settings jamMasuk + toleransiMenit)
+    const [targetH, targetM] = (settings.jamMasuk || "07:00").split(":").map(Number);
+    const targetMinutes = targetH * 60 + targetM + Number(settings.toleransiMenit || 0);
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const isLate = currentMinutes > targetMinutes;
     const status = tipe === "MASUK" ? (isLate ? "Terlambat" : "Tepat Waktu") : "Selesai Tugas";
 
     const aparaturName = matched ? (matched.name || matched.nama || `APARATUR (${code})`) : `APARATUR (${code})`;
