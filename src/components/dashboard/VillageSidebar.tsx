@@ -55,7 +55,9 @@ import {
   FolderArchive,
   Monitor,
   Terminal,
-  FileCheck
+  FileCheck,
+  QrCode,
+  ScanLine
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -70,6 +72,7 @@ const menuItems = [
   { name: "Log & Sistem", icon: Terminal, href: "/dashboard/sistem" },
   { name: "Profil Desa", icon: UserCircle, href: "/dashboard/profil" },
   { name: "Aparatur Desa", icon: Users, href: "/dashboard/aparatur" },
+  { name: "E-ABSENSI", icon: QrCode, href: "/dashboard/e-absensi" },
   { name: "Kelembagaan", icon: Building2, href: "/dashboard/kelembagaan" },
   { name: "BUMDES", icon: Store, href: "/dashboard/bumdes" },
   { name: "Infrastruktur", icon: HardHat, href: "/dashboard/infrastruktur" },
