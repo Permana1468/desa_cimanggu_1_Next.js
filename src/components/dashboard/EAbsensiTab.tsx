@@ -275,19 +275,17 @@ export function EAbsensiTab({ session }: { session?: any }) {
     const isLate = now.getHours() > 8 || (now.getHours() === 8 && now.getMinutes() > 0);
     const status = tipe === "MASUK" ? (isLate ? "Terlambat" : "Tepat Waktu") : "Selesai Tugas";
 
-    const aparaturData = matched || {
-      barcodeId: code,
-      nama: `APARATUR (${code})`,
-      kategori: "Perangkat Desa",
-      jabatan: "Aparatur Desa"
-    };
+    const aparaturName = matched ? (matched.nama || matched.name || `APARATUR (${code})`) : `APARATUR (${code})`;
+    const aparaturPosition = matched ? (matched.jabatan || matched.position || "Aparatur Desa") : "Aparatur Desa";
+    const aparaturKategori = matched ? (matched.kategori || "Perangkat Desa") : "Perangkat Desa";
+    const aparaturBarcodeId = matched ? (matched.barcodeId || matched.nik || code) : code;
 
     const newLogEntry = {
       id: `LOG-${Date.now()}`,
-      barcodeId: aparaturData.barcodeId || code,
-      nama: aparaturData.nama,
-      kategori: aparaturData.kategori || "Perangkat Desa",
-      jabatan: aparaturData.jabatan || "Aparatur",
+      barcodeId: aparaturBarcodeId,
+      nama: aparaturName,
+      kategori: aparaturKategori,
+      jabatan: aparaturPosition,
       waktuScan: fullTimeStr,
       tipe,
       status,
@@ -324,13 +322,13 @@ export function EAbsensiTab({ session }: { session?: any }) {
     const headers = ["No", "Waktu Scan", "Barcode ID", "Nama Aparatur", "Kategori Lembaga", "Jabatan", "Tipe", "Status"];
     const rows = logs.map((l, i) => [
       i + 1,
-      `"${l.waktuScan}"`,
-      `"${l.barcodeId}"`,
-      `"${l.nama}"`,
-      `"${l.kategori}"`,
-      `"${l.jabatan}"`,
-      `"${l.tipe}"`,
-      `"${l.status}"`
+      `"${l.waktuScan || ''}"`,
+      `"${l.barcodeId || ''}"`,
+      `"${l.nama || l.name || ''}"`,
+      `"${l.kategori || ''}"`,
+      `"${l.jabatan || l.position || ''}"`,
+      `"${l.tipe || ''}"`,
+      `"${l.status || ''}"`
     ]);
 
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
@@ -343,15 +341,21 @@ export function EAbsensiTab({ session }: { session?: any }) {
     document.body.removeChild(link);
   };
 
-  // Filtered Logs for Table Display
+  // Filtered Logs for Table Display (Safe Optional Chaining)
   const filteredLogs = useMemo(() => {
     return logs.filter(l => {
+      if (!l) return false;
+      const namaStr = (l.nama || l.name || "").toLowerCase();
+      const barcodeIdStr = (l.barcodeId || "").toLowerCase();
+      const jabatanStr = (l.jabatan || l.position || "").toLowerCase();
+      const searchStr = (search || "").toLowerCase();
+
       const matchSearch = 
-        l.nama.toLowerCase().includes(search.toLowerCase()) ||
-        l.barcodeId.toLowerCase().includes(search.toLowerCase()) ||
-        l.jabatan.toLowerCase().includes(search.toLowerCase());
+        namaStr.includes(searchStr) ||
+        barcodeIdStr.includes(searchStr) ||
+        jabatanStr.includes(searchStr);
       const matchKategori = filterKategori === "SEMUA" || l.kategori === filterKategori;
-      const matchTanggal = !filterTanggal || l.waktuScan.startsWith(filterTanggal);
+      const matchTanggal = !filterTanggal || (l.waktuScan && l.waktuScan.startsWith(filterTanggal));
       return matchSearch && matchKategori && matchTanggal;
     });
   }, [logs, search, filterKategori, filterTanggal]);
