@@ -970,14 +970,15 @@ export default function AparaturPage() {
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Barcode ID Absensi (Auto-Generated jika kosong)</label>
+                  <label className="block font-bold text-slate-700 mb-1">Barcode ID Absensi</label>
                   <input
                     type="text"
-                    placeholder="misal: APR-PRK-001"
+                    placeholder="Contoh: APR-PRK-001 / NIK (Bisa dikosongkan)"
                     value={formData.barcodeId}
                     onChange={(e) => setFormData({ ...formData, barcodeId: e.target.value.toUpperCase() })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 font-mono font-bold text-slate-900 focus:border-blue-500 focus:bg-white transition-all outline-none"
                   />
+                  <p className="text-[10px] text-blue-600 font-semibold mt-1">*Bisa dikosongkan (Sistem akan buatkan kode unik otomatis saat disimpan)</p>
                 </div>
 
                 <div>
@@ -1087,10 +1088,12 @@ export default function AparaturPage() {
                   <label className="block font-bold text-slate-700 mb-1">Barcode ID Absensi</label>
                   <input
                     type="text"
+                    placeholder="Contoh: APR-PRK-001"
                     value={formData.barcodeId}
                     onChange={(e) => setFormData({ ...formData, barcodeId: e.target.value.toUpperCase() })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 px-3 font-mono font-bold text-slate-900 focus:border-amber-500 focus:bg-white transition-all outline-none"
                   />
+                  <p className="text-[10px] text-amber-600 font-semibold mt-1">*Kode unik yang terhubung dengan QR Code Kotak pada ID Card</p>
                 </div>
 
                 <div>

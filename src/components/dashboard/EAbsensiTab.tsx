@@ -159,12 +159,23 @@ export function EAbsensiTab({ session }: { session?: any }) {
     const code = codeRaw.trim().toUpperCase();
     if (!code) return;
 
+    const cleanScan = code.replace(/[^A-Z0-9]/g, "");
     const db = getAparaturDB();
+
     const matched = db.find(
-      (a: any) => 
-        a.barcodeId.toUpperCase() === code || 
-        a.nik === code || 
-        (a.id && a.id.toUpperCase() === code)
+      (a: any) => {
+        const bCode = (a.barcodeId || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+        const nikCode = (a.nik || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+        const idCode = (a.id || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+        const nameCode = (a.name || a.nama || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+        return (
+          (bCode && bCode === cleanScan) || 
+          (nikCode && nikCode === cleanScan) || 
+          (idCode && idCode === cleanScan) ||
+          (cleanScan.length >= 4 && (bCode.includes(cleanScan) || nameCode.includes(cleanScan)))
+        );
+      }
     );
 
     const now = new Date();
