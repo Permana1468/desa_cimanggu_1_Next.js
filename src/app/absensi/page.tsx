@@ -312,65 +312,67 @@ export default function PublicAbsensiKioskPage() {
       <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-30 pointer-events-none" />
 
       {/* TOP HEADER NAVIGATION */}
-      <header className="relative z-20 px-8 py-6 border-b border-emerald-500/20 bg-slate-950/80 backdrop-blur-2xl flex items-center justify-between shadow-2xl">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 p-0.5 shadow-lg shadow-emerald-500/20 flex items-center justify-center">
-            <Image src="/images/logo-bogor.png" width={40} height={40} alt="Logo Kab Bogor" className="object-contain" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-black tracking-wider text-white uppercase">PEMERINTAH DESA CIMANGGU I</h1>
-              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 font-bold text-[10px] uppercase tracking-widest flex items-center gap-1">
-                <Sparkles size={10} className="text-emerald-400 animate-bounce" /> Kiosk E-Absensi
-              </span>
+      <header className="relative z-20 px-4 sm:px-8 py-4 sm:py-6 border-b border-emerald-500/20 bg-slate-950/90 backdrop-blur-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xl">
+        <div className="flex items-center gap-3.5 w-full sm:w-auto justify-between sm:justify-start">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 p-0.5 shadow-lg shadow-emerald-500/20 flex items-center justify-center shrink-0">
+              <Image src="/images/logo-bogor.png" width={36} height={36} alt="Logo Kab Bogor" className="object-contain" />
             </div>
-            <p className="text-xs font-semibold text-slate-400 tracking-wide">Kecamatan Cibungbulang &bull; Kabupaten Bogor</p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-sm sm:text-base md:text-lg font-black tracking-wider text-white uppercase">PEMERINTAH DESA CIMANGGU I</h1>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 font-bold text-[9px] sm:text-[10px] uppercase tracking-widest flex items-center gap-1 shrink-0">
+                  <Sparkles size={10} className="text-emerald-400 animate-bounce" /> Kiosk Absensi
+                </span>
+              </div>
+              <p className="text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wide">Kecamatan Cibungbulang &bull; Kabupaten Bogor</p>
+            </div>
           </div>
         </div>
 
         {/* CLOCK & ACTION CONTROLS */}
-        <div className="flex items-center gap-6">
-          <div className="text-right hidden sm:block">
-            <div className="text-2xl font-black font-mono text-emerald-400 tracking-wider drop-shadow-[0_0_12px_rgba(52,211,153,0.4)]">
-              {timeStr || "00:00:00"} <span className="text-xs font-sans text-emerald-200">WIB</span>
+        <div className="flex items-center gap-4 sm:gap-6 w-full sm:w-auto justify-between sm:justify-end border-t sm:border-t-0 border-slate-800/80 pt-3 sm:pt-0">
+          <div className="text-left sm:text-right">
+            <div className="text-lg sm:text-2xl font-black font-mono text-emerald-400 tracking-wider drop-shadow-[0_0_12px_rgba(52,211,153,0.4)]">
+              {timeStr || "00:00:00"} <span className="text-[10px] sm:text-xs font-sans text-emerald-200">WIB</span>
             </div>
-            <p className="text-xs font-bold text-slate-400 capitalize">{dateStr}</p>
+            <p className="text-[10px] sm:text-xs font-bold text-slate-400 capitalize">{dateStr}</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`p-3 rounded-2xl border transition-all flex items-center justify-center cursor-pointer ${
+              className={`p-2.5 sm:p-3 rounded-2xl border transition-all flex items-center justify-center cursor-pointer ${
                 soundEnabled 
                   ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]" 
                   : "bg-slate-900 border-slate-800 text-slate-500"
               }`}
               title={soundEnabled ? "Suara Beep Aktif" : "Suara Beep Bisu"}
             >
-              {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+              {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
             </button>
 
             <button
               onClick={toggleFullscreen}
-              className="p-3 rounded-2xl border border-slate-800 bg-slate-900 text-slate-300 hover:text-white hover:border-slate-700 transition-all cursor-pointer"
+              className="p-2.5 sm:p-3 rounded-2xl border border-slate-800 bg-slate-900 text-slate-300 hover:text-white hover:border-slate-700 transition-all cursor-pointer"
               title="Full Screen Mode"
             >
-              {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+              {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
             </button>
 
             <Link
               href="/"
-              className="px-5 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-emerald-500/40 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
+              className="px-3.5 sm:px-5 py-2.5 sm:py-3 rounded-2xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-white hover:border-emerald-500/40 text-xs font-bold transition-all flex items-center gap-2 cursor-pointer"
             >
-              <ArrowLeft size={16} />
-              <span className="hidden md:inline">Kembali ke Beranda</span>
+              <ArrowLeft size={15} />
+              <span className="hidden sm:inline">Beranda</span>
             </Link>
           </div>
         </div>
       </header>
 
       {/* MAIN HERO KIOSK AREA */}
-      <main className="relative z-10 flex-1 max-w-6xl w-full mx-auto p-6 md:p-10 flex flex-col justify-center gap-8">
+      <main className="relative z-10 flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 md:p-10 flex flex-col justify-center gap-6 sm:gap-8">
         
         {/* SCANNER HARDWARE STATUS CARD */}
         <div className="bg-slate-900/80 border-2 border-emerald-500/40 backdrop-blur-2xl rounded-3xl p-5 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">

@@ -167,7 +167,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
 
                 {/* Desktop Cyber Nav Menu */}
                 <nav
-                    className="hidden lg:flex relative items-center bg-slate-900/60 backdrop-blur-xl border border-cyan-500/30 rounded-full p-1.5 shadow-[0_0_20px_rgba(6,182,212,0.15)]"
+                    className="hidden xl:flex relative items-center bg-slate-900/60 backdrop-blur-xl border border-cyan-500/30 rounded-full p-1 shadow-[0_0_20px_rgba(6,182,212,0.15)] shrink-0"
                     onMouseLeave={() => {
                         handleMouseLeave();
                         handleMouseLeaveDropdown();
@@ -175,7 +175,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                 >
                     {/* Glowing Selection Pill */}
                     <div
-                        className="absolute top-1.5 bottom-1.5 bg-gradient-to-r from-yellow-500/30 to-amber-500/30 border border-yellow-400/50 rounded-full transition-all duration-300 ease-out z-0 shadow-[0_0_15px_rgba(250,204,21,0.4)]"
+                        className="absolute top-1 bottom-1 bg-gradient-to-r from-yellow-500/30 to-amber-500/30 border border-yellow-400/50 rounded-full transition-all duration-300 ease-out z-0 shadow-[0_0_15px_rgba(250,204,21,0.4)]"
                         style={{
                             left: `${pillStyle.left}px`,
                             width: `${pillStyle.width}px`,
@@ -184,7 +184,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                     />
 
                     {navMenuItems.map((menu, idx) => {
-                        const commonClass = `relative z-10 px-4 py-2 text-[12px] xl:text-[13px] font-bold tracking-wide uppercase transition-colors duration-300 flex items-center gap-1.5 cursor-pointer ${
+                        const commonClass = `relative z-10 px-3 xl:px-4 py-1.5 text-[11px] xl:text-[12.5px] font-bold tracking-wide uppercase transition-colors duration-300 flex items-center gap-1 cursor-pointer ${
                             activeIndex === idx ? 'text-yellow-400' : 'text-slate-300 hover:text-yellow-400'
                         }`;
 
@@ -212,7 +212,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                                         <span>{menu.name}</span>
                                         {menu.hasDropdown && (
                                             <ChevronDown 
-                                                size={14} 
+                                                size={13} 
                                                 className={`opacity-70 transition-transform duration-300 ${activeDropdown === menu.id ? 'rotate-180 text-yellow-400' : ''}`} 
                                             />
                                         )}
@@ -222,22 +222,22 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                                 {/* Dropdown Megamenu (Informasi Publik) */}
                                 {menu.hasDropdown && menu.id === 'informasi-publik' && activeDropdown === 'informasi-publik' && (
                                     <div
-                                        className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[600px] bg-slate-950/95 backdrop-blur-2xl border border-cyan-500/30 rounded-[2rem] p-7 shadow-[0_10px_40px_rgba(6,182,212,0.3)] z-50 animate-in fade-in slide-in-from-top-3 duration-300 flex gap-8"
+                                        className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[550px] bg-slate-950/95 backdrop-blur-2xl border border-cyan-500/30 rounded-[2rem] p-6 shadow-[0_10px_40px_rgba(6,182,212,0.3)] z-50 animate-in fade-in slide-in-from-top-3 duration-300 flex gap-6"
                                         onMouseEnter={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
                                         onMouseLeave={handleMouseLeaveDropdown}
                                     >
                                         {menu.columns?.map((column, cIdx) => (
-                                            <div key={cIdx} className="flex-1 space-y-4">
+                                            <div key={cIdx} className="flex-1 space-y-3">
                                                 <div className="text-[11px] font-black text-cyan-400 uppercase tracking-widest pb-2 border-b border-cyan-500/20 flex items-center gap-1.5">
                                                     <Sparkles size={12} /> {column.title}
                                                 </div>
-                                                <div className="flex flex-col gap-2">
+                                                <div className="flex flex-col gap-1.5">
                                                     {column.items.map((subItem, sIdx) => (
                                                         <a
                                                             key={sIdx}
                                                             href={`#${subItem.id}`}
                                                             onClick={() => setActiveDropdown(null)}
-                                                            className="text-slate-300 hover:text-yellow-400 text-[13px] font-semibold transition-colors block py-1 hover:translate-x-1 duration-200"
+                                                            className="text-slate-300 hover:text-yellow-400 text-[12px] font-semibold transition-colors block py-1 hover:translate-x-1 duration-200"
                                                         >
                                                             {subItem.name}
                                                         </a>
@@ -251,7 +251,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                                 {/* Standard Dropdown */}
                                 {menu.hasDropdown && menu.id !== 'informasi-publik' && activeDropdown === menu.id && (
                                     <div
-                                        className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[230px] bg-slate-950/95 backdrop-blur-2xl border border-cyan-500/30 rounded-[1.5rem] p-4 shadow-[0_10px_40px_rgba(6,182,212,0.3)] z-50 animate-in fade-in slide-in-from-top-3 duration-300 flex flex-col gap-1.5"
+                                        className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[220px] bg-slate-950/95 backdrop-blur-2xl border border-cyan-500/30 rounded-[1.5rem] p-3.5 shadow-[0_10px_40px_rgba(6,182,212,0.3)] z-50 animate-in fade-in slide-in-from-top-3 duration-300 flex flex-col gap-1.5"
                                         onMouseEnter={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
                                         onMouseLeave={handleMouseLeaveDropdown}
                                     >
@@ -260,7 +260,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                                                 key={sIdx}
                                                 href={`#${subItem.id}`}
                                                 onClick={() => setActiveDropdown(null)}
-                                                className="text-slate-300 hover:text-yellow-400 text-[13px] font-semibold py-2 px-3.5 rounded-xl hover:bg-cyan-500/10 transition-all flex items-center justify-between group/sub"
+                                                className="text-slate-300 hover:text-yellow-400 text-[12px] font-semibold py-1.5 px-3 rounded-xl hover:bg-cyan-500/10 transition-all flex items-center justify-between group/sub"
                                             >
                                                 <span>{subItem.name}</span>
                                                 <ChevronRight size={14} className="text-slate-500 group-hover/sub:text-yellow-400 group-hover/sub:translate-x-1 transition-transform" />
@@ -274,32 +274,32 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                 </nav>
 
                 {/* Right Action Area */}
-                <div className="hidden lg:flex items-center gap-3">
+                <div className="hidden lg:flex items-center gap-2.5 shrink-0">
                     {/* Theme Toggle Button */}
                     <button
                         onClick={toggleNightMode}
-                        className="p-2.5 rounded-full border border-cyan-500/30 text-yellow-400 bg-slate-900/60 backdrop-blur-md shadow-[0_0_15px_rgba(250,204,21,0.2)] hover:scale-110 transition-transform flex items-center justify-center relative overflow-hidden group cursor-pointer"
+                        className="p-2 rounded-full border border-cyan-500/30 text-yellow-400 bg-slate-900/60 backdrop-blur-md shadow-[0_0_15px_rgba(250,204,21,0.2)] hover:scale-110 transition-transform flex items-center justify-center relative overflow-hidden group cursor-pointer"
                         title={isNightMode ? "Ganti ke Mode Normal" : "Ganti ke Mode Malam"}
                     >
                         <div className="absolute inset-0 bg-yellow-400/10 group-hover:bg-yellow-400/20 transition-colors" />
-                        {isNightMode ? <Sun size={18} className="animate-spin-slow" /> : <Moon size={18} className="text-slate-200" />}
+                        {isNightMode ? <Sun size={17} className="animate-spin-slow" /> : <Moon size={17} className="text-slate-200" />}
                     </button>
 
                     {/* Public Absensi Circular Kiosk Button */}
                     <Link
                         href="/absensi"
-                        className="p-2.5 rounded-full border border-emerald-500/40 text-emerald-400 bg-slate-900/80 backdrop-blur-md shadow-[0_0_15px_rgba(16,185,129,0.35)] hover:scale-110 hover:border-emerald-400 transition-all flex items-center justify-center relative overflow-hidden group cursor-pointer"
+                        className="p-2 rounded-full border border-emerald-500/40 text-emerald-400 bg-slate-900/80 backdrop-blur-md shadow-[0_0_15px_rgba(16,185,129,0.35)] hover:scale-110 hover:border-emerald-400 transition-all flex items-center justify-center relative overflow-hidden group cursor-pointer"
                         title="Halaman Absensi Full Screen (Public Kiosk Scanner)"
                     >
                         <div className="absolute inset-0 bg-emerald-500/10 group-hover:bg-emerald-500/25 transition-colors" />
-                        <QrCode size={18} className="animate-pulse text-emerald-300" />
+                        <QrCode size={17} className="animate-pulse text-emerald-300" />
                     </Link>
 
                     <Link 
                         href="/login"  
-                        className="relative group bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-300 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] flex items-center gap-2"
+                        className="relative group bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-5 py-2 rounded-full text-[11px] xl:text-xs font-black uppercase tracking-wider transition-all duration-300 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] flex items-center gap-1.5 cursor-pointer"
                     >
-                        <ShieldCheck size={16} />
+                        <ShieldCheck size={15} />
                         <span>Masuk</span>
                     </Link>
                 </div>
