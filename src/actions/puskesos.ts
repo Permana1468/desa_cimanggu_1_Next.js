@@ -3,10 +3,30 @@
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
+const PRIMARY_TENANT_ID = "f93e947c-1a9b-47a3-913b-2ea2a4290732";
+
+function getTenantFilter(tenantId?: string) {
+  const ids = Array.from(new Set([
+    PRIMARY_TENANT_ID,
+    "desa_cimanggu_1",
+    "cimanggu-1",
+    "cimanggu1",
+    ...(tenantId ? [tenantId] : [])
+  ]));
+  return { tenantId: { in: ids } };
+}
+
+function resolveWriteTenantId(tenantId?: string) {
+  if (!tenantId || tenantId === "desa_cimanggu_1" || tenantId === "cimanggu-1" || tenantId === "cimanggu1") {
+    return PRIMARY_TENANT_ID;
+  }
+  return tenantId;
+}
+
 // --- Pengaduan & Keluhan ---
-export async function getPuskesosPengaduan(tenantId: string) {
+export async function getPuskesosPengaduan(tenantId?: string) {
   return await prisma.puskesosPengaduan.findMany({
-    where: { tenantId },
+    where: getTenantFilter(tenantId),
     include: {
       warga: {
         select: { namaLengkap: true, nik: true, rt: true, rw: true, alamat: true }
@@ -32,7 +52,7 @@ export async function createPuskesosPengaduan(data: any) {
       wargaId: wargaId,
       jenisPengaduan: data.jenisPengaduan,
       deskripsi: data.deskripsi,
-      tenantId: data.tenantId,
+      tenantId: resolveWriteTenantId(data.tenantId),
       status: "MENUNGGU"
     }
   });
@@ -54,9 +74,9 @@ export async function updateStatusPengaduan(id: string, status: string, petugasI
 }
 
 // --- Manajemen Rujukan ---
-export async function getPuskesosRujukan(tenantId: string) {
+export async function getPuskesosRujukan(tenantId?: string) {
   return await prisma.puskesosRujukan.findMany({
-    where: { tenantId },
+    where: getTenantFilter(tenantId),
     include: {
       warga: {
         select: { namaLengkap: true, nik: true }
@@ -82,7 +102,7 @@ export async function createPuskesosRujukan(data: any) {
       instansiTujuan: data.instansiTujuan,
       nomorSuratRujukan: data.nomorSuratRujukan,
       keteranganRujukan: data.keteranganRujukan,
-      tenantId: data.tenantId,
+      tenantId: resolveWriteTenantId(data.tenantId),
       status: "DRAFT"
     }
   });
@@ -91,9 +111,9 @@ export async function createPuskesosRujukan(data: any) {
 }
 
 // --- Program & Kegiatan ---
-export async function getPuskesosKegiatan(tenantId: string) {
+export async function getPuskesosKegiatan(tenantId?: string) {
   return await prisma.puskesosKegiatan.findMany({
-    where: { tenantId },
+    where: getTenantFilter(tenantId),
     orderBy: { tanggal: 'desc' }
   });
 }
@@ -106,7 +126,7 @@ export async function createPuskesosKegiatan(data: any) {
       lokasi: data.lokasi,
       tanggal: new Date(data.tanggal),
       dokumentasi: data.dokumentasi || null,
-      tenantId: data.tenantId,
+      tenantId: resolveWriteTenantId(data.tenantId),
       status: "RENCANA"
     }
   });
@@ -115,9 +135,9 @@ export async function createPuskesosKegiatan(data: any) {
 }
 
 // --- Pengurus ---
-export async function getPuskesosPengurus(tenantId: string) {
+export async function getPuskesosPengurus(tenantId?: string) {
   return await prisma.puskesosPengurus.findMany({
-    where: { tenantId, statusAktif: true },
+    where: { ...getTenantFilter(tenantId), statusAktif: true },
     orderBy: { nama: 'asc' }
   });
 }
@@ -128,7 +148,7 @@ export async function createPuskesosPengurus(data: any) {
       nama: data.nama,
       jabatan: data.jabatan,
       noHp: data.noHp,
-      tenantId: data.tenantId,
+      tenantId: resolveWriteTenantId(data.tenantId),
       statusAktif: true
     }
   });
@@ -137,15 +157,15 @@ export async function createPuskesosPengurus(data: any) {
 }
 
 // --- Buku Tamu ---
-export async function getPuskesosBukuTamu(tenantId: string) {
+export async function getPuskesosBukuTamu(tenantId?: string) {
   return await prisma.puskesosBukuTamu.findMany({
-    where: { tenantId },
+    where: getTenantFilter(tenantId),
     orderBy: { createdAt: 'desc' }
   });
 }
 
 export async function createPuskesosBukuTamu(data: {
-  tenantId: string;
+  tenantId?: string;
   namaLengkap: string;
   nik?: string;
   alamat: string;
@@ -156,7 +176,7 @@ export async function createPuskesosBukuTamu(data: {
 }) {
   const res = await prisma.puskesosBukuTamu.create({
     data: {
-      tenantId: data.tenantId,
+      tenantId: resolveWriteTenantId(data.tenantId),
       namaLengkap: data.namaLengkap,
       nik: data.nik || null,
       alamat: data.alamat,
@@ -207,4 +227,5 @@ export async function deletePuskesosBukuTamu(id: string) {
   revalidatePath('/dashboard/puskesos/buku-tamu');
   return res;
 }
+
 

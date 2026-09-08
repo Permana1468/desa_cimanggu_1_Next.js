@@ -20,14 +20,19 @@ async function getAdminSession() {
   return session;
 }
 
-const DEFAULT_TENANT_ID = "cimanggu1";
+const DEFAULT_TENANT_ID = "f93e947c-1a9b-47a3-913b-2ea2a4290732";
 let cachedTenantId: string | null = null;
 
 async function resolveTenantId() {
   if (cachedTenantId) return cachedTenantId;
   try {
-    const tenant = await prisma.tenant.findUnique({
-      where: { domain: "cimanggu1.desa.id" }
+    const tenant = await prisma.tenant.findFirst({
+      where: {
+        OR: [
+          { domain: "cimanggu1.desa.id" },
+          { id: DEFAULT_TENANT_ID }
+        ]
+      }
     });
     if (tenant) {
       cachedTenantId = tenant.id;
@@ -37,6 +42,18 @@ async function resolveTenantId() {
     console.error("Failed to resolve tenant ID:", error);
   }
   return DEFAULT_TENANT_ID;
+}
+
+async function getLandingTenantFilter() {
+  const resolved = await resolveTenantId();
+  const ids = Array.from(new Set([
+    resolved,
+    DEFAULT_TENANT_ID,
+    "desa_cimanggu_1",
+    "cimanggu-1",
+    "cimanggu1"
+  ]));
+  return { tenantId: { in: ids } };
 }
 
 function isMaleValue(val?: string | null): boolean {
@@ -59,11 +76,11 @@ function isKepalaKeluarga(val?: string | null): boolean {
 
 export async function getVillageStats() {
   try {
-    const tenantId = await resolveTenantId();
+    const tenantFilter = await getLandingTenantFilter();
     
     // Single optimized query to eliminate connection pool starvation and timeout
     const residents = await prisma.dataKependudukan.findMany({
-      where: { tenantId },
+      where: tenantFilter,
       select: { jenisKelamin: true, hubunganKeluarga: true, noKK: true }
     });
 
@@ -102,10 +119,10 @@ export async function getVillageStats() {
 
 export async function getLatestNews() {
   try {
-    const tenantId = await resolveTenantId();
+    const tenantFilter = await getLandingTenantFilter();
     return await prisma.berita.findMany({
       where: { 
-        tenantId,
+        ...tenantFilter,
         isPublished: true,
       },
       orderBy: { createdAt: "desc" },
@@ -119,10 +136,10 @@ export async function getLatestNews() {
 
 export async function getOrganizationalStructure() {
   try {
-    const tenantId = await resolveTenantId();
+    const tenantFilter = await getLandingTenantFilter();
     return await prisma.aparaturDesa.findMany({
       where: { 
-        tenantId,
+        ...tenantFilter,
         isActive: true,
       },
       orderBy: [
@@ -138,9 +155,9 @@ export async function getOrganizationalStructure() {
 
 export async function getVillageProfile() {
   try {
-    const tenantId = await resolveTenantId();
-    return await prisma.villageProfile.findUnique({
-      where: { tenantId },
+    const tenantFilter = await getLandingTenantFilter();
+    return await prisma.villageProfile.findFirst({
+      where: tenantFilter,
     });
   } catch (error) {
     // Silently handle error
@@ -150,9 +167,9 @@ export async function getVillageProfile() {
 
 export async function getLembagaList() {
   try {
-    const tenantId = await resolveTenantId();
+    const tenantFilter = await getLandingTenantFilter();
     return await prisma.lembaga.findMany({
-      where: { tenantId },
+      where: tenantFilter,
       orderBy: { name: "asc" },
     });
   } catch (error) {
