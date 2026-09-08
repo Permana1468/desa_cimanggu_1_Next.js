@@ -231,6 +231,14 @@ export function CyberPlanRabTab({ onBack }: { onBack: () => void }) {
     );
   }
 
+  const getVolLabel = (kategoriRab: string) => {
+    const upper = (kategoriRab || "").toUpperCase();
+    if (upper.includes("DANA DESA") || upper === "DD") return "Vol Dana Desa";
+    if (upper.includes("ADD")) return "Vol ADD";
+    if (upper.includes("BHPRD")) return "Vol BHPRD";
+    return "Vol APBD";
+  };
+
   // === FORM VIEW ===
   const renderTable = (title: string, listName: keyof RabFormData) => {
     const list = currentForm[listName] as RabItem[];
@@ -253,8 +261,8 @@ export function CyberPlanRabTab({ onBack }: { onBack: () => void }) {
                 <input type="text" value={item.uraian} onChange={e => updateItem(listName, item.id, "uraian", e.target.value)} className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="Nama Barang / Kegiatan" />
               </div>
               <div className="col-span-4 md:col-span-2">
-                <label className="block text-[11px] text-slate-500 mb-1 font-medium">Vol APBD</label>
-                <input type="number" value={item.volumeApbd || ""} onChange={e => updateItem(listName, item.id, "volumeApbd", parseFloat(e.target.value) || 0)} className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" placeholder="0" />
+                <label className="block text-[11px] text-blue-700 mb-1 font-semibold">{getVolLabel(currentForm.kategoriRab)}</label>
+                <input type="number" value={item.volumeApbd || ""} onChange={e => updateItem(listName, item.id, "volumeApbd", parseFloat(e.target.value) || 0)} className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 font-medium" placeholder="0" />
               </div>
               <div className="col-span-4 md:col-span-2">
                 <label className="block text-[11px] text-slate-500 mb-1 font-medium">Vol Swadaya</label>

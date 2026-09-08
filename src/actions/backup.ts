@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { google } from "googleapis";
 import { getAuthenticatedClient } from "@/actions/google";
 import * as fs from "fs/promises";
+import { Readable } from "stream";
 import path from "path";
 import { revalidatePath } from "next/cache";
 
@@ -47,7 +48,7 @@ async function generateHtmlDocument(record: any, sptjmData: any, uploadDir: stri
             const localPath = path.join(uploadDir, photoData);
             const ext = path.extname(localPath).toLowerCase();
             const mime = ext === '.png' ? 'image/png' : 'image/jpeg';
-            const fileData = await require('fs').promises.readFile(localPath);
+            const fileData = await fs.readFile(localPath);
             const base64 = fileData.toString('base64');
             return `data:${mime};base64,${base64}`;
         } catch (e) {
@@ -66,7 +67,7 @@ async function generateHtmlDocument(record: any, sptjmData: any, uploadDir: stri
     let kopSuratBase64 = "";
     try {
         const logoPath = path.join(uploadDir, 'images', 'logo-bogor.png');
-        const logoData = await require('fs').promises.readFile(logoPath);
+        const logoData = await fs.readFile(logoPath);
         kopSuratBase64 = `data:image/png;base64,${logoData.toString('base64')}`;
     } catch(e) {}
     dataWithImages.kopSuratBase64 = kopSuratBase64;
@@ -168,7 +169,7 @@ export async function backupUhcToDrive(folderId: string) {
             const sptjmData = kependudukan.find(k => k.nik === record.nik) || null;
             const htmlContent = await generateHtmlDocument(record, sptjmData, uploadDir);
             const buffer = Buffer.from(htmlContent, 'utf-8');
-            const stream = require('stream').Readable.from(buffer);
+            const stream = Readable.from(buffer);
             
             // Format name: Arsip_UHC_320114..._NAMA_PASIEN.html
             const safeName = (record.namaPasien || "Tanpa_Nama").replace(/[^a-zA-Z0-9]/g, '_');

@@ -1822,6 +1822,7 @@ model PuskesosBukuTamu {
   namaLengkap String
   nik         String?
   alamat      String
+  jabatan     String?
   noHp        String?
   keperluan   String
   tandaTangan String   @db.Text

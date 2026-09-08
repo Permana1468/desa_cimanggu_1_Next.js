@@ -34,6 +34,7 @@ import { LandingStats } from '../components/landing/LandingStats';
 import { LandingNews } from '../components/landing/LandingNews';
 import { LandingOrganization } from '../components/landing/LandingOrganization';
 import { LandingAspiration } from '../components/landing/LandingAspiration';
+import { LandingSectionsWrapper } from '../components/landing/LandingSectionsWrapper';
 import { cookies } from 'next/headers';
 
 export default async function LandingPage() {
@@ -58,7 +59,7 @@ export default async function LandingPage() {
         logo: "/images/logo-bogor.png",
         about_title: "Sekilas Pandang",
         about_text: "Desa Cimanggu I merupakan salah satu desa unggulan bagian dari program digitalisasi...",
-        about_image: "https://images.unsplash.com/photo-1590088925586-7a8df0bbee59?q=80&w=1200&auto=format&fit=crop",
+        about_image: "/images/sawah.png",
         gallery: ['/images/slide_1.webp', '/images/slide_6_.png', '/images/sawah.png']
     };
 
@@ -96,48 +97,49 @@ export default async function LandingPage() {
                 <LandingNavbar siteData={siteData} />
                 <LandingHero siteData={siteData} heroImages={heroImages} />
 
-                <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 space-y-20 sm:space-y-32">
-                {/* Cyber Interactive Statistics Dashboard */}
-                <LandingStats statsData={statsRes} />
+                <LandingSectionsWrapper>
+                    <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 space-y-20 sm:space-y-32">
+                        {/* Cyber Interactive Statistics Dashboard */}
+                        <LandingStats statsData={statsRes} />
 
-                {/* Layanan Digital Section */}
-                <section id="layanan" className="scroll-mt-32">
-                    <ScrollReveal>
-                        <div className="text-center mb-10 sm:mb-16">
-                            <div className="inline-flex items-center gap-2 text-purple-400 font-extrabold tracking-[0.2em] sm:tracking-[0.25em] uppercase text-[10px] sm:text-xs mb-2.5 sm:mb-3">
-                                <Cpu size={16} />
-                                <span>EKOSISTEM LAYANAN DIGITAL</span>
+                        {/* Layanan Digital Section */}
+                        <section id="layanan" className="scroll-mt-32">
+                            <ScrollReveal>
+                                <div className="text-center mb-10 sm:mb-16">
+                                    <div className="inline-flex items-center gap-2 text-purple-400 font-extrabold tracking-[0.2em] sm:tracking-[0.25em] uppercase text-[10px] sm:text-xs mb-2.5 sm:mb-3">
+                                        <Cpu size={16} />
+                                        <span>EKOSISTEM LAYANAN DIGITAL</span>
+                                    </div>
+                                    <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight">
+                                        Layanan Terpadu Pemdes
+                                    </h2>
+                                </div>
+                            </ScrollReveal>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
+                                <FeatureCard
+                                    icon={MapIcon}
+                                    title="Peta Wilayah Terpadu"
+                                    desc="Visualisasi data geografis batas wilayah (RW/RT/Dusun) dan pemetaan lokasi keluarga serta insfrastruktur desa berbasis WebGIS."
+                                    color="blue"
+                                    badge="WEBGIS ENGINE"
+                                />
+                                <FeatureCard
+                                    icon={HeartPulse}
+                                    title="E-KMS Posyandu"
+                                    desc="Sistem pencatatan digital tumbuh kembang balita berbasis wilayah Posyandu Mawar 1 hingga 7 untuk deteksi dini masalah kesehatan."
+                                    color="yellow"
+                                    badge="HEALTH NET"
+                                />
+                                <FeatureCard
+                                    icon={FileText}
+                                    title="E-Tupoksi & RAB"
+                                    desc="Modul khusus aparatur desa untuk manajemen Rencana Anggaran Biaya (RAB), DED, dan pendataan kemiskinan (UHC)."
+                                    color="purple"
+                                    badge="MANAGEMENT API"
+                                />
                             </div>
-                            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight">
-                                Layanan Terpadu Pemdes
-                            </h2>
-                        </div>
-                    </ScrollReveal>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 lg:gap-8">
-                        <FeatureCard
-                            icon={MapIcon}
-                            title="Peta Wilayah Terpadu"
-                            desc="Visualisasi data geografis batas wilayah (RW/RT/Dusun) dan pemetaan lokasi keluarga serta insfrastruktur desa berbasis WebGIS."
-                            color="blue"
-                            badge="WEBGIS ENGINE"
-                        />
-                        <FeatureCard
-                            icon={HeartPulse}
-                            title="E-KMS Posyandu"
-                            desc="Sistem pencatatan digital tumbuh kembang balita berbasis wilayah Posyandu Mawar 1 hingga 7 untuk deteksi dini masalah kesehatan."
-                            color="yellow"
-                            badge="HEALTH NET"
-                        />
-                        <FeatureCard
-                            icon={FileText}
-                            title="E-Tupoksi & RAB"
-                            desc="Modul khusus aparatur desa untuk manajemen Rencana Anggaran Biaya (RAB), DED, dan pendataan kemiskinan (UHC)."
-                            color="purple"
-                            badge="MANAGEMENT API"
-                        />
-                    </div>
-                </section>
+                        </section>
 
                 {/* Profil Desa Section */}
                 <section id="profil" className="scroll-mt-32">
@@ -158,7 +160,7 @@ export default async function LandingPage() {
                             {/* Image Container with Cyber Overlay */}
                             <div className="w-full lg:w-2/5 aspect-video lg:aspect-square bg-slate-950 rounded-2xl sm:rounded-3xl overflow-hidden border border-cyan-500/30 relative group shadow-2xl">
                                 <Image
-                                    src={siteData.about_image || "https://images.unsplash.com/photo-1590088925586-7a8df0bbee59?q=80&w=1200&auto=format&fit=crop"}
+                                    src={siteData.about_image || "/images/sawah.png"}
                                     alt="Kantor Desa"
                                     fill
                                     className="object-cover opacity-80 group-hover:scale-110 transition-transform duration-1000"
@@ -365,6 +367,7 @@ export default async function LandingPage() {
                     </div>
                 </footer>
             </div>
+            </LandingSectionsWrapper>
             </SmoothScroll>
         </LandingThemeProvider>
     );

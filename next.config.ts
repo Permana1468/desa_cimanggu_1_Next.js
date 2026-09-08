@@ -56,7 +56,6 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
-  // @ts-ignore - Next.js internal type might not be updated yet
   allowedDevOrigins: getDynamicDevOrigins(),
   cacheComponents: true,
   reactCompiler: true, // Auto-memoization for much faster rendering

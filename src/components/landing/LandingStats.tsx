@@ -103,8 +103,9 @@ export const LandingStats = ({ statsData }: LandingStatsProps) => {
     const totalLaki = statsData?.totalLaki || 0;
     const totalPerempuan = statsData?.totalPerempuan || 0;
 
-    const lakiPercentage = totalWarga > 0 ? (totalLaki / totalWarga) * 100 : 51.2;
-    const perempuanPercentage = totalWarga > 0 ? (totalPerempuan / totalWarga) * 100 : 48.8;
+    const calculatedTotal = (totalLaki + totalPerempuan) > 0 ? (totalLaki + totalPerempuan) : totalWarga;
+    const lakiPercentage = calculatedTotal > 0 ? (totalLaki / calculatedTotal) * 100 : 0;
+    const perempuanPercentage = calculatedTotal > 0 ? (totalPerempuan / calculatedTotal) * 100 : 0;
 
     return (
         <div className="space-y-12 sm:space-y-24">

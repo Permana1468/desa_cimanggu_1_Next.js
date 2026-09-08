@@ -144,7 +144,7 @@ export function CitizenSearchAutocomplete({
 
       {isOpen && !loading && results.length === 0 && (
         <div className="absolute z-50 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg p-4 text-center text-xs text-slate-500">
-          Tidak ada data kependudukan cocok dengan "{query}". Silakan isi form secara manual.
+          Tidak ada data kependudukan cocok dengan &quot;{query}&quot;. Silakan isi form secara manual.
         </div>
       )}
     </div>

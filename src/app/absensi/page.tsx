@@ -3,17 +3,17 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { 
-  QrCode, 
-  CheckCircle2, 
-  Clock, 
-  Volume2, 
-  VolumeX, 
-  ScanLine, 
-  Usb, 
-  ArrowLeft, 
-  Maximize2, 
-  Minimize2, 
+import {
+  QrCode,
+  CheckCircle2,
+  Clock,
+  Volume2,
+  VolumeX,
+  ScanLine,
+  Usb,
+  ArrowLeft,
+  Maximize2,
+  Minimize2,
   Sparkles,
   User,
   Building2,
@@ -47,7 +47,7 @@ function playScanBeepSound() {
     }
 
     const now = ctx.currentTime;
-    
+
     // Tone 1: High C6 (1046.5Hz)
     const osc1 = ctx.createOscillator();
     const gain1 = ctx.createGain();
@@ -117,14 +117,14 @@ export default function PublicAbsensiKioskPage() {
       if (savedLogs) {
         try {
           setLogs(JSON.parse(savedLogs));
-        } catch (e) {}
+        } catch (e) { }
       }
 
       const savedSettings = localStorage.getItem("e_absensi_settings");
       if (savedSettings) {
         try {
           setSettings(JSON.parse(savedSettings));
-        } catch (e) {}
+        } catch (e) { }
       }
     }
   }, []);
@@ -160,7 +160,7 @@ export default function PublicAbsensiKioskPage() {
         try {
           const parsed = JSON.parse(customAparatur);
           return [...DEFAULT_APARATUR_DATABASE, ...parsed];
-        } catch (e) {}
+        } catch (e) { }
       }
     }
     return DEFAULT_APARATUR_DATABASE;
@@ -236,8 +236,8 @@ export default function PublicAbsensiKioskPage() {
         const idCode = (a.id || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
 
         return (
-          (bCode && (cleanScan === bCode || cleanScan.includes(bCode) || bCode.includes(cleanScan))) || 
-          (nikCode && (cleanScan === nikCode || cleanScan.includes(nikCode))) || 
+          (bCode && (cleanScan === bCode || cleanScan.includes(bCode) || bCode.includes(cleanScan))) ||
+          (nikCode && (cleanScan === nikCode || cleanScan.includes(nikCode))) ||
           (idCode && (cleanScan === idCode || cleanScan.includes(idCode)))
         );
       }
@@ -263,13 +263,52 @@ export default function PublicAbsensiKioskPage() {
     );
     const tipe = todayLogsForPerson.length % 2 === 0 ? "MASUK" : "PULANG";
 
-    // Determine Status (Hadir Tepat Waktu vs Terlambat based on Settings jamMasuk + toleransiMenit)
+    // Determine Status & Motivational / Late Messages
     const [targetH, targetM] = (settings.jamMasuk || "07:00").split(":").map(Number);
     const targetMinutes = targetH * 60 + targetM + Number(settings.toleransiMenit || 0);
+
+    const [pulangH, pulangM] = (settings.jamPulang || "16:00").split(":").map(Number);
+    const targetPulangMinutes = pulangH * 60 + pulangM;
+
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-    const isLate = currentMinutes > targetMinutes;
-    const status = tipe === "MASUK" ? (isLate ? "Terlambat" : "Tepat Waktu") : "Selesai Tugas";
+    let status = "";
+    let greeting = "";
+    let messageText = "";
+
+    const formatDuration = (diffMins: number): string => {
+      const hours = Math.floor(diffMins / 60);
+      const mins = diffMins % 60;
+      if (hours > 0 && mins > 0) return `${hours} jam ${mins} menit`;
+      if (hours > 0) return `${hours} jam`;
+      return `${mins} menit`;
+    };
+
+    if (tipe === "MASUK") {
+      if (currentMinutes > targetMinutes) {
+        const diff = currentMinutes - targetMinutes;
+        const durationText = formatDuration(diff);
+        status = "Terlambat";
+        greeting = "Selamat Datang!";
+        messageText = `Sayangnya Anda terlambat ${durationText}. Tetap semangat dan tingkatkan kedisiplinan!`;
+      } else {
+        status = "Tepat Waktu";
+        greeting = "Selamat Pagi & Selamat Datang!";
+        messageText = "Anda hadir tepat waktu. Anda calon orang sukses! 🚀";
+      }
+    } else {
+      // PULANG
+      greeting = "Selamat Pulang!";
+      if (currentMinutes < targetPulangMinutes) {
+        const diff = targetPulangMinutes - currentMinutes;
+        const durationText = formatDuration(diff);
+        status = "Pulang Awal";
+        messageText = `Sayangnya Anda pulang lebih awal ${durationText}. Hati-hati di jalan!`;
+      } else {
+        status = "Selesai Tugas";
+        messageText = "Terima kasih atas kerja keras & dedikasi Anda hari ini. Anda calon orang sukses! 🚀";
+      }
+    }
 
     const aparaturName = matched ? (matched.name || matched.nama || `APARATUR (${code})`) : `APARATUR (${code})`;
     const aparaturPosition = matched ? (matched.position || matched.jabatan || "Aparatur Desa") : "Aparatur Desa";
@@ -286,6 +325,8 @@ export default function PublicAbsensiKioskPage() {
       waktuScan: fullTimeStr,
       tipe,
       status,
+      greeting,
+      messageText,
       metode: "Standalone Public Kiosk (USB Scanner)"
     };
 
@@ -297,10 +338,10 @@ export default function PublicAbsensiKioskPage() {
     saveLogs([newLogEntry, ...logs]);
     setScanInput("");
 
-    // Auto clear popup after 8 seconds
+    // Auto clear popup after 10 seconds
     setTimeout(() => {
       setLastScanned((prev: any) => (prev?.id === newLogEntry.id ? null : prev));
-    }, 8000);
+    }, 10000);
   };
 
   const handleScanSubmit = (e: React.FormEvent) => {
@@ -310,11 +351,11 @@ export default function PublicAbsensiKioskPage() {
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
+      document.documentElement.requestFullscreen().catch(() => { });
       setIsFullscreen(true);
     } else {
       if (document.exitFullscreen) {
-        document.exitFullscreen().catch(() => {});
+        document.exitFullscreen().catch(() => { });
       }
       setIsFullscreen(false);
     }
@@ -322,7 +363,7 @@ export default function PublicAbsensiKioskPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white font-sans flex flex-col justify-between relative overflow-hidden select-none">
-      
+
       {/* BACKGROUND NEON GLOW GRID EFFECTS */}
       <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-emerald-500/10 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-teal-500/10 rounded-full blur-[140px] pointer-events-none" />
@@ -339,7 +380,7 @@ export default function PublicAbsensiKioskPage() {
               <div className="flex items-center gap-2">
                 <h1 className="text-sm sm:text-base md:text-lg font-black tracking-wider text-white uppercase">PEMERINTAH DESA CIMANGGU I</h1>
                 <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 font-bold text-[9px] sm:text-[10px] uppercase tracking-widest flex items-center gap-1 shrink-0">
-                  <Sparkles size={10} className="text-emerald-400 animate-bounce" /> Kiosk Absensi
+                  <Sparkles size={10} className="text-emerald-400 animate-bounce" /> E-Absensi
                 </span>
               </div>
               <p className="text-[10px] sm:text-xs font-semibold text-slate-400 tracking-wide">Kecamatan Cibungbulang &bull; Kabupaten Bogor</p>
@@ -359,11 +400,10 @@ export default function PublicAbsensiKioskPage() {
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className={`p-2.5 sm:p-3 rounded-2xl border transition-all flex items-center justify-center cursor-pointer ${
-                soundEnabled 
-                  ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]" 
-                  : "bg-slate-900 border-slate-800 text-slate-500"
-              }`}
+              className={`p-2.5 sm:p-3 rounded-2xl border transition-all flex items-center justify-center cursor-pointer ${soundEnabled
+                ? "bg-emerald-500/20 border-emerald-400/40 text-emerald-300 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                : "bg-slate-900 border-slate-800 text-slate-500"
+                }`}
               title={soundEnabled ? "Suara Beep Aktif" : "Suara Beep Bisu"}
             >
               {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
@@ -390,7 +430,7 @@ export default function PublicAbsensiKioskPage() {
 
       {/* MAIN HERO KIOSK AREA */}
       <main className="relative z-10 flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 md:p-10 flex flex-col justify-center gap-6 sm:gap-8">
-        
+
         {/* SCANNER HARDWARE STATUS CARD */}
         <div className="bg-slate-900/80 border-2 border-emerald-500/40 backdrop-blur-2xl rounded-3xl p-5 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -409,7 +449,7 @@ export default function PublicAbsensiKioskPage() {
                   <CheckCircle2 size={14} className="text-emerald-400" /> MESIN SCANNER ACTIVE (ONLINE)
                 </span>
                 <span className="bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-[10px] font-extrabold px-2.5 py-0.5 rounded-md uppercase tracking-wider">
-                  STANDALONE KIOSK MODE
+                  STANDALONE E-ABSENSI MODE
                 </span>
               </div>
               <p className="text-slate-300 text-xs font-semibold mt-1">
@@ -421,7 +461,7 @@ export default function PublicAbsensiKioskPage() {
           <button
             onClick={() => {
               playScanBeepSound();
-              alert("✓ Tes Respon Scanner Kiosk Berhasil!\n\nMesin scanner USB & respon audio chime aktif 100%.");
+              alert("✓ Tes Respon Scanner E-Absensi Berhasil!\n\nMesin scanner USB & respon audio chime aktif 100%.");
             }}
             className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-lg shadow-emerald-600/30 flex items-center gap-2 cursor-pointer shrink-0"
           >
@@ -432,11 +472,11 @@ export default function PublicAbsensiKioskPage() {
 
         {/* SCAN HERO RADAR ANIMATION BOX */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          
+
           {/* RADAR / SCANNER FRAME */}
           <div className="lg:col-span-5 flex flex-col items-center justify-center">
             <div className="relative w-64 h-64 sm:w-72 sm:h-72 rounded-3xl bg-slate-900/90 border-4 border-emerald-500/50 p-6 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(16,185,129,0.25)] overflow-hidden group">
-              
+
               {/* LASER SCANNING BEAM ANIMATION */}
               <div className="absolute left-0 top-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#34d399] animate-[scan_2.5s_infinite_ease-in-out]" />
 
@@ -461,27 +501,34 @@ export default function PublicAbsensiKioskPage() {
             </div>
           </div>
 
-          {/* POPUP SCAN RESULTS / INSTRUCTION CARD */}
+          {/* POPUP SCAN RESULTS / NOTIFICATION CARD */}
           <div className="lg:col-span-7">
             {lastScanned ? (
-              <div className="bg-gradient-to-br from-emerald-950/90 via-slate-900 to-slate-950 border-2 border-emerald-400/60 rounded-3xl p-8 shadow-[0_0_40px_rgba(16,185,129,0.3)] animate-in fade-in zoom-in-95 duration-300">
-                <div className="flex items-start justify-between gap-4 mb-6">
-                  <div className="flex items-center gap-2">
+              <div className={`bg-slate-900/95 border-2 ${lastScanned.status === "Terlambat" || lastScanned.status === "Pulang Awal"
+                ? "border-amber-400/70 shadow-[0_0_50px_rgba(251,191,36,0.3)]"
+                : "border-emerald-400/70 shadow-[0_0_50px_rgba(16,185,129,0.3)]"
+                } backdrop-blur-2xl rounded-3xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-300 space-y-6`}>
+
+                {/* Header Badge & Timestamp */}
+                <div className="flex items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="px-3.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 font-extrabold text-xs uppercase tracking-wider flex items-center gap-1.5">
                       <CheckCircle2 size={16} className="text-emerald-400" /> ABSENSI BERHASIL ({lastScanned.tipe})
                     </span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      lastScanned.status === "Tepat Waktu" ? "bg-emerald-500 text-slate-950" : "bg-amber-400 text-slate-950"
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${lastScanned.status === "Tepat Waktu" || lastScanned.status === "Selesai Tugas"
+                      ? "bg-emerald-500 text-slate-950"
+                      : "bg-amber-400 text-slate-950"
+                      }`}>
                       {lastScanned.status}
                     </span>
                   </div>
-                  <span className="font-mono text-sm font-black text-emerald-300 bg-slate-950 px-3 py-1 rounded-xl border border-emerald-500/30">
+                  <span className="font-mono text-xs sm:text-sm font-black text-emerald-300 bg-slate-950 px-3 py-1 rounded-xl border border-emerald-500/30">
                     {lastScanned.waktuScan.split(" ")[1]}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-6">
+                {/* Profile Information */}
+                <div className="flex items-center gap-5">
                   <div className="w-20 h-24 rounded-2xl bg-slate-800 border-2 border-emerald-400/40 overflow-hidden flex items-center justify-center shrink-0 shadow-lg">
                     {lastScanned.photo ? (
                       <img src={lastScanned.photo} alt={lastScanned.nama} className="w-full h-full object-cover" />
@@ -491,16 +538,37 @@ export default function PublicAbsensiKioskPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <h2 className="text-2xl font-black text-white tracking-tight uppercase">{lastScanned.nama}</h2>
+                    <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight uppercase">{lastScanned.nama}</h2>
                     <p className="text-sm font-bold text-emerald-400 uppercase">{lastScanned.jabatan}</p>
                     <p className="text-xs font-semibold text-slate-400">{lastScanned.kategori}</p>
-                    <div className="pt-2">
-                      <span className="font-mono text-xs text-slate-400 bg-slate-950 px-3 py-1 rounded-lg border border-slate-800">
+                    <div className="pt-1">
+                      <span className="font-mono text-[11px] text-slate-400 bg-slate-950 px-2.5 py-0.5 rounded-lg border border-slate-800">
                         ID: {lastScanned.barcodeId}
                       </span>
                     </div>
                   </div>
                 </div>
+
+                {/* NOTIFICATION MESSAGE BANNER */}
+                <div className={`p-4 sm:p-5 rounded-2xl border flex items-start gap-3.5 ${lastScanned.status === "Terlambat" || lastScanned.status === "Pulang Awal"
+                  ? "bg-amber-500/10 border-amber-400/40 text-amber-200"
+                  : "bg-emerald-500/10 border-emerald-400/40 text-emerald-200"
+                  }`}>
+                  <div className="p-2 rounded-xl bg-slate-950/80 shrink-0 mt-0.5">
+                    {lastScanned.status === "Terlambat" || lastScanned.status === "Pulang Awal" ? (
+                      <Clock size={20} className="text-amber-400" />
+                    ) : (
+                      <Sparkles size={20} className="text-emerald-400 animate-pulse" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-black uppercase tracking-wider text-white">{lastScanned.greeting}</h4>
+                    <p className="text-xs sm:text-sm font-bold mt-0.5 leading-relaxed">
+                      {lastScanned.messageText}
+                    </p>
+                  </div>
+                </div>
+
               </div>
             ) : (
               <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-8 text-center space-y-4">
@@ -516,72 +584,11 @@ export default function PublicAbsensiKioskPage() {
           </div>
         </div>
 
-        {/* RECENT SCAN TICKER TABLE (TODAY'S SCANS) */}
-        <div className="bg-slate-900/70 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
-            <div className="flex items-center gap-2">
-              <Clock size={18} className="text-emerald-400" />
-              <h4 className="text-sm font-black text-white uppercase tracking-wider">Riwayat Scan Absensi Hari Ini</h4>
-            </div>
-            <span className="text-xs font-bold text-slate-400 bg-slate-950 px-3 py-1 rounded-full border border-slate-800">
-              Total {logs.length} Presensi
-            </span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-950/80 text-slate-400 font-bold uppercase tracking-wider border-b border-slate-800">
-                <tr>
-                  <th className="px-4 py-3 w-12 text-center">No</th>
-                  <th className="px-4 py-3">Waktu</th>
-                  <th className="px-4 py-3">Barcode ID</th>
-                  <th className="px-4 py-3">Nama Aparatur</th>
-                  <th className="px-4 py-3">Jabatan</th>
-                  <th className="px-4 py-3 text-center">Tipe</th>
-                  <th className="px-4 py-3 text-center">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 font-medium text-slate-300">
-                {logs.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-slate-500">
-                      Belum ada data scan absensi hari ini.
-                    </td>
-                  </tr>
-                ) : (
-                  logs.slice(0, 8).map((l, i) => (
-                    <tr key={l.id} className="hover:bg-slate-800/40 transition-colors">
-                      <td className="px-4 py-3 text-center font-bold">{i + 1}</td>
-                      <td className="px-4 py-3 font-mono text-emerald-400 font-bold">{l.waktuScan.split(" ")[1]}</td>
-                      <td className="px-4 py-3 font-mono text-xs">{l.barcodeId}</td>
-                      <td className="px-4 py-3 font-bold text-white uppercase">{l.nama}</td>
-                      <td className="px-4 py-3 text-slate-400">{l.jabatan}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          l.tipe === "MASUK" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-blue-500/20 text-blue-300 border border-blue-500/30"
-                        }`}>
-                          {l.tipe}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          l.status === "Tepat Waktu" ? "bg-emerald-400/20 text-emerald-300" : "bg-amber-400/20 text-amber-300"
-                        }`}>
-                          {l.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
       </main>
 
       {/* FOOTER */}
       <footer className="relative z-20 px-8 py-4 border-t border-slate-900 bg-slate-950 text-center text-xs text-slate-500 font-medium">
-        System E-Absensi Integrated Kiosk &bull; Pemerintah Desa Cimanggu I &copy; {new Date().getFullYear()}
+        System E-Absensi Integrated &bull; Pemerintah Desa Cimanggu I &copy; {new Date().getFullYear()}
       </footer>
 
       {/* CSS KEYFRAME FOR LASER SCAN BEAM */}

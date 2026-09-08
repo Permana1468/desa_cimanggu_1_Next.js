@@ -3,7 +3,7 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Float, Text } from "@react-three/drei";
 import * as THREE from "three";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 export function LuxuryRingChart({ 
   percentage, 
@@ -48,26 +48,26 @@ export function LuxuryRingChart({
 
 function AnimatedRing({ percentage, color }: { percentage: number, color: string }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const targetRotation = useRef((percentage / 100) * Math.PI * 2);
   
-  // Base ring
-  const baseGeom = new THREE.TorusGeometry(1, 0.08, 16, 64);
-  const baseMat = new THREE.MeshStandardMaterial({ 
+  // Memoize geometries to avoid recreating them on every render
+  const baseGeom = useMemo(() => new THREE.TorusGeometry(1, 0.08, 16, 64), []);
+  const baseMat = useMemo(() => new THREE.MeshStandardMaterial({ 
     color: "#1e293b", 
     transparent: true, 
     opacity: 0.3 
-  });
+  }), []);
 
-  // Progress ring
-  const progressGeom = new THREE.TorusGeometry(1, 0.12, 16, 64, Math.max(0.01, targetRotation.current));
-  const progressMat = new THREE.MeshStandardMaterial({ 
+  // Progress arc length based on percentage — computed once per percentage change
+  const arcLength = useMemo(() => Math.max(0.01, (percentage / 100) * Math.PI * 2), [percentage]);
+  const progressGeom = useMemo(() => new THREE.TorusGeometry(1, 0.12, 16, 64, arcLength), [arcLength]);
+  const progressMat = useMemo(() => new THREE.MeshStandardMaterial({ 
     color: color, 
     emissive: color, 
     emissiveIntensity: 0.8,
     toneMapped: false
-  });
+  }), [color]);
 
-  useFrame((state, delta) => {
+  useFrame((_state, delta) => {
     if (meshRef.current) {
       meshRef.current.rotation.z += delta * 0.2;
     }

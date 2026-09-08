@@ -1471,7 +1471,7 @@ export async function getRtDemographicReport(month: number, year: number) {
             if (totalMonthsDiff < 0) return; // Not born yet
 
             const ageInYears = Math.floor(totalMonthsDiff / 12);
-            const genderKey = r.jenisKelamin === "LAKI_LAKI" ? "L" : "P";
+            const genderKey = (r.jenisKelamin || "").toUpperCase().replace(/[-_\s]+/g, "").startsWith("L") ? "L" : "P";
 
             if (totalMonthsDiff <= 11) {
                 ageDistribution["0-11 BLN"][genderKey]++;
@@ -1522,48 +1522,59 @@ export async function getRtDemographicReport(month: number, year: number) {
             })
         ]);
 
+        const isMaleJk = (val?: string | null) => {
+            if (!val) return false;
+            const s = val.trim().toUpperCase().replace(/[-_\s]+/g, "");
+            return s === "LAKILAKI" || s === "L" || s === "MALE" || s === "M";
+        };
+
+        const isFemaleJk = (val?: string | null) => {
+            if (!val) return false;
+            const s = val.trim().toUpperCase().replace(/[-_\s]+/g, "");
+            return s === "PEREMPUAN" || s === "P" || s === "FEMALE" || s === "F";
+        };
+
         // Map mutasi by gender
         const mutasi = {
             lahir: {
-                L: birthsThisMonth.filter(b => b.jenisKelamin === "LAKI_LAKI").length,
-                P: birthsThisMonth.filter(b => b.jenisKelamin === "PEREMPUAN").length,
+                L: birthsThisMonth.filter(b => isMaleJk(b.jenisKelamin)).length,
+                P: birthsThisMonth.filter(b => isFemaleJk(b.jenisKelamin)).length,
             },
             mati: {
                 L: deathsThisMonth.filter(d => {
                     const res = residents.find(r => r.nik === d.nik);
-                    return res?.jenisKelamin === "LAKI_LAKI";
+                    return isMaleJk(res?.jenisKelamin);
                 }).length,
                 P: deathsThisMonth.filter(d => {
                     const res = residents.find(r => r.nik === d.nik);
-                    return res?.jenisKelamin === "PEREMPUAN";
+                    return isFemaleJk(res?.jenisKelamin);
                 }).length,
             },
             pindah: {
                 L: movesThisMonth.filter(m => {
                     const res = residents.find(r => r.nik === m.nik);
-                    return res?.jenisKelamin === "LAKI_LAKI";
+                    return isMaleJk(res?.jenisKelamin);
                 }).length,
                 P: movesThisMonth.filter(m => {
                     const res = residents.find(r => r.nik === m.nik);
-                    return res?.jenisKelamin === "PEREMPUAN";
+                    return isFemaleJk(res?.jenisKelamin);
                 }).length,
             },
             datang: {
                 L: incomingThisMonth.filter(i => {
-                    // Check if they are registered as L or we fallback to L if unknown
                     const res = residents.find(r => r.nik === i.nik);
-                    return res?.jenisKelamin === "LAKI_LAKI";
+                    return isMaleJk(res?.jenisKelamin);
                 }).length,
                 P: incomingThisMonth.filter(i => {
                     const res = residents.find(r => r.nik === i.nik);
-                    return res?.jenisKelamin === "PEREMPUAN";
+                    return isFemaleJk(res?.jenisKelamin);
                 }).length,
             }
         };
 
         // Total Warga L and P
-        const totalWargaL = activeResidents.filter(r => r.jenisKelamin === "LAKI_LAKI").length;
-        const totalWargaP = activeResidents.filter(r => r.jenisKelamin === "PEREMPUAN").length;
+        const totalWargaL = activeResidents.filter(r => isMaleJk(r.jenisKelamin)).length;
+        const totalWargaP = activeResidents.filter(r => isFemaleJk(r.jenisKelamin)).length;
 
         // Build resident change descriptions (Keterangan Perubahan Penduduk)
         const changesDesc: string[] = [];

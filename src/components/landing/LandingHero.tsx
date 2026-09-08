@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ShieldCheck, MapPin, ArrowRight, Cpu, Sparkles } from 'lucide-react';
 import ScrollReveal from '../ScrollReveal';
+import { useLandingTheme } from './LandingThemeProvider';
+import { CampoSantoHero } from './CampoSantoHero';
 
 interface HeroProps {
     siteData: any;
@@ -12,6 +14,7 @@ interface HeroProps {
 }
 
 export const LandingHero = ({ siteData, heroImages }: HeroProps) => {
+    const { isDualMode } = useLandingTheme();
     const [currentSlide, setCurrentSlide] = useState(0);
 
     useEffect(() => {
@@ -20,6 +23,10 @@ export const LandingHero = ({ siteData, heroImages }: HeroProps) => {
         }, 8000);
         return () => clearInterval(timer);
     }, [heroImages.length]);
+
+    if (isDualMode) {
+        return <CampoSantoHero siteData={siteData} />;
+    }
 
     return (
         <section id="beranda" className="relative min-h-[100dvh] flex flex-col justify-center px-4 sm:px-8 md:px-20 lg:px-32 overflow-hidden py-16 sm:py-0">

@@ -379,9 +379,9 @@ export default function TemplateRepositoryPage() {
                 <div>
                     <h3 className="font-bold text-amber-900 text-sm uppercase tracking-wider">Panduan Pengelolaan Surat</h3>
                     <p className="text-amber-800 text-xs mt-1 leading-relaxed font-medium">
-                        1. Klik <b>"Lihat Surat"</b> untuk memeriksa format resmi dokumen kosong atau draf hasil uji coba.<br />
-                        2. Klik <b>"Lihat / Edit Form"</b> untuk merancang form isian dinamis (Teks, Dropdown, Tanggal, dll) ala Google Form.<br />
-                        3. Klik <b>"Uji Coba Form"</b> untuk mensimulasikan pengisian data warga dan mengunduh surat yang langsung jadi.
+                        1. Klik <b>&quot;Lihat Surat&quot;</b> untuk memeriksa format resmi dokumen kosong atau draf hasil uji coba.<br />
+                        2. Klik <b>&quot;Lihat / Edit Form&quot;</b> untuk merancang form isian dinamis (Teks, Dropdown, Tanggal, dll) ala Google Form.<br />
+                        3. Klik <b>&quot;Uji Coba Form&quot;</b> untuk mensimulasikan pengisian data warga dan mengunduh surat yang langsung jadi.
                     </p>
                 </div>
             </div>
@@ -490,7 +490,7 @@ export default function TemplateRepositoryPage() {
                                     <FileType size={32} />
                                 </div>
                                 <p className="text-slate-600 font-bold text-sm">Belum ada Master Surat & Form yang dibuat.</p>
-                                <p className="text-slate-400 text-xs mt-1">Klik tombol "+ Buat Form / Template Baru" di pojok kanan atas.</p>
+                                <p className="text-slate-400 text-xs mt-1">Klik tombol &quot;+ Buat Form / Template Baru&quot; di pojok kanan atas.</p>
                             </div>
                         )}
                     </div>
@@ -989,7 +989,7 @@ export default function TemplateRepositoryPage() {
                                     }}
                                     className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-600/20 transition-all flex items-center justify-center gap-2"
                                 >
-                                    <CheckCircle2 size={18} /> Simpan Hasil Uji Coba & Lihat Di "Lihat Surat"
+                                    <CheckCircle2 size={18} /> Simpan Hasil Uji Coba &amp; Lihat Di &quot;Lihat Surat&quot;
                                 </button>
                             </div>
 

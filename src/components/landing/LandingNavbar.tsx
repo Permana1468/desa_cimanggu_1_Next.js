@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronDown, ChevronRight, ShieldCheck, Sparkles, Sun, Moon, QrCode } from 'lucide-react';
+import { ChevronDown, ChevronRight, ShieldCheck, Sparkles, Sun, Moon, QrCode, Layers } from 'lucide-react';
 import { useLandingTheme } from './LandingThemeProvider';
 
 interface LandingNavbarProps {
@@ -10,7 +10,12 @@ interface LandingNavbarProps {
 }
 
 export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
-    const { isNightMode, toggleNightMode } = useLandingTheme();
+    const { isNightMode, toggleNightMode, isDualMode, toggleDualMode } = useLandingTheme();
+
+    if (isDualMode) {
+        return null;
+    }
+
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -138,7 +143,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
         }`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 flex justify-between items-center">
                 {/* Logo & Branding */}
-                <div className="flex items-center gap-2.5 sm:gap-3 group">
+                <div className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
                     <div className="relative w-8 h-8 sm:w-10 sm:h-10 transition-transform duration-300 group-hover:scale-110 shrink-0">
                         <Image
                             src={siteData?.logo || "/images/logo-bogor.png"}
@@ -151,7 +156,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                     </div>
                     <div className="flex flex-col justify-center">
                         <div className="flex items-center gap-1.5 sm:gap-2">
-                            <span className="text-white font-black text-xs sm:text-[15px] md:text-[17px] tracking-wide leading-none uppercase">
+                            <span className="text-white font-black text-xs sm:text-[15px] md:text-[17px] tracking-wide leading-none uppercase whitespace-nowrap">
                                 {siteData?.title || "DESA CIMANGGU I"}
                             </span>
                             <span className="flex h-2 w-2 relative shrink-0">
@@ -159,7 +164,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                             </span>
                         </div>
-                        <span className="text-yellow-400 font-semibold text-[9px] sm:text-[11px] leading-none mt-1 tracking-wider">
+                        <span className="text-yellow-400 font-semibold text-[9px] sm:text-[11px] leading-none mt-1 tracking-wider whitespace-nowrap">
                             Kecamatan Cibungbulang
                         </span>
                     </div>
@@ -273,31 +278,50 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                     })}
                 </nav>
 
-                {/* Right Action Area */}
-                <div className="hidden lg:flex items-center gap-2.5 shrink-0">
-                    {/* Theme Toggle Button */}
-                    <button
-                        onClick={toggleNightMode}
-                        className="p-2 rounded-full border border-cyan-500/30 text-yellow-400 bg-slate-900/60 backdrop-blur-md shadow-[0_0_15px_rgba(250,204,21,0.2)] hover:scale-110 transition-transform flex items-center justify-center relative overflow-hidden group cursor-pointer"
-                        title={isNightMode ? "Ganti ke Mode Normal" : "Ganti ke Mode Malam"}
-                    >
-                        <div className="absolute inset-0 bg-yellow-400/10 group-hover:bg-yellow-400/20 transition-colors" />
-                        {isNightMode ? <Sun size={17} className="animate-spin-slow" /> : <Moon size={17} className="text-slate-200" />}
-                    </button>
+                {/* Right Action Area - Round inline button group */}
+                <div className="hidden lg:flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1.5 p-1 rounded-full bg-slate-900/70 backdrop-blur-xl border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
+                        {/* 1. Theme Mode (Light / Dark) */}
+                        <button
+                            onClick={toggleNightMode}
+                            className="w-9 h-9 rounded-full border border-cyan-500/30 text-yellow-400 bg-slate-950/80 hover:scale-110 transition-all flex items-center justify-center relative overflow-hidden group cursor-pointer"
+                            title={isNightMode ? "Ganti ke Mode Terang" : "Ganti ke Mode Malam"}
+                        >
+                            <div className="absolute inset-0 bg-yellow-400/10 group-hover:bg-yellow-400/20 transition-colors" />
+                            {isNightMode ? <Sun size={16} className="animate-spin-slow" /> : <Moon size={16} className="text-slate-200" />}
+                        </button>
 
-                    {/* Public Absensi Circular Kiosk Button */}
-                    <Link
-                        href="/absensi"
-                        className="p-2 rounded-full border border-emerald-500/40 text-emerald-400 bg-slate-900/80 backdrop-blur-md shadow-[0_0_15px_rgba(16,185,129,0.35)] hover:scale-110 hover:border-emerald-400 transition-all flex items-center justify-center relative overflow-hidden group cursor-pointer"
-                        title="Halaman Absensi Full Screen (Public Kiosk Scanner)"
-                    >
-                        <div className="absolute inset-0 bg-emerald-500/10 group-hover:bg-emerald-500/25 transition-colors" />
-                        <QrCode size={17} className="animate-pulse text-emerald-300" />
-                    </Link>
+                        {/* 2. Dual Mode Parallax Toggle */}
+                        <button
+                            onClick={toggleDualMode}
+                            className={`w-9 h-9 rounded-full border transition-all flex items-center justify-center relative overflow-hidden group cursor-pointer ${
+                                isDualMode 
+                                    ? 'border-amber-400 text-amber-300 bg-gradient-to-br from-amber-600/80 to-rose-600/80 shadow-[0_0_15px_rgba(245,158,11,0.6)] scale-105' 
+                                    : 'border-cyan-500/30 text-cyan-300 bg-slate-950/80 hover:scale-110 hover:border-cyan-400'
+                            }`}
+                            title={isDualMode ? "Matikan Dual Mode (Kembali ke Tema Utama)" : "Aktifkan Dual Mode (Tema Campo Santo Parallax)"}
+                        >
+                            <div className="absolute inset-0 bg-amber-500/10 group-hover:bg-amber-500/25 transition-colors" />
+                            <Layers size={16} className={isDualMode ? "animate-pulse text-amber-200" : ""} />
+                            {isDualMode && (
+                                <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-amber-400 rounded-full animate-ping" />
+                            )}
+                        </button>
+
+                        {/* 3. Public Absensi Circular Kiosk Button */}
+                        <Link
+                            href="/absensi"
+                            className="w-9 h-9 rounded-full border border-emerald-500/40 text-emerald-400 bg-slate-950/80 hover:scale-110 hover:border-emerald-400 transition-all flex items-center justify-center relative overflow-hidden group cursor-pointer"
+                            title="Halaman Absensi Full Screen (Public Kiosk Scanner)"
+                        >
+                            <div className="absolute inset-0 bg-emerald-500/10 group-hover:bg-emerald-500/25 transition-colors" />
+                            <QrCode size={16} className="animate-pulse text-emerald-300" />
+                        </Link>
+                    </div>
 
                     <Link 
                         href="/login"  
-                        className="relative group bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-5 py-2 rounded-full text-[11px] xl:text-xs font-black uppercase tracking-wider transition-all duration-300 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] flex items-center gap-1.5 cursor-pointer"
+                        className="relative group bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-5 py-2 rounded-full text-[11px] xl:text-xs font-black uppercase tracking-wider transition-all duration-300 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] flex items-center gap-1.5 cursor-pointer ml-1"
                     >
                         <ShieldCheck size={15} />
                         <span>Masuk</span>
@@ -394,25 +418,54 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                         );
                     })}
                     
-                    {/* Mobile Theme Toggle */}
-                    <button
-                        onClick={() => {
-                            toggleNightMode();
-                            setIsMobileMenuOpen(false);
-                        }}
-                        className="bg-slate-900/40 border border-cyan-500/30 text-slate-200 text-center py-3.5 rounded-2xl font-bold uppercase text-xs tracking-wider mt-2 flex items-center justify-center gap-2 transition-all active:scale-95"
+                    {/* Mobile Quick Mode Toggles */}
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                        {/* Mobile Night Mode Toggle */}
+                        <button
+                            onClick={() => {
+                                toggleNightMode();
+                                setIsMobileMenuOpen(false);
+                            }}
+                            className="bg-slate-900/60 border border-cyan-500/30 text-slate-200 text-center py-3 rounded-2xl font-bold uppercase text-[11px] tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95"
+                        >
+                            {isNightMode ? (
+                                <><Sun size={16} className="text-yellow-400" /> Mode Terang</>
+                            ) : (
+                                <><Moon size={16} className="text-slate-300" /> Mode Malam</>
+                            )}
+                        </button>
+
+                        {/* Mobile Dual Mode Toggle */}
+                        <button
+                            onClick={() => {
+                                toggleDualMode();
+                                setIsMobileMenuOpen(false);
+                            }}
+                            className={`border text-center py-3 rounded-2xl font-bold uppercase text-[11px] tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 ${
+                                isDualMode 
+                                    ? 'bg-amber-600/80 border-amber-400 text-amber-100 shadow-[0_0_15px_rgba(245,158,11,0.4)]' 
+                                    : 'bg-slate-900/60 border-cyan-500/30 text-cyan-300'
+                            }`}
+                        >
+                            <Layers size={16} className={isDualMode ? "text-amber-200" : "text-cyan-400"} />
+                            <span>{isDualMode ? "Dual ON" : "Dual Mode"}</span>
+                        </button>
+                    </div>
+
+                    {/* Mobile Absensi Link */}
+                    <Link
+                        href="/absensi"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-center py-3 rounded-2xl font-bold uppercase text-xs tracking-wider mt-1 flex items-center justify-center gap-2"
                     >
-                        {isNightMode ? (
-                            <><Sun size={18} className="text-yellow-400" /> Mode Terang</>
-                        ) : (
-                            <><Moon size={18} className="text-slate-300" /> Mode Malam</>
-                        )}
-                    </button>
+                        <QrCode size={16} className="animate-pulse text-emerald-400" />
+                        <span>Kios E-Absensi</span>
+                    </Link>
 
                     <Link
                         href="/login"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 text-white text-center py-3.5 rounded-2xl font-black uppercase text-xs tracking-wider mt-2 shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center justify-center gap-2"
+                        className="bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 text-white text-center py-3.5 rounded-2xl font-black uppercase text-xs tracking-wider mt-1 shadow-[0_0_20px_rgba(6,182,212,0.4)] flex items-center justify-center gap-2"
                     >
                         <ShieldCheck size={18} />
                         <span>Masuk ke Sistem</span>

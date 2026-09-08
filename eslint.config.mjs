@@ -31,6 +31,10 @@ const eslintConfig = defineConfig([
     "!eslint.config.mjs",
     "!next.config.ts",
     "!postcss.config.mjs",
+    // Utility scripts — Node.js CommonJS, tidak di-lint dengan rules Next.js
+    "scripts/**",
+    "query.js",
+    "prisma/seed.ts",
   ]),
 ]);
 

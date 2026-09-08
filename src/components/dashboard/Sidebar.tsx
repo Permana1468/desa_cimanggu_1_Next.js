@@ -54,7 +54,8 @@ export const Sidebar = () => {
         </div>
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="p-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors"
+          className="p-1.5 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors"
+          aria-label={isCollapsed ? "Perluas Sidebar" : "Ciutkan Sidebar"}
         >
           {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
         </button>
@@ -68,7 +69,7 @@ export const Sidebar = () => {
             <Link
               key={item.name}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
+              className={`flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl transition-all group ${
                 isActive 
                   ? "bg-amber-500 text-slate-900 font-bold shadow-lg shadow-amber-500/20" 
                   : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
@@ -88,19 +89,20 @@ export const Sidebar = () => {
             <div className="w-10 h-10 rounded-full bg-amber-500 flex items-center justify-center text-slate-900 font-bold shadow-sm">
                 {session?.user?.name?.charAt(0) || 'M'}
             </div>
-            <div className="flex flex-col min-w-0">
-                <span className="text-xs font-bold text-slate-800 truncate">{session?.user?.name || "Master Admin"}</span>
-                <span className="text-[10px] text-amber-600 font-medium truncate tracking-tight">Super Control Panel</span>
+            <div className="flex flex-col overflow-hidden">
+              <span className="text-sm font-bold text-slate-800 truncate">{session?.user?.name || 'Master Admin'}</span>
+              <span className="text-xs text-slate-400 truncate">{session?.user?.email || 'admin@cimanggu1.desa.id'}</span>
             </div>
           </div>
         )}
         
         <button 
-          onClick={() => signOut()}
-          className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all font-bold ${isCollapsed ? 'justify-center' : ''}`}
+          onClick={() => signOut({ callbackUrl: '/login' })}
+          className={`w-full flex items-center gap-3 px-4 py-3 min-h-[44px] rounded-xl text-rose-600 hover:bg-rose-50 transition-colors ${isCollapsed ? 'justify-center' : ''}`}
+          aria-label="Keluar / Sign Out"
         >
           <LogOut size={20} />
-          {!isCollapsed && <span className="text-sm">Keluar</span>}
+          {!isCollapsed && <span className="text-sm font-semibold">Keluar</span>}
         </button>
       </div>
     </aside>

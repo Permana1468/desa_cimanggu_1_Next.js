@@ -280,6 +280,18 @@ export async function getSystemStats(tenantId?: string) {
             _count: true
         });
 
+        const formattedDemographics = genderStats.reduce((acc: any[], curr) => {
+            const gk = (curr.jenisKelamin || "").toUpperCase().replace(/[-_\s]+/g, "");
+            const name = (gk === "LAKILAKI" || gk === "L" || gk === "MALE" || gk === "M") ? "Laki-laki" : "Perempuan";
+            const existing = acc.find(item => item.name === name);
+            if (existing) {
+                existing.value += curr._count;
+            } else {
+                acc.push({ name, value: curr._count });
+            }
+            return acc;
+        }, []);
+
         // Growth data (Last 6 months registrations)
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
@@ -310,7 +322,7 @@ export async function getSystemStats(tenantId?: string) {
             totalTenants, 
             totalWarga, 
             totalSurat,
-            demographics: genderStats.map(g => ({ name: g.jenisKelamin, value: g._count })),
+            demographics: formattedDemographics,
             growth: formattedGrowth
         };
     } catch (error) {

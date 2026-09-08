@@ -39,51 +39,49 @@ async function resolveTenantId() {
   return DEFAULT_TENANT_ID;
 }
 
+function isMaleValue(val?: string | null): boolean {
+  if (!val) return false;
+  const s = val.trim().toUpperCase().replace(/[-_\s]+/g, "");
+  return s === "LAKILAKI" || s === "L" || s === "MALE" || s === "M";
+}
+
+function isFemaleValue(val?: string | null): boolean {
+  if (!val) return false;
+  const s = val.trim().toUpperCase().replace(/[-_\s]+/g, "");
+  return s === "PEREMPUAN" || s === "P" || s === "FEMALE" || s === "F";
+}
+
+function isKepalaKeluarga(val?: string | null): boolean {
+  if (!val) return false;
+  const s = val.trim().toUpperCase().replace(/[-_\s]+/g, "");
+  return s === "KEPALAKELUARGA";
+}
+
 export async function getVillageStats() {
   try {
     const tenantId = await resolveTenantId();
-    const [totalWarga, totalLaki, totalPerempuan, totalKKCount] = await Promise.all([
-      prisma.dataKependudukan.count({
-        where: { tenantId },
-      }),
-      prisma.dataKependudukan.count({
-        where: { 
-          tenantId, 
-          OR: [
-            { jenisKelamin: "Laki-laki" },
-            { jenisKelamin: "L" }
-          ]
-        },
-      }),
-      prisma.dataKependudukan.count({
-        where: { 
-          tenantId,
-          OR: [
-            { jenisKelamin: "Perempuan" },
-            { jenisKelamin: "P" }
-          ]
-        },
-      }),
-      prisma.dataKependudukan.count({
-        where: {
-          tenantId,
-          OR: [
-            { hubunganKeluarga: "KEPALA_KELUARGA" },
-            { hubunganKeluarga: "Kepala Keluarga" }
-          ]
-        }
-      })
-    ]);
+    
+    // Single optimized query to eliminate connection pool starvation and timeout
+    const residents = await prisma.dataKependudukan.findMany({
+      where: { tenantId },
+      select: { jenisKelamin: true, hubunganKeluarga: true, noKK: true }
+    });
 
-    // Fallback to distinct groupBy only if totalKKCount returned 0 but totalWarga > 0
-    let totalKK = totalKKCount;
-    if (totalKK === 0 && totalWarga > 0) {
-      const resultKK = await prisma.dataKependudukan.groupBy({
-        by: ['noKK'],
-        where: { tenantId },
-      });
-      totalKK = resultKK.length;
-    }
+    const totalWarga = residents.length;
+    let totalLaki = 0;
+    let totalPerempuan = 0;
+    let totalKKCount = 0;
+    const uniqueKkSet = new Set<string>();
+
+    residents.forEach(r => {
+      if (isMaleValue(r.jenisKelamin)) totalLaki++;
+      else if (isFemaleValue(r.jenisKelamin)) totalPerempuan++;
+
+      if (isKepalaKeluarga(r.hubunganKeluarga)) totalKKCount++;
+      if (r.noKK) uniqueKkSet.add(r.noKK);
+    });
+
+    const totalKK = totalKKCount > 0 ? totalKKCount : uniqueKkSet.size;
 
     return {
       totalWarga,
@@ -92,6 +90,7 @@ export async function getVillageStats() {
       totalKK,
     };
   } catch (error) {
+    console.error("Error in getVillageStats:", error);
     return {
       totalWarga: 0,
       totalLaki: 0,

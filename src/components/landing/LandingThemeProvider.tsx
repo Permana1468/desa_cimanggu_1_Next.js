@@ -5,6 +5,8 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 interface LandingThemeContextType {
     isNightMode: boolean;
     toggleNightMode: () => void;
+    isDualMode: boolean;
+    toggleDualMode: () => void;
 }
 
 const LandingThemeContext = createContext<LandingThemeContextType | undefined>(undefined);
@@ -17,6 +19,7 @@ export function LandingThemeProvider({
     initialIsNightMode?: boolean 
 }) {
     const [isNightMode, setIsNightMode] = useState(initialIsNightMode);
+    const [isDualMode, setIsDualMode] = useState(false);
 
     useEffect(() => {
         // Sync with cookie on mount
@@ -26,6 +29,11 @@ export function LandingThemeProvider({
             const val = themeCookie.split('=')[1];
             setIsNightMode(val === 'night');
         }
+        const dualCookie = cookies.find(c => c.trim().startsWith('landingDualMode='));
+        if (dualCookie) {
+            const val = dualCookie.split('=')[1];
+            setIsDualMode(val === 'true');
+        }
     }, []);
 
     const toggleNightMode = () => {
@@ -34,8 +42,14 @@ export function LandingThemeProvider({
         document.cookie = `landingThemeMode=${newValue ? 'night' : 'normal'}; path=/; max-age=31536000`;
     };
 
+    const toggleDualMode = () => {
+        const newValue = !isDualMode;
+        setIsDualMode(newValue);
+        document.cookie = `landingDualMode=${newValue}; path=/; max-age=31536000`;
+    };
+
     return (
-        <LandingThemeContext.Provider value={{ isNightMode, toggleNightMode }}>
+        <LandingThemeContext.Provider value={{ isNightMode, toggleNightMode, isDualMode, toggleDualMode }}>
             <div className={`transition-colors duration-500 min-h-screen overflow-x-hidden relative ${isNightMode ? 'landing-night-mode bg-[#050914] text-white' : 'landing-light-mode bg-slate-50 text-slate-900'}`}>
                 {/* Global CSS overrides for Light Mode without altering every single file */}
                 {!isNightMode && (
@@ -172,7 +186,7 @@ export function useLandingTheme() {
     const context = useContext(LandingThemeContext);
     if (context === undefined) {
         // Fallback for components like TechNightCanvas used outside of LandingThemeProvider (e.g. login page)
-        return { isNightMode: true, toggleNightMode: () => {} };
+        return { isNightMode: true, toggleNightMode: () => {}, isDualMode: false, toggleDualMode: () => {} };
     }
     return context;
 }

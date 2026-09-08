@@ -50,8 +50,9 @@ export async function getKadusDashboardSummary() {
     const ageGroups = { 'Balita (0-4)': 0, 'Anak (5-14)': 0, 'Remaja (15-24)': 0, 'Dewasa (25-59)': 0, 'Lansia (60+)': 0 };
 
     wargaList.forEach(w => {
-        if (w.jenisKelamin === 'LAKI-LAKI') male++;
-        else if (w.jenisKelamin === 'PEREMPUAN') female++;
+        const gk = (w.jenisKelamin || "").toUpperCase().replace(/[-_\s]+/g, "");
+        if (gk === 'LAKILAKI' || gk === 'L' || gk === 'MALE' || gk === 'M') male++;
+        else if (gk === 'PEREMPUAN' || gk === 'P' || gk === 'FEMALE' || gk === 'F') female++;
 
         let age = 0;
         if (w.tanggalLahir) {

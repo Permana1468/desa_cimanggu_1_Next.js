@@ -57,7 +57,10 @@ import {
   Terminal,
   FileCheck,
   QrCode,
-  ScanLine
+  ScanLine,
+  Layers,
+  TrendingUp,
+  Mail
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -103,6 +106,8 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [openGroup, setOpenGroup] = useState<string | null>("manajemen-data");
+  const [isRkpOpen, setIsRkpOpen] = useState(true);
+  const [isMusrenbangOpen, setIsMusrenbangOpen] = useState(true);
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [kesraRgbTheme, setKesraRgbTheme] = useState<string>("rose");
 
@@ -550,38 +555,90 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
           ) : role === "KAUR_PERENCANAAN" ? (
              // === KAUR PERENCANAAN ACCORDION SIDEBAR ===
              <div className="space-y-1">
-               {/* Standalone Links */}
-               {[
-                 { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard", activeParam: "overview" },
-                 { name: "Infrastruktur", icon: HardHat, href: "/dashboard/infrastruktur", activeParam: "" },
-                 { name: "Usulan Musrenbang", icon: Banknote, href: "/dashboard/finance", activeParam: "" },
-                 { name: "APBDes", icon: PieChart, href: "/dashboard/apbdes", activeParam: "" },
-                 { name: "Peta Interaktif", icon: Map, href: "/dashboard/map", activeParam: "" },
-                 { name: "Data Kependudukan", icon: Database, href: "/dashboard/warga", activeParam: "warga" },
-                 { name: "Arsip Digital", icon: Archive, href: "/dashboard/arsip", activeParam: "" },
-                 { name: "Monitoring", icon: Activity, href: "/dashboard/monitoring", activeParam: "" },
-               ].map((item) => {
-                  const isDashboard = item.href === "/dashboard";
-                  const isActive = isDashboard 
-                    ? (pathname === "/dashboard" && (!tabParam || tabParam === "overview" || tabParam === item.activeParam))
-                    : (pathname.startsWith(item.href) || (item.activeParam && tabParam === item.activeParam));
-                  
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href + (item.activeParam && isDashboard ? `?tab=${item.activeParam}` : '')}
-                      onClick={() => setIsOpen(false)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative z-10 ${
-                        isActive
-                          ? (isHackerTheme ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)] backdrop-blur-sm" : "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20")
-                          : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium backdrop-blur-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
-                      } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
-                    >
-                      <item.icon size={20} className={`${isActive ? "" : "group-hover:scale-110 transition-transform group-hover:animate-luxury-float"} ${isActive && isHackerTheme ? 'animate-luxury-pulse luxury-glow-strong text-teal-300' : ''}`} />
-                      {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>{item.name}</span>}
-                    </Link>
-                  );
-               })}
+                {/* Standalone Links */}
+                {[
+                  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard", activeParam: "overview" },
+                  { name: "Infrastruktur", icon: HardHat, href: "/dashboard/infrastruktur", activeParam: "" },
+                  { name: "APBDes", icon: PieChart, href: "/dashboard/apbdes", activeParam: "" },
+                  { name: "Peta Interaktif", icon: Map, href: "/dashboard/map", activeParam: "" },
+                  { name: "Data Kependudukan", icon: Database, href: "/dashboard/warga", activeParam: "warga" },
+                  { name: "Arsip Digital", icon: Archive, href: "/dashboard/arsip", activeParam: "" },
+                  { name: "Monitoring", icon: Activity, href: "/dashboard/monitoring", activeParam: "" },
+                ].map((item) => {
+                   const isDashboard = item.href === "/dashboard";
+                   const isActive = isDashboard 
+                     ? (pathname === "/dashboard" && (!tabParam || tabParam === "overview" || tabParam === item.activeParam))
+                     : (pathname.startsWith(item.href) || (item.activeParam && tabParam === item.activeParam));
+                   
+                   return (
+                     <Link
+                       key={item.name}
+                       href={item.href + (item.activeParam && isDashboard ? `?tab=${item.activeParam}` : '')}
+                       onClick={() => setIsOpen(false)}
+                       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative z-10 ${
+                         isActive
+                           ? (isHackerTheme ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)] backdrop-blur-sm" : "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20")
+                           : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium backdrop-blur-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
+                       } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
+                     >
+                       <item.icon size={20} className={`${isActive ? "" : "group-hover:scale-110 transition-transform group-hover:animate-luxury-float"} ${isActive && isHackerTheme ? 'animate-luxury-pulse luxury-glow-strong text-teal-300' : ''}`} />
+                       {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>{item.name}</span>}
+                     </Link>
+                   );
+                })}
+
+                {/* Usulan Musrenbang Dropdown Sub-Menu */}
+                <div className="pt-1 relative z-10">
+                  <button
+                    onClick={() => (!isCollapsed || isOpen) && setIsMusrenbangOpen(!isMusrenbangOpen)}
+                    className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all group cursor-pointer ${
+                      ["undangan-musrenbang", "musling-rw", "musling-kadus", "finance", "musrenbang"].includes(tabParam || "")
+                        ? (isHackerTheme ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)] backdrop-blur-sm" : "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20")
+                        : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium backdrop-blur-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
+                    } ${isCollapsed && !isOpen ? "justify-center" : ''}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Banknote size={20} className={`shrink-0 group-hover:scale-110 transition-transform ${["undangan-musrenbang", "musling-rw", "musling-kadus", "finance", "musrenbang"].includes(tabParam || "") && isHackerTheme ? 'animate-luxury-pulse luxury-glow-strong text-teal-300' : ''}`} />
+                      {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>Usulan Musrenbang</span>}
+                    </div>
+                    {(!isCollapsed || isOpen) && (
+                      <ChevronDown size={14} className={`transition-transform duration-200 ${isMusrenbangOpen ? 'rotate-180' : ''}`} />
+                    )}
+                  </button>
+                  <AnimatePresence>
+                    {(isMusrenbangOpen && (!isCollapsed || isOpen)) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className={`mt-1 ml-3 pl-3 border-l space-y-1 ${isHackerTheme ? 'border-cyan-500/30' : 'border-emerald-100'}`}>
+                          {[
+                            { label: isHackerTheme ? "[1. Undangan Musrenbang]" : "1. UNDANGAN MUSRENBANG", tab: "undangan-musrenbang", icon: Mail },
+                            { label: isHackerTheme ? "[2. Musling RW]" : "2. MUSLING TINGKAT RW", tab: "musling-rw", icon: Building2 },
+                            { label: isHackerTheme ? "[3. Musling Kadus]" : "3. MUSLING TINGKAT KADUS", tab: "musling-kadus", icon: Users },
+                          ].map((subItem) => (
+                            <Link
+                              key={subItem.tab}
+                              href={`/dashboard?tab=${subItem.tab}`}
+                              onClick={() => setIsOpen(false)}
+                              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-xs group ${
+                                tabParam === subItem.tab
+                                  ? (isHackerTheme ? "bg-cyan-900/50 text-cyan-300 font-bold border border-cyan-500/50 backdrop-blur-sm" : "bg-emerald-500 text-white font-bold")
+                                  : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 font-mono backdrop-blur-sm" : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 font-medium")
+                              }`}
+                            >
+                              <subItem.icon size={14} className={`${tabParam === subItem.tab ? 'text-white' : 'text-emerald-500 group-hover:scale-110 transition-transform'}`} />
+                              <span>{subItem.label}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
                {/* CYBER-PLAN ENGINE Dropdown */}
                <div className="pt-2 relative z-10">
@@ -610,8 +667,59 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                        className="overflow-hidden"
                      >
                        <div className={`mt-1 ml-3 pl-3 border-l space-y-1 ${isHackerTheme ? 'border-cyan-500/30' : 'border-emerald-100'}`}>
+                         
+                         <div>
+                           <button
+                             onClick={() => setIsRkpOpen(!isRkpOpen)}
+                             className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg transition-all text-sm group cursor-pointer ${
+                               ["rkp", "apbdes", "rkkd-add", "rkkd-dd", "rkkd-bhprd", "rkkd-bankeu"].includes(tabParam || "")
+                                 ? (isHackerTheme ? "bg-cyan-900/60 text-cyan-300 font-bold border border-cyan-500/50 backdrop-blur-sm" : "bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20")
+                                 : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 font-mono backdrop-blur-sm" : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 font-semibold")
+                             }`}
+                           >
+                             <div className="flex items-center gap-2.5">
+                               <FileText size={14} className={`${["rkp", "apbdes", "rkkd-add", "rkkd-dd", "rkkd-bhprd", "rkkd-bankeu"].includes(tabParam || "") && isHackerTheme ? 'animate-luxury-float luxury-glow-strong text-teal-300' : 'group-hover:animate-luxury-pulse'}`} />
+                               <span>{isHackerTheme ? "[RKP-Desa]" : "RKP Desa"}</span>
+                             </div>
+                             <ChevronDown size={13} className={`transition-transform duration-200 ${isRkpOpen ? 'rotate-180' : ''}`} />
+                           </button>
+
+                           <AnimatePresence>
+                             {isRkpOpen && (
+                               <motion.div
+                                 initial={{ height: 0, opacity: 0 }}
+                                 animate={{ height: "auto", opacity: 1 }}
+                                 exit={{ height: 0, opacity: 0 }}
+                                 transition={{ duration: 0.15 }}
+                                 className="overflow-hidden ml-3 pl-2.5 mt-1 space-y-1 border-l border-emerald-300/40"
+                               >
+                                 {[
+                                   { label: isHackerTheme ? "[1. APBDes]" : "1. APBDes", tab: "apbdes", icon: PieChart },
+                                   { label: isHackerTheme ? "[2. RKKD ADD]" : "2. RKKD ADD", tab: "rkkd-add", icon: Banknote },
+                                   { label: isHackerTheme ? "[3. RKKD DD]" : "3. RKKD DD", tab: "rkkd-dd", icon: Building2 },
+                                   { label: isHackerTheme ? "[4. RKKD BHPRD]" : "4. RKKD BHPRD", tab: "rkkd-bhprd", icon: Layers },
+                                   { label: isHackerTheme ? "[5. RKKD BANKEU]" : "5. RKKD BANKEU", tab: "rkkd-bankeu", icon: TrendingUp },
+                                 ].map((subItem) => (
+                                   <Link
+                                     key={subItem.tab}
+                                     href={`/dashboard?tab=${subItem.tab}`}
+                                     onClick={() => setIsOpen(false)}
+                                     className={`flex items-center gap-2 px-2.5 py-1.5 rounded-md transition-all text-xs group ${
+                                       tabParam === subItem.tab
+                                         ? (isHackerTheme ? "bg-cyan-800/60 text-cyan-200 font-bold border border-cyan-400/40" : "bg-emerald-500 text-white font-bold shadow-sm")
+                                         : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/40 hover:text-cyan-300 font-mono" : "text-slate-600 hover:bg-emerald-100/60 hover:text-emerald-900 font-medium")
+                                     }`}
+                                   >
+                                     <subItem.icon size={13} className={`${tabParam === subItem.tab ? 'text-white' : 'text-emerald-500 group-hover:scale-110 transition-transform'}`} />
+                                     <span>{subItem.label}</span>
+                                   </Link>
+                                 ))}
+                               </motion.div>
+                             )}
+                           </AnimatePresence>
+                         </div>
+
                          {[
-                           { label: isHackerTheme ? "[RKP-Desa]" : "RKP Desa", tab: "rkp", icon: FileText },
                            { label: isHackerTheme ? "[Harga Satuan]" : "Harga Satuan", tab: "harga-satuan", icon: Database },
                            { label: isHackerTheme ? "[Take Off Sheet]" : "Take Off Sheet", tab: "takeoff", icon: FileText },
                            { label: isHackerTheme ? "[RAB-Desa]" : "RAB Desa", tab: "rab", icon: PieChart },

@@ -44,7 +44,7 @@ export function CetakHargaSatuan({ data, onBack }: CetakHargaSatuanProps) {
              width: '215.9mm',
              minHeight: '330.2mm',
              padding: '20mm',
-             fontFamily: '"Times New Roman", Times, serif',
+             fontFamily: 'Cambria, "Times New Roman", Times, serif',
              boxSizing: 'border-box'
            }}>
         

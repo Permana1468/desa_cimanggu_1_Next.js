@@ -17,6 +17,8 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { CyberPlanRabTab } from "../perencanaan/CyberPlanRabTab";
 import { CyberPlanTakeOffTab } from "../perencanaan/CyberPlanTakeOffTab";
 import { CyberPlanHargaSatuanTab } from "../perencanaan/CyberPlanHargaSatuanTab";
+import { CyberPlanRkkdTab, RkkdSubFeature } from "../perencanaan/CyberPlanRkkdTab";
+import { CyberPlanMusrenbangTab, MusrenbangSubFeature } from "../perencanaan/CyberPlanMusrenbangTab";
 import { LuxuryRingChart } from "./LuxuryRingChart";
 
 export function PerencanaanDashboard({ session, stats, isHackerTheme }: { session: any, stats: any, isHackerTheme?: boolean }) {
@@ -41,6 +43,34 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
     }, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  const musrenbangTabs = ["undangan-musrenbang", "musling-rw", "musling-kadus", "finance", "musrenbang"];
+  if (tabParam && musrenbangTabs.includes(tabParam)) {
+    const defaultSubTab: MusrenbangSubFeature = (tabParam === "finance" || tabParam === "musrenbang" ? "undangan-musrenbang" : tabParam) as MusrenbangSubFeature;
+    return (
+      <CyberPlanMusrenbangTab 
+        defaultTab={defaultSubTab}
+        onBack={() => {
+          setActiveTab("main");
+          router.push("/dashboard?tab=overview");
+        }} 
+      />
+    );
+  }
+
+  const rkkdTabs = ["rkp", "apbdes", "rkkd-add", "rkkd-dd", "rkkd-bhprd", "rkkd-bankeu"];
+  if (tabParam && rkkdTabs.includes(tabParam)) {
+    const defaultSubTab: RkkdSubFeature = (tabParam === "rkp" ? "apbdes" : tabParam) as RkkdSubFeature;
+    return (
+      <CyberPlanRkkdTab 
+        defaultTab={defaultSubTab}
+        onBack={() => {
+          setActiveTab("main");
+          router.push("/dashboard?tab=overview");
+        }} 
+      />
+    );
+  }
 
   if (tabParam === "rab" || activeTab === "rab") {
     return <CyberPlanRabTab onBack={() => {

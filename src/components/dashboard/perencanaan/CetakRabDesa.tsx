@@ -73,12 +73,23 @@ export function CetakRabDesa({
   };
 
   const renderItems = (list: RabItem[]) => {
-    return list.map((item, idx) => {
+    let mainIndex = 0;
+    return list.map((item) => {
       const c = calculateRow(item);
+      const isSubNumbered = /^\d+\.\d+/.test(item.uraian.trim());
+      
+      let displayNo = "";
+      if (!isSubNumbered) {
+        mainIndex += 1;
+        displayNo = mainIndex.toString();
+      }
+
       return (
-        <tr key={item.id} className="text-[8px]">
-          <td className="border-x border-black border-b border-dotted px-1 py-0.5 text-center">{idx + 1}</td>
-          <td className="border-x border-black border-b border-dotted px-1 py-0.5 truncate max-w-[120px]">{item.uraian}</td>
+        <tr key={item.id} className="text-[8px] leading-tight">
+          <td className="border-x border-black border-b border-dotted px-1 py-0.5 text-center font-medium">{displayNo}</td>
+          <td className={`border-x border-black border-b border-dotted px-1 py-0.5 break-words max-w-[130px] overflow-hidden ${isSubNumbered ? "pl-3 text-slate-900" : "font-semibold"}`}>
+            {item.uraian}
+          </td>
           <td className="border-x border-black border-b border-dotted px-1 py-0.5 text-center font-mono">{c.volTotal > 0 ? c.volTotal.toFixed(2) : "-"}</td>
           <td className="border-x border-black border-b border-dotted px-1 py-0.5 text-center font-mono">{item.volumeSwadaya > 0 ? item.volumeSwadaya.toFixed(2) : "-"}</td>
           <td className="border-x border-black border-b border-dotted px-1 py-0.5 text-center font-mono">{item.volumeApbd > 0 ? item.volumeApbd.toFixed(2) : "-"}</td>
@@ -110,13 +121,23 @@ export function CetakRabDesa({
     </tr>
   );
 
+  const getSumberDanaLabel = (kategori: string) => {
+    const upper = (kategori || "").toUpperCase();
+    if (upper.includes("DANA DESA") || upper === "DD") return "DANA DESA";
+    if (upper.includes("ADD")) return "ADD";
+    if (upper.includes("BHPRD")) return "BHPRD";
+    return "APBD";
+  };
+
+  const sumberDanaText = getSumberDanaLabel(formData.kategoriRab);
+
   return (
     <div className="bg-slate-100 min-h-screen py-8">
       <style dangerouslySetInnerHTML={{
         __html: `
         @media print {
           body * { visibility: hidden; }
-          #print-area, #print-area * { visibility: visible; }
+          #print-area, #print-area * { visibility: visible; font-family: Cambria, 'Times New Roman', Georgia, serif !important; }
           #print-area {
             position: absolute;
             left: 0;
@@ -128,6 +149,7 @@ export function CetakRabDesa({
             background: white !important;
             color: black !important;
             box-shadow: none !important;
+            font-family: Cambria, 'Times New Roman', Georgia, serif !important;
           }
           .no-print { display: none !important; }
           @page {
@@ -147,7 +169,7 @@ export function CetakRabDesa({
           border-color: #000 !important;
           color: #000 !important;
         }
-      `}} />
+      ` }} />
 
       {/* Toolbar */}
       <div className="max-w-4xl mx-auto mb-6 flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200 no-print">
@@ -160,10 +182,10 @@ export function CetakRabDesa({
       </div>
 
       {/* Print Document - Portrait Layout */}
-      <div id="print-area" className="mx-auto bg-white shadow-xl text-black font-serif overflow-hidden" style={{ width: "100%", maxWidth: "215.9mm", minHeight: "330.2mm", padding: "10mm", fontFamily: "'Times New Roman', Times, serif", color: "#000" }}>
+      <div id="print-area" className="mx-auto bg-white shadow-xl text-black overflow-hidden" style={{ width: "100%", maxWidth: "215.9mm", minHeight: "330.2mm", padding: "10mm", fontFamily: "Cambria, 'Times New Roman', Georgia, serif", color: "#000" }}>
         
         {/* Header Title */}
-        <h1 className="text-center font-bold text-[14px] mb-4 tracking-wide text-black">RANCANGAN ANGGARAN BELANJA DESA</h1>
+        <h1 className="text-center font-bold text-[14px] mb-4 tracking-wide text-black">RANCANGAN ANGGARAN BELANJA DESA ({formData.kategoriRab?.toUpperCase()})</h1>
         
         {/* Identitas RAB */}
         <div className="grid grid-cols-2 gap-2 mb-2 text-[10px]">
@@ -202,9 +224,9 @@ export function CetakRabDesa({
             <tr className="bg-white font-bold text-center">
               <td className="border border-black p-0.5 w-[35px]">Total</td>
               <td className="border border-black p-0.5 w-[35px]">Dari<br/>Swadaya</td>
-              <td className="border border-black p-0.5 w-[35px]">Dari<br/>APBD</td>
+              <td className="border border-black p-0.5 w-[35px]">Dari<br/>{sumberDanaText}</td>
               <td className="border border-black p-0.5 w-[55px]">Dari<br/>Swadaya</td>
-              <td className="border border-black p-0.5 w-[55px]">Dari APBD</td>
+              <td className="border border-black p-0.5 w-[55px]">Dari {sumberDanaText}</td>
             </tr>
           </thead>
           <tbody>
@@ -269,8 +291,8 @@ export function CetakRabDesa({
           <table className="w-full">
             <tbody>
               <tr className="border-b border-black font-bold">
-                <td className="border-r border-black p-1 w-[80px] text-center" rowSpan={3}>SUMBER<br/>APBD</td>
-                <td className="border-r border-black p-1 text-center">APBD</td>
+                <td className="border-r border-black p-1 w-[80px] text-center" rowSpan={3}>SUMBER<br/>{sumberDanaText}</td>
+                <td className="border-r border-black p-1 text-center">{sumberDanaText}</td>
                 <td className="border-r border-black p-1 text-right font-mono w-[80px]">{formatCurrency(grandTotal.totalApbd)}</td>
                 <td className="p-1 text-right font-mono w-[80px]">{formatCurrency(grandTotal.totalApbd)}</td>
               </tr>

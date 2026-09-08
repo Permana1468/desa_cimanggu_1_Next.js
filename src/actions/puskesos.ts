@@ -149,6 +149,7 @@ export async function createPuskesosBukuTamu(data: {
   namaLengkap: string;
   nik?: string;
   alamat: string;
+  jabatan?: string;
   noHp?: string;
   keperluan: string;
   tandaTangan: string; // Base64
@@ -159,6 +160,7 @@ export async function createPuskesosBukuTamu(data: {
       namaLengkap: data.namaLengkap,
       nik: data.nik || null,
       alamat: data.alamat,
+      jabatan: data.jabatan || null,
       noHp: data.noHp || null,
       keperluan: data.keperluan,
       tandaTangan: data.tandaTangan,
@@ -167,3 +169,42 @@ export async function createPuskesosBukuTamu(data: {
   revalidatePath('/dashboard/puskesos/buku-tamu');
   return res;
 }
+
+export async function updatePuskesosBukuTamu(id: string, data: {
+  namaLengkap: string;
+  nik?: string;
+  alamat: string;
+  jabatan?: string;
+  noHp?: string;
+  keperluan: string;
+  tandaTangan?: string; // Optional if unchanged
+}) {
+  const updateData: any = {
+    namaLengkap: data.namaLengkap,
+    nik: data.nik || null,
+    alamat: data.alamat,
+    jabatan: data.jabatan || null,
+    noHp: data.noHp || null,
+    keperluan: data.keperluan,
+  };
+
+  if (data.tandaTangan) {
+    updateData.tandaTangan = data.tandaTangan;
+  }
+
+  const res = await prisma.puskesosBukuTamu.update({
+    where: { id },
+    data: updateData,
+  });
+  revalidatePath('/dashboard/puskesos/buku-tamu');
+  return res;
+}
+
+export async function deletePuskesosBukuTamu(id: string) {
+  const res = await prisma.puskesosBukuTamu.delete({
+    where: { id },
+  });
+  revalidatePath('/dashboard/puskesos/buku-tamu');
+  return res;
+}
+
