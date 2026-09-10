@@ -46,7 +46,7 @@ function formatLokasiKegiatan(inputStr: string): string {
 // Helper: Format Kegiatan (Auto Uppercase)
 function formatNamaKegiatan(inputStr: string): string {
   if (!inputStr) return "";
-  let str = inputStr.toUpperCase().trim();
+  const str = inputStr.toUpperCase().trim();
   if (!str.startsWith("KEGIATAN ") && !str.startsWith("BETONISASI") && !str.startsWith("PEMBANGUNAN")) {
     // Keep clean
   }

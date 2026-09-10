@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/components/providers/SessionProvider";
 import SessionTimeoutHandler from "@/components/providers/SessionTimeoutHandler";
+import { ProgressBarProvider } from "@/components/providers/ProgressBarProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -38,7 +39,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-[#0b1120] font-sans">
         <AuthProvider>
           <SessionTimeoutHandler />
-          {children}
+          <ProgressBarProvider>
+            {children}
+          </ProgressBarProvider>
         </AuthProvider>
       </body>
     </html>

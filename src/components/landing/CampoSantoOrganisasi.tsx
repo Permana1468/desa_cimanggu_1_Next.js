@@ -379,7 +379,7 @@ export function CampoSantoOrganisasi({ siteData, onBackToHero }: CampoSantoOrgan
                             <div className="space-y-1 py-0.5">
                                 <Quote size={20} className={`${currentOfficial.accentColor} opacity-80`} />
                                 <p className={`text-xs sm:text-sm lg:text-base font-serif italic leading-relaxed ${currentOfficial.subtextColor}`}>
-                                    "{currentOfficial.motto}"
+                                    &quot;{currentOfficial.motto}&quot;
                                 </p>
                             </div>
 

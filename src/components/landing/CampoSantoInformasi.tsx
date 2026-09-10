@@ -223,7 +223,7 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
                         className="text-2xl sm:text-4xl font-black text-amber-300 uppercase tracking-tight"
                         style={{ fontFamily: "Georgia, serif" }}
                     >
-                        "SECARA VISUAL MEMUKAU DAN TRANSPARAN."
+                        &quot;SECARA VISUAL MEMUKAU DAN TRANSPARAN.&quot;
                     </h2>
                     <span className="text-amber-200/70 text-xs tracking-widest uppercase block">
                         PUSAT INFORMASI PUBLIK PEMDES CIMANGGU I

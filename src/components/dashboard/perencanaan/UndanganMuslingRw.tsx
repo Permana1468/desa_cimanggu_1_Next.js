@@ -128,12 +128,12 @@ export function UndanganMuslingRw({ onBack }: { onBack?: () => void }) {
 
       {/* SALAM OPENING */}
       <div className="mb-4 text-[11pt] font-bold">
-        Assalamu'alaikum Warohmatullohi Wabarokatuh.
+        Assalamu&apos;alaikum Warohmatullohi Wabarokatuh.
       </div>
 
       {/* PARAGRAF PEMBUKA */}
       <div className="mb-4 text-[11pt] text-justify leading-relaxed">
-        Puji syukur kepada Allah Subhanahu Wa Ta'ala atas segala limpahan rahmatnya kepada kita semua baik berupa Kesehatan maupun keberkahan. Sholawat dan Salam juga tak lupa senantiasa kita panjatkan kepada junjungan Nabi Besar Muhammad Salallahu Alaihi Wa Salam.
+        Puji syukur kepada Allah Subhanahu Wa Ta&apos;ala atas segala limpahan rahmatnya kepada kita semua baik berupa Kesehatan maupun keberkahan. Sholawat dan Salam juga tak lupa senantiasa kita panjatkan kepada junjungan Nabi Besar Muhammad Salallahu Alaihi Wa Salam.
       </div>
 
       {/* PARAGRAF ISI */}
@@ -166,7 +166,7 @@ export function UndanganMuslingRw({ onBack }: { onBack?: () => void }) {
       </div>
 
       <div className="mb-8 text-[11pt] font-bold italic">
-        Wassalamu'alaikum, Wr, Wb.
+        Wassalamu&apos;alaikum, Wr, Wb.
       </div>
 
       {/* TANDA TANGAN KETUA RW */}

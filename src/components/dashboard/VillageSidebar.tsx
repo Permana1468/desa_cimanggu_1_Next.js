@@ -1048,7 +1048,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                >
-                 <LayoutDashboard size={20} />
+                 <LayoutDashboard size={20} className="text-blue-500 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" />
                  {(!isCollapsed || isOpen) && <span className="text-sm">Dashboard Utama</span>}
                </Link>
 
@@ -1062,7 +1062,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                >
-                 <MessageSquare size={20} />
+                 <MessageSquare size={20} className="text-rose-500 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300" />
                  {(!isCollapsed || isOpen) && <span className="text-sm">Layanan Pengaduan</span>}
                </Link>
 
@@ -1076,7 +1076,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                >
-                 <FileText size={20} />
+                 <FileText size={20} className="text-indigo-500 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" />
                  {(!isCollapsed || isOpen) && <span className="text-sm">Manajemen Rujukan (SLRT)</span>}
                </Link>
 
@@ -1090,7 +1090,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                >
-                 <HeartHandshake size={20} />
+                 <HeartHandshake size={20} className="text-emerald-500 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300" />
                  {(!isCollapsed || isOpen) && <span className="text-sm">Data PPKS</span>}
                </Link>
 
@@ -1104,7 +1104,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                >
-                 <Map size={20} />
+                 <Map size={20} className="text-amber-500 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" />
                  {(!isCollapsed || isOpen) && <span className="text-sm">Peta Kerentanan GIS</span>}
                </Link>
 
@@ -1118,7 +1118,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                >
-                 <Sparkles size={20} />
+                 <Sparkles size={20} className="text-purple-500 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300" />
                  {(!isCollapsed || isOpen) && <span className="text-sm">Laporan Kegiatan & LPJ</span>}
                </Link>
 
@@ -1132,7 +1132,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                >
-                 <HeartPulse size={20} />
+                 <HeartPulse size={20} className="text-pink-500 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" />
                  {(!isCollapsed || isOpen) && <span className="text-sm">Usulan UHC</span>}
                </Link>
 
@@ -1146,7 +1146,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                >
-                 <Users size={20} />
+                 <Users size={20} className="text-cyan-500 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-300" />
                  {(!isCollapsed || isOpen) && <span className="text-sm">Data Warga</span>}
                </Link>
 
@@ -1160,7 +1160,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                >
-                 <Users size={20} />
+                 <Users size={20} className="text-teal-500 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300" />
                  {(!isCollapsed || isOpen) && <span className="text-sm">Data Pengurus</span>}
                </Link>
 
@@ -1207,7 +1207,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                                  : (isHackerTheme ? "text-slate-400 hover:text-cyan-400 font-mono" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")
                              }`}
                            >
-                             <subItem.icon size={14} />
+                             <subItem.icon size={14} className="text-blue-500 group-hover:scale-125 group-hover:rotate-6 transition-all duration-300" />
                              <span>{subItem.label}</span>
                            </Link>
                          ))}
@@ -1227,7 +1227,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium"
                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                >
-                 <Settings size={20} />
+                 <Settings size={20} className="text-slate-400 group-hover:text-slate-700 group-hover:rotate-90 transition-all duration-500" />
                  {(!isCollapsed || isOpen) && <span className="text-sm">Pengaturan</span>}
                </Link>
              </div>

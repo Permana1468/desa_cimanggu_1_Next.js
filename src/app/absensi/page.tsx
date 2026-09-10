@@ -213,7 +213,7 @@ export default function PublicAbsensiKioskPage() {
   }, [logs]);
 
   // Process Scanned Code
-  const processScanCode = (codeRaw: string) => {
+  function processScanCode(codeRaw: string) {
     let code = codeRaw.trim().toUpperCase();
     if (!code) return;
 

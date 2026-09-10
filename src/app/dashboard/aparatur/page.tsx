@@ -171,6 +171,9 @@ function generateQrCodeBase64(text: string): string {
   return "data:image/svg+xml;base64," + (typeof window !== "undefined" ? btoa(svgStr) : Buffer.from(svgStr).toString("base64"));
 }
 
+const generateBarcodeId = (catCode: string) => `APR-${catCode}-${Math.floor(100 + Math.random() * 900)}`;
+const generateItemId = () => `APR-${Date.now()}`;
+
 export default function AparaturPage() {
   const { data: session } = useSession();
   const isAdminMaster = (session?.user as any)?.role === "ADMIN_MASTER" || (session?.user as any)?.role === "ADMIN_DESA";
@@ -255,7 +258,7 @@ export default function AparaturPage() {
     setSaving(true);
     try {
       const catCode = formData.kategori.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, "");
-      const generatedBarcode = formData.barcodeId || formData.nik || `APR-${catCode}-${Math.floor(100 + Math.random() * 900)}`;
+      const generatedBarcode = formData.barcodeId || formData.nik || generateBarcodeId(catCode);
 
       let level = 2;
       if (formData.role === "KADES") level = 0;
@@ -263,7 +266,7 @@ export default function AparaturPage() {
       else if (formData.role === "KADUS") level = 3;
 
       const newItem = {
-        id: `APR-${Date.now()}`,
+        id: generateItemId(),
         name: formData.name,
         nik: formData.nik || generatedBarcode,
         barcodeId: generatedBarcode,

@@ -150,22 +150,11 @@ export default function LoginPage() {
 
     return (
         <LandingThemeProvider>
-            <div className="min-h-screen bg-[#050914] text-white flex items-center justify-center p-4 md:p-6 font-sans relative overflow-hidden selection:bg-cyan-500 selection:text-black">
-                {/* Back to Home Button */}
-                <Link href="/" className="absolute top-6 left-6 z-50 flex items-center gap-2 text-slate-400 hover:text-cyan-400 transition-colors bg-slate-900/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 hover:border-cyan-400/50 shadow-lg group">
-                    <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                    <span className="text-xs font-bold uppercase tracking-wider">Kembali</span>
-                </Link>
+            <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center p-4 md:p-6 font-sans relative overflow-hidden selection:bg-emerald-500 selection:text-white">
 
-                {/* Real-time Dynamic Ambient Cyber Canvas Background */}
-            <TechNightCanvas />
-
-            {/* MAIN CYBER GLASS CONTAINER */}
-            <div className="relative z-10 bg-slate-900/80 backdrop-blur-2xl w-full max-w-5xl min-h-[620px] md:min-h-[680px] rounded-[2.5rem] border border-cyan-500/30 shadow-[0_0_60px_rgba(6,182,212,0.25)] overflow-hidden flex flex-col md:flex-row">
+            {/* MAIN CONTAINER */}
+            <div className="relative z-10 bg-white/95 backdrop-blur-xl w-full max-w-4xl min-h-[580px] md:min-h-[620px] rounded-[2.5rem] border border-slate-200 shadow-2xl overflow-hidden flex flex-col md:flex-row">
                 
-                {/* Top Scanner Beam */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent -translate-x-full animate-laser-scan pointer-events-none z-40"></div>
-
                 {/* 1. OVERLAY / CAROUSEL PANEL */}
                 <motion.div 
                     initial={false}
@@ -177,7 +166,7 @@ export default function LoginPage() {
                         borderBottomLeftRadius: isLogin ? "0%" : "12% 50%",
                     }}
                     transition={{ type: "spring", stiffness: 90, damping: 20 }}
-                    className="relative md:absolute top-0 left-0 w-full md:w-1/2 h-[300px] md:h-full z-30 bg-slate-950 text-white overflow-hidden border-r border-white/10 md:border-r-0 shadow-2xl"
+                    className="relative md:absolute top-0 left-0 w-full md:w-1/2 h-[300px] md:h-full z-30 bg-slate-900 text-white overflow-hidden shadow-2xl"
                 >
                     {/* Background Carousel */}
                     <div className="absolute inset-0">
@@ -198,8 +187,8 @@ export default function LoginPage() {
                                     priority
                                     className="object-cover opacity-85 transition-transform duration-[12000ms] ease-out scale-105" 
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-[#060a17] via-[#060a17]/55 to-black/30" />
-                                <div className="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px]" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
+                                <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-[1px]" />
                             </motion.div>
                         </AnimatePresence>
 
@@ -212,12 +201,12 @@ export default function LoginPage() {
                     {/* Branding & Telemetry Content */}
                     <div className="relative h-full flex flex-col items-center justify-center p-6 md:p-12 text-center z-10">
                         {/* Live Telemetry Tag */}
-                        <div className="bg-slate-900/90 backdrop-blur-md border border-cyan-500/30 rounded-full px-4 py-1.5 text-[10px] text-cyan-300 mb-6 flex items-center gap-2 shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+                        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 text-[10px] text-white mb-6 flex items-center gap-2 shadow-sm">
                             <span className="flex h-2 w-2 relative">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                             </span>
-                            <span className="font-mono font-bold tracking-widest uppercase">SDD AUTH PORTAL v2.4</span>
+                            <span className="font-mono font-bold tracking-widest uppercase">AUTH PORTAL</span>
                         </div>
 
                         {/* Village Logo */}
@@ -230,14 +219,14 @@ export default function LoginPage() {
                             />
                         </div>
 
-                        <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight leading-tight mb-1 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-amber-400 to-yellow-500">
+                        <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight leading-tight mb-1 text-white drop-shadow-md">
                             Desa Cimanggu I
                         </h2>
-                        <p className="text-cyan-400 font-extrabold tracking-[0.25em] uppercase text-[9px] md:text-xs mb-6">
+                        <p className="text-emerald-300 font-extrabold tracking-[0.25em] uppercase text-[9px] md:text-xs mb-6 drop-shadow-sm">
                             Kec. Cibungbulang • Kab. Bogor
                         </p>
                         
-                        <div className="w-20 h-1 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full mb-8 shadow-[0_0_12px_rgba(250,204,21,0.8)]" />
+                        <div className="w-20 h-1 bg-emerald-500 rounded-full mb-8 shadow-[0_0_12px_rgba(16,185,129,0.5)]" />
 
                         <div className="hidden md:block">
                             <AnimatePresence mode="wait">
@@ -251,7 +240,7 @@ export default function LoginPage() {
                                     <h3 className="text-xl font-extrabold mb-2 text-white">
                                         {isLogin ? "Belum Punya Akun?" : "Sudah Terdaftar?"}
                                     </h3>
-                                    <p className="text-xs text-slate-400 mb-6 leading-relaxed font-light">
+                                    <p className="text-xs text-slate-200 mb-6 leading-relaxed font-light">
                                         {isLogin 
                                             ? "Daftar sekarang menggunakan NIK KTP Anda untuk mengakses seluruh layanan administrasi desa." 
                                             : "Masuk kembali ke akun Anda untuk memonitor data & layanan."
@@ -260,9 +249,9 @@ export default function LoginPage() {
                                     
                                     <button
                                         onClick={() => { setIsLogin(!isLogin); setError(""); setSuccess(""); }}
-                                        className="px-8 py-3 bg-slate-900/90 border border-cyan-500/40 hover:border-cyan-300 rounded-full font-black text-xs uppercase tracking-widest text-cyan-300 hover:text-white transition-all duration-300 flex items-center gap-2 mx-auto shadow-[0_0_20px_rgba(6,182,212,0.2)] hover:shadow-[0_0_30px_rgba(6,182,212,0.5)] transform hover:-translate-y-0.5"
+                                        className="px-8 py-3 bg-white/10 border border-white/30 hover:bg-white/20 rounded-full font-black text-xs uppercase tracking-widest text-white transition-all duration-300 flex items-center gap-2 mx-auto shadow-lg transform hover:-translate-y-0.5"
                                     >
-                                        {isLogin ? <><UserPlus size={16} className="text-yellow-400"/> BUAT AKUN BARU</> : <><LogIn size={16} className="text-cyan-400"/> MASUK AKUN</>}
+                                        {isLogin ? <><UserPlus size={16} className="text-white"/> BUAT AKUN BARU</> : <><LogIn size={16} className="text-white"/> MASUK AKUN</>}
                                     </button>
                                 </motion.div>
                             </AnimatePresence>
@@ -270,13 +259,13 @@ export default function LoginPage() {
 
                         {/* Social Links */}
                         <div className="absolute bottom-6 md:bottom-8 left-0 w-full flex justify-center gap-4">
-                            <a href="#" className="p-2 bg-slate-900/80 border border-white/10 rounded-full text-slate-400 hover:text-yellow-400 hover:border-yellow-400/50 transition-all">
+                            <a href="#" className="p-2 bg-white/10 border border-white/20 rounded-full text-white hover:bg-white/20 transition-all">
                                 <Instagram size={16} />
                             </a>
-                            <a href="#" className="p-2 bg-slate-900/80 border border-white/10 rounded-full text-slate-400 hover:text-cyan-400 hover:border-cyan-400/50 transition-all">
+                            <a href="#" className="p-2 bg-white/10 border border-white/20 rounded-full text-white hover:bg-white/20 transition-all">
                                 <Facebook size={16} />
                             </a>
-                            <a href="#" className="p-2 bg-slate-900/80 border border-white/10 rounded-full text-slate-400 hover:text-rose-400 hover:border-rose-400/50 transition-all">
+                            <a href="#" className="p-2 bg-white/10 border border-white/20 rounded-full text-white hover:bg-white/20 transition-all">
                                 <Youtube size={16} />
                             </a>
                         </div>
@@ -293,8 +282,8 @@ export default function LoginPage() {
                                 <div className="inline-flex items-center gap-1.5 text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-1">
                                     <UserPlus size={14} /> REGISTRASI WARGA
                                 </div>
-                                <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight">Daftar Akun</h1>
-                                <p className="text-slate-400 text-xs mt-1">Registrasi khusus warga desa menggunakan 16 Digit NIK.</p>
+                                <h1 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight">Daftar Akun</h1>
+                                <p className="text-slate-500 text-xs mt-1">Registrasi khusus warga desa menggunakan 16 Digit NIK.</p>
                             </div>
 
                             {error && !isLogin && (
@@ -310,7 +299,7 @@ export default function LoginPage() {
 
                             <form onSubmit={handleRegister} className="space-y-3.5">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">NIK (KTP)</label>
+                                    <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest ml-1">NIK (KTP)</label>
                                     <div className="relative">
                                         <Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400" size={18} />
                                         <input
@@ -318,14 +307,14 @@ export default function LoginPage() {
                                             value={regNik}
                                             onChange={(e) => setRegNik(e.target.value)}
                                             placeholder="16 Digit NIK"
-                                            className="w-full bg-slate-950/80 border border-white/10 focus:border-emerald-400 rounded-2xl py-3 pl-12 pr-4 text-xs text-white placeholder-slate-500 outline-none transition-all focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] font-semibold"
+                                            className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-2xl py-3 pl-12 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold"
                                             required
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nama Lengkap</label>
+                                    <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest ml-1">Nama Lengkap</label>
                                     <div className="relative">
                                         <User className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400" size={18} />
                                         <input
@@ -333,14 +322,14 @@ export default function LoginPage() {
                                             value={regFullName}
                                             onChange={(e) => setRegFullName(e.target.value)}
                                             placeholder="Nama Sesuai KTP"
-                                            className="w-full bg-slate-950/80 border border-white/10 focus:border-emerald-400 rounded-2xl py-3 pl-12 pr-4 text-xs text-white placeholder-slate-500 outline-none transition-all focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] font-semibold"
+                                            className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-2xl py-3 pl-12 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold"
                                             required
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">No. WhatsApp</label>
+                                    <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest ml-1">No. WhatsApp</label>
                                     <div className="relative">
                                         <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400" size={18} />
                                         <input
@@ -348,7 +337,7 @@ export default function LoginPage() {
                                             value={regPhone}
                                             onChange={(e) => setRegPhone(e.target.value)}
                                             placeholder="0812..."
-                                            className="w-full bg-slate-950/80 border border-white/10 focus:border-emerald-400 rounded-2xl py-3 pl-12 pr-4 text-xs text-white placeholder-slate-500 outline-none transition-all focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] font-semibold"
+                                            className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-2xl py-3 pl-12 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold"
                                             required
                                         />
                                     </div>
@@ -361,7 +350,7 @@ export default function LoginPage() {
                                             value={regPass}
                                             onChange={(e) => setRegPass(e.target.value)}
                                             placeholder="Password"
-                                            className="w-full bg-slate-950/80 border border-white/10 focus:border-emerald-400 rounded-2xl py-3 px-4 text-xs text-white placeholder-slate-500 outline-none transition-all focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] font-semibold"
+                                            className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-2xl py-3 px-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold"
                                             required
                                         />
                                     </div>
@@ -371,7 +360,7 @@ export default function LoginPage() {
                                             value={regConfirmPass}
                                             onChange={(e) => setRegConfirmPass(e.target.value)}
                                             placeholder="Konfirmasi"
-                                            className="w-full bg-slate-950/80 border border-white/10 focus:border-emerald-400 rounded-2xl py-3 px-4 text-xs text-white placeholder-slate-500 outline-none transition-all focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] font-semibold"
+                                            className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-2xl py-3 px-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold"
                                             required
                                         />
                                     </div>
@@ -380,7 +369,7 @@ export default function LoginPage() {
                                 <button 
                                     type="submit" 
                                     disabled={loading} 
-                                    className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest mt-2 shadow-[0_0_20px_rgba(16,185,129,0.4)] hover:shadow-[0_0_30px_rgba(16,185,129,0.7)] transition-all duration-300 flex items-center justify-center gap-2"
+                                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest mt-2 shadow-lg shadow-emerald-600/20 transition-all duration-300 flex items-center justify-center gap-2"
                                 >
                                     {loading ? <Loader2 className="animate-spin" size={18} /> : (
                                         <>
@@ -393,7 +382,7 @@ export default function LoginPage() {
                                 <button 
                                     type="button" 
                                     onClick={() => setIsLogin(true)} 
-                                    className="md:hidden w-full text-xs font-bold text-cyan-400 mt-2 text-center block uppercase tracking-wider"
+                                    className="md:hidden w-full text-xs font-bold text-emerald-600 hover:text-emerald-700 mt-2 text-center block uppercase tracking-wider"
                                 >
                                     Sudah Punya Akun? Masuk
                                 </button>
@@ -408,24 +397,24 @@ export default function LoginPage() {
                                 <div className="inline-flex items-center gap-1.5 text-cyan-400 text-[10px] font-black uppercase tracking-widest mb-1">
                                     <LogIn size={14} /> OTENTIKASI SISTEM
                                 </div>
-                                <h1 className="text-2xl md:text-4xl font-black text-white tracking-tight">Masuk</h1>
-                                <p className="text-slate-400 text-xs mt-1">Selamat datang kembali di portal digital desa.</p>
+                                <h1 className="text-2xl md:text-4xl font-black text-slate-900 tracking-tight">Masuk</h1>
+                                <p className="text-slate-500 text-xs mt-1">Selamat datang kembali di portal digital desa.</p>
                             </div>
 
                             {error && isLogin && (
-                                <div className="bg-rose-500/15 border border-rose-500/40 text-rose-300 text-xs font-bold p-3.5 rounded-2xl flex items-center gap-2.5 shadow-[0_0_20px_rgba(244,63,94,0.2)]">
+                                <div className="bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold p-3.5 rounded-2xl flex items-center gap-2.5">
                                     <span>⚠️</span> <span>{error}</span>
                                 </div>
                             )}
                             {success && isLogin && (
-                                <div className="bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-bold p-3.5 rounded-2xl flex items-center gap-2.5 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                                <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold p-3.5 rounded-2xl flex items-center gap-2.5">
                                     <span>✅</span> <span>{success}</span>
                                 </div>
                             )}
 
                             <form onSubmit={handleLogin} className="space-y-4">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Identitas Akun</label>
+                                    <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest ml-1">Identitas Akun</label>
                                     <div className="relative">
                                         <Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" size={18} />
                                         <input
@@ -433,14 +422,14 @@ export default function LoginPage() {
                                             value={identifier}
                                             onChange={(e) => setIdentifier(e.target.value)}
                                             placeholder="Email atau NIK"
-                                            className="w-full bg-slate-950/80 border border-white/10 focus:border-cyan-400 rounded-2xl py-3.5 pl-12 pr-4 text-xs text-white placeholder-slate-500 outline-none transition-all focus:shadow-[0_0_20px_rgba(6,182,212,0.35)] font-semibold"
+                                            className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-2xl py-3.5 pl-12 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold"
                                             required
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Kata Sandi</label>
+                                    <label className="text-[10px] font-black text-slate-600 uppercase tracking-widest ml-1">Kata Sandi</label>
                                     <div className="relative">
                                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" size={18} />
                                         <input
@@ -448,7 +437,7 @@ export default function LoginPage() {
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                             placeholder="••••••••"
-                                            className="w-full bg-slate-950/80 border border-white/10 focus:border-cyan-400 rounded-2xl py-3.5 pl-12 pr-12 text-xs text-white placeholder-slate-500 outline-none transition-all focus:shadow-[0_0_20px_rgba(6,182,212,0.35)] font-semibold"
+                                            className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-2xl py-3.5 pl-12 pr-12 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold"
                                             required
                                         />
                                         <button 
@@ -464,7 +453,7 @@ export default function LoginPage() {
                                 <button 
                                     type="submit" 
                                     disabled={loading} 
-                                    className="w-full bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest mt-4 shadow-[0_0_25px_rgba(6,182,212,0.4)] hover:shadow-[0_0_35px_rgba(6,182,212,0.7)] transition-all duration-300 flex items-center justify-center gap-2"
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest mt-4 shadow-lg shadow-blue-600/20 transition-all duration-300 flex items-center justify-center gap-2"
                                 >
                                     {loading ? <Loader2 className="animate-spin" size={18} /> : (
                                         <>
@@ -477,7 +466,7 @@ export default function LoginPage() {
                                 <button 
                                     type="button" 
                                     onClick={() => setIsLogin(false)} 
-                                    className="md:hidden w-full text-xs font-bold text-yellow-400 mt-3 text-center block uppercase tracking-wider"
+                                    className="md:hidden w-full text-xs font-bold text-blue-600 hover:text-blue-700 mt-3 text-center block uppercase tracking-wider"
                                 >
                                     Belum Punya Akun? Daftar Sekarang
                                 </button>

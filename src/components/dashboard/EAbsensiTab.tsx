@@ -276,7 +276,7 @@ export function EAbsensiTab({ session }: { session?: any }) {
   // Process Scanned Code from Hardware Scanner or Manual Input
   const lastProcessedRef = useRef<{ code: string; time: number }>({ code: "", time: 0 });
 
-  const processScanCode = (codeRaw: string) => {
+  function processScanCode(codeRaw: string) {
     let code = codeRaw.trim().toUpperCase();
     if (!code) return;
 
@@ -542,7 +542,7 @@ export function EAbsensiTab({ session }: { session?: any }) {
       const matchTanggal = !filterTanggal || (l.waktuScan && l.waktuScan.startsWith(filterTanggal));
       return matchSearch && matchKategori && matchTanggal;
     });
-  }, [logs, search, filterKategori, filterTanggal]);
+  }, [logs, search, filterKategori, filterTanggal, filterStatus, dateFilterMode, dateRange]);
 
   return (
     <div className="space-y-6">

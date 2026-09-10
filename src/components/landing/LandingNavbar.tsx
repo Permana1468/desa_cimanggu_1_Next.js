@@ -12,10 +12,6 @@ interface LandingNavbarProps {
 export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
     const { isNightMode, toggleNightMode, isDualMode, toggleDualMode } = useLandingTheme();
 
-    if (isDualMode) {
-        return null;
-    }
-
     const [isScrolled, setIsScrolled] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [activeIndex, setActiveIndex] = useState(0);
@@ -44,6 +40,10 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
             });
         }
     }, [activeIndex]);
+
+    if (isDualMode) {
+        return null;
+    }
 
     const handleMouseEnter = (index: number) => {
         const el = itemRefs.current[index];
