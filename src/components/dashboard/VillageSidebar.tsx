@@ -557,13 +557,13 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
              <div className="space-y-1">
                 {/* Standalone Links */}
                 {[
-                  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard", activeParam: "overview" },
-                  { name: "Infrastruktur", icon: HardHat, href: "/dashboard/infrastruktur", activeParam: "" },
-                  { name: "APBDes", icon: PieChart, href: "/dashboard/apbdes", activeParam: "" },
-                  { name: "Peta Interaktif", icon: Map, href: "/dashboard/map", activeParam: "" },
-                  { name: "Data Kependudukan", icon: Database, href: "/dashboard/warga", activeParam: "warga" },
-                  { name: "Arsip Digital", icon: Archive, href: "/dashboard/arsip", activeParam: "" },
-                  { name: "Monitoring", icon: Activity, href: "/dashboard/monitoring", activeParam: "" },
+                  { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard", activeParam: "overview", hoverClass: "group-hover:text-rose-500 group-hover:-translate-y-1 group-hover:rotate-6 group-hover:scale-125" },
+                  { name: "Infrastruktur", icon: HardHat, href: "/dashboard/infrastruktur", activeParam: "", hoverClass: "group-hover:text-amber-500 group-hover:-translate-y-1 group-hover:-rotate-6 group-hover:scale-125" },
+                  { name: "APBDes", icon: PieChart, href: "/dashboard/apbdes", activeParam: "", hoverClass: "group-hover:text-emerald-500 group-hover:-translate-y-1 group-hover:scale-125" },
+                  { name: "Peta Interaktif", icon: Map, href: "/dashboard/map", activeParam: "", hoverClass: "group-hover:text-blue-500 group-hover:-translate-y-1 group-hover:rotate-6 group-hover:scale-125" },
+                  { name: "Data Kependudukan", icon: Database, href: "/dashboard/warga", activeParam: "warga", hoverClass: "group-hover:text-indigo-500 group-hover:-translate-y-1 group-hover:-rotate-6 group-hover:scale-125" },
+                  { name: "Arsip Digital", icon: Archive, href: "/dashboard/arsip", activeParam: "", hoverClass: "group-hover:text-purple-500 group-hover:-translate-y-1 group-hover:scale-125" },
+                  { name: "Monitoring", icon: Activity, href: "/dashboard/monitoring", activeParam: "", hoverClass: "group-hover:text-teal-500 group-hover:-translate-y-1 group-hover:rotate-6 group-hover:scale-125" },
                 ].map((item) => {
                    const isDashboard = item.href === "/dashboard";
                    const isActive = isDashboard 
@@ -581,7 +581,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                            : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium backdrop-blur-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
                        } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
                      >
-                       <item.icon size={20} className={`${isActive ? "" : "group-hover:scale-110 transition-transform group-hover:animate-luxury-float"} ${isActive && isHackerTheme ? 'animate-luxury-pulse luxury-glow-strong text-teal-300' : ''}`} />
+                       <item.icon size={20} className={`transition-all duration-300 ${isActive ? (isHackerTheme ? "animate-luxury-pulse luxury-glow-strong text-teal-300" : "") : item.hoverClass}`} />
                        {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>{item.name}</span>}
                      </Link>
                    );
@@ -598,7 +598,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                     } ${isCollapsed && !isOpen ? "justify-center" : ''}`}
                   >
                     <div className="flex items-center gap-3">
-                      <Banknote size={20} className={`shrink-0 group-hover:scale-110 transition-transform ${["undangan-musrenbang", "musling-rw", "musling-kadus", "finance", "musrenbang"].includes(tabParam || "") && isHackerTheme ? 'animate-luxury-pulse luxury-glow-strong text-teal-300' : ''}`} />
+                      <Banknote size={20} className={`shrink-0 transition-all duration-300 ${["undangan-musrenbang", "musling-rw", "musling-kadus", "finance", "musrenbang"].includes(tabParam || "") && isHackerTheme ? 'animate-luxury-pulse luxury-glow-strong text-teal-300' : 'group-hover:scale-125 group-hover:text-emerald-500 group-hover:-translate-y-1 group-hover:rotate-3'}`} />
                       {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>Usulan Musrenbang</span>}
                     </div>
                     {(!isCollapsed || isOpen) && (
@@ -646,7 +646,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                    onClick={() => (!isCollapsed || isOpen) && toggleGroup("cyberplan")}
                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isHackerTheme ? 'text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 hover:border hover:border-cyan-500/30 backdrop-blur-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} font-medium ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                  >
-                   <Building2 size={20} className={`shrink-0 group-hover:scale-110 transition-transform ${isHackerTheme ? 'group-hover:animate-luxury-pulse' : ''}`} />
+                   <Building2 size={20} className={`shrink-0 transition-all duration-300 ${isHackerTheme ? 'group-hover:animate-luxury-pulse' : 'group-hover:scale-125 group-hover:text-emerald-600 group-hover:-translate-y-1 group-hover:-rotate-3'}`} />
                    {(!isCollapsed || isOpen) && (
                      <>
                        <span className={`text-[11px] flex-1 text-left tracking-widest uppercase ${isHackerTheme ? 'font-mono font-bold text-emerald-500' : 'font-bold text-emerald-600'}`}>{isHackerTheme ? 'CYBER-PLAN ENGINE' : 'Perencanaan Pembangunan'}</span>
@@ -756,7 +756,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                       : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium backdrop-blur-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
                   } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
                 >
-                  <Settings size={20} className={`${pathname === "/dashboard/settings" ? (isHackerTheme ? "animate-luxury-spin luxury-glow-strong text-teal-300" : "") : "group-hover:scale-110 transition-transform group-hover:animate-luxury-spin"}`} />
+                  <Settings size={20} className={`transition-all duration-300 ${pathname === "/dashboard/settings" ? (isHackerTheme ? "animate-luxury-spin luxury-glow-strong text-teal-300" : "") : "group-hover:scale-125 group-hover:text-slate-700 group-hover:animate-spin group-hover:-translate-y-1"}`} />
                   {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>Pengaturan</span>}
                 </Link>
 
