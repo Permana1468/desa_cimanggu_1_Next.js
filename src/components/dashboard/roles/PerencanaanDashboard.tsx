@@ -217,24 +217,24 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
             <div className="grid grid-cols-3 gap-3 relative z-10">
               <button 
                 onClick={() => setActiveTab("tos")} 
-                className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-600 hover:bg-white hover:border-amber-400 hover:text-amber-600 hover:shadow-md transition-all duration-300 group"
+                className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-600 hover:bg-amber-50 hover:border-amber-400 hover:text-amber-700 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
               >
-                <Ruler size={24} className="group-hover:scale-110 transition-transform text-amber-500" />
+                <Ruler size={24} className="group-hover:scale-125 group-hover:-rotate-6 transition-transform duration-300 text-amber-500" />
                 <span className="text-[10px] font-black text-center uppercase tracking-wider">Take Off Sheet</span>
               </button>
 
               <button 
                 onClick={() => setActiveTab("rab")} 
-                className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-600 hover:bg-white hover:border-emerald-400 hover:text-emerald-600 hover:shadow-md transition-all duration-300 group"
+                className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-600 hover:bg-emerald-50 hover:border-emerald-400 hover:text-emerald-700 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
               >
-                <Database size={24} className="group-hover:scale-110 transition-transform text-emerald-500" />
+                <Database size={24} className="group-hover:scale-125 group-hover:rotate-6 transition-transform duration-300 text-emerald-500" />
                 <span className="text-[10px] font-black text-center uppercase tracking-wider">Input RAB</span>
               </button>
               
               <button 
-                className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-600 hover:bg-white hover:border-blue-400 hover:text-blue-600 hover:shadow-md transition-all duration-300 group"
+                className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-600 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-700 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
               >
-                <Activity size={24} className="group-hover:scale-110 transition-transform text-blue-500" />
+                <Activity size={24} className="group-hover:scale-125 group-hover:rotate-3 transition-transform duration-300 text-blue-500" />
                 <span className="text-[10px] font-black text-center uppercase tracking-wider">Realisasi</span>
               </button>
             </div>

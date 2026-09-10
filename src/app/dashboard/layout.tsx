@@ -34,7 +34,7 @@ export default async function VillageAdminLayout({
   const cookieStore = isBuildTime ? null : await cookies();
   const themeMode = cookieStore?.get('themeMode')?.value || 'hacker';
   
-  const isHackerTheme = role === "KAUR_PERENCANAAN" && themeMode === 'hacker';
+  const isHackerTheme = false; // role === "KAUR_PERENCANAAN" && themeMode === 'hacker';
 
   return (
     <div className={`flex h-screen overflow-hidden ${isHackerTheme ? 'bg-slate-950 text-cyan-50' : 'bg-slate-50 text-slate-950 light-mode'}`}>
@@ -166,7 +166,7 @@ export default async function VillageAdminLayout({
       
       {/* Floating Transparent Chat for Dashboard Users */}
       <FloatingChat session={session} />
-      {role === "KAUR_PERENCANAAN" && <ImoRobotCompanion />}
+      {/* {role === "KAUR_PERENCANAAN" && <ImoRobotCompanion />} */}
     </div>
   );
 }

@@ -760,8 +760,8 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                   {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>Pengaturan</span>}
                 </Link>
 
-                {/* Theme Toggle */}
-                <button
+                {/* Theme Toggle Button Hidden */}
+                {/* <button
                   onClick={() => {
                     const isCurrentlyHacker = !document.cookie.includes('themeMode=normal');
                     document.cookie = `themeMode=${isCurrentlyHacker ? 'normal' : 'hacker'}; path=/`;
@@ -779,7 +779,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                       {isHackerTheme ? 'Normal Mode' : 'Hacker Mode'}
                     </span>
                   )}
-                </button>
+                </button> */}
              </div>
            ) : role === "KASI_KESEJAHTERAAN" ? (
               // === KASI KESEJAHTERAAN ACCORDION SIDEBAR WITH DYNAMIC RGB THEME & VIBRANT ANIMATED ICONS ===
