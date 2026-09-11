@@ -77,7 +77,7 @@ export const MobileBottomNav = () => {
                         return (
                             <div key={item.id} className="flex flex-col items-center">
                                 {item.isRoute ? (
-                                    <Link href={item.path} onClick={() => handleTabClick(item)} className="flex flex-col items-center gap-1 p-2 w-14">
+                                    <Link href={item.path || '#'} onClick={() => handleTabClick(item)} className="flex flex-col items-center gap-1 p-2 w-14">
                                         <div className={`p-1.5 rounded-full transition-all duration-300 ${isActive ? 'bg-cyan-500/20 text-yellow-400' : 'text-slate-400'}`}>
                                             {item.icon}
                                         </div>

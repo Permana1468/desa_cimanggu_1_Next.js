@@ -1,5 +1,7 @@
 "use client";
 
+import { ConfigSettings } from "@/types/config";
+import { startRegistration } from "@simplewebauthn/browser";
 import { useState } from "react";
 import { 
     Settings, Shield, Globe, Zap, Database, Lock, Save, RefreshCw, 
@@ -263,8 +265,50 @@ export function ConfigClient({ initialSettings }: ConfigClientProps) {
                                         <button 
                                             onClick={async () => {
                                                 if(confirm("Sistem akan memulai sinkronisasi biometrik perangkat ini. Lanjutkan?")) {
-                                                    await registerMasterDevice("DEV-KEY-" + Math.random().toString(36).substring(7));
-                                                    alert("Perangkat Master berhasil diverifikasi!");
+                                                    try {
+                                                        const getRes = await fetch("/api/webauthn", {
+                                                            method: "POST",
+                                                            headers: { "Content-Type": "application/json" },
+                                                            body: JSON.stringify({ action: "generate-registration" })
+                                                        });
+                                                        const options = await getRes.json();
+                                                        
+                                                        if (options.error) {
+                                                            alert("Gagal: " + options.error);
+                                                            return;
+                                                        }
+
+                                                        let attResp;
+                                                        try {
+                                                            attResp = await startRegistration({ optionsJSON: options } as any);
+                                                        } catch (error: any) {
+                                                            if (error.name === 'InvalidStateError') {
+                                                                alert("Perangkat ini sudah terdaftar.");
+                                                            } else {
+                                                                alert("Registrasi dibatalkan atau gagal.");
+                                                            }
+                                                            return;
+                                                        }
+
+                                                        const verifyRes = await fetch("/api/webauthn", {
+                                                            method: "POST",
+                                                            headers: { "Content-Type": "application/json" },
+                                                            body: JSON.stringify({
+                                                                action: "verify-registration",
+                                                                response: attResp
+                                                            })
+                                                        });
+                                                        
+                                                        const verification = await verifyRes.json();
+                                                        if (verification.verified) {
+                                                            alert("Perangkat Master berhasil diverifikasi dan didaftarkan!");
+                                                        } else {
+                                                            alert("Gagal memverifikasi biometrik: " + verification.error);
+                                                        }
+                                                    } catch (err) {
+                                                        console.error(err);
+                                                        alert("Terjadi kesalahan saat registrasi biometrik.");
+                                                    }
                                                 }
                                             }}
                                             className="px-8 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-blue-600/20"

@@ -185,10 +185,30 @@ model User {
   sensusCreated  SensusPoint[] @relation("SensusCreator")
   sensusVerified SensusPoint[] @relation("SensusVerifier")
 
+  // WebAuthn
+  currentChallenge String? // Temporary challenge for WebAuthn Registration/Auth
+  webauthnCredentials WebAuthnCredential[]
+
   @@index([tenantId, role])
   @@index([tenantId, isActive])
   @@index([email])
   @@index([tenantId, fullName])
+}
+
+model WebAuthnCredential {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialID    String   @unique
+  credentialPublicKey Bytes
+  counter         BigInt
+  credentialDeviceType String
+  credentialBackedUp Boolean
+  transports      String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([userId])
 }
 
 // ==============================

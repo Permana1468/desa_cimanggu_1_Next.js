@@ -542,7 +542,7 @@ export function EAbsensiTab({ session }: { session?: any }) {
       const matchTanggal = !filterTanggal || (l.waktuScan && l.waktuScan.startsWith(filterTanggal));
       return matchSearch && matchKategori && matchTanggal;
     });
-  }, [logs, search, filterKategori, filterTanggal, filterStatus, dateFilterMode, dateRange]);
+  }, [logs, search, filterKategori, filterTanggal]);
 
   return (
     <div className="space-y-6">

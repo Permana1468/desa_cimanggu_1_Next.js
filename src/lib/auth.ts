@@ -5,6 +5,10 @@ import FacebookProvider from "next-auth/providers/facebook";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { verifyAuthenticationResponse } from "@simplewebauthn/server";
+
+const expectedOrigin = process.env.NEXTAUTH_URL || "http://localhost:3000";
+const rpID = new URL(expectedOrigin).hostname;
 
 const providers: any[] = [
   CredentialsProvider({
@@ -12,14 +16,66 @@ const providers: any[] = [
     credentials: {
       identifier: { label: "Email atau NIK", type: "text" },
       password: { label: "Password", type: "password" },
+      webauthn: { label: "WebAuthn Response", type: "text" },
+      webauthnChallenge: { label: "Challenge", type: "text" },
     },
-    async authorize(credentials) {
-      if (!credentials?.identifier || !credentials?.password) {
+    async authorize(credentials, req) {
+      if (!credentials?.webauthn && (!credentials?.identifier || !credentials?.password)) {
         throw new Error("Email/NIK dan password wajib diisi");
       }
 
+      let user;
+
+      // === WEBAUTHN FLOW ===
+      if (credentials?.webauthn && credentials?.webauthnChallenge) {
+        const response = JSON.parse(credentials.webauthn);
+        const { id } = response;
+
+        // Find the credential
+        const authenticator = await prisma.webAuthnCredential.findUnique({
+          where: { credentialID: id },
+          include: { user: { include: { tenant: true } } },
+        });
+
+        if (!authenticator) {
+          throw new Error("Kredensial biometrik tidak ditemukan.");
+        }
+
+        let verification;
+        try {
+          verification = await verifyAuthenticationResponse({
+            response,
+            expectedChallenge: credentials.webauthnChallenge,
+            expectedOrigin,
+            expectedRPID: rpID,
+            authenticator: {
+              credentialID: Buffer.from(authenticator.credentialID, 'base64url'),
+              credentialPublicKey: authenticator.credentialPublicKey,
+              counter: Number(authenticator.counter),
+              transports: authenticator.transports ? JSON.parse(authenticator.transports) : undefined,
+            },
+          });
+        } catch (error: any) {
+          throw new Error("Autentikasi biometrik gagal: " + error.message);
+        }
+
+        if (!verification.verified) {
+          throw new Error("Autentikasi biometrik tidak valid.");
+        }
+
+        // Update counter
+        await prisma.webAuthnCredential.update({
+          where: { id: authenticator.id },
+          data: { counter: BigInt(verification.authenticationInfo.newCounter) },
+        });
+
+        user = authenticator.user;
+      } 
+      // === PASSWORD FLOW ===
+      else {
+
       // Cari user berdasarkan email, NIK, atau No HP
-      let user = await prisma.user.findFirst({
+      user = await prisma.user.findFirst({
         where: {
           OR: [
             { email: credentials.identifier },
@@ -87,12 +143,9 @@ const providers: any[] = [
         }
         throw new Error("Akun Anda dinonaktifkan atau sedang dalam proses pengembangan.");
       }
+      }
 
-      // Commenting this out because UMKM and normal users need to be able to login 
-      // to the marketplace even if their store/tenant is pending.
-      // if (user.role !== "ADMIN_MASTER" && user.tenant && !user.tenant.isActive) {
-      //   throw new Error("Sistem sedang dalam proses pengembangan. Akses ditutup sementara.");
-      // }
+      if (!user) return null;
 
       return {
         id: user.id,

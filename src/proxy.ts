@@ -68,7 +68,7 @@ export async function proxy(req: NextRequest) {
   const role = (token as CustomJWT)?.role || "";
 
     // 1. Public routes & API auth
-    if (pathname === "/login" || pathname === "/" || pathname.startsWith("/api/auth")) {
+    if (pathname === "/login" || pathname === "/" || pathname.startsWith("/api/auth") || pathname.startsWith("/api/webauthn")) {
     if (isAuth && (pathname === "/login" || pathname === "/")) {
       if (CORE_ADMIN_ROLES.includes(role)) return NextResponse.redirect(new URL("/dashboard", req.url));
       if (INSTITUTIONAL_ROLES.includes(role)) return NextResponse.redirect(new URL("/kelembagaan", req.url));
@@ -80,7 +80,7 @@ export async function proxy(req: NextRequest) {
 
   // Auth Guard
   if (!isAuth) {
-    if (pathname.startsWith("/api") && !pathname.startsWith("/api/auth")) {
+    if (pathname.startsWith("/api") && !pathname.startsWith("/api/auth") && !pathname.startsWith("/api/webauthn")) {
       return new NextResponse(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
     }
     return NextResponse.redirect(new URL("/login", req.url));
