@@ -204,30 +204,30 @@ export default function LoginPage() {
                             <motion.div animate={{ rotate: -360, scale: [1, 1.3, 1] }} transition={{ duration: 5, repeat: Infinity, ease: "linear" }} className="absolute top-[40%] right-[25%] text-yellow-300/80"><Sparkles size={20} fill="currentColor" /></motion.div>
                         </div>
 
-                        <div className="relative h-full flex flex-col items-center pt-8 sm:pt-12 z-10 w-full">
-                            <div className="w-20 h-20 mb-2 relative drop-shadow-[0_5px_15px_rgba(0,0,0,0.2)] shrink-0">
-                                <Image src={villageLogo} alt="Logo" fill className="object-contain" priority />
+                        <div className="relative h-full flex flex-col items-center pt-16 z-10 w-full">
+                            <div className="w-24 h-24 mb-3 relative drop-shadow-[0_5px_15px_rgba(0,0,0,0.2)]">
+                                <Image src={villageLogo} alt="Logo" fill className="object-contain" />
                             </div>
-                            <h2 className="text-lg font-black text-white mb-4 tracking-wide drop-shadow-md shrink-0">Hai, Selamat Datang!</h2>
-                            <div className="relative w-full h-full max-w-[340px] flex items-center justify-center mt-[-10px] z-0 pointer-events-none">
-                                <motion.div animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }} className="absolute top-[2%] left-2 bg-white/95 p-2 rounded-2xl shadow-xl rotate-[-12deg]"><Receipt className="text-blue-500 w-5 h-5" /></motion.div>
-                                <motion.div animate={{ y: [0, -12, 0] }} transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut", delay: 0.5 }} className="absolute top-[8%] right-2 bg-white/95 p-2 rounded-2xl shadow-xl rotate-[15deg]"><Wallet className="text-orange-500 w-5 h-5" /></motion.div>
-                                <motion.div animate={{ y: [0, 12, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: 1 }} className="absolute top-[35%] left-2 bg-white/95 p-2 rounded-2xl shadow-xl rotate-[8deg]"><FileText className="text-emerald-500 w-5 h-5" /></motion.div>
+                            <h2 className="text-xl font-black text-white mb-8 tracking-wide drop-shadow-md">Hai, Selamat Datang!</h2>
+                            <div className="relative w-full h-full max-w-[340px] flex items-center justify-center mt-[-20px] z-0 pointer-events-none">
+                                <motion.div animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }} className="absolute top-[5%] left-0 bg-white/95 p-2.5 rounded-2xl shadow-xl rotate-[-12deg]"><Receipt className="text-blue-500 w-6 h-6" /></motion.div>
+                                <motion.div animate={{ y: [0, -12, 0] }} transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut", delay: 0.5 }} className="absolute top-[15%] right-2 bg-white/95 p-2.5 rounded-2xl shadow-xl rotate-[15deg]"><Wallet className="text-orange-500 w-6 h-6" /></motion.div>
+                                <motion.div animate={{ y: [0, 12, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: 1 }} className="absolute top-[45%] left-2 bg-white/95 p-2.5 rounded-2xl shadow-xl rotate-[8deg]"><FileText className="text-emerald-500 w-6 h-6" /></motion.div>
                             </div>
                         </div>
 
                         <div className="absolute bottom-0 left-0 right-0 z-20 flex flex-col pointer-events-auto">
-                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="absolute bottom-[calc(100%-115px)] left-1/2 -translate-x-1/2 w-[170%] max-w-[520px] h-[390px] sm:h-[430px] z-10 flex items-center justify-center pointer-events-none">
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="absolute bottom-[calc(100%-60px)] left-1/2 -translate-x-1/2 w-[180%] max-w-[560px] h-[480px] z-10 flex items-center justify-center pointer-events-none">
                                 <motion.div animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }} className="relative w-full h-full">
                                     <Image src="/images/keren 1.png" alt="Ilustrasi" fill className="object-contain object-bottom drop-shadow-2xl" priority />
                                 </motion.div>
                             </motion.div>
-                            <div className="w-full relative h-14 -mb-[2px] z-20">
+                            <div className="w-full relative h-16 -mb-[2px] z-20">
                                 <svg viewBox="0 0 1440 320" className="absolute bottom-0 w-full h-full block" preserveAspectRatio="none">
                                     <path fill="#ffffff" fillOpacity="1" d="M0,160L48,176C96,192,192,224,288,213.3C384,203,480,149,576,144C672,139,768,181,864,197.3C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
                                 </svg>
                             </div>
-                            <div className="bg-white pt-6 px-6 pb-6 relative z-20">
+                            <div className="bg-white pt-8 px-6 pb-6 relative z-20">
                                 <div className="w-full mb-6 relative z-20">
                                     <div className="flex items-center justify-center gap-2 mb-5">
                                         <span className="text-[#0a4686] font-extrabold text-xs tracking-wide">Layanan Cepat</span>
