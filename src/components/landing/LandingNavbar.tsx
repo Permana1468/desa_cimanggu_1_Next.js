@@ -330,7 +330,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
 
                 {/* Mobile Hamburger */}
                 <button
-                    className="lg:hidden text-slate-300 hover:text-white p-2 rounded-xl bg-slate-900/90 border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.2)] active:scale-95 transition-all"
+                    className="hidden text-slate-300 hover:text-white p-2 rounded-xl bg-slate-900/90 border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.2)] active:scale-95 transition-all"
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                     aria-label="Toggle Navigation Menu"
                 >
@@ -345,7 +345,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
             </div>
 
             {/* Mobile Menu Dropdown */}
-            <div className={`lg:hidden absolute top-full left-0 w-full bg-slate-950/98 backdrop-blur-3xl border-b border-cyan-500/30 transition-all duration-300 overflow-y-auto ${
+            <div className={`hidden absolute top-full left-0 w-full bg-slate-950/98 backdrop-blur-3xl border-b border-cyan-500/30 transition-all duration-300 overflow-y-auto ${
                 isMobileMenuOpen ? 'max-h-[85vh] py-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'
             }`}>
                 <nav className="flex flex-col px-6 sm:px-8 gap-2.5 custom-scrollbar">

@@ -123,7 +123,7 @@ export function MasterShell({
                         <div className="relative w-16 h-12 flex items-center justify-center">
                             <button 
                                 onClick={() => setShowPlusMenu(!showPlusMenu)}
-                                className="absolute -top-6 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(59,130,246,0.4)] transition-all z-20 active:scale-95 border-4 border-[#0f172a]"
+                                className="absolute -top-6 w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(59,130,246,0.7)] transition-all z-20 active:scale-95 border-4 border-[#0f172a]"
                             >
                                 <motion.div
                                     animate={{ rotate: showPlusMenu ? 135 : 0 }}
@@ -156,8 +156,8 @@ export function MasterShell({
                 </div>
 
                 {/* SCROLLABLE MAIN CONTENT */}
-                <main className="flex-1 overflow-y-auto p-6 md:p-10 lg:p-16 custom-scrollbar">
-                    <div className="max-w-[1600px] mx-auto pt-12 lg:pt-0">
+                <main className="flex-1 overflow-y-auto p-4 md:p-10 lg:p-16 custom-scrollbar">
+                    <div className="max-w-[1600px] mx-auto pt-6 lg:pt-0">
                         {children}
                     </div>
                 </main>

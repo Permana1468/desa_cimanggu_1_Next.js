@@ -58,9 +58,9 @@ export default async function MasterDashboardPage({
   ]);
 
   return (
-    <div className="space-y-12 pb-20">
+    <div className="space-y-8 md:space-y-12 pb-24 md:pb-20">
       {/* HERO SECTION - Premium Dark Design */}
-      <div className="relative group overflow-hidden bg-slate-950 rounded-[3rem] md:rounded-[4rem] p-8 md:p-16 text-white shadow-2xl shadow-blue-500/10">
+      <div className="relative group overflow-hidden bg-slate-950 rounded-[2rem] md:rounded-[4rem] p-6 md:p-16 text-white shadow-2xl shadow-blue-500/10">
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] -mr-64 -mt-64 animate-pulse" />
           <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-600/10 rounded-full blur-[100px] -ml-48 -mb-48" />
           
@@ -70,7 +70,7 @@ export default async function MasterDashboardPage({
                       <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-blue-400 text-[10px] font-black uppercase tracking-[0.25em]">
                           <ShieldCheck size={16} /> Enterprise Control Center
                       </div>
-                      <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-none">
+                      <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-none">
                           Integritas <br />
                           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-emerald-400">
                             Tanpa Batas.
@@ -162,10 +162,10 @@ function HeroStat({ label, value, icon: Icon, color }: any) {
     rose: "bg-rose-500/10 text-rose-400"
   };
   return (
-    <div className="bg-white/5 border border-white/5 p-4 md:p-6 rounded-3xl backdrop-blur-md group hover:bg-white/10 transition-all cursor-default">
-        <Icon size={20} className={`${color === 'blue' ? 'text-blue-400' : color === 'emerald' ? 'text-emerald-400' : 'text-amber-400'} mb-3 opacity-60 group-hover:opacity-100 transition-opacity`} />
-        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</p>
-        <p className="text-xl md:text-2xl font-black tabular-nums">{value}</p>
+    <div className="bg-white/5 border border-white/5 p-4 md:p-6 rounded-2xl md:rounded-3xl backdrop-blur-md group hover:bg-white/10 transition-all cursor-default">
+        <Icon className={`w-5 h-5 md:w-5 md:h-5 ${color === 'blue' ? 'text-blue-400' : color === 'emerald' ? 'text-emerald-400' : color === 'rose' ? 'text-rose-400' : 'text-amber-400'} mb-2 md:mb-3 opacity-60 group-hover:opacity-100 transition-opacity`} />
+        <p className="text-[8.5px] md:text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">{label}</p>
+        <p className="text-lg md:text-2xl font-black tabular-nums">{value}</p>
     </div>
   )
 }
@@ -182,12 +182,12 @@ function StatusPill({ icon: Icon, label, value, color }: any) {
 
 function ActionCard({ icon: Icon, label, href, color }: any) {
   return (
-    <Link href={href} className="group bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 hover:scale-[1.03] active:scale-95 transition-all">
-        <div className={`w-12 h-12 rounded-2xl ${color} text-white flex items-center justify-center mb-6 shadow-lg shadow-current/20 group-hover:rotate-12 transition-transform`}>
-            <Icon size={24} />
+    <Link href={href} className="group bg-white p-5 md:p-8 rounded-[1.5rem] md:rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 hover:scale-[1.03] active:scale-95 transition-all">
+        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl ${color} text-white flex items-center justify-center mb-4 md:mb-6 shadow-lg shadow-current/20 group-hover:rotate-12 transition-transform`}>
+            <Icon className="w-5 h-5 md:w-6 md:h-6" />
         </div>
-        <p className="text-sm font-black text-slate-800 leading-tight">{label}</p>
-        <div className="mt-4 flex items-center gap-2 text-blue-600 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
+        <p className="text-xs md:text-sm font-black text-slate-800 leading-tight">{label}</p>
+        <div className="hidden md:flex mt-4 items-center gap-2 text-blue-600 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">
             <span className="text-[10px] font-black uppercase tracking-widest">Buka Menu</span>
             <ArrowRight size={14} />
         </div>

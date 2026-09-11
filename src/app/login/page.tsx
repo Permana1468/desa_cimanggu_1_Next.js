@@ -8,7 +8,8 @@ import Link from "next/link";
 import { 
   Lock, Eye, EyeOff, Loader2, 
   Fingerprint, Phone, Instagram, Facebook, 
-  Youtube, UserPlus, LogIn, ArrowLeft, ShieldCheck, Sparkles, User, KeyRound
+  Youtube, UserPlus, LogIn, ArrowLeft, ShieldCheck, Sparkles, User, KeyRound, X,
+  QrCode, CreditCard, Wallet, Receipt, Users, Building, FileText, Smartphone
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { registerWarga } from "@/actions/auth";
@@ -23,6 +24,7 @@ export default function LoginPage() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [loading, setLoading] = useState(false);
+    const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
     
     // Register specific state
     const [regNik, setRegNik] = useState("");
@@ -150,26 +152,33 @@ export default function LoginPage() {
 
     return (
         <LandingThemeProvider>
-            <div className="min-h-screen bg-slate-50 text-slate-900 flex items-center justify-center p-4 md:p-6 font-sans relative overflow-hidden selection:bg-emerald-500 selection:text-white">
+            <div className="min-h-[100dvh] bg-slate-50 text-slate-900 flex items-center justify-center p-0 md:p-6 font-sans relative overflow-hidden selection:bg-emerald-500 selection:text-white">
 
             {/* MAIN CONTAINER */}
-            <div className="relative z-10 bg-white/95 backdrop-blur-xl w-full max-w-4xl min-h-[580px] md:min-h-[620px] rounded-[2.5rem] border border-slate-200 shadow-2xl overflow-hidden flex flex-col md:flex-row">
+            <div className="relative z-10 bg-white/95 backdrop-blur-xl w-full max-w-4xl h-[100dvh] md:h-auto md:min-h-[620px] rounded-none md:rounded-[2.5rem] border-0 md:border border-slate-200 shadow-2xl overflow-hidden flex flex-col md:flex-row">
                 
-                {/* 1. OVERLAY / CAROUSEL PANEL */}
+                {/* 1. OVERLAY / CAROUSEL PANEL (Splash Screen on Mobile) */}
                 <motion.div 
                     initial={false}
                     animate={{ 
                         x: typeof window !== 'undefined' && window.innerWidth < 768 ? 0 : (isLogin ? 0 : "100%"),
-                        borderTopRightRadius: isLogin ? "12% 50%" : "0%",
-                        borderBottomRightRadius: isLogin ? "12% 50%" : "0%",
-                        borderTopLeftRadius: isLogin ? "0%" : "12% 50%",
-                        borderBottomLeftRadius: isLogin ? "0%" : "12% 50%",
+                        borderTopRightRadius: typeof window !== 'undefined' && window.innerWidth < 768 ? "0%" : (isLogin ? "12% 50%" : "0%"),
+                        borderBottomRightRadius: typeof window !== 'undefined' && window.innerWidth < 768 ? "0%" : (isLogin ? "12% 50%" : "0%"),
+                        borderTopLeftRadius: typeof window !== 'undefined' && window.innerWidth < 768 ? "0%" : (isLogin ? "0%" : "12% 50%"),
+                        borderBottomLeftRadius: typeof window !== 'undefined' && window.innerWidth < 768 ? "0%" : (isLogin ? "0%" : "12% 50%"),
                     }}
                     transition={{ type: "spring", stiffness: 90, damping: 20 }}
-                    className="relative md:absolute top-0 left-0 w-full md:w-1/2 h-[300px] md:h-full z-30 bg-slate-900 text-white overflow-hidden shadow-2xl"
+                    className="relative md:absolute top-0 left-0 w-full md:w-1/2 h-full z-10 bg-[#0e5cad] md:bg-slate-900 text-white overflow-hidden shadow-2xl"
                 >
-                    {/* Background Carousel */}
-                    <div className="absolute inset-0">
+                    {/* Mobile Only: Solid Blue Top Background */}
+                    <div className="md:hidden absolute inset-0 bg-gradient-to-b from-[#0e5cad] to-[#0a4686] overflow-hidden pointer-events-none">
+                         {/* Subtle Abstract Wave/Light Shapes */}
+                         <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+                         <div className="absolute bottom-[20%] left-[-10%] w-48 h-48 bg-cyan-400/10 rounded-full blur-2xl"></div>
+                    </div>
+
+                    {/* Background Carousel (Desktop Only) */}
+                    <div className="hidden md:block absolute inset-0">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={currentSlide}
@@ -185,30 +194,91 @@ export default function LoginPage() {
                                     fill 
                                     sizes="(max-width: 768px) 100vw, 50vw"
                                     priority
-                                    className="object-cover opacity-85 transition-transform duration-[12000ms] ease-out scale-105" 
+                                    className="object-cover opacity-90 transition-transform duration-[12000ms] ease-out scale-105" 
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
-                                <div className="absolute inset-0 bg-slate-900/20 backdrop-blur-[1px]" />
+                                {/* Clean elegant gradient for better readability without looking muddy */}
+                                <div className="absolute inset-0 bg-gradient-to-b from-slate-900/30 via-slate-900/50 to-slate-900/90" />
                             </motion.div>
                         </AnimatePresence>
-
-                        {/* Cyber Overlay Grid */}
-                        <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none"></div>
                     </div>
 
 
-                    {/* Branding & Telemetry Content */}
-                    <div className="relative h-full flex flex-col items-center justify-center p-6 md:p-12 text-center z-10">
-                        {/* Live Telemetry Tag */}
-                        <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-full px-4 py-1.5 text-[10px] text-white mb-6 flex items-center gap-2 shadow-sm">
-                            <span className="flex h-2 w-2 relative">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                            </span>
-                            <span className="font-mono font-bold tracking-widest uppercase">AUTH PORTAL</span>
+                    {/* Mobile Splash Screen Content (BRImo Style) */}
+                    <div className="md:hidden relative h-full flex flex-col items-center pt-16 z-10 w-full">
+                        {/* Logo & Greeting */}
+                        <div className="w-16 h-16 mb-3 relative drop-shadow-[0_5px_15px_rgba(0,0,0,0.2)]">
+                            <Image src={villageLogo} alt="Logo" fill className="object-contain" />
                         </div>
+                        <h2 className="text-lg font-black text-white mb-8 tracking-wide drop-shadow-md">Hai, Selamat Datang!</h2>
 
+                        {/* Illustration Area */}
+                        <div className="relative w-full max-w-[280px] h-48 flex items-center justify-center mt-2">
+                             {/* Floating Elements */}
+                             <motion.div animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }} className="absolute top-0 left-2 bg-white/95 p-2.5 rounded-2xl shadow-xl rotate-[-12deg]">
+                                 <Receipt className="text-blue-500 w-6 h-6" />
+                             </motion.div>
+                             <motion.div animate={{ y: [0, 12, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: 1 }} className="absolute bottom-8 left-0 bg-white/95 p-2.5 rounded-2xl shadow-xl rotate-[8deg]">
+                                 <FileText className="text-emerald-500 w-6 h-6" />
+                             </motion.div>
+                             <motion.div animate={{ y: [0, -12, 0] }} transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut", delay: 0.5 }} className="absolute top-4 right-0 bg-white/95 p-2.5 rounded-2xl shadow-xl rotate-[15deg]">
+                                 <Wallet className="text-orange-500 w-6 h-6" />
+                             </motion.div>
+                             
+                             {/* Center Graphic */}
+                             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }} className="relative w-28 h-40 bg-white rounded-[2rem] border-8 border-[#0a4686] shadow-2xl flex flex-col items-center justify-center overflow-hidden z-10">
+                                  <div className="absolute top-2 w-10 h-1 bg-slate-200 rounded-full"></div>
+                                  <div className="w-12 h-12 relative mt-2 opacity-90">
+                                      <Image src={villageLogo} alt="App" fill className="object-contain grayscale hover:grayscale-0 transition-all" />
+                                  </div>
+                             </motion.div>
+                        </div>
+                    </div>
+
+                    {/* Mobile Curved Bottom Section (Fast Menu & Login) */}
+                    <div className="md:hidden absolute bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-20 flex flex-col pt-8 px-6 pb-6 shadow-[0_-15px_40px_rgba(0,0,0,0.15)]">
+                         {/* Fast Menu */}
+                         <div className="w-full mb-6">
+                              <div className="flex items-center justify-center gap-2 mb-5">
+                                  <span className="text-[#0a4686] font-extrabold text-xs tracking-wide">Layanan Cepat</span>
+                                  <div className="w-4 h-4 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-black">i</div>
+                              </div>
+                              <div className="flex justify-between items-start gap-2 overflow-x-auto custom-scrollbar pb-2 px-1">
+                                   {[
+                                       { icon: FileText, label: "Surat", color: "text-blue-600 bg-blue-50 border-blue-100" },
+                                       { icon: Users, label: "Warga", color: "text-emerald-600 bg-emerald-50 border-emerald-100" },
+                                       { icon: Receipt, label: "Pajak", color: "text-amber-600 bg-amber-50 border-amber-100" },
+                                       { icon: Phone, label: "Lapor", color: "text-rose-600 bg-rose-50 border-rose-100" }
+                                   ].map((item, idx) => (
+                                       <div key={idx} className="flex flex-col items-center gap-2 min-w-[64px] cursor-pointer active:scale-95 transition-transform">
+                                            <div className={`w-12 h-12 rounded-[1.2rem] flex items-center justify-center border shadow-sm ${item.color}`}>
+                                                <item.icon size={20} className="stroke-[2.5]" />
+                                            </div>
+                                            <span className="text-[10px] font-bold text-slate-700">{item.label}</span>
+                                       </div>
+                                   ))}
+                              </div>
+                         </div>
+
+                         {/* Footer Buttons */}
+                         <div className="flex items-center gap-3 w-full">
+                             <button 
+                                 onClick={() => setIsMobileSheetOpen(true)}
+                                 className="flex-1 bg-[#0e5cad] hover:bg-[#0a4686] text-white font-extrabold py-3.5 rounded-2xl text-[14px] shadow-lg shadow-blue-900/20 active:scale-95 transition-all"
+                             >
+                                 Login
+                             </button>
+                             <button 
+                                 onClick={() => alert("Fitur Biometrik akan segera diaktifkan!")}
+                                 className="w-14 h-14 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-[#0e5cad] shadow-inner active:scale-95 transition-all shrink-0"
+                             >
+                                 <Fingerprint size={28} className="stroke-[2]" />
+                             </button>
+                         </div>
+                    </div>
+
+
+                    {/* Branding & Content (Desktop Only) */}
+                    <div className="hidden md:flex relative h-full flex-col items-center justify-center p-6 md:p-12 text-center z-10 mt-[-40px] md:mt-0">
                         {/* Village Logo */}
                         <div className="w-16 h-16 md:w-20 md:h-20 mb-4 relative transition-transform duration-500 hover:scale-110">
                             <Image 
@@ -222,11 +292,9 @@ export default function LoginPage() {
                         <h2 className="text-2xl md:text-4xl font-black uppercase tracking-tight leading-tight mb-1 text-white drop-shadow-md">
                             Desa Cimanggu I
                         </h2>
-                        <p className="text-emerald-300 font-extrabold tracking-[0.25em] uppercase text-[9px] md:text-xs mb-6 drop-shadow-sm">
+                        <p className="text-emerald-400 font-extrabold tracking-[0.25em] uppercase text-[9px] md:text-xs mb-8 drop-shadow-sm">
                             Kec. Cibungbulang • Kab. Bogor
                         </p>
-                        
-                        <div className="w-20 h-1 bg-emerald-500 rounded-full mb-8 shadow-[0_0_12px_rgba(16,185,129,0.5)]" />
 
                         <div className="hidden md:block">
                             <AnimatePresence mode="wait">
@@ -272,11 +340,24 @@ export default function LoginPage() {
                     </div>
                 </motion.div>
 
-                {/* 2. FORMS SIDE */}
-                <div className="relative flex-1 flex flex-col md:flex-row h-full z-20">
+                {/* 2. FORMS SIDE (Bottom Sheet on Mobile, Inline on Desktop) */}
+                <div 
+                    className={`fixed inset-x-0 bottom-0 md:relative md:inset-auto md:flex-1 bg-white md:bg-transparent rounded-t-[2.5rem] md:rounded-none shadow-[0_-20px_40px_rgba(0,0,0,0.2)] md:shadow-none flex flex-col md:flex-row h-[85dvh] md:h-full z-50 md:z-20 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${isMobileSheetOpen ? 'translate-y-0' : 'translate-y-[120%] md:translate-y-0'}`}
+                >
                     
+                    {/* MOBILE SHEET CLOSE HANDLE */}
+                    <div className="md:hidden flex justify-center pt-3 pb-2 w-full absolute top-0 left-0 right-0 z-10" onClick={() => setIsMobileSheetOpen(false)}>
+                        <div className="w-12 h-1.5 bg-slate-200 rounded-full"></div>
+                    </div>
+                    <button 
+                        onClick={() => setIsMobileSheetOpen(false)}
+                        className="md:hidden absolute top-4 right-4 p-2 bg-slate-50 text-slate-400 hover:text-slate-600 rounded-full z-10"
+                    >
+                        <X size={20} />
+                    </button>
+
                     {/* REGISTER FORM (Left on Desktop) */}
-                    <div className={`w-full md:w-1/2 h-full flex items-center justify-center p-6 md:p-12 transition-all duration-500 ${isLogin && 'hidden md:flex opacity-0 md:opacity-100 pointer-events-none'}`}>
+                    <div className={`w-full md:w-1/2 h-full flex items-start md:items-center justify-center pt-12 md:pt-0 p-6 md:p-12 transition-all duration-500 overflow-y-auto md:overflow-visible ${isLogin ? 'hidden md:flex opacity-0 md:opacity-100 pointer-events-none' : ''}`}>
                         <div className="w-full max-w-sm space-y-4">
                             <div>
                                 <div className="inline-flex items-center gap-1.5 text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-1">
@@ -391,7 +472,7 @@ export default function LoginPage() {
                     </div>
 
                     {/* LOGIN FORM (Right on Desktop) */}
-                    <div className={`w-full md:w-1/2 h-full flex items-center justify-center p-6 md:p-12 transition-all duration-500 ${!isLogin && 'hidden md:flex opacity-0 md:opacity-100 pointer-events-none'}`}>
+                    <div className={`w-full md:w-1/2 h-full flex items-start md:items-center justify-center pt-12 md:pt-0 p-6 md:p-12 transition-all duration-500 overflow-y-auto md:overflow-visible ${!isLogin ? 'hidden md:flex opacity-0 md:opacity-100 pointer-events-none' : ''}`}>
                         <div className="w-full max-w-sm space-y-5">
                             <div>
                                 <div className="inline-flex items-center gap-1.5 text-cyan-400 text-[10px] font-black uppercase tracking-widest mb-1">

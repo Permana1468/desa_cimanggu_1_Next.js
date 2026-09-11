@@ -29,6 +29,7 @@ import {
 import { LandingThemeProvider } from '../components/landing/LandingThemeProvider';
 import { TechNightCanvas } from '../components/landing/TechNightCanvas';
 import { LandingNavbar } from '../components/landing/LandingNavbar';
+import { MobileBottomNav } from '../components/landing/MobileBottomNav';
 import { LandingHero } from '../components/landing/LandingHero';
 import { LandingStats } from '../components/landing/LandingStats';
 import { LandingNews } from '../components/landing/LandingNews';
@@ -95,6 +96,7 @@ export default async function LandingPage() {
                 <TechNightCanvas />
 
                 <LandingNavbar siteData={siteData} />
+                <MobileBottomNav />
                 <LandingHero siteData={siteData} heroImages={heroImages} />
 
                 <LandingSectionsWrapper>
