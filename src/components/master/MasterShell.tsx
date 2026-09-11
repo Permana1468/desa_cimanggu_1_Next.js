@@ -156,7 +156,7 @@ export function MasterShell({
                 </div>
 
                 {/* SCROLLABLE MAIN CONTENT */}
-                <main className="flex-1 overflow-y-auto p-4 md:p-10 lg:p-16 custom-scrollbar">
+                <main className="flex-1 overflow-y-auto p-4 pb-28 md:p-10 lg:p-16 lg:pb-16 custom-scrollbar">
                     <div className="max-w-[1600px] mx-auto pt-6 lg:pt-0">
                         {children}
                     </div>

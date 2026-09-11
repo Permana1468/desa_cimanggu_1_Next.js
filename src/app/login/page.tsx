@@ -183,157 +183,136 @@ export default function LoginPage() {
     return (
         <LandingThemeProvider>
             {/* ========== MOBILE LAYOUT (visible only on mobile) ========== */}
-            <div className="md:hidden min-h-[100dvh] h-[100dvh] bg-[#0e5cad] text-slate-900 font-sans relative overflow-hidden flex flex-col justify-between">
-                
-                {/* Background Gradient & Animated Floating Particles */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#0b4b8f] via-[#0e5cad] to-[#0a3f78] overflow-hidden pointer-events-none z-0">
-                    <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                    <div className="absolute top-[30%] left-[-15%] w-56 h-56 bg-cyan-400/15 rounded-full blur-3xl"></div>
-                    {[...Array(8)].map((_, i) => (
-                        <motion.div key={i} className="absolute bg-white/60 rounded-full"
-                            style={{ width: (i % 3 === 0 ? 4 : 2) + 'px', height: (i % 3 === 0 ? 4 : 2) + 'px', top: (10 + (i * 8)) + '%', left: (5 + (i * 12)) + '%' }}
-                            animate={{ y: [0, -30, 0], opacity: [0.2, 0.8, 0.2], scale: [1, 1.4, 1] }}
-                            transition={{ duration: 3 + (i % 3), repeat: Infinity, ease: "easeInOut", delay: i * 0.3 }}
-                        />
-                    ))}
-                </div>
-
-                {/* 1. Header Bar: Logo & Village Identity */}
-                <div className="relative z-20 pt-6 px-6 flex items-center justify-between shrink-0">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 relative drop-shadow-[0_4px_10px_rgba(0,0,0,0.3)] shrink-0">
-                            <Image src={villageLogo} alt="Logo" fill className="object-contain" priority />
-                        </div>
-                        <div>
-                            <h1 className="text-white font-black text-sm leading-tight tracking-wide">Desa Cimanggu I</h1>
-                            <p className="text-cyan-200/80 text-[9px] font-bold tracking-widest uppercase">Kec. Cibungbulang • Kab. Bogor</p>
-                        </div>
-                    </div>
-                    <div className="px-3 py-1 bg-white/15 backdrop-blur-md rounded-full border border-white/20 text-white text-[9px] font-extrabold tracking-wider uppercase shadow-sm">
-                        Portal Desa
-                    </div>
-                </div>
-
-                {/* 2. Hero Section: Welcome Text & Character Illustration (No Overlap) */}
-                <div className="relative flex-1 flex flex-col items-center justify-center px-4 overflow-hidden py-2 z-10 min-h-0">
-                    {/* Welcome Banner */}
-                    <div className="text-center mb-2 z-10 shrink-0">
-                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-yellow-300 text-[10px] font-black uppercase tracking-widest mb-1.5 shadow-sm border border-yellow-300/20">
-                            <Sparkles size={12} fill="currentColor" />
-                            <span>Layanan Digital Terpadu</span>
-                        </span>
-                        <h2 className="text-2xl font-black text-white tracking-tight drop-shadow-md">Selamat Datang</h2>
-                    </div>
-
-                    {/* Character Illustration cleanly sized without touching header */}
-                    <div className="relative w-full max-w-[310px] h-[210px] sm:h-[240px] z-10 flex items-end justify-center pointer-events-none">
-                        <motion.div animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }} className="relative w-full h-full">
-                            <Image src="/images/keren 1.png" alt="Ilustrasi Perangkat Desa" fill className="object-contain object-bottom drop-shadow-2xl" priority />
-                        </motion.div>
-                    </div>
-                </div>
-
-                {/* 3. Bottom Action Card & Quick Links */}
-                <div className="bg-white rounded-t-[2.2rem] p-6 shadow-[0_-15px_35px_rgba(0,0,0,0.2)] relative z-20 shrink-0">
-                    <div className="w-full mb-5">
-                        <div className="flex items-center justify-between mb-3.5 px-1">
-                            <span className="text-slate-900 font-black text-xs tracking-wider uppercase flex items-center gap-1.5">
-                                <span>Layanan Cepat</span>
-                                <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-black">i</span>
-                            </span>
-                            <span className="text-[10px] font-bold text-slate-400">Akses Instan Warga</span>
-                        </div>
-                        
-                        <div className="grid grid-cols-4 gap-2">
-                            {[
-                                { icon: FileText, label: "Surat", color: "text-blue-600 bg-blue-50 border-blue-100" },
-                                { icon: Users, label: "Warga", color: "text-emerald-600 bg-emerald-50 border-emerald-100" },
-                                { icon: Receipt, label: "Pajak", color: "text-amber-600 bg-amber-50 border-amber-100" },
-                                { icon: Phone, label: "Lapor", color: "text-rose-600 bg-rose-50 border-rose-100" }
-                            ].map((item, idx) => (
-                                <div key={idx} className="flex flex-col items-center gap-1.5 cursor-pointer active:scale-95 transition-transform">
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shadow-sm ${item.color}`}>
-                                        <item.icon size={20} className="stroke-[2.2]" />
-                                    </div>
-                                    <span className="text-[10px] font-bold text-slate-700">{item.label}</span>
-                                </div>
+            <div className="md:hidden min-h-[100dvh] bg-slate-50 text-slate-900 font-sans relative overflow-hidden">
+                <div className="relative z-10 bg-white/95 backdrop-blur-xl w-full h-[100dvh] overflow-hidden flex flex-col">
+                    <motion.div
+                        initial={false}
+                        animate={{ x: 0, scale: 1, borderRadius: "0%", filter: "brightness(1) blur(0px)" }}
+                        className="relative top-0 left-0 w-full h-full z-10 bg-[#0e5cad] text-white overflow-hidden shadow-2xl"
+                    >
+                        <div className="absolute inset-0 bg-gradient-to-b from-[#0e5cad] to-[#0a4686] overflow-hidden pointer-events-none">
+                            <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+                            <div className="absolute bottom-[20%] left-[-10%] w-48 h-48 bg-cyan-400/10 rounded-full blur-2xl"></div>
+                            {[...Array(12)].map((_, i) => (
+                                <motion.div key={i} className="absolute bg-white/60 rounded-full"
+                                    style={{ width: (i % 3 === 0 ? 4 : 2) + 'px', height: (i % 3 === 0 ? 4 : 2) + 'px', top: (10 + (i * 5)) + '%', left: (5 + (i * 8)) + '%' }}
+                                    animate={{ y: [0, -40, 0], opacity: [0.1, 0.8, 0.1], scale: [1, 1.5, 1] }}
+                                    transition={{ duration: 3 + (i % 3), repeat: Infinity, ease: "easeInOut", delay: i * 0.2 }}
+                                />
                             ))}
+                            <motion.div animate={{ rotate: 360, scale: [1, 1.2, 1] }} transition={{ duration: 4, repeat: Infinity, ease: "linear" }} className="absolute top-[25%] left-[20%] text-yellow-300/80"><Sparkles size={16} fill="currentColor" /></motion.div>
+                            <motion.div animate={{ rotate: -360, scale: [1, 1.3, 1] }} transition={{ duration: 5, repeat: Infinity, ease: "linear" }} className="absolute top-[40%] right-[25%] text-yellow-300/80"><Sparkles size={20} fill="currentColor" /></motion.div>
                         </div>
-                    </div>
 
-                    <div className="flex items-center gap-3 w-full">
-                        <button 
-                            onClick={() => setIsMobileSheetOpen(true)} 
-                            className="flex-1 bg-[#0e5cad] hover:bg-[#0a4686] active:bg-[#08386b] text-white font-black py-4 rounded-2xl text-xs tracking-wider uppercase shadow-lg shadow-blue-900/25 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                        >
-                            <LogIn size={18} />
-                            <span>MASUK PORTAL</span>
-                        </button>
-                        <button 
-                            onClick={async () => {
-                                try {
-                                    setLoading(true);
-                                    const getRes = await fetch("/api/webauthn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "generate-authentication" }) });
-                                    const options = await getRes.json();
-                                    if (options.error) throw new Error(options.error);
-                                    let asseResp;
-                                    try { asseResp = await startAuthentication({ optionsJSON: options } as any); } catch (error: any) { setError("Autentikasi biometrik dibatalkan."); setLoading(false); return; }
-                                    const signInRes = await signIn("credentials", { webauthn: JSON.stringify(asseResp), webauthnChallenge: options.challenge, redirect: false });
-                                    if (signInRes?.error) { setError(signInRes.error); } else { router.push("/dashboard"); }
-                                } catch (err: any) { setError(err.message || "Gagal memproses biometrik."); } finally { setLoading(false); }
-                            }} 
-                            disabled={loading} 
-                            className="w-14 h-14 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-[#0e5cad] shadow-inner active:scale-95 transition-all shrink-0 disabled:opacity-50"
-                        >
-                            {loading ? <Loader2 size={24} className="animate-spin" /> : <Fingerprint size={28} className="stroke-[2]" />}
-                        </button>
-                    </div>
-                </div>
+                        <div className="relative h-full flex flex-col items-center pt-8 sm:pt-12 z-10 w-full">
+                            <div className="w-20 h-20 mb-2 relative drop-shadow-[0_5px_15px_rgba(0,0,0,0.2)] shrink-0">
+                                <Image src={villageLogo} alt="Logo" fill className="object-contain" priority />
+                            </div>
+                            <h2 className="text-lg font-black text-white mb-4 tracking-wide drop-shadow-md shrink-0">Hai, Selamat Datang!</h2>
+                            <div className="relative w-full h-full max-w-[340px] flex items-center justify-center mt-[-10px] z-0 pointer-events-none">
+                                <motion.div animate={{ y: [0, -8, 0] }} transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }} className="absolute top-[2%] left-2 bg-white/95 p-2 rounded-2xl shadow-xl rotate-[-12deg]"><Receipt className="text-blue-500 w-5 h-5" /></motion.div>
+                                <motion.div animate={{ y: [0, -12, 0] }} transition={{ repeat: Infinity, duration: 3.5, ease: "easeInOut", delay: 0.5 }} className="absolute top-[8%] right-2 bg-white/95 p-2 rounded-2xl shadow-xl rotate-[15deg]"><Wallet className="text-orange-500 w-5 h-5" /></motion.div>
+                                <motion.div animate={{ y: [0, 12, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut", delay: 1 }} className="absolute top-[35%] left-2 bg-white/95 p-2 rounded-2xl shadow-xl rotate-[8deg]"><FileText className="text-emerald-500 w-5 h-5" /></motion.div>
+                            </div>
+                        </div>
 
-                {/* Mobile bottom sheet for login/register with full scrollability */}
-                <div className={`fixed inset-x-0 bottom-0 bg-white rounded-t-[2.5rem] shadow-[0_-20px_50px_rgba(0,0,0,0.3)] flex flex-col max-h-[90dvh] h-auto z-50 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${isMobileSheetOpen ? 'translate-y-0' : 'translate-y-[120%]'}`}>
-                    <div className="flex justify-center pt-3 pb-2 w-full shrink-0" onClick={() => setIsMobileSheetOpen(false)}>
-                        <div className="w-12 h-1.5 bg-slate-200 rounded-full"></div>
-                    </div>
-                    <button onClick={() => setIsMobileSheetOpen(false)} className="absolute top-4 right-4 p-2 bg-slate-50 text-slate-400 hover:text-slate-600 rounded-full z-10"><X size={20} /></button>
-                    
-                    {/* Tabs */}
-                    <div className="flex pt-4 px-6 gap-2 mb-2 shrink-0">
-                        <button onClick={() => { setIsLogin(true); setError(""); }} className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${isLogin ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'bg-slate-100 text-slate-500'}`}>Masuk</button>
-                        <button onClick={() => { setIsLogin(false); setError(""); }} className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${!isLogin ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20' : 'bg-slate-100 text-slate-500'}`}>Daftar</button>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto px-6 pt-2 pb-12 custom-scrollbar">
-                        <AnimatePresence mode="wait">
-                            {isLogin ? (
-                                <motion.div key="m-login" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
-                                    <p className="text-slate-500 text-xs mb-4 mt-1 font-medium">Selamat datang kembali di portal digital desa.</p>
-                                    {error && isLogin && <div className="bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold p-3 rounded-2xl flex items-center gap-2 mb-3"><span>⚠️</span><span>{error}</span></div>}
-                                    {success && isLogin && <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold p-3 rounded-2xl flex items-center gap-2 mb-3"><span>✅</span><span>{success}</span></div>}
-                                    <form onSubmit={handleLogin} className="space-y-4">
-                                        <div className="relative"><Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500" size={18} /><input type="text" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="Email atau NIK" className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-2xl py-3.5 pl-12 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required /></div>
-                                        <div className="relative"><Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500" size={18} /><input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-2xl py-3.5 pl-12 pr-12 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div>
-                                        <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">{loading ? <Loader2 className="animate-spin" size={18} /> : <><KeyRound size={18} /><span>MASUK KE SISTEM</span></>}</button>
-                                    </form>
+                        <div className="absolute bottom-0 left-0 right-0 z-20 flex flex-col pointer-events-auto">
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="absolute bottom-[calc(100%-115px)] left-1/2 -translate-x-1/2 w-[170%] max-w-[520px] h-[390px] sm:h-[430px] z-10 flex items-center justify-center pointer-events-none">
+                                <motion.div animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }} className="relative w-full h-full">
+                                    <Image src="/images/keren 1.png" alt="Ilustrasi" fill className="object-contain object-bottom drop-shadow-2xl" priority />
                                 </motion.div>
-                            ) : (
-                                <motion.div key="m-register" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
-                                    <p className="text-slate-500 text-xs mb-4 mt-1 font-medium">Registrasi khusus warga desa menggunakan 16 Digit NIK.</p>
-                                    {error && !isLogin && <div className="bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold p-3 rounded-2xl flex items-center gap-2 mb-3"><span>❌</span><span>{error}</span></div>}
-                                    {success && !isLogin && <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold p-3 rounded-2xl flex items-center gap-2 mb-3"><span>✅</span><span>{success}</span></div>}
-                                    <form onSubmit={handleRegister} className="space-y-3">
-                                        <div className="relative"><Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500" size={18} /><input type="text" value={regNik} onChange={(e) => setRegNik(e.target.value)} placeholder="16 Digit NIK" className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-2xl py-3 pl-12 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required /></div>
-                                        <div className="relative"><User className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500" size={18} /><input type="text" value={regFullName} onChange={(e) => setRegFullName(e.target.value)} placeholder="Nama Sesuai KTP" className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-2xl py-3 pl-12 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required /></div>
-                                        <div className="relative"><Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500" size={18} /><input type="text" value={regPhone} onChange={(e) => setRegPhone(e.target.value)} placeholder="0812..." className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-2xl py-3 pl-12 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required /></div>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <input type="password" value={regPass} onChange={(e) => setRegPass(e.target.value)} placeholder="Password" className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-2xl py-3 px-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required />
-                                            <input type="password" value={regConfirmPass} onChange={(e) => setRegConfirmPass(e.target.value)} placeholder="Konfirmasi" className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-2xl py-3 px-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required />
-                                        </div>
-                                        <button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2">{loading ? <Loader2 className="animate-spin" size={18} /> : <><ShieldCheck size={18} /><span>DAFTAR SEKARANG</span></>}</button>
-                                    </form>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                            </motion.div>
+                            <div className="w-full relative h-14 -mb-[2px] z-20">
+                                <svg viewBox="0 0 1440 320" className="absolute bottom-0 w-full h-full block" preserveAspectRatio="none">
+                                    <path fill="#ffffff" fillOpacity="1" d="M0,160L48,176C96,192,192,224,288,213.3C384,203,480,149,576,144C672,139,768,181,864,197.3C960,213,1056,203,1152,176C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                                </svg>
+                            </div>
+                            <div className="bg-white pt-6 px-6 pb-6 relative z-20">
+                                <div className="w-full mb-6 relative z-20">
+                                    <div className="flex items-center justify-center gap-2 mb-5">
+                                        <span className="text-[#0a4686] font-extrabold text-xs tracking-wide">Layanan Cepat</span>
+                                        <div className="w-4 h-4 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-black">i</div>
+                                    </div>
+                                    <div className="flex justify-between items-start gap-2 overflow-x-auto pb-2 px-1">
+                                        {[
+                                            { icon: FileText, label: "Surat", color: "text-blue-600 bg-blue-50 border-blue-100" },
+                                            { icon: Users, label: "Warga", color: "text-emerald-600 bg-emerald-50 border-emerald-100" },
+                                            { icon: Receipt, label: "Pajak", color: "text-amber-600 bg-amber-50 border-amber-100" },
+                                            { icon: Phone, label: "Lapor", color: "text-rose-600 bg-rose-50 border-rose-100" }
+                                        ].map((item, idx) => (
+                                            <div key={idx} className="flex flex-col items-center gap-2 min-w-[64px] cursor-pointer active:scale-95 transition-transform">
+                                                <div className={`w-12 h-12 rounded-[1.2rem] flex items-center justify-center border shadow-sm ${item.color}`}><item.icon size={20} className="stroke-[2.5]" /></div>
+                                                <span className="text-[10px] font-bold text-slate-700">{item.label}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 w-full">
+                                    <button onClick={() => setIsMobileSheetOpen(true)} className="flex-1 bg-[#0e5cad] hover:bg-[#0a4686] text-white font-extrabold py-3.5 rounded-2xl text-[14px] shadow-lg shadow-blue-900/20 active:scale-95 transition-all">Login</button>
+                                    <button onClick={async () => {
+                                        try {
+                                            setLoading(true);
+                                            const getRes = await fetch("/api/webauthn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "generate-authentication" }) });
+                                            const options = await getRes.json();
+                                            if (options.error) throw new Error(options.error);
+                                            let asseResp;
+                                            try { asseResp = await startAuthentication({ optionsJSON: options } as any); } catch (error: any) { setError("Autentikasi biometrik dibatalkan."); setLoading(false); return; }
+                                            const signInRes = await signIn("credentials", { webauthn: JSON.stringify(asseResp), webauthnChallenge: options.challenge, redirect: false });
+                                            if (signInRes?.error) { setError(signInRes.error); } else { router.push("/dashboard"); }
+                                        } catch (err: any) { setError(err.message || "Gagal memproses biometrik."); } finally { setLoading(false); }
+                                    }} disabled={loading} className="w-14 h-14 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-[#0e5cad] shadow-inner active:scale-95 transition-all shrink-0 disabled:opacity-50">
+                                        {loading ? <Loader2 size={24} className="animate-spin" /> : <Fingerprint size={28} className="stroke-[2]" />}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Mobile bottom sheet for login/register */}
+                    <div className={`fixed inset-x-0 bottom-0 bg-white rounded-t-[2.5rem] shadow-[0_-20px_40px_rgba(0,0,0,0.2)] flex flex-col h-[85dvh] z-50 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${isMobileSheetOpen ? 'translate-y-0' : 'translate-y-[120%]'}`}>
+                        <div className="flex justify-center pt-3 pb-2 w-full absolute top-0 left-0 right-0 z-10" onClick={() => setIsMobileSheetOpen(false)}>
+                            <div className="w-12 h-1.5 bg-slate-200 rounded-full"></div>
+                        </div>
+                        <button onClick={() => setIsMobileSheetOpen(false)} className="absolute top-4 right-4 p-2 bg-slate-50 text-slate-400 hover:text-slate-600 rounded-full z-10"><X size={20} /></button>
+                        
+                        {/* Tabs */}
+                        <div className="flex pt-14 px-6 gap-2 mb-2">
+                            <button onClick={() => { setIsLogin(true); setError(""); }} className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${isLogin ? 'bg-blue-600 text-white' : 'text-slate-400'}`}>Masuk</button>
+                            <button onClick={() => { setIsLogin(false); setError(""); }} className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${!isLogin ? 'bg-emerald-600 text-white' : 'text-slate-400'}`}>Daftar</button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto px-6 pb-6">
+                            <AnimatePresence mode="wait">
+                                {isLogin ? (
+                                    <motion.div key="m-login" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+                                        <p className="text-slate-500 text-xs mb-4 mt-2">Selamat datang kembali di portal digital desa.</p>
+                                        {error && isLogin && <div className="bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold p-3 rounded-2xl flex items-center gap-2 mb-3"><span>⚠️</span><span>{error}</span></div>}
+                                        {success && isLogin && <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold p-3 rounded-2xl flex items-center gap-2 mb-3"><span>✅</span><span>{success}</span></div>}
+                                        <form onSubmit={handleLogin} className="space-y-4">
+                                            <div className="relative"><Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" size={18} /><input type="text" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="Email atau NIK" className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-2xl py-3.5 pl-12 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required /></div>
+                                            <div className="relative"><Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" size={18} /><input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-2xl py-3.5 pl-12 pr-12 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div>
+                                            <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">{loading ? <Loader2 className="animate-spin" size={18} /> : <><KeyRound size={18} /><span>MASUK KE SISTEM</span></>}</button>
+                                        </form>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div key="m-register" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.2 }}>
+                                        <p className="text-slate-500 text-xs mb-4 mt-2">Registrasi khusus warga desa menggunakan 16 Digit NIK.</p>
+                                        {error && !isLogin && <div className="bg-rose-50 border border-rose-200 text-rose-600 text-xs font-bold p-3 rounded-2xl flex items-center gap-2 mb-3"><span>❌</span><span>{error}</span></div>}
+                                        {success && !isLogin && <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold p-3 rounded-2xl flex items-center gap-2 mb-3"><span>✅</span><span>{success}</span></div>}
+                                        <form onSubmit={handleRegister} className="space-y-3">
+                                            <div className="relative"><Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400" size={18} /><input type="text" value={regNik} onChange={(e) => setRegNik(e.target.value)} placeholder="16 Digit NIK" className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-2xl py-3 pl-12 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required /></div>
+                                            <div className="relative"><User className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400" size={18} /><input type="text" value={regFullName} onChange={(e) => setRegFullName(e.target.value)} placeholder="Nama Sesuai KTP" className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-2xl py-3 pl-12 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required /></div>
+                                            <div className="relative"><Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400" size={18} /><input type="text" value={regPhone} onChange={(e) => setRegPhone(e.target.value)} placeholder="0812..." className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-2xl py-3 pl-12 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required /></div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <input type="password" value={regPass} onChange={(e) => setRegPass(e.target.value)} placeholder="Password" className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-2xl py-3 px-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required />
+                                                <input type="password" value={regConfirmPass} onChange={(e) => setRegConfirmPass(e.target.value)} placeholder="Konfirmasi" className="w-full bg-slate-50 border border-slate-200 focus:border-emerald-500 rounded-2xl py-3 px-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required />
+                                            </div>
+                                            <button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2">{loading ? <Loader2 className="animate-spin" size={18} /> : <><ShieldCheck size={18} /><span>DAFTAR SEKARANG</span></>}</button>
+                                        </form>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
                 </div>
             </div>
