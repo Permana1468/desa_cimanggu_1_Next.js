@@ -37,7 +37,7 @@ export default async function VillageAdminLayout({
   const isHackerTheme = false; // role === "KAUR_PERENCANAAN" && themeMode === 'hacker';
 
   return (
-    <div className={`flex h-screen overflow-hidden ${isHackerTheme ? 'bg-slate-950 text-cyan-50' : 'bg-slate-50 text-slate-950 light-mode'}`}>
+    <div className={`flex h-[100dvh] overflow-hidden ${isHackerTheme ? 'bg-slate-950 text-cyan-50' : 'bg-slate-50 text-slate-950 light-mode'}`}>
       {isHackerTheme && <KaurPerencanaanThreeBackground />}
       
       {/* Village Sidebar */}
@@ -48,8 +48,8 @@ export default async function VillageAdminLayout({
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Scrollable Page Content */}
-        <main className={`flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar ${isHackerTheme ? 'hacker-theme-override' : ''}`}>
-          <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <main className={`flex-1 overflow-y-auto p-4 md:p-6 pb-28 md:pb-6 custom-scrollbar ${isHackerTheme ? 'hacker-theme-override' : ''}`}>
+          <div className="max-w-[1600px] mx-auto pb-20 md:pb-0 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {isHackerTheme && (
               <style dangerouslySetInnerHTML={{ __html: `
                 .hacker-theme-override .bg-white {
