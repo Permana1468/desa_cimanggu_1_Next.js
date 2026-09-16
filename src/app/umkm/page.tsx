@@ -1,58 +1,71 @@
 import Link from "next/link";
-import { Search, ShoppingCart, Bell, HelpCircle, Globe, ChevronDown, Facebook, Instagram, Twitter, Camera, MessageSquare, MapPin, ScanLine, Wallet, Maximize, Coins, Home, PlaySquare, User, Tag } from "lucide-react";
+import { Search, ShoppingCart, Bell, HelpCircle, Globe, ChevronDown, Facebook, Instagram, Twitter, MapPin, Wallet, Coins, Home, PlaySquare, User, Tag, Sparkles, Store } from "lucide-react";
 import prisma from "@/lib/prisma";
 import { Suspense } from "react";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { ensureUmkmSeedData } from "@/app/actions/umkm";
 
 export default async function UmkmHomepage() {
+    // Ensure database contains authentic Desa Cimanggu I products
+    await ensureUmkmSeedData();
+
     const session = await getServerSession(authOptions);
     const user = session?.user;
-    // Color Theme mappings (Village Blue replacing Shopee Orange)
 
-    // Color Theme mappings (Village Blue replacing Shopee Orange)
-    // Primary: #2563eb (blue-600), Secondary: #1e40af (blue-800), Accent: #dbeafe (blue-100)
-    
+    const categories = [
+        { name: "Hasil Tani", icon: "🌾", bg: "bg-emerald-50 text-emerald-600 border-emerald-200" },
+        { name: "Kuliner & Snack", icon: "🥘", bg: "bg-orange-50 text-orange-600 border-orange-200" },
+        { name: "Kopi Desa", icon: "☕", bg: "bg-amber-50 text-amber-700 border-amber-200" },
+        { name: "Kerajinan Bambu", icon: "🏺", bg: "bg-amber-50 text-amber-800 border-amber-200" },
+        { name: "Batik & Fashion", icon: "👗", bg: "bg-pink-50 text-pink-600 border-pink-200" },
+        { name: "Madu & Herbal", icon: "🍯", bg: "bg-yellow-50 text-yellow-700 border-yellow-200" },
+        { name: "Produk BUMDes", icon: "🏢", bg: "bg-blue-50 text-blue-700 border-blue-200" },
+        { name: "Olahan Sambal", icon: "🌶️", bg: "bg-red-50 text-red-600 border-red-200" },
+        { name: "Sayur Segar", icon: "🥬", bg: "bg-green-50 text-green-700 border-green-200" },
+        { name: "Wisata Desa", icon: "⛰️", bg: "bg-teal-50 text-teal-700 border-teal-200" }
+    ];
+
     return (
-        <div className="min-h-screen bg-[#f5f5f5] font-sans text-sm pb-16 md:pb-0">
+        <div className="min-h-screen bg-[#f8fafc] font-sans text-sm pb-16 md:pb-0">
             {/* ========================================= */}
-            {/* DESKTOP VIEW (Hidden on Mobile) */}
+            {/* DESKTOP VIEW */}
             {/* ========================================= */}
             <div className="hidden md:block">
                 {/* Top Navigation Bar */}
-                <div className="bg-blue-600 text-white/90 text-xs py-1">
+                <div className="bg-blue-700 text-white/95 text-xs py-1.5 shadow-sm">
                     <div className="max-w-[1200px] mx-auto px-4 flex justify-between items-center">
                         <div className="flex items-center gap-4">
-                            <Link href="/umkm/seller" className="hover:text-white">Seller Centre</Link>
+                            <Link href="/umkm/seller" className="hover:text-amber-200 font-bold flex items-center gap-1">
+                                <Store size={14} /> Seller Centre (Toko Saya)
+                            </Link>
                             <span className="opacity-40">|</span>
-                            <Link href="#" className="hover:text-white">Mulai Berjualan</Link>
+                            <Link href="/umkm/register" className="hover:text-amber-200">Mulai Berjualan (Buka Toko UMKM)</Link>
                             <span className="opacity-40">|</span>
-                            <Link href="#" className="hover:text-white">Download</Link>
-                            <span className="opacity-40">|</span>
-                            <div className="flex items-center gap-1">
-                                <span>Ikuti kami di</span>
-                                <Facebook size={14} className="hover:text-white cursor-pointer" />
-                                <Instagram size={14} className="hover:text-white cursor-pointer" />
-                                <Twitter size={14} className="hover:text-white cursor-pointer" />
+                            <div className="flex items-center gap-1.5">
+                                <span>Ikuti Media Desa:</span>
+                                <Facebook size={14} className="hover:text-amber-200 cursor-pointer" />
+                                <Instagram size={14} className="hover:text-amber-200 cursor-pointer" />
+                                <Twitter size={14} className="hover:text-amber-200 cursor-pointer" />
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
-                            <Link href="#" className="flex items-center gap-1 hover:text-white"><Bell size={14} /> Notifikasi</Link>
-                            <Link href="#" className="flex items-center gap-1 hover:text-white"><HelpCircle size={14} /> Bantuan</Link>
-                            <div className="flex items-center gap-1 cursor-pointer hover:text-white">
+                            <Link href="#" className="flex items-center gap-1 hover:text-amber-200"><Bell size={14} /> Notifikasi</Link>
+                            <Link href="#" className="flex items-center gap-1 hover:text-amber-200"><HelpCircle size={14} /> Bantuan</Link>
+                            <div className="flex items-center gap-1 cursor-pointer hover:text-amber-200">
                                 <Globe size={14} /> Bahasa Indonesia <ChevronDown size={14} />
                             </div>
                             {user ? (
                                 <>
-                                    <span className="font-medium text-white ml-2">Halo, {user.name}</span>
+                                    <span className="font-bold text-amber-200 ml-2">Halo, {user.name}</span>
                                     <span className="opacity-40">|</span>
-                                    <Link href="/umkm/seller" className="font-medium text-white hover:opacity-80">Akun Saya</Link>
+                                    <Link href="/umkm/seller" className="font-bold text-white hover:text-amber-200">Kelola Toko</Link>
                                 </>
                             ) : (
                                 <>
-                                    <Link href="/umkm/register" className="font-medium text-white ml-2 hover:opacity-80">Daftar</Link>
+                                    <Link href="/umkm/register" className="font-bold text-white ml-2 hover:text-amber-200">Daftar</Link>
                                     <span className="opacity-40">|</span>
-                                    <Link href="/umkm/login" className="font-medium text-white hover:opacity-80">Log In</Link>
+                                    <Link href="/umkm/login" className="font-bold text-white hover:text-amber-200">Log In</Link>
                                 </>
                             )}
                         </div>
@@ -60,307 +73,180 @@ export default async function UmkmHomepage() {
                 </div>
 
                 {/* Header Main (Search & Logo) */}
-                <header className="bg-gradient-to-b from-blue-600 to-blue-500 pt-4 pb-6 sticky top-0 z-50">
+                <header className="bg-gradient-to-b from-blue-700 to-blue-600 pt-4 pb-6 sticky top-0 z-50 shadow-md">
                     <div className="max-w-[1200px] mx-auto px-4 flex items-center gap-8">
                         {/* Logo */}
-                        <Link href="/umkm" className="flex items-center gap-2 text-white">
+                        <Link href="/umkm" className="flex items-center gap-2 text-white hover:opacity-90 transition-opacity">
                             <StoreLogoIconDesktop />
                         </Link>
 
                         {/* Search Bar */}
                         <div className="flex-1 flex flex-col relative">
-                            <div className="flex bg-white rounded-[2px] p-1 shadow-sm">
+                            <form action="/umkm" method="GET" className="flex bg-white rounded-md p-1 shadow-md border-2 border-blue-400 focus-within:border-amber-400">
                                 <input 
                                     type="text" 
-                                    placeholder="Daftar & Dapat Voucher Gratis" 
-                                    className="flex-1 px-3 py-2 text-sm text-gray-800 focus:outline-none placeholder-gray-500"
+                                    name="search"
+                                    placeholder="Cari produk lokal, keripik pisang, kopi desa, beras organik..." 
+                                    className="flex-1 px-4 py-2 text-sm text-slate-800 focus:outline-none placeholder-slate-400 font-medium"
                                 />
-                                <button className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-[2px] text-white flex items-center justify-center transition-colors">
+                                <button type="submit" className="bg-blue-600 hover:bg-blue-700 px-7 py-2 rounded-md text-white font-bold flex items-center justify-center transition-colors">
                                     <Search size={18} />
                                 </button>
-                            </div>
-                            <div className="flex gap-3 text-xs text-white/90 mt-1 absolute -bottom-5 left-0">
-                                <Link href="#" className="hover:text-white">Keripik Pisang</Link>
-                                <Link href="#" className="hover:text-white">Kerajinan Tangan</Link>
-                                <Link href="#" className="hover:text-white">Batik Tulis</Link>
+                            </form>
+                            <div className="flex gap-4 text-xs text-blue-100 mt-1.5 font-medium">
+                                <Link href="/umkm?search=keripik" className="hover:text-amber-200">Keripik Pisang</Link>
+                                <Link href="/umkm?search=kopi" className="hover:text-amber-200">Kopi Robusta</Link>
+                                <Link href="/umkm?search=beras" className="hover:text-amber-200">Beras Organik</Link>
+                                <Link href="/umkm?search=batik" className="hover:text-amber-200">Batik Tulis</Link>
+                                <Link href="/umkm?search=madu" className="hover:text-amber-200">Madu Hutan</Link>
                             </div>
                         </div>
 
                         {/* Cart Icon */}
-                        <div className="w-16 flex justify-center mt-[-10px]">
-                            <Link href="#" className="text-white hover:opacity-80 relative">
-                                <ShoppingCart size={28} />
-                                <span className="absolute -top-1 -right-2 bg-white text-blue-600 text-[10px] font-bold px-[6px] py-[1px] rounded-full border-2 border-blue-500">0</span>
+                        <div className="flex items-center gap-3">
+                            <Link href="/umkm/cart" className="text-white hover:text-amber-200 relative p-2 bg-blue-800/60 rounded-xl border border-blue-500/50 flex items-center justify-center transition-transform hover:scale-105">
+                                <ShoppingCart size={26} />
+                                <span className="absolute -top-1.5 -right-1.5 bg-amber-400 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-full border-2 border-blue-700 shadow-md">
+                                    🛒 Cart
+                                </span>
                             </Link>
                         </div>
                     </div>
                 </header>
 
-                {/* Desktop Banner Section */}
-                <div className="max-w-[1200px] mx-auto pt-8 pb-4 px-4 flex gap-2">
-                    <div className="flex-[2] rounded overflow-hidden shadow-sm aspect-[21/9] bg-gradient-to-r from-blue-400 to-blue-600 flex flex-col justify-center px-12 relative text-white">
-                        <h2 className="text-4xl font-bold italic z-10">Desa Pilih Lokal</h2>
-                        <p className="text-xl font-medium mt-2 bg-blue-800 w-max px-3 py-1 rounded-sm z-10">Pusat Produk Unggulan Desa</p>
-                        <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-[url('https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1000')] bg-cover bg-center opacity-60 mix-blend-overlay"></div>
+                {/* Hero Banner Section */}
+                <div className="max-w-[1200px] mx-auto pt-6 pb-4 px-4 flex gap-4">
+                    <div className="flex-[2] rounded-2xl overflow-hidden shadow-lg aspect-[21/9] bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 flex flex-col justify-center px-12 relative text-white border-2 border-blue-400/40">
+                        <span className="px-3 py-1 rounded-full bg-amber-400 text-slate-950 font-black text-xs w-max uppercase tracking-wider mb-2 flex items-center gap-1 shadow-md">
+                            <Sparkles size={14} /> PUSAT UMKM DESA CIMANGGU I
+                        </span>
+                        <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-white drop-shadow-md">
+                            Bangga Beli Produk Lokal Desa
+                        </h2>
+                        <p className="text-sm font-semibold mt-2 text-blue-100 max-w-md">
+                            Dukung perekonomian warga dengan belanja produk unggulan pertanian, kuliner, dan kerajinan asli Desa Cimanggu I.
+                        </p>
                     </div>
-                    <div className="flex-1 flex flex-col gap-2">
-                        <div className="flex-1 rounded overflow-hidden bg-slate-800 flex items-center px-6 relative text-white">
-                            <div>
-                                <h3 className="font-bold text-xl leading-tight">Desa Mall<br/>100% ORI</h3>
-                            </div>
-                        </div>
-                        <div className="flex-1 rounded overflow-hidden bg-indigo-900 flex items-center px-6 relative text-white">
-                            <div className="z-10">
-                                <div className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-sm w-max mb-1 font-bold">Produk Halal</div>
-                                <h3 className="font-medium text-sm">Semua Kebutuhan Bersertifikat</h3>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                {/* Icon Menu Desktop */}
-                <div className="max-w-[1200px] mx-auto px-4 py-4 flex justify-between bg-white rounded-sm shadow-sm">
-                    {[
-                        {name: "Produk Lokal", icon: "🇮🇩"},
-                        {name: "Desa Mall", icon: "🛍️"},
-                        {name: "Sembako", icon: "🌾"},
-                        {name: "Flash Sale", icon: "⚡"},
-                        {name: "Kerajinan", icon: "🎨"},
-                        {name: "Dikelola BUMDes", icon: "🏢"},
-                        {name: "Gratis Ongkir", icon: "🎟️"},
-                        {name: "Produk Halal", icon: "☪️"},
-                        {name: "Semua Promo", icon: "🎁"}
-                    ].map((item, idx) => (
-                        <Link href="#" key={idx} className="flex flex-col items-center gap-2 hover:opacity-80 transition-opacity w-24">
-                            <div className="w-11 h-11 border border-gray-200 rounded-[16px] flex items-center justify-center text-2xl bg-gray-50">{item.icon}</div>
-                            <span className="text-[11px] text-gray-700 text-center leading-tight">{item.name}</span>
-                        </Link>
-                    ))}
+                    <div className="flex-1 flex flex-col gap-3">
+                        <div className="flex-1 rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 to-blue-950 flex items-center px-6 relative text-white border border-slate-700 shadow-md">
+                            <div>
+                                <span className="text-xs font-bold text-amber-400">DesaMall Official</span>
+                                <h3 className="font-black text-lg leading-tight mt-0.5">100% Produk Asli Olahan Warga</h3>
+                            </div>
+                        </div>
+                        <div className="flex-1 rounded-2xl overflow-hidden bg-gradient-to-br from-emerald-800 to-teal-900 flex items-center px-6 relative text-white border border-emerald-600 shadow-md">
+                            <div>
+                                <div className="bg-emerald-400 text-slate-950 text-[10px] px-2 py-0.5 rounded-md w-max font-black uppercase">
+                                    BUMDes Verified
+                                </div>
+                                <h3 className="font-bold text-sm mt-1">Jaminan Kualitas &amp; Bebas Pengawet</h3>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Categories Desktop */}
-                <div className="max-w-[1200px] mx-auto mt-5 bg-white shadow-sm rounded-sm">
-                    <div className="p-4 border-b border-gray-100">
-                        <h2 className="text-gray-500 font-medium uppercase">Kategori</h2>
+                <div className="max-w-[1200px] mx-auto mt-4 bg-white shadow-sm rounded-2xl border border-slate-200 overflow-hidden">
+                    <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <h2 className="text-slate-800 font-black uppercase tracking-wider text-sm flex items-center gap-2">
+                            <Store size={18} className="text-blue-600" /> Kategori Produk Desa
+                        </h2>
+                        <span className="text-xs font-bold text-blue-600">Terlengkap &amp; Terpercaya</span>
                     </div>
-                    <div className="grid grid-cols-10 border-t border-l border-gray-100">
-                        {["Elektronik", "Komputer", "Handphone", "Pakaian", "Sepatu", "Tas", "Aksesoris", "Jam Tangan", "Kesehatan", "Hobi"].map((cat, idx) => (
-                            <div key={idx} className="border-r border-b border-gray-100 flex flex-col items-center justify-center p-3 h-28 hover:shadow-md transition-shadow cursor-pointer bg-white">
-                                <div className="text-3xl mb-2">📦</div>
-                                <span className="text-[11px] text-gray-700 text-center leading-tight">{cat}</span>
-                            </div>
+                    <div className="grid grid-cols-5 md:grid-cols-10 divide-x divide-y divide-slate-100">
+                        {categories.map((cat, idx) => (
+                            <Link href={`/umkm?category=${encodeURIComponent(cat.name)}`} key={idx} className="flex flex-col items-center justify-center p-3 h-28 hover:bg-blue-50/50 transition-colors cursor-pointer bg-white group">
+                                <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center text-2xl shadow-sm transition-transform group-hover:scale-110 ${cat.bg}`}>
+                                    {cat.icon}
+                                </div>
+                                <span className="text-[11px] font-bold text-slate-700 text-center leading-tight mt-2">{cat.name}</span>
+                            </Link>
                         ))}
                     </div>
                 </div>
             </div>
 
             {/* ========================================= */}
-            {/* MOBILE VIEW (Visible only on Mobile) */}
+            {/* MOBILE VIEW */}
             {/* ========================================= */}
             <div className="block md:hidden bg-slate-50 min-h-screen">
                 {/* Mobile Header (Sticky) */}
-                <header className="sticky top-0 z-50 bg-gradient-to-b from-blue-600 to-blue-500 pb-2">
-                    <div className="flex items-center gap-3 px-3 pt-3 pb-2">
-                        {/* Search Bar with Camera */}
-                        <div className="flex-1 bg-white rounded-md flex items-center px-3 py-1.5 shadow-sm">
-                            <Search size={18} className="text-blue-500 mr-2" />
+                <header className="sticky top-0 z-50 bg-gradient-to-b from-blue-700 to-blue-600 pb-3 shadow-md">
+                    <div className="flex items-center gap-3 px-3 pt-3 pb-1">
+                        {/* Search Bar */}
+                        <form action="/umkm" method="GET" className="flex-1 bg-white rounded-xl flex items-center px-3 py-2 shadow-sm border border-blue-400">
+                            <Search size={18} className="text-blue-600 mr-2 shrink-0" />
                             <input 
                                 type="text" 
-                                placeholder="Kabel HDMI HP Ke TV" 
-                                className="flex-1 text-sm bg-transparent border-none focus:outline-none text-slate-700 placeholder-slate-400"
+                                name="search"
+                                placeholder="Cari keripik, beras, kopi desa..." 
+                                className="flex-1 text-xs font-medium bg-transparent border-none focus:outline-none text-slate-800 placeholder-slate-400"
                             />
-                            <div className="border-l border-slate-200 pl-2 ml-2">
-                                <Camera size={20} className="text-slate-400" />
-                            </div>
-                        </div>
+                        </form>
                         
-                        {/* Icons */}
-                        <Link href="#" className="relative text-white">
-                            <ShoppingCart size={24} />
-                            <span className="absolute -top-1 -right-2 bg-white text-blue-600 text-[9px] font-bold px-[4px] py-[1px] rounded-full">99+</span>
-                        </Link>
-                        <Link href="#" className="text-white relative">
-                            <MessageSquare size={24} />
-                            <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full border border-blue-500"></span>
+                        {/* Cart Icon */}
+                        <Link href="/umkm/cart" className="relative text-white p-2 bg-blue-800/70 rounded-xl border border-blue-500/50">
+                            <ShoppingCart size={22} />
+                            <span className="absolute -top-1 -right-1 bg-amber-400 text-slate-950 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-blue-700">
+                                🛒
+                            </span>
                         </Link>
                     </div>
                 </header>
 
-                {/* Mobile Wallet & Tools Info Box */}
-                <div className="px-3 -mt-2 relative z-10">
-                    <div className="bg-white rounded-lg shadow-sm p-3 flex justify-between items-center divide-x divide-slate-100 border border-slate-100">
-                        {/* QRIS & Saldo */}
-                        <div className="flex items-center gap-3 flex-1 pr-2">
-                            <div className="flex items-center justify-center gap-1 text-blue-600">
-                                <Wallet size={24} />
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-1 font-bold text-slate-700 text-sm">
-                                    Rp0
-                                </div>
-                                <div className="text-[10px] text-slate-400">Saldo BUMDes</div>
-                            </div>
-                        </div>
-
-                        {/* Cek-in */}
-                        <div className="flex flex-col items-center justify-center flex-1 px-2">
-                            <div className="flex items-center gap-1 font-bold text-slate-700 text-sm">
-                                <Coins size={14} className="text-yellow-500"/>
-                                10
-                            </div>
-                            <div className="text-[10px] text-blue-600 font-medium">Poin Desa</div>
-                        </div>
-
-                        {/* SPinjam */}
-                        <div className="flex items-center gap-2 flex-1 pl-2">
-                            <div>
-                                <div className="flex items-center gap-1 font-bold text-slate-700 text-sm">
-                                    Voucher
-                                </div>
-                                <div className="text-[10px] text-slate-400">Ada 2 Baru!</div>
-                            </div>
-                            <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-[8px] font-bold">
-                                🎟️
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Horizontal Scroll Menus */}
-                <div className="bg-white mt-2 py-4 px-1 shadow-sm overflow-x-auto no-scrollbar">
-                    <div className="flex w-max px-2 gap-4">
-                        {[
-                            {name: "Produk Tani", icon: "🌾", color: "text-emerald-500"},
-                            {name: "Kerajinan", icon: "🏺", color: "text-amber-600"},
-                            {name: "Makanan Lokal", icon: "🥘", color: "text-orange-500"},
-                            {name: "Jasa Desa", icon: "🔧", color: "text-blue-600"},
-                            {name: "Pariwisata", icon: "⛰️", color: "text-teal-500"},
-                            {name: "BUMDes", icon: "🏢", color: "text-blue-800"},
-                            {name: "Koperasi", icon: "🤝", color: "text-indigo-500"},
-                        ].map((item, idx) => (
-                            <div key={idx} className="flex flex-col items-center w-[72px] shrink-0 gap-2">
-                                <div className={`w-11 h-11 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-2xl shadow-sm ${item.color}`}>
+                {/* Mobile Categories Scroll */}
+                <div className="bg-white py-3 px-2 shadow-sm border-b border-slate-200 overflow-x-auto">
+                    <div className="flex w-max gap-3 px-2">
+                        {categories.map((item, idx) => (
+                            <Link href={`/umkm?category=${encodeURIComponent(item.name)}`} key={idx} className="flex flex-col items-center w-[76px] shrink-0 gap-1.5">
+                                <div className={`w-12 h-12 border rounded-2xl flex items-center justify-center text-2xl shadow-sm ${item.bg}`}>
                                     {item.icon}
                                 </div>
-                                <span className="text-[10px] text-slate-700 text-center leading-tight line-clamp-2 h-7">{item.name}</span>
-                            </div>
+                                <span className="text-[10px] font-bold text-slate-700 text-center leading-tight line-clamp-2">{item.name}</span>
+                            </Link>
                         ))}
                     </div>
-                    {/* Pagination Dots */}
-                    <div className="flex justify-center gap-1 mt-3">
-                        <div className="w-3 h-1 bg-slate-300 rounded-full"></div>
-                        <div className="w-3 h-1 bg-blue-600 rounded-full"></div>
-                    </div>
                 </div>
-
-                {/* Shopee Live & Video Layout -> Produk Unggulan & Testimoni */}
-                <div className="mt-2 grid grid-cols-2 bg-white shadow-sm">
-                    <div className="p-3 border-r border-slate-100">
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-blue-600 font-medium text-sm flex items-center gap-1">Pilihan Desa <span className="text-[10px]">⭐</span></h3>
-                        </div>
-                        <div className="flex gap-2">
-                            <div className="flex-1 aspect-[3/4] bg-slate-800 rounded relative overflow-hidden">
-                                <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=300" className="w-full h-full object-cover opacity-80" />
-                                <div className="absolute top-1 left-1 bg-yellow-400 text-blue-900 text-[8px] font-bold px-1 rounded flex items-center gap-1">
-                                    TERLARIS
-                                </div>
-                                <div className="absolute bottom-1 left-1 right-1 text-white text-[9px] leading-tight line-clamp-2 font-medium drop-shadow-md">
-                                    Sayuran Segar Organik
-                                </div>
-                            </div>
-                            <div className="flex-1 aspect-[3/4] bg-slate-800 rounded relative overflow-hidden">
-                                <img src="https://images.unsplash.com/photo-1550583724-b2692b85b150?q=80&w=300" className="w-full h-full object-cover opacity-80" />
-                                <div className="absolute top-1 left-1 bg-yellow-400 text-blue-900 text-[8px] font-bold px-1 rounded flex items-center gap-1">
-                                    TERLARIS
-                                </div>
-                                <div className="absolute bottom-1 left-1 right-1 text-white text-[9px] leading-tight line-clamp-2 font-medium drop-shadow-md">
-                                    Susu Sapi Murni
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="p-3">
-                        <div className="flex items-center justify-between mb-2">
-                            <h3 className="text-blue-600 font-medium text-sm flex items-center gap-1">UMKM Kita <span className="text-[10px]">🏪</span></h3>
-                        </div>
-                        <div className="flex gap-2">
-                            <div className="flex-1 aspect-[3/4] bg-slate-800 rounded relative overflow-hidden border border-slate-100">
-                                <img src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=300" className="w-full h-full object-cover opacity-80" />
-                                <div className="absolute bottom-1 left-1 right-1 text-white text-[9px] leading-tight font-medium drop-shadow-md bg-black/40 px-1 py-0.5 rounded">
-                                    Toko Makmur Sejahtera
-                                </div>
-                            </div>
-                            <div className="flex-1 aspect-[3/4] bg-slate-800 rounded relative overflow-hidden border border-slate-100">
-                                <img src="https://images.unsplash.com/photo-1604719312566-8912e9227c6a?q=80&w=300" className="w-full h-full object-cover opacity-80" />
-                                <div className="absolute bottom-1 left-1 right-1 text-white text-[9px] leading-tight font-medium drop-shadow-md bg-black/40 px-1 py-0.5 rounded">
-                                    Kerajinan Tangan Ibu
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
             </div>
 
             {/* ========================================= */}
             {/* SHARED DESKTOP/MOBILE: PRODUCTS SECTION */}
             {/* ========================================= */}
-            <div className="max-w-[1200px] mx-auto mt-2 md:mt-5 bg-slate-50 md:bg-transparent px-2 md:px-0">
-                <div className="bg-white border-b-4 border-blue-600 sticky md:top-[108px] z-40 hidden md:block">
-                    <h2 className="text-blue-600 font-medium uppercase text-center py-4 bg-white">Rekomendasi (Real Database)</h2>
-                </div>
-                
-                {/* Mobile Tab Layout for Rekomendasi */}
-                <div className="flex md:hidden bg-white mt-2 border-b border-slate-200">
-                    <div className="flex-1 py-3 border-b-2 border-blue-600 text-blue-600 text-center font-medium text-sm">Rekomendasi</div>
-                    <div className="flex-1 py-3 text-slate-500 text-center font-medium text-sm">Terbaru</div>
+            <div className="max-w-[1200px] mx-auto mt-4 px-3 md:px-4">
+                <div className="bg-white border-b-4 border-blue-600 rounded-t-2xl shadow-sm px-6 py-4 flex items-center justify-between">
+                    <h2 className="text-blue-700 font-black uppercase tracking-wider text-sm sm:text-base flex items-center gap-2">
+                        <Sparkles size={18} className="text-amber-500" /> Katalog Produk UMKM Desa Cimanggu I
+                    </h2>
+                    <span className="text-xs font-bold text-slate-500 hidden sm:inline">Terdaftar &amp; Terverifikasi Desa</span>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-2 md:mt-2 mt-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mt-3">
                     <Suspense fallback={
                         [...Array(6)].map((_, i) => (
-                            <div key={i} className="bg-white border border-slate-100 transition-all shadow-sm rounded flex flex-col cursor-pointer relative">
-                                <div className="aspect-square overflow-hidden relative bg-slate-200 animate-pulse"></div>
-                                <div className="p-2 flex flex-col flex-1 gap-2">
-                                    <div className="bg-slate-200 h-4 w-3/4 animate-pulse rounded"></div>
-                                    <div className="bg-slate-200 h-4 w-1/2 animate-pulse rounded mt-auto"></div>
-                                </div>
-                            </div>
+                            <div key={i} className="bg-white border border-slate-200 rounded-2xl p-2 animate-pulse h-64"></div>
                         ))
                     }>
                         <ProductList />
                     </Suspense>
-                </div>
-                <div className="flex justify-center mt-6 pb-6 md:pb-12">
-                    <button className="bg-white border border-slate-300 text-slate-600 px-24 md:px-32 py-2 text-sm hover:bg-slate-50 rounded shadow-sm">Lihat Lainnya</button>
                 </div>
             </div>
 
             {/* ========================================= */}
             {/* BOTTOM NAVIGATION BAR (Mobile Only) */}
             {/* ========================================= */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-between px-2 pb-safe z-50">
-                <Link href="#" className="flex flex-col items-center py-2 flex-1 text-blue-600">
-                    <Home size={22} className="fill-blue-600 text-blue-600" />
-                    <span className="text-[10px] mt-1 font-medium">Beranda</span>
+            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex justify-between px-3 py-2 z-50 shadow-lg">
+                <Link href="/umkm" className="flex flex-col items-center flex-1 text-blue-600 font-bold">
+                    <Home size={22} />
+                    <span className="text-[10px] mt-0.5">Beranda</span>
                 </Link>
-                <Link href="#" className="flex flex-col items-center py-2 flex-1 text-slate-500">
-                    <Tag size={22} />
-                    <span className="text-[10px] mt-1">Deals</span>
+                <Link href="/umkm/cart" className="flex flex-col items-center flex-1 text-slate-600 font-bold">
+                    <ShoppingCart size={22} />
+                    <span className="text-[10px] mt-0.5">Keranjang</span>
                 </Link>
-                <Link href="#" className="flex flex-col items-center py-2 flex-1 text-slate-500">
-                    <PlaySquare size={22} />
-                    <span className="text-[10px] mt-1">Live & Video</span>
-                </Link>
-                <Link href="#" className="flex flex-col items-center py-2 flex-1 text-slate-500 relative">
-                    <Bell size={22} />
-                    <span className="absolute top-1 right-3 w-4 h-4 bg-red-500 text-white rounded-full text-[9px] flex items-center justify-center border border-white">16</span>
-                    <span className="text-[10px] mt-1">Notifikasi</span>
-                </Link>
-                <Link href="/umkm/seller" className="flex flex-col items-center py-2 flex-1 text-slate-500">
+                <Link href="/umkm/seller" className="flex flex-col items-center flex-1 text-slate-600 font-bold">
                     <User size={22} />
-                    <span className="text-[10px] mt-1">Saya</span>
+                    <span className="text-[10px] mt-0.5">Toko Saya</span>
                 </Link>
             </div>
         </div>
@@ -370,87 +256,83 @@ export default async function UmkmHomepage() {
 // Simple Logo component for Desktop Header
 function StoreLogoIconDesktop() {
     return (
-        <div className="flex items-center gap-2">
-            <div className="bg-white rounded-lg p-1.5 flex items-center justify-center">
-                <svg viewBox="0 0 24 24" className="w-8 h-8 fill-blue-600">
-                    <path d="M4 6h16v2H4zm2 4h12v12H6zm3 2v8h6v-8h-6z" />
-                </svg>
+        <div className="flex items-center gap-2.5">
+            <div className="bg-white rounded-2xl p-2 flex items-center justify-center shadow-md">
+                <Store size={26} className="text-blue-700" />
             </div>
-            <span className="text-3xl font-bold tracking-tight">DesaMart</span>
+            <div className="flex flex-col">
+                <span className="text-2xl font-black tracking-tight leading-none text-white">DesaMart</span>
+                <span className="text-[10px] font-bold text-amber-300 tracking-wider uppercase mt-0.5">UMKM Cimanggu I</span>
+            </div>
         </div>
     );
 }
 
-// Server Component for fetching products
+// Server Component for fetching real UMKM products from database
 async function ProductList() {
     const products = await prisma.umkmProduct.findMany({
         include: { store: true },
-        take: 12,
+        take: 24,
         orderBy: { createdAt: 'desc' }
     });
 
     if (products.length === 0) {
         return (
-            <>
-                {[...Array(6)].map((_, i) => (
-                    <div key={i} className="bg-white border border-slate-100 transition-all shadow-sm rounded flex flex-col cursor-pointer relative">
-                        <div className="aspect-square overflow-hidden relative bg-slate-200">
-                            {/* Static image to avoid hydration error */}
-                            <img src={`https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=300`} alt="Product" className="w-full h-full object-cover opacity-80" />
-                            <div className="absolute top-2 left-0 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-r-sm">Mall</div>
-                        </div>
-                        <div className="p-2 flex flex-col flex-1">
-                            <div className="text-xs text-slate-800 line-clamp-2 leading-tight mb-2 h-8">
-                                Produk UMKM Desa {i + 1}
-                            </div>
-                            <div className="mt-auto flex items-end justify-between">
-                                <div className="text-blue-600 font-semibold text-base">
-                                    <span className="text-xs">Rp</span>{((i + 1) * 25000).toLocaleString('id-ID')}
-                                </div>
-                                <div className="text-[10px] text-slate-500">{(i * 123) % 1000} Terjual</div>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </>
+            <div className="col-span-full py-12 text-center text-slate-500 font-bold">
+                Belum ada produk yang terdaftar.
+            </div>
         );
     }
 
     return (
         <>
             {products.map((product) => {
-                let imageUrl = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=300";
+                let imageUrl = "https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=400";
                 try {
                     const parsedImages = JSON.parse(product.images);
                     if (parsedImages.length > 0) imageUrl = parsedImages[0];
                 } catch(e) {}
 
                 return (
-                    <Link href={`/umkm/product/${product.id}`} key={product.id} className="bg-white hover:border-blue-600 md:hover:-translate-y-[1px] border border-slate-100 md:border-transparent transition-all shadow-sm rounded flex flex-col group cursor-pointer relative overflow-hidden block">
-                        <div className="aspect-square overflow-hidden relative">
-                            <img src={imageUrl} alt={product.name} className="w-full h-full object-cover" />
-                            <div className="absolute top-0 right-0 bg-yellow-300 text-blue-800 text-[10px] font-bold px-1 flex flex-col items-center py-1 z-10 w-8">
-                                <span>Sale</span>
+                    <Link 
+                        href={`/umkm/product/${product.id}`} 
+                        key={product.id} 
+                        className="bg-white hover:border-blue-500 border border-slate-200 transition-all shadow-sm hover:shadow-md rounded-2xl flex flex-col group cursor-pointer overflow-hidden block"
+                    >
+                        <div className="aspect-square overflow-hidden relative bg-slate-100">
+                            <img 
+                                src={imageUrl} 
+                                alt={product.name} 
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+                            />
+                            <div className="absolute top-2 left-2 bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded-full shadow-md">
+                                UMKM Desa
                             </div>
                             {product.store && (
-                                <div className="absolute bottom-1 left-1 bg-black/50 text-white text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1">
-                                    <MapPin size={8} /> {product.store.storeName}
+                                <div className="absolute bottom-2 left-2 right-2 bg-slate-950/70 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-1 rounded-xl flex items-center gap-1 truncate">
+                                    <MapPin size={10} className="text-amber-400 shrink-0" />
+                                    <span className="truncate">{product.store.storeName}</span>
                                 </div>
                             )}
                         </div>
-                        <div className="p-2 flex flex-col flex-1">
-                            <div className="text-xs text-slate-800 line-clamp-2 leading-tight mb-2 h-8">
+                        <div className="p-3 flex flex-col flex-1">
+                            <h3 className="text-xs font-extrabold text-slate-900 line-clamp-2 leading-snug mb-2 h-8 group-hover:text-blue-600 transition-colors">
                                 {product.name}
-                            </div>
-                            <div className="mt-auto flex items-end justify-between">
-                                <div className="text-blue-600 font-semibold text-base">
-                                    <span className="text-xs">Rp</span>{product.price.toLocaleString('id-ID')}
+                            </h3>
+                            <div className="mt-auto flex items-end justify-between pt-2 border-t border-slate-100">
+                                <div>
+                                    <span className="text-[10px] font-bold text-slate-400 block">Harga</span>
+                                    <span className="text-blue-700 font-black text-sm sm:text-base">
+                                        Rp {product.price.toLocaleString('id-ID')}
+                                    </span>
                                 </div>
-                                <div className="text-[10px] text-slate-500">{product.sold} Terjual</div>
+                                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                    {product.sold} Terjual
+                                </span>
                             </div>
                         </div>
                     </Link>
-                )
+                );
             })}
         </>
     );

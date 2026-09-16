@@ -3,11 +3,13 @@
 import { useState } from "react";
 import { useCart } from "../../CartContext";
 import { ShoppingCart } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ProductDetailClient({ product, mobile = false }: { product: any, mobile?: boolean }) {
     const [quantity, setQuantity] = useState(1);
     const { addToCart } = useCart();
     const [added, setAdded] = useState(false);
+    const router = useRouter();
 
     const handleAddToCart = () => {
         addToCart({
@@ -22,6 +24,18 @@ export default function ProductDetailClient({ product, mobile = false }: { produ
         setTimeout(() => setAdded(false), 2000);
     };
 
+    const handleBuyNow = () => {
+        addToCart({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image,
+            quantity,
+            storeId: product.storeId
+        });
+        router.push("/umkm/checkout");
+    };
+
     if (mobile) {
         return (
             <>
@@ -29,7 +43,7 @@ export default function ProductDetailClient({ product, mobile = false }: { produ
                     <ShoppingCart size={20} className="mb-1" />
                     <span className="text-[10px]">{added ? "Ditambahkan!" : "Masukkan Keranjang"}</span>
                 </button>
-                <button className="flex-[1.5] bg-blue-600 text-white font-medium flex items-center justify-center text-sm">
+                <button onClick={handleBuyNow} className="flex-[1.5] bg-blue-600 text-white font-medium flex items-center justify-center text-sm">
                     Beli Sekarang
                 </button>
             </>
@@ -53,10 +67,11 @@ export default function ProductDetailClient({ product, mobile = false }: { produ
                     <ShoppingCart size={20} />
                     {added ? "Telah Ditambahkan" : "Masukkan Keranjang"}
                 </button>
-                <button className="bg-blue-600 text-white px-10 py-3 rounded-sm font-medium hover:bg-blue-700 transition-colors">
+                <button onClick={handleBuyNow} className="bg-blue-600 text-white px-10 py-3 rounded-sm font-medium hover:bg-blue-700 transition-colors">
                     Beli Sekarang
                 </button>
             </div>
         </div>
     );
 }
+
