@@ -159,15 +159,15 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
       {/* ------------------------------------------------------------- */}
       {/* 1. EPIC HERO HEADER CARD WITH CIRCULAR 3D AVATAR & UPLOAD      */}
       {/* ------------------------------------------------------------- */}
-      <div className="relative z-10 bg-gradient-to-r from-white via-slate-50 to-emerald-50/40 border border-slate-200/80 rounded-3xl p-5 sm:p-7 md:p-8 shadow-sm overflow-hidden group">
-        <div className="absolute right-0 top-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl group-hover:scale-125 transition-all pointer-events-none" />
+      <div className="relative z-10 bg-gradient-to-r from-white via-slate-50 to-sky-50/40 border border-slate-200/80 rounded-3xl p-5 sm:p-7 md:p-8 shadow-sm overflow-hidden group">
+        <div className="absolute right-0 top-0 w-96 h-96 bg-sky-500/5 rounded-full blur-3xl group-hover:scale-125 transition-all pointer-events-none" />
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           
           {/* Left Welcome Info */}
           <div className="space-y-3 text-slate-800 max-w-xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-100/80 border border-emerald-300 text-emerald-900 font-extrabold uppercase text-[10px] tracking-widest shadow-xs">
-              <Terminal size={14} className="animate-pulse text-emerald-600" /> 
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-sky-100/80 border border-sky-300 text-sky-900 font-extrabold uppercase text-[10px] tracking-widest shadow-xs">
+              <Terminal size={14} className="animate-pulse text-sky-600" /> 
               <span>MODUL AKTIF: PERENCANAAN DESA</span>
             </div>
             
@@ -182,12 +182,12 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
             {/* Live Metrics Quick Badges */}
             <div className="flex items-center gap-3 pt-1 flex-wrap">
               <div className="bg-white px-3 py-1.5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                <span className="text-xs font-bold text-slate-700">Serapan Dana: <span className="font-mono font-black text-emerald-700">{serapan.toFixed(1)}%</span></span>
+                <div className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-ping" />
+                <span className="text-xs font-bold text-slate-700">Serapan Dana: <span className="font-mono font-black text-sky-700">{serapan.toFixed(1)}%</span></span>
               </div>
 
               <div className="bg-white px-3 py-1.5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-700">Sisa Anggaran: <span className="font-mono font-black text-emerald-700">Rp 450 Jt</span></span>
+                <span className="text-xs font-bold text-slate-700">Sisa Anggaran: <span className="font-mono font-black text-sky-700">Rp 450 Jt</span></span>
               </div>
             </div>
           </div>
@@ -197,7 +197,7 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
             <div className="relative group/avatar flex flex-col items-center">
               
               {/* Outer 3D Glass Circular Pedestal Frame (Bulat Sempurna) */}
-              <div className="relative w-36 h-36 rounded-full bg-gradient-to-tr from-emerald-500/20 via-teal-500/10 to-cyan-500/30 border-2 border-emerald-400/60 p-2 shadow-2xl backdrop-blur-md transition-all duration-500 group-hover/avatar:border-emerald-300 group-hover/avatar:shadow-emerald-500/40">
+              <div className="relative w-36 h-36 rounded-full bg-gradient-to-tr from-sky-500/20 via-sky-400/10 to-cyan-500/30 border-2 border-sky-400/60 p-2 shadow-2xl backdrop-blur-md transition-all duration-500 group-hover/avatar:border-sky-300 group-hover/avatar:shadow-sky-500/40">
                 
                 {/* 3D Pop-out Avatar Container */}
                 <div className="relative w-full h-full rounded-full overflow-visible">
@@ -220,7 +220,7 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
                     className="absolute inset-0 bg-slate-950/70 backdrop-blur-xs rounded-full opacity-0 group-hover/avatar:opacity-100 flex flex-col items-center justify-center transition-all duration-300 cursor-pointer z-30 text-white"
                     title="Klik untuk Mengunggah Foto Profil PNG/3D"
                   >
-                    <Upload size={20} className="animate-bounce text-emerald-400" />
+                    <Upload size={20} className="animate-bounce text-sky-400" />
                     <span className="text-[9px] font-black uppercase tracking-wider mt-1 text-center px-1">Unggah PNG</span>
                     <input 
                       type="file" 
@@ -235,7 +235,7 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
               {/* Editable Name Badge below Circular Avatar */}
               <div className="mt-3 text-center">
                 {isEditingName ? (
-                  <div className="flex items-center gap-1.5 bg-white p-1 rounded-full border-2 border-emerald-500 shadow-md">
+                  <div className="flex items-center gap-1.5 bg-white p-1 rounded-full border-2 border-sky-500 shadow-md">
                     <input 
                       type="text" 
                       value={kaurName} 
@@ -246,7 +246,7 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
                     />
                     <button 
                       onClick={() => handleSaveName(kaurName)}
-                      className="p-1 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 cursor-pointer"
+                      className="p-1 bg-sky-600 text-white rounded-full hover:bg-sky-700 cursor-pointer"
                       title="Simpan Nama"
                     >
                       <Check size={12} />
@@ -255,12 +255,12 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
                 ) : (
                   <div 
                     onClick={() => setIsEditingName(true)}
-                    className="text-[10px] font-black text-emerald-950 bg-white border border-emerald-300 px-3.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-sm hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer group/name"
+                    className="text-[10px] font-black text-sky-950 bg-white border border-sky-300 px-3.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-sm hover:border-sky-500 hover:shadow-md transition-all cursor-pointer group/name"
                     title="Klik untuk Mengubah Nama"
                   >
                     <Sparkles size={11} className="text-amber-500 animate-spin" /> 
                     <span>{kaurName}</span>
-                    <Edit3 size={11} className="text-slate-400 group-hover/name:text-emerald-600 transition-colors ml-0.5" />
+                    <Edit3 size={11} className="text-slate-400 group-hover/name:text-sky-600 transition-colors ml-0.5" />
                   </div>
                 )}
               </div>
@@ -291,13 +291,13 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
         {/* Shortcut 2: Input RAB */}
         <button 
           onClick={() => setActiveTab("rab")} 
-          className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm hover:border-emerald-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center gap-3.5 group cursor-pointer text-left"
+          className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm hover:border-sky-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center gap-3.5 group cursor-pointer text-left"
         >
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:-rotate-6 transition-all">
+          <div className="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-200 text-sky-600 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:-rotate-6 transition-all">
             <Database size={22} />
           </div>
           <div>
-            <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider group-hover:text-emerald-700">Input RAB Kegiatan</h4>
+            <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider group-hover:text-sky-700">Input RAB Kegiatan</h4>
             <p className="text-[11px] text-slate-500 font-medium">Manajemen Rincian RAB</p>
           </div>
         </button>
@@ -309,7 +309,7 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
           </div>
           <div>
             <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Realisasi Fisik</h4>
-            <p className="text-[11px] text-emerald-600 font-bold font-mono">100% Progres Lapangan</p>
+            <p className="text-[11px] text-sky-600 font-bold font-mono">100% Progres Lapangan</p>
           </div>
         </div>
 
@@ -328,12 +328,12 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
 
             <div className="flex justify-between items-center text-[10px] font-mono font-bold text-slate-500 pt-1">
               <span className="flex items-center gap-1">
-                <ShieldCheck size={12} className="text-emerald-500" /> DB SYNC
+                <ShieldCheck size={12} className="text-sky-500" /> DB SYNC
               </span>
-              <span className="text-emerald-600 font-black">{dbSync}%</span>
+              <span className="text-sky-600 font-black">{dbSync}%</span>
             </div>
             <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-              <div className="bg-emerald-600 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${dbSync}%` }} />
+              <div className="bg-sky-600 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${dbSync}%` }} />
             </div>
           </div>
         </div>

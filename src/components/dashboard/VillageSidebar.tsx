@@ -135,7 +135,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
       case "spectrum":
         return "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white font-bold shadow-lg shadow-purple-500/25 animate-gradient-x";
       case "emerald":
-        return "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20";
+        return "bg-sky-500 text-white font-bold shadow-lg shadow-sky-500/20";
       case "amethyst":
         return "bg-violet-600 text-white font-bold shadow-lg shadow-violet-600/20";
       case "sunset":
@@ -150,7 +150,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
       case "spectrum":
         return "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-500 text-white font-bold shadow-md animate-gradient-x";
       case "emerald":
-        return "bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20";
+        return "bg-sky-500 text-white font-bold shadow-md shadow-sky-500/20";
       case "amethyst":
         return "bg-violet-600 text-white font-bold shadow-md shadow-violet-600/20";
       case "sunset":
@@ -165,7 +165,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
       case "spectrum":
         return "bg-purple-50 text-purple-700 font-bold border-l-4 border-purple-500";
       case "emerald":
-        return "bg-emerald-50 text-emerald-700 font-bold border-l-4 border-emerald-500";
+        return "bg-sky-50 text-sky-700 font-bold border-l-4 border-sky-500";
       case "amethyst":
         return "bg-violet-50 text-violet-700 font-bold border-l-4 border-violet-500";
       case "sunset":
@@ -299,7 +299,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
             {(!isCollapsed || isOpen) && (
               <div className="flex flex-col">
                 <span className={`text-sm font-black leading-tight uppercase ${isHackerTheme ? 'text-cyan-400 font-mono tracking-widest drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]' : 'text-slate-800'}`}>{role?.replace('_', ' ') || "ADMIN"}</span>
-                <span className={`text-[10px] font-bold uppercase tracking-widest ${isHackerTheme ? 'text-emerald-500 font-mono' : 'text-emerald-600'}`}>Desa Cimanggu I</span>
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${isHackerTheme ? 'text-sky-500 font-mono' : 'text-sky-600'}`}>Desa Cimanggu I</span>
               </div>
             )}
           </div>
@@ -578,7 +578,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                        onClick={() => setIsOpen(false)}
                        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group relative z-10 ${
                          isActive
-                           ? (isHackerTheme ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)] backdrop-blur-sm" : "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20")
+                           ? (isHackerTheme ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)] backdrop-blur-sm" : "bg-sky-500 text-white font-bold shadow-lg shadow-sky-500/20")
                            : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium backdrop-blur-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
                        } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
                      >
@@ -594,12 +594,12 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                     onClick={() => (!isCollapsed || isOpen) && setIsMusrenbangOpen(!isMusrenbangOpen)}
                     className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all group cursor-pointer ${
                       ["undangan-musrenbang", "musling-rw", "musling-kadus", "finance", "musrenbang"].includes(tabParam || "")
-                        ? (isHackerTheme ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)] backdrop-blur-sm" : "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20")
+                        ? (isHackerTheme ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)] backdrop-blur-sm" : "bg-sky-500 text-white font-bold shadow-lg shadow-sky-500/20")
                         : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium backdrop-blur-sm" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
                     } ${isCollapsed && !isOpen ? "justify-center" : ''}`}
                   >
                     <div className="flex items-center gap-3">
-                      <Banknote size={20} className={`shrink-0 transition-all duration-300 ${["undangan-musrenbang", "musling-rw", "musling-kadus", "finance", "musrenbang"].includes(tabParam || "") && isHackerTheme ? 'animate-luxury-pulse luxury-glow-strong text-teal-300' : 'group-hover:scale-125 group-hover:text-emerald-500 group-hover:-translate-y-1 group-hover:rotate-3'}`} />
+                      <Banknote size={20} className={`shrink-0 transition-all duration-300 ${["undangan-musrenbang", "musling-rw", "musling-kadus", "finance", "musrenbang"].includes(tabParam || "") && isHackerTheme ? 'animate-luxury-pulse luxury-glow-strong text-teal-300' : 'group-hover:scale-125 group-hover:text-sky-500 group-hover:-translate-y-1 group-hover:rotate-3'}`} />
                       {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>Usulan Musrenbang</span>}
                     </div>
                     {(!isCollapsed || isOpen) && (
@@ -615,7 +615,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                         transition={{ duration: 0.2 }}
                         className="overflow-hidden"
                       >
-                        <div className={`mt-1 ml-3 pl-3 border-l space-y-1 ${isHackerTheme ? 'border-cyan-500/30' : 'border-emerald-100'}`}>
+                        <div className={`mt-1 ml-3 pl-3 border-l space-y-1 ${isHackerTheme ? 'border-cyan-500/30' : 'border-sky-100'}`}>
                           {[
                             { label: isHackerTheme ? "[1. Undangan Musrenbang]" : "1. UNDANGAN MUSRENBANG", tab: "undangan-musrenbang", icon: Mail },
                             { label: isHackerTheme ? "[2. Musling RW]" : "2. MUSLING TINGKAT RW", tab: "musling-rw", icon: Building2 },
@@ -627,11 +627,11 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                               onClick={() => setIsOpen(false)}
                               className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-xs group ${
                                 tabParam === subItem.tab
-                                  ? (isHackerTheme ? "bg-cyan-900/50 text-cyan-300 font-bold border border-cyan-500/50 backdrop-blur-sm" : "bg-emerald-500 text-white font-bold")
-                                  : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 font-mono backdrop-blur-sm" : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 font-medium")
+                                  ? (isHackerTheme ? "bg-cyan-900/50 text-cyan-300 font-bold border border-cyan-500/50 backdrop-blur-sm" : "bg-sky-500 text-white font-bold")
+                                  : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 font-mono backdrop-blur-sm" : "text-slate-500 hover:bg-sky-50 hover:text-sky-700 font-medium")
                               }`}
                             >
-                              <subItem.icon size={14} className={`${tabParam === subItem.tab ? 'text-white' : 'text-emerald-500 group-hover:scale-110 transition-transform'}`} />
+                              <subItem.icon size={14} className={`${tabParam === subItem.tab ? 'text-white' : 'text-sky-500 group-hover:scale-110 transition-transform'}`} />
                               <span>{subItem.label}</span>
                             </Link>
                           ))}
@@ -647,10 +647,10 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                    onClick={() => (!isCollapsed || isOpen) && toggleGroup("cyberplan")}
                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isHackerTheme ? 'text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 hover:border hover:border-cyan-500/30 backdrop-blur-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'} font-medium ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                  >
-                   <Building2 size={20} className={`shrink-0 transition-all duration-300 ${isHackerTheme ? 'group-hover:animate-luxury-pulse' : 'group-hover:scale-125 group-hover:text-emerald-600 group-hover:-translate-y-1 group-hover:-rotate-3'}`} />
+                   <Building2 size={20} className={`shrink-0 transition-all duration-300 ${isHackerTheme ? 'group-hover:animate-luxury-pulse' : 'group-hover:scale-125 group-hover:text-sky-500 group-hover:-translate-y-1 group-hover:-rotate-3'}`} />
                    {(!isCollapsed || isOpen) && (
                      <>
-                       <span className={`text-[11px] flex-1 text-left tracking-widest uppercase ${isHackerTheme ? 'font-mono font-bold text-emerald-500' : 'font-bold text-emerald-600'}`}>{isHackerTheme ? 'CYBER-PLAN ENGINE' : 'Perencanaan Pembangunan'}</span>
+                       <span className={`text-[11px] flex-1 text-left tracking-widest uppercase ${isHackerTheme ? 'font-mono font-bold text-sky-500' : 'font-bold text-sky-600'}`}>{isHackerTheme ? 'CYBER-PLAN ENGINE' : 'Perencanaan Pembangunan'}</span>
                        <ChevronDown
                          size={14}
                          className={`transition-transform duration-200 ${openGroup === "cyberplan" ? "rotate-180" : ""}`}
@@ -667,15 +667,15 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                        transition={{ duration: 0.2 }}
                        className="overflow-hidden"
                      >
-                       <div className={`mt-1 ml-3 pl-3 border-l space-y-1 ${isHackerTheme ? 'border-cyan-500/30' : 'border-emerald-100'}`}>
+                       <div className={`mt-1 ml-3 pl-3 border-l space-y-1 ${isHackerTheme ? 'border-cyan-500/30' : 'border-sky-100'}`}>
                          
                          <div>
                            <button
                              onClick={() => setIsRkpOpen(!isRkpOpen)}
                              className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg transition-all text-sm group cursor-pointer ${
                                ["rkp", "apbdes", "rkkd-add", "rkkd-dd", "rkkd-bhprd", "rkkd-bankeu", "rkkd-banprov"].includes(tabParam || "")
-                                 ? (isHackerTheme ? "bg-cyan-900/60 text-cyan-300 font-bold border border-cyan-500/50 backdrop-blur-sm" : "bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20")
-                                 : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 font-mono backdrop-blur-sm" : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 font-semibold")
+                                 ? (isHackerTheme ? "bg-cyan-900/60 text-cyan-300 font-bold border border-cyan-500/50 backdrop-blur-sm" : "bg-sky-500 text-white font-bold shadow-md shadow-sky-500/20")
+                                 : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 font-mono backdrop-blur-sm" : "text-slate-500 hover:bg-sky-50 hover:text-sky-700 font-semibold")
                              }`}
                            >
                              <div className="flex items-center gap-2.5">

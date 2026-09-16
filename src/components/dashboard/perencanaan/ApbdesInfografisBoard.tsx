@@ -186,10 +186,10 @@ export function ApbdesInfografisBoard({ onNavigateToApbdes, isHackerTheme }: Apb
       {/* 1. TOP TITLE CONTROL BAR & REALTIME STATUS                      */}
       {/* ------------------------------------------------------------- */}
       <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4 relative overflow-hidden group">
-        <div className="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-2xl group-hover:scale-150 transition-all pointer-events-none" />
+        <div className="absolute -right-10 -top-10 w-40 h-40 bg-sky-500/5 rounded-full blur-2xl group-hover:scale-150 transition-all pointer-events-none" />
 
         <div className="flex items-center gap-3.5 relative z-10">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center shadow-lg shadow-emerald-600/20 shrink-0 animate-pulse-slow">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-700 text-white flex items-center justify-center shadow-lg shadow-sky-600/20 shrink-0 animate-pulse-slow">
             <PieChart size={24} />
           </div>
           <div>
@@ -200,8 +200,8 @@ export function ApbdesInfografisBoard({ onNavigateToApbdes, isHackerTheme }: Apb
               </h2>
             </div>
             <p className="text-slate-500 text-xs font-medium mt-0.5 flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" /> Realtime RKKD Active
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-extrabold text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200 shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping" /> Realtime RKKD Active
               </span>
               <span>• Konsolidasi Otomatis Pendapatan, Belanja 5 Bidang & SiLPA</span>
             </p>
@@ -214,7 +214,7 @@ export function ApbdesInfografisBoard({ onNavigateToApbdes, isHackerTheme }: Apb
             className="px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95"
             title="Sinkronkan Ulang Data dengan RKKD"
           >
-            <RefreshCw size={15} className={showSyncNotice ? "animate-spin text-emerald-600" : ""} />
+            <RefreshCw size={15} className={showSyncNotice ? "animate-spin text-sky-600" : ""} />
             <span>Sinkronkan RKKD</span>
           </button>
 
@@ -230,7 +230,7 @@ export function ApbdesInfografisBoard({ onNavigateToApbdes, isHackerTheme }: Apb
       </div>
 
       {showSyncNotice && (
-        <div className="p-3.5 bg-emerald-600 text-white font-extrabold text-xs rounded-2xl flex items-center justify-between shadow-lg animate-in fade-in">
+        <div className="p-3.5 bg-sky-600 text-white font-extrabold text-xs rounded-2xl flex items-center justify-between shadow-lg animate-in fade-in">
           <span className="flex items-center gap-2">
             <CheckCircle2 size={18} /> Data Statistik APBDes berhasil disinkronkan realtime dari RKKD & local state!
           </span>
@@ -242,10 +242,10 @@ export function ApbdesInfografisBoard({ onNavigateToApbdes, isHackerTheme }: Apb
       {/* ------------------------------------------------------------- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* TOTAL PENDAPATAN */}
-        <div className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 rounded-3xl p-5 text-white shadow-xl relative overflow-hidden group hover:-translate-y-1.5 transition-all duration-300 border border-emerald-500/30">
+        <div className="bg-gradient-to-br from-sky-600 via-sky-700 to-blue-800 rounded-3xl p-5 text-white shadow-xl relative overflow-hidden group hover:-translate-y-1.5 transition-all duration-300 border border-sky-500/30">
           <div className="absolute right-[-10px] top-[-10px] w-24 h-24 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-all pointer-events-none" />
           <div className="flex items-center justify-between mb-3 relative z-10">
-            <span className="text-xs font-black uppercase tracking-wider text-emerald-100 flex items-center gap-1.5">
+            <span className="text-xs font-black uppercase tracking-wider text-sky-100 flex items-center gap-1.5">
               <Coins size={16} /> Total Pendapatan
             </span>
             <span className="p-1.5 rounded-xl bg-white/20 text-white shadow-xs">
@@ -255,7 +255,7 @@ export function ApbdesInfografisBoard({ onNavigateToApbdes, isHackerTheme }: Apb
           <p className="text-2xl sm:text-3xl font-black font-mono tracking-tight relative z-10">
             Rp {totalPendapatan.toLocaleString("id-ID")}
           </p>
-          <div className="mt-3 pt-2.5 border-t border-white/20 flex items-center justify-between text-[11px] font-bold text-emerald-100 relative z-10">
+          <div className="mt-3 pt-2.5 border-t border-white/20 flex items-center justify-between text-[11px] font-bold text-sky-100 relative z-10">
             <span>6 Sumber Pendapatan</span>
             <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-black uppercase">100% Target</span>
           </div>
@@ -299,7 +299,7 @@ export function ApbdesInfografisBoard({ onNavigateToApbdes, isHackerTheme }: Apb
           </p>
           <div className="mt-3 pt-2.5 border-t border-white/20 flex items-center justify-between text-[11px] font-bold text-blue-100 relative z-10">
             <span>Status Kas APBDes</span>
-            <span className="bg-emerald-400 text-slate-950 px-2 py-0.5 rounded-full text-[10px] font-black uppercase">
+            <span className="bg-sky-400 text-slate-950 px-2 py-0.5 rounded-full text-[10px] font-black uppercase">
               Surplus Terjaga
             </span>
           </div>
@@ -336,18 +336,18 @@ export function ApbdesInfografisBoard({ onNavigateToApbdes, isHackerTheme }: Apb
           <div>
             <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
               <h3 className="font-extrabold text-slate-900 text-sm uppercase tracking-wider flex items-center gap-2">
-                <Coins className="text-emerald-600 animate-pulse" size={18} /> Breakdown Pendapatan Desa
+                <Coins className="text-sky-600 animate-pulse" size={18} /> Breakdown Pendapatan Desa
               </h3>
-              <span className="text-[10px] font-black text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+              <span className="text-[10px] font-black text-sky-800 bg-sky-50 px-2.5 py-1 rounded-full border border-sky-200">
                 6 Sumber Dana
               </span>
             </div>
 
             <div className="space-y-3">
               {[
-                { key: "DDS", name: "Dana Desa (DDS)", val: pendapatanData.dds, color: "bg-emerald-500", textCol: "text-emerald-700" },
+                { key: "DDS", name: "Dana Desa (DDS)", val: pendapatanData.dds, color: "bg-sky-500", textCol: "text-sky-700" },
                 { key: "PBK", name: "Bantuan Keuangan Kabupaten (PBK)", val: pendapatanData.bankab, color: "bg-blue-600", textCol: "text-blue-700" },
-                { key: "ADD", name: "Alokasi Dana Desa (ADD)", val: pendapatanData.add, color: "bg-teal-500", textCol: "text-teal-700" },
+                { key: "ADD", name: "Alokasi Dana Desa (ADD)", val: pendapatanData.add, color: "bg-cyan-500", textCol: "text-cyan-700" },
                 { key: "PBH", name: "Bagi Hasil Pajak & Retribusi (PBH)", val: pendapatanData.bhprd, color: "bg-amber-500", textCol: "text-amber-700" },
                 { key: "PBP", name: "Bantuan Keuangan Provinsi (PBP)", val: pendapatanData.banprov, color: "bg-indigo-600", textCol: "text-indigo-700" },
                 { key: "PAD", name: "Pendapatan Asli Desa (PAD)", val: pendapatanData.pad, color: "bg-slate-700", textCol: "text-slate-800" }
@@ -374,9 +374,9 @@ export function ApbdesInfografisBoard({ onNavigateToApbdes, isHackerTheme }: Apb
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex justify-between items-center bg-emerald-50 p-3.5 rounded-2xl border border-emerald-100">
+          <div className="pt-3 border-t border-slate-100 flex justify-between items-center bg-sky-50 p-3.5 rounded-2xl border border-sky-100">
             <span className="font-black text-slate-800 text-xs uppercase font-sans">TOTAL PENDAPATAN KONSOLIDASI</span>
-            <span className="font-black text-emerald-700 font-mono text-base">Rp {totalPendapatan.toLocaleString("id-ID")}</span>
+            <span className="font-black text-sky-700 font-mono text-base">Rp {totalPendapatan.toLocaleString("id-ID")}</span>
           </div>
         </div>
 
@@ -414,7 +414,7 @@ export function ApbdesInfografisBoard({ onNavigateToApbdes, isHackerTheme }: Apb
               </div>
 
               {/* Bidang 2 */}
-              <div className="bg-gradient-to-br from-emerald-600 to-teal-700 text-white p-4 rounded-3xl shadow-md hover:scale-[1.02] transition-all flex flex-col justify-between group">
+              <div className="bg-gradient-to-br from-sky-600 to-blue-700 text-white p-4 rounded-3xl shadow-md hover:scale-[1.02] transition-all flex flex-col justify-between group">
                 <div className="flex items-center justify-between">
                   <span className="p-2 rounded-xl bg-white/20 group-hover:rotate-12 transition-transform">
                     <Hammer size={18} />
@@ -424,7 +424,7 @@ export function ApbdesInfografisBoard({ onNavigateToApbdes, isHackerTheme }: Apb
                   </span>
                 </div>
                 <div className="mt-3">
-                  <h4 className="text-[10px] font-black uppercase tracking-wider text-emerald-100 leading-tight">
+                  <h4 className="text-[10px] font-black uppercase tracking-wider text-sky-100 leading-tight">
                     2. Pelaksanaan Pembangunan Desa
                   </h4>
                   <p className="text-lg font-black font-mono mt-1 text-white">
