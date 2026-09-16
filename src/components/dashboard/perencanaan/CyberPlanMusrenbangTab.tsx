@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   ArrowLeft, 
   Plus, 
@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 
 import { UndanganMuslingRw } from "./UndanganMuslingRw";
+import { SafePrintPortal } from "./SafePrintPortal";
 
 export type MusrenbangSubFeature = "undangan-musrenbang" | "musling-rw" | "musling-kadus";
 
@@ -58,7 +59,7 @@ const initialUndanganList: UndanganItem[] = [
     tanggalKegiatan: "2026-08-20",
     waktu: "08:30 WIB",
     tempat: "Aula Utama Kantor Desa Cimanggu I",
-    sasaranPeserta: "BPD, LPM, RT/RW, Karang Taruna, PKK, Tokoh Masyarakat",
+    sasaranPeserta: "BPD, LPM, RT/RW, Tokoh Masyarakat & Kader",
     status: "TERKIRIM"
   },
   {
@@ -78,13 +79,13 @@ const initialProposals: MuslingProposal[] = [
     id: "mus-1",
     tingkat: "RW",
     wilayah: "RW 03 Kp. Jatake",
-    namaKegiatan: "Pengaspalan Jalan Lingkungan RW 03",
-    lokasiDetail: "RT 02 & RT 03 RW 03",
-    volume: "400 Meter",
-    estimasiBiaya: 120000000,
+    namaKegiatan: "Pengaspalan & Pengerasan Jalan Lingkungan Warga",
+    lokasiDetail: "RT 01 & RT 02 / RW 03",
+    volume: "450 m x 3 m",
+    estimasiBiaya: 150000000,
     prioritasKe: 1,
-    pengusul: "Ketua RW 03 (Bp. M. Haris)",
-    status: "TERVERIFIKASI"
+    pengusul: "Ketua RW 03",
+    status: "MASUK_RKP"
   },
   {
     id: "mus-2",
@@ -132,6 +133,12 @@ export function CyberPlanMusrenbangTab({
   onBack?: () => void 
 }) {
   const [activeSubTab, setActiveSubTab] = useState<MusrenbangSubFeature>(defaultTab);
+
+  useEffect(() => {
+    if (defaultTab) {
+      setActiveSubTab(defaultTab);
+    }
+  }, [defaultTab]);
   const [undanganList, setUndanganList] = useState<UndanganItem[]>(initialUndanganList);
   const [proposals, setProposals] = useState<MuslingProposal[]>(initialProposals);
   const [searchQuery, setSearchQuery] = useState("");
@@ -161,9 +168,13 @@ export function CyberPlanMusrenbangTab({
     status: "USULAN"
   });
 
+  const [selectedPrintUndangan, setSelectedPrintUndangan] = useState<UndanganItem | null>(initialUndanganList[0]);
+
   const handlePrintUndangan = (und: UndanganItem) => {
-    alert(`Mencetak Surat Undangan Resmi: ${und.noSurat} dengan Font Cambria kertas F4.`);
-    window.print();
+    setSelectedPrintUndangan(und);
+    setTimeout(() => {
+      window.print();
+    }, 150);
   };
 
   const handleCreateUndangan = (e: React.FormEvent) => {
@@ -568,6 +579,170 @@ export function CyberPlanMusrenbangTab({
           </div>
         </div>
       )}
+
+      {/* PRINT PORTAL FOR UNDANGAN MUSRENBANG */}
+      <SafePrintPortal portalId="undangan-musrenbang-print-mount-root">
+        {selectedPrintUndangan && (
+          <div
+            id="undangan-musrenbang-print-portal"
+            className="bg-white mx-auto shadow-2xl text-black font-serif relative"
+            style={{
+              width: "215.9mm",
+              minHeight: "330.2mm",
+              padding: "20mm 22mm",
+              fontFamily: "Cambria, 'Times New Roman', Georgia, serif",
+              color: "#000",
+              boxSizing: "border-box",
+              fontSize: "12pt",
+              lineHeight: "1.5"
+            }}
+          >
+            {/* KOP SURAT RESMI DESA CIMANGGU I */}
+            <div className="text-center font-bold text-black border-b-4 border-double border-black pb-3 mb-6">
+              <div className="text-[13pt] uppercase tracking-wider font-bold">PEMERINTAH KABUPATEN BOGOR</div>
+              <div className="text-[12pt] uppercase tracking-wider font-bold">KECAMATAN CIBUNGBULANG</div>
+              <div className="text-[16pt] uppercase tracking-wide font-black mt-0.5">PEMERINTAH DESA CIMANGGU I</div>
+              <div className="text-[10pt] font-normal italic font-sans text-slate-700 mt-1">
+                Jl. Raya Cimanggu No. 01 Kec. Cibungbulang Kab. Bogor Kode Pos 16630
+              </div>
+            </div>
+
+            {/* METADATA SURAT */}
+            <div className="grid grid-cols-12 gap-2 text-[11pt] mb-6">
+              <div className="col-span-6 space-y-0.5">
+                <div className="grid grid-cols-[80px_10px_1fr]">
+                  <div>Nomor</div><div>:</div><div className="font-mono font-bold">{selectedPrintUndangan.noSurat}</div>
+                </div>
+                <div className="grid grid-cols-[80px_10px_1fr]">
+                  <div>Sifat</div><div>:</div><div>Penting</div>
+                </div>
+                <div className="grid grid-cols-[80px_10px_1fr]">
+                  <div>Lampiran</div><div>:</div><div>1 (Satu) Lembar</div>
+                </div>
+                <div className="grid grid-cols-[80px_10px_1fr]">
+                  <div>Perihal</div><div>:</div><div className="font-bold underline">{selectedPrintUndangan.perihal}</div>
+                </div>
+              </div>
+
+              <div className="col-span-6 pl-6 space-y-0.5">
+                <div>Cimanggu I, {selectedPrintUndangan.tanggalKegiatan}</div>
+                <div className="mt-2">Kepada Yth,</div>
+                <div className="font-bold">{selectedPrintUndangan.sasaranPeserta}</div>
+                <div>di -</div>
+                <div className="pl-6 underline">Tempat</div>
+              </div>
+            </div>
+
+            {/* SALAM OPENING */}
+            <div className="mb-4 text-[11.5pt] font-bold">
+              Assalamu&apos;alaikum Warahmatullahi Wabarakatuh,
+            </div>
+
+            {/* PARAGRAF PEMBUKA */}
+            <div className="mb-4 text-[11.5pt] text-justify leading-relaxed">
+              Dengan mengharap rahmat dan ridho Allah SWT, kami Pemerintah Desa Cimanggu I mengundang Bapak/Ibu/Saudara/i Pengurus Lembaga Desa & Tokoh Masyarakat untuk dapat hadir dalam <strong>{selectedPrintUndangan.perihal}</strong>, yang insya Allah akan dilaksanakan pada:
+            </div>
+
+            {/* RINCIAN ACARA */}
+            <div className="my-6 pl-8 text-[11.5pt] space-y-2 border-l-2 border-slate-300 py-1">
+              <div className="grid grid-cols-[110px_15px_1fr]">
+                <div>Hari / Tanggal</div><div>:</div><div className="font-bold">{selectedPrintUndangan.tanggalKegiatan}</div>
+              </div>
+              <div className="grid grid-cols-[110px_15px_1fr]">
+                <div>Waktu</div><div>:</div><div className="font-bold">{selectedPrintUndangan.waktu}</div>
+              </div>
+              <div className="grid grid-cols-[110px_15px_1fr]">
+                <div>Tempat</div><div>:</div><div className="font-bold">{selectedPrintUndangan.tempat}</div>
+              </div>
+              <div className="grid grid-cols-[110px_15px_1fr]">
+                <div>Acara</div><div>:</div><div className="font-bold">{selectedPrintUndangan.perihal}</div>
+              </div>
+            </div>
+
+            {/* PARAGRAF PENUTUP */}
+            <div className="mb-8 text-[11.5pt] text-justify leading-relaxed">
+              Mengingat pentingnya acara ini demi kemajuan dan perencanaan pembangunan Desa Cimanggu I, kehadiran Bapak/Ibu/Saudara/i tepat pada waktunya sangat kami harapkan.
+            </div>
+            <div className="mb-10 text-[11.5pt]">
+              Demikian surat undangan ini kami sampaikan. Atas perhatian, kerja sama, dan kehadirannya kami ucapkan terima kasih.
+            </div>
+
+            {/* SALAM PENUTUP & TTD KEPALA DESA */}
+            <div className="mb-4 text-[11.5pt] font-bold">
+              Wassalamu&apos;alaikum Warahmatullahi Wabarakatuh.
+            </div>
+
+            <div className="mt-12 flex justify-end text-[11.5pt]">
+              <div className="text-center w-[250px]">
+                <div>Kepala Desa Cimanggu I</div>
+                <div className="h-24"></div>
+                <div className="font-bold underline uppercase tracking-wide text-[12pt]">
+                  H. AHMAD BAEHAKI
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </SafePrintPortal>
+
+      {/* CSS PRINT STYLES FOR UNDANGAN MUSRENBANG */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        @media screen {
+          #undangan-musrenbang-print-mount-root {
+            display: none !important;
+          }
+        }
+        @media print {
+          body > *:not(.siskeudes-print-portal-mount):not([id*="print-mount-root"]):not(#siskeudes-official-print-document) {
+            display: none !important;
+          }
+
+          #undangan-musrenbang-print-mount-root {
+            display: block !important;
+            visibility: visible !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+
+          #undangan-musrenbang-print-portal {
+            display: block !important;
+            visibility: visible !important;
+            position: relative !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            min-height: 330.2mm !important;
+            margin: 0 auto !important;
+            padding: 20mm 22mm !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            box-shadow: none !important;
+            font-family: Cambria, "Times New Roman", Times, serif !important;
+          }
+
+          #undangan-musrenbang-print-portal * {
+            visibility: visible !important;
+            color: #000000 !important;
+          }
+
+          #undangan-musrenbang-print-portal .grid {
+            display: grid !important;
+          }
+
+          #undangan-musrenbang-print-portal .flex {
+            display: flex !important;
+          }
+
+          @page {
+            size: 215.9mm 330.2mm portrait; /* F4 Paper */
+            margin: 0;
+          }
+        }
+      `}} />
     </div>
   );
 }

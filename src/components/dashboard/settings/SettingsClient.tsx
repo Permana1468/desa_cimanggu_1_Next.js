@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { UserCircle, Phone, Image as ImageIcon, CheckCircle, Search, ShieldCheck, Lock, Check, Cloud, Mail, Key, FolderArchive, Save, Link as LinkIcon } from "lucide-react";
+import { UserCircle, Phone, Image as ImageIcon, CheckCircle, Search, ShieldCheck, Lock, Check, Cloud, Mail, Key, FolderArchive, Save, Link as LinkIcon, BookOpen } from "lucide-react";
 import { updateProfile, linkResidentData, changePassword } from "@/actions/settings";
 import Image from "next/image";
+import KodeRekeningSettingsTab from "./KodeRekeningSettingsTab";
 
 export default function SettingsClient({ user }: { user: any }) {
-    const [activeSection, setActiveSection] = useState<"profil" | "kependudukan" | "keamanan" | "integrasi-cloud">("profil");
+    const [activeSection, setActiveSection] = useState<"profil" | "kependudukan" | "keamanan" | "integrasi-cloud" | "kode-rekening">("profil");
 
     // Profile State
     const [phone, setPhone] = useState(user.phoneNumber || "");
@@ -174,6 +175,12 @@ export default function SettingsClient({ user }: { user: any }) {
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeSection === "integrasi-cloud" ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
                 >
                     <Cloud size={18} /> Integrasi Cloud
+                </button>
+                <button 
+                    onClick={() => setActiveSection("kode-rekening")}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeSection === "kode-rekening" ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
+                >
+                    <BookOpen size={18} /> Kode Rekening
                 </button>
             </div>
 
@@ -473,6 +480,7 @@ export default function SettingsClient({ user }: { user: any }) {
                         </form>
                     </div>
                 )}
+                {activeSection === "kode-rekening" && <KodeRekeningSettingsTab />}
             </div>
         </div>
     );

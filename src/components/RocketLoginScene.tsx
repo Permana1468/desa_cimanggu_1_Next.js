@@ -76,7 +76,7 @@ function Rocket({ triggered, onExplode }: RocketProps) {
         <meshStandardMaterial color="#94a3b8" metalness={0.9} roughness={0.1} />
       </mesh>
       {/* Flame (only when launched) */}
-      {launched.current && (
+      {triggered && (
         <>
           <mesh position={[0, -0.88, 0]}>
             <coneGeometry args={[0.13, 0.55, 10]} />

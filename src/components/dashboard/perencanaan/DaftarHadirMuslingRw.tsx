@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { SafePrintPortal } from "./SafePrintPortal";
 import { ArrowLeft, Printer, Plus, Trash2, Edit3, Check, RefreshCw, Sparkles, X, PenTool } from "lucide-react";
 import { UndanganMuslingRwData } from "./UndanganMuslingRw";
 
@@ -128,15 +128,8 @@ export function DaftarHadirMuslingRw({ undanganData, onBack }: DaftarHadirMuslin
     window.print();
   };
 
-  // Pre-fill min 15 rows for printable document
-  const displayRows = [...pesertaList];
-  while (displayRows.length < 15) {
-    displayRows.push({
-      id: `blank-${displayRows.length}`,
-      nama: "",
-      jabatan: "",
-    });
-  }
+  // Dynamic rows strictly matching present participants count
+  const displayRows = pesertaList;
 
   const renderDaftarHadirContent = (isPortal = false) => (
     <div
@@ -191,7 +184,7 @@ export function DaftarHadirMuslingRw({ undanganData, onBack }: DaftarHadirMuslin
           {displayRows.map((row, idx) => {
             const isEven = idx % 2 === 1;
             return (
-              <tr key={row.id} className="h-[32px]">
+              <tr key={row.id} className="h-[34px]">
                 <td className="border border-black p-1 text-center font-medium">
                   {idx + 1}
                 </td>
@@ -201,18 +194,19 @@ export function DaftarHadirMuslingRw({ undanganData, onBack }: DaftarHadirMuslin
                 <td className="border border-black p-1 px-2 text-slate-800">
                   {row.jabatan}
                 </td>
-                <td className="border border-black p-0.5 relative text-left align-middle">
-                  {row.ttdDataUrl ? (
-                    <img
-                      src={row.ttdDataUrl}
-                      alt="TTD"
-                      className="h-7 mx-auto object-contain"
-                    />
-                  ) : (
-                    <div className={`text-[9pt] font-sans text-slate-400 pl-2 ${isEven ? "text-right pr-4" : "text-left"}`}>
-                      {row.nama ? `${idx + 1}. .........` : `${idx + 1}.`}
-                    </div>
-                  )}
+                <td className="border border-black p-1 relative align-middle">
+                  <div className={`flex items-center gap-1 text-[9pt] font-sans ${isEven ? "justify-start pl-16" : "justify-start pl-2"}`}>
+                    <span className="font-semibold text-slate-700 shrink-0">{idx + 1}.</span>
+                    {row.ttdDataUrl ? (
+                      <img
+                        src={row.ttdDataUrl}
+                        alt={`TTD ${idx + 1}`}
+                        className="h-7 max-w-[95px] object-contain shrink-0"
+                      />
+                    ) : (
+                      <span className="text-slate-400 font-medium">.........</span>
+                    )}
+                  </div>
                 </td>
               </tr>
             );
@@ -238,20 +232,29 @@ export function DaftarHadirMuslingRw({ undanganData, onBack }: DaftarHadirMuslin
       {/* CSS PRINT RULES FOR EXACT F4 CAMBRIA PRINT OUTPUT */}
       <style dangerouslySetInnerHTML={{
         __html: `
-        @media print {
-          body > *:not(#daftar-hadir-print-portal) {
+        @media screen {
+          #daftar-hadir-print-mount-root {
             display: none !important;
+          }
+        }
+        @media print {
+          body > *:not(.siskeudes-print-portal-mount):not([id*="print-mount-root"]):not(#siskeudes-official-print-document) {
+            display: none !important;
+          }
+
+          #daftar-hadir-print-mount-root {
+            display: block !important;
+            visibility: visible !important;
           }
 
           #daftar-hadir-print-portal {
             display: block !important;
             visibility: visible !important;
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 215.9mm !important;
+            position: relative !important;
+            width: 100% !important;
+            max-width: 100% !important;
             min-height: 330.2mm !important;
-            margin: 0 !important;
+            margin: 0 auto !important;
             padding: 15mm 20mm !important;
             background: #ffffff !important;
             color: #000000 !important;
@@ -431,11 +434,10 @@ export function DaftarHadirMuslingRw({ undanganData, onBack }: DaftarHadirMuslin
         </div>
       </div>
 
-      {/* REACT PORTAL DIRECT TO BODY FOR 100% RELIABLE PRINTING */}
-      {mounted && createPortal(
-        renderDaftarHadirContent(true),
-        document.body
-      )}
+      {/* PRINT CONTAINER */}
+      <SafePrintPortal portalId="daftar-hadir-print-mount-root">
+        {renderDaftarHadirContent(true)}
+      </SafePrintPortal>
 
       {/* DIGITAL SIGNATURE CANVAS MODAL */}
       {isSignModalOpen && (

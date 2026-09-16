@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { SafePrintPortal } from "./SafePrintPortal";
 import { ArrowLeft, Printer, FileText, Sparkles, RefreshCw, Mail, Users, Lightbulb } from "lucide-react";
 import { DaftarHadirMuslingRw } from "./DaftarHadirMuslingRw";
 import { DraftUsulanRw } from "./DraftUsulanRw";
@@ -266,21 +266,30 @@ export function UndanganMuslingRw({ onBack }: { onBack?: () => void }) {
           {/* CSS PRINT RULES FOR EXACT F4 PORTRAIT CAMBRIA FORMAT */}
       <style dangerouslySetInnerHTML={{
         __html: `
-        @media print {
-          body > *:not(#undangan-rw-print-portal) {
+        @media screen {
+          #undangan-rw-print-mount-root {
             display: none !important;
+          }
+        }
+        @media print {
+          body > *:not(.siskeudes-print-portal-mount):not([id*="print-mount-root"]):not(#siskeudes-official-print-document) {
+            display: none !important;
+          }
+
+          #undangan-rw-print-mount-root {
+            display: block !important;
+            visibility: visible !important;
           }
           
           #undangan-rw-print-portal {
             display: block !important;
             visibility: visible !important;
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 215.9mm !important;
-            min-height: 330.2mm !important;
-            margin: 0 !important;
-            padding: 15mm 20mm !important;
+            position: relative !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            margin: 0 auto !important;
+            padding: 10mm 15mm !important;
             background: #ffffff !important;
             color: #000000 !important;
             box-shadow: none !important;
@@ -290,6 +299,7 @@ export function UndanganMuslingRw({ onBack }: { onBack?: () => void }) {
           #undangan-rw-print-portal * {
             visibility: visible !important;
             color: #000000 !important;
+            box-sizing: border-box !important;
           }
 
           #undangan-rw-print-portal .grid {
@@ -301,8 +311,8 @@ export function UndanganMuslingRw({ onBack }: { onBack?: () => void }) {
           }
 
           @page {
-            size: 215.9mm 330.2mm portrait; /* F4 Paper Size */
-            margin: 0;
+            size: portrait;
+            margin: 6mm 8mm;
           }
         }
       `}} />
@@ -518,11 +528,10 @@ export function UndanganMuslingRw({ onBack }: { onBack?: () => void }) {
         </div>
       </div>
 
-      {/* REACT PORTAL DIRECT TO BODY FOR 100% RELIABLE PRINTING */}
-      {mounted && createPortal(
-        renderSuratContent(true),
-        document.body
-      )}
+      {/* PRINT CONTAINER */}
+      <SafePrintPortal portalId="undangan-rw-print-mount-root">
+        {renderSuratContent(true)}
+      </SafePrintPortal>
     </>
   )}
     </div>

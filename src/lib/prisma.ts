@@ -6,9 +6,9 @@ const prismaClientSingleton = () => {
   const connectionString = process.env.DATABASE_URL || "postgresql://dummy:dummy@localhost:5432/dummy";
   const pool = new Pool({
     connectionString,
-    max: 30,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 15000,
+    max: 5,
+    idleTimeoutMillis: 10000,
+    connectionTimeoutMillis: 5000,
     allowExitOnIdle: true,
   });
   const adapter = new PrismaPg(pool);
@@ -23,5 +23,5 @@ const prisma = globalThis.prisma_v7 ?? prismaClientSingleton();
 
 export default prisma;
 
-if (process.env.NODE_ENV !== "production") globalThis.prisma_v7 = prisma;
+globalThis.prisma_v7 = prisma;
 

@@ -17,6 +17,7 @@ import {
   ChevronDown,
   FileText,
   Database,
+  Calculator,
   Menu,
   Bell,
   Banknote,
@@ -672,13 +673,13 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                            <button
                              onClick={() => setIsRkpOpen(!isRkpOpen)}
                              className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg transition-all text-sm group cursor-pointer ${
-                               ["rkp", "apbdes", "rkkd-add", "rkkd-dd", "rkkd-bhprd", "rkkd-bankeu"].includes(tabParam || "")
+                               ["rkp", "apbdes", "rkkd-add", "rkkd-dd", "rkkd-bhprd", "rkkd-bankeu", "rkkd-banprov"].includes(tabParam || "")
                                  ? (isHackerTheme ? "bg-cyan-900/60 text-cyan-300 font-bold border border-cyan-500/50 backdrop-blur-sm" : "bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/20")
                                  : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 font-mono backdrop-blur-sm" : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 font-semibold")
                              }`}
                            >
                              <div className="flex items-center gap-2.5">
-                               <FileText size={14} className={`${["rkp", "apbdes", "rkkd-add", "rkkd-dd", "rkkd-bhprd", "rkkd-bankeu"].includes(tabParam || "") && isHackerTheme ? 'animate-luxury-float luxury-glow-strong text-teal-300' : 'group-hover:animate-luxury-pulse'}`} />
+                               <FileText size={14} className={`${["rkp", "apbdes", "rkkd-add", "rkkd-dd", "rkkd-bhprd", "rkkd-bankeu", "rkkd-banprov"].includes(tabParam || "") && isHackerTheme ? 'animate-luxury-float luxury-glow-strong text-teal-300' : 'group-hover:animate-luxury-pulse'}`} />
                                <span>{isHackerTheme ? "[RKP-Desa]" : "RKP Desa"}</span>
                              </div>
                              <ChevronDown size={13} className={`transition-transform duration-200 ${isRkpOpen ? 'rotate-180' : ''}`} />
@@ -699,6 +700,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                                    { label: isHackerTheme ? "[3. RKKD DD]" : "3. RKKD DD", tab: "rkkd-dd", icon: Building2 },
                                    { label: isHackerTheme ? "[4. RKKD BHPRD]" : "4. RKKD BHPRD", tab: "rkkd-bhprd", icon: Layers },
                                    { label: isHackerTheme ? "[5. RKKD BANKEU]" : "5. RKKD BANKEU", tab: "rkkd-bankeu", icon: TrendingUp },
+                                   { label: isHackerTheme ? "[6. RKKD BANPROV]" : "6. RKKD BANPROV", tab: "rkkd-banprov", icon: Award },
                                  ].map((subItem) => (
                                    <Link
                                      key={subItem.tab}
@@ -721,6 +723,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
 
                          {[
                            { label: isHackerTheme ? "[Harga Satuan]" : "Harga Satuan", tab: "harga-satuan", icon: Database },
+                           { label: isHackerTheme ? "[AHSP Pekerjaan]" : "AHSP Pekerjaan", tab: "ahsp", icon: Calculator },
                            { label: isHackerTheme ? "[Take Off Sheet]" : "Take Off Sheet", tab: "takeoff", icon: FileText },
                            { label: isHackerTheme ? "[RAB-Desa]" : "RAB Desa", tab: "rab", icon: PieChart },
                            { label: isHackerTheme ? "[S-Curve Tracker]" : "S-Curve Tracker", tab: "scurve", icon: Activity },

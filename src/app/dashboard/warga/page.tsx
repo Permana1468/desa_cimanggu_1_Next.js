@@ -9,6 +9,7 @@ import {
     Users, 
     Search, 
     Filter, 
+    ChevronLeft,
     ChevronRight, 
     UserPlus, 
     Download,
@@ -86,6 +87,15 @@ export default function WargaManagementPage() {
     const [filterIncomplete, setFilterIncomplete] = useState(false);
     const [sortBy, setSortBy] = useState("default");
 
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
+    // Reset to page 1 whenever search, filter, or sorting changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [query, filters, filterIncomplete, sortBy]);
+
     const displayedWarga = useMemo(() => {
         const filtered = warga.filter(w => !filterIncomplete || isWargaDataIncomplete(w));
 
@@ -135,6 +145,12 @@ export default function WargaManagementPage() {
             return a.namaLengkap.localeCompare(b.namaLengkap);
         });
     }, [warga, filterIncomplete, sortBy]);
+
+    const totalPages = Math.max(1, Math.ceil(displayedWarga.length / pageSize));
+    const paginatedWarga = useMemo(() => {
+        const start = (currentPage - 1) * pageSize;
+        return displayedWarga.slice(start, start + pageSize);
+    }, [displayedWarga, currentPage, pageSize]);
 
     const stats = useMemo(() => {
         const total = warga.length;
@@ -455,10 +471,10 @@ export default function WargaManagementPage() {
                                         <td className="py-6 pr-6"><div className="h-8 w-28 bg-slate-100 rounded ml-auto" /></td>
                                     </tr>
                                 ))
-                            ) : displayedWarga.length > 0 ? displayedWarga.map((item, index) => (
+                            ) : paginatedWarga.length > 0 ? paginatedWarga.map((item, index) => (
                                 <tr key={item.id} className="group hover:bg-slate-50/30 transition-colors">
                                     <td className="py-5 pl-6 text-center text-xs font-bold text-slate-400">
-                                        {index + 1}
+                                        {(currentPage - 1) * pageSize + index + 1}
                                     </td>
                                     <td className="py-5 px-4 min-w-[200px]">
                                         <div className="flex items-center gap-3">
@@ -555,6 +571,95 @@ export default function WargaManagementPage() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* PAGINATION FOOTER */}
+                {displayedWarga.length > 0 && (
+                    <div className="mt-6 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium text-slate-600">
+                        <div className="flex items-center gap-3">
+                            <span>
+                                Menampilkan <strong className="text-slate-900 font-bold">{(currentPage - 1) * pageSize + 1}</strong> – <strong className="text-slate-900 font-bold">{Math.min(currentPage * pageSize, displayedWarga.length)}</strong> dari <strong className="text-slate-900 font-bold">{displayedWarga.length}</strong> data warga
+                            </span>
+                            <div className="flex items-center gap-1.5 ml-2 border-l border-slate-200 pl-3">
+                                <span className="text-[11px] text-slate-400 font-bold uppercase">Per Halaman:</span>
+                                <select
+                                    value={pageSize}
+                                    onChange={(e) => {
+                                        setPageSize(Number(e.target.value));
+                                        setCurrentPage(1);
+                                    }}
+                                    className="bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl px-2.5 py-1 focus:outline-none cursor-pointer hover:bg-slate-200 transition-colors"
+                                >
+                                    <option value={10}>10 Baris</option>
+                                    <option value={20}>20 Baris</option>
+                                    <option value={50}>50 Baris</option>
+                                    <option value={100}>100 Baris</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white text-slate-700 font-bold flex items-center gap-1 transition-all cursor-pointer min-h-[38px]"
+                            >
+                                <ChevronLeft size={16} />
+                                <span>Sebelumnya</span>
+                            </button>
+
+                            {/* PAGE NUMBERS */}
+                            <div className="flex items-center gap-1 overflow-x-auto px-1">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                    .filter(page => {
+                                        if (totalPages <= 7) return true;
+                                        if (page === 1 || page === totalPages) return true;
+                                        if (Math.abs(page - currentPage) <= 1) return true;
+                                        return false;
+                                    })
+                                    .reduce<(number | string)[]>((acc, page, i, arr) => {
+                                        if (i > 0 && page - (arr[i - 1] as number) > 1) {
+                                            acc.push("...");
+                                        }
+                                        acc.push(page);
+                                        return acc;
+                                    }, [])
+                                    .map((item, idx) => {
+                                        if (item === "...") {
+                                            return (
+                                                <span key={`dots-${idx}`} className="px-2 py-1 text-slate-400 font-bold text-xs">
+                                                    ...
+                                                </span>
+                                            );
+                                        }
+                                        const pageNum = item as number;
+                                        const isActive = pageNum === currentPage;
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => setCurrentPage(pageNum)}
+                                                className={`w-9 h-9 rounded-xl font-bold text-xs transition-all cursor-pointer flex items-center justify-center ${
+                                                    isActive
+                                                        ? "bg-blue-600 text-white shadow-md shadow-blue-600/20 scale-105"
+                                                        : "bg-white border border-slate-200 text-slate-700 hover:bg-slate-50"
+                                                }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    })}
+                            </div>
+
+                            <button
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                className="px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white text-slate-700 font-bold flex items-center gap-1 transition-all cursor-pointer min-h-[38px]"
+                            >
+                                <span>Selanjutnya</span>
+                                <ChevronRight size={16} />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* PRINT MODAL */}

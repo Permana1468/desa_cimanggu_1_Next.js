@@ -441,3 +441,85 @@ html.lenis, html.lenis body {
 .animate-gradient-x {
   animation: gradient-x 8s ease infinite;
 }
+
+/* ── OFFICIAL SISKEUDES PRINT STYLES (F4 PORTRAIT 215.9mm x 330mm MULTI-PAGE PORTAL) ── */
+@media print {
+  /* 1. Reset root HTML & Body */
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* 2. Hide all direct children of body EXCEPT active print portals */
+  body > *:not(#siskeudes-official-print-document):not(.siskeudes-print-portal-mount):not([id*="print-mount-root"]):not([id*="print-portal"]) {
+    display: none !important;
+  }
+
+  /* 3. Also hide any non-printable elements inside print document */
+  .no-print,
+  .no-print * {
+    display: none !important;
+  }
+
+  /* 4. Display print portal mounts cleanly in-flow */
+  #siskeudes-official-print-document,
+  .siskeudes-print-portal-mount,
+  [id*="print-mount-root"] {
+    display: block !important;
+    visibility: visible !important;
+    position: relative !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: none !important;
+    float: none !important;
+  }
+
+  #siskeudes-official-print-document *,
+  .siskeudes-print-portal-mount *,
+  [id*="print-mount-root"] *,
+  [id*="print-portal"] * {
+    visibility: visible !important;
+  }
+
+  /* 5. Multi-page Table Rules */
+  table {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-collapse: collapse !important;
+    table-layout: auto !important;
+    page-break-inside: auto !important;
+    box-sizing: border-box !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  thead {
+    display: table-header-group !important;
+  }
+
+  tfoot {
+    display: table-footer-group !important;
+  }
+
+  /* 6. Page Geometry (Default F4 Portrait: 215.9mm x 330.2mm) */
+  @page {
+    size: 215.9mm 330.2mm portrait;
+    margin: 6mm;
+  }
+}

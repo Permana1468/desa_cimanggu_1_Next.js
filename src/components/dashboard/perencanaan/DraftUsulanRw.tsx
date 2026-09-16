@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
+import { SafePrintPortal } from "./SafePrintPortal";
 import { ArrowLeft, Printer, Plus, Trash2, Edit3, Check, RefreshCw, Sparkles, X, FileSpreadsheet } from "lucide-react";
 import { UndanganMuslingRwData } from "./UndanganMuslingRw";
 
@@ -241,20 +241,28 @@ export function DraftUsulanRw({ undanganData, onBack }: DraftUsulanRwProps) {
       {/* CSS PRINT RULES FOR EXACT F4 LANDSCAPE CAMBRIA FORMAT */}
       <style dangerouslySetInnerHTML={{
         __html: `
-        @media print {
-          body > *:not(#draft-usulan-print-portal) {
+        @media screen {
+          #draft-usulan-print-mount-root {
             display: none !important;
+          }
+        }
+        @media print {
+          body > *:not(.siskeudes-print-portal-mount):not([id*="print-mount-root"]):not(#siskeudes-official-print-document) {
+            display: none !important;
+          }
+
+          #draft-usulan-print-mount-root {
+            display: block !important;
+            visibility: visible !important;
           }
 
           #draft-usulan-print-portal {
             display: block !important;
             visibility: visible !important;
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
+            position: relative !important;
             width: 100% !important;
             max-width: 100% !important;
-            min-height: 100vh !important;
+            min-height: auto !important;
             margin: 0 auto !important;
             padding: 5mm 10mm !important;
             background: #ffffff !important;
@@ -535,11 +543,10 @@ export function DraftUsulanRw({ undanganData, onBack }: DraftUsulanRwProps) {
         </div>
       </div>
 
-      {/* REACT PORTAL DIRECT TO BODY FOR 100% RELIABLE PRINTING */}
-      {mounted && createPortal(
-        renderDraftUsulanContent(true),
-        document.body
-      )}
+      {/* PRINT CONTAINER */}
+      <SafePrintPortal portalId="draft-usulan-print-mount-root">
+        {renderDraftUsulanContent(true)}
+      </SafePrintPortal>
     </div>
   );
 }

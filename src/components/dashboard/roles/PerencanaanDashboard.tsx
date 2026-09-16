@@ -10,15 +10,25 @@ import {
   Wallet,
   Ruler,
   Cpu,
-  Sparkles
+  Sparkles,
+  Upload,
+  Camera,
+  User,
+  CheckCircle2,
+  TrendingUp,
+  ShieldCheck,
+  Edit3,
+  Check
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CyberPlanRabTab } from "../perencanaan/CyberPlanRabTab";
 import { CyberPlanTakeOffTab } from "../perencanaan/CyberPlanTakeOffTab";
 import { CyberPlanHargaSatuanTab } from "../perencanaan/CyberPlanHargaSatuanTab";
+import { CyberPlanAhspTab } from "../perencanaan/CyberPlanAhspTab";
 import { CyberPlanRkkdTab, RkkdSubFeature } from "../perencanaan/CyberPlanRkkdTab";
 import { CyberPlanMusrenbangTab, MusrenbangSubFeature } from "../perencanaan/CyberPlanMusrenbangTab";
+import { ApbdesInfografisBoard } from "../perencanaan/ApbdesInfografisBoard";
 import { LuxuryRingChart } from "./LuxuryRingChart";
 
 export function PerencanaanDashboard({ session, stats, isHackerTheme }: { session: any, stats: any, isHackerTheme?: boolean }) {
@@ -31,7 +41,48 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
   // Real-time states
   const [serverLoad, setServerLoad] = useState(24);
   const [dbSync, setDbSync] = useState(100);
-  const [serapan, setSerapan] = useState(45.5);
+  const [serapan, setSerapan] = useState(56.1);
+
+  // 3D Avatar Profile Image & Custom Name state (with localStorage persistence)
+  const [avatarUrl, setAvatarUrl] = useState<string>("/images/Perangkat Oke.png");
+  const [kaurName, setKaurName] = useState<string>("MUHAMAD ALDIANSYAH");
+  const [isEditingName, setIsEditingName] = useState(false);
+
+  useEffect(() => {
+    try {
+      const savedAvatar = localStorage.getItem("kaur_profile_avatar_v1");
+      if (savedAvatar) setAvatarUrl(savedAvatar);
+
+      const savedName = localStorage.getItem("kaur_custom_name_v1");
+      if (savedName) setKaurName(savedName);
+    } catch (err) {}
+  }, []);
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result) {
+          const res = reader.result as string;
+          setAvatarUrl(res);
+          try {
+            localStorage.setItem("kaur_profile_avatar_v1", res);
+          } catch (err) {}
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSaveName = (newName: string) => {
+    const trimmed = newName.trim() || "MUHAMAD ALDIANSYAH";
+    setKaurName(trimmed);
+    try {
+      localStorage.setItem("kaur_custom_name_v1", trimmed);
+    } catch (err) {}
+    setIsEditingName(false);
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -49,6 +100,7 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
     const defaultSubTab: MusrenbangSubFeature = (tabParam === "finance" || tabParam === "musrenbang" ? "undangan-musrenbang" : tabParam) as MusrenbangSubFeature;
     return (
       <CyberPlanMusrenbangTab 
+        key={tabParam || "musrenbang"}
         defaultTab={defaultSubTab}
         onBack={() => {
           setActiveTab("main");
@@ -58,11 +110,12 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
     );
   }
 
-  const rkkdTabs = ["rkp", "apbdes", "rkkd-add", "rkkd-dd", "rkkd-bhprd", "rkkd-bankeu"];
+  const rkkdTabs = ["rkp", "apbdes", "rkkd-add", "rkkd-dd", "rkkd-bhprd", "rkkd-bankeu", "rkkd-banprov"];
   if (tabParam && rkkdTabs.includes(tabParam)) {
     const defaultSubTab: RkkdSubFeature = (tabParam === "rkp" ? "apbdes" : tabParam) as RkkdSubFeature;
     return (
       <CyberPlanRkkdTab 
+        key={tabParam || "rkp"}
         defaultTab={defaultSubTab}
         onBack={() => {
           setActiveTab("main");
@@ -93,200 +146,207 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
     }} />;
   }
 
+  if (tabParam === "ahsp" || activeTab === "ahsp") {
+    return <CyberPlanAhspTab onBack={() => {
+      setActiveTab("main");
+      router.push("/dashboard?tab=overview");
+    }} />;
+  }
+
   return (
-    <div className={`space-y-4 sm:space-y-6 min-h-[calc(100vh-80px)] font-sans relative pb-28 md:pb-8 ${isHackerTheme ? 'text-cyan-50' : ''}`}>
+    <div className={`space-y-6 min-h-[calc(100vh-80px)] font-sans relative pb-28 md:pb-8 ${isHackerTheme ? 'text-cyan-50' : ''}`}>
       
-      {/* HEADER CARD */}
-      <div className="relative z-10 bg-white border border-slate-200/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 sm:gap-8 relative z-10">
-          <div className="space-y-2.5 sm:space-y-3 text-slate-800">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold uppercase text-[9px] sm:text-[10px] tracking-widest">
-              <Terminal size={14} className={isHackerTheme ? "animate-luxury-pulse text-teal-400 luxury-glow" : "animate-pulse text-emerald-600"} /> 
+      {/* ------------------------------------------------------------- */}
+      {/* 1. EPIC HERO HEADER CARD WITH CIRCULAR 3D AVATAR & UPLOAD      */}
+      {/* ------------------------------------------------------------- */}
+      <div className="relative z-10 bg-gradient-to-r from-white via-slate-50 to-emerald-50/40 border border-slate-200/80 rounded-3xl p-5 sm:p-7 md:p-8 shadow-sm overflow-hidden group">
+        <div className="absolute right-0 top-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl group-hover:scale-125 transition-all pointer-events-none" />
+
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          
+          {/* Left Welcome Info */}
+          <div className="space-y-3 text-slate-800 max-w-xl">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-100/80 border border-emerald-300 text-emerald-900 font-extrabold uppercase text-[10px] tracking-widest shadow-xs">
+              <Terminal size={14} className="animate-pulse text-emerald-600" /> 
               <span>MODUL AKTIF: PERENCANAAN DESA</span>
             </div>
             
-            <h1 className="text-2xl sm:text-3xl md:text-5xl font-black tracking-tight text-slate-900 uppercase">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-slate-900 uppercase">
               {roleName}
             </h1>
             
-            <p className="text-slate-500 max-w-xl text-xs sm:text-sm md:text-base font-normal leading-relaxed">
-              Selamat datang, <span className="text-slate-800 font-extrabold">{session?.user?.name}</span>. Memantau progres RAB dan serapan anggaran desa tahun berjalan secara real-time.
+            <p className="text-slate-600 text-xs sm:text-sm md:text-base font-medium leading-relaxed">
+              Selamat datang, <span className="text-slate-900 font-extrabold">{kaurName}</span>. Memantau progres RAB, serapan anggaran desa, dan alokasi APBDes secara real-time.
             </p>
+
+            {/* Live Metrics Quick Badges */}
+            <div className="flex items-center gap-3 pt-1 flex-wrap">
+              <div className="bg-white px-3 py-1.5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+                <span className="text-xs font-bold text-slate-700">Serapan Dana: <span className="font-mono font-black text-emerald-700">{serapan.toFixed(1)}%</span></span>
+              </div>
+
+              <div className="bg-white px-3 py-1.5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-700">Sisa Anggaran: <span className="font-mono font-black text-emerald-700">Rp 450 Jt</span></span>
+              </div>
+            </div>
           </div>
 
-          {/* Key Metric Telemetry Cards */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5 sm:p-5 min-w-0 shadow-sm relative group overflow-hidden">
-              <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping opacity-75" />
-              <div className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-emerald-500" />
-              {isHackerTheme && (
-                <div className="absolute right-[-10px] top-1/2 -translate-y-1/2 w-28 h-28 opacity-60 pointer-events-none">
-                  <LuxuryRingChart percentage={serapan} color="#2dd4bf" />
+          {/* Right Side: 3D POP-OUT AVATAR CIRCULAR PROFILE FRAME WITH PNG UPLOAD */}
+          <div className="flex items-center justify-center lg:justify-end gap-6 shrink-0">
+            <div className="relative group/avatar flex flex-col items-center">
+              
+              {/* Outer 3D Glass Circular Pedestal Frame (Bulat Sempurna) */}
+              <div className="relative w-36 h-36 rounded-full bg-gradient-to-tr from-emerald-500/20 via-teal-500/10 to-cyan-500/30 border-2 border-emerald-400/60 p-2 shadow-2xl backdrop-blur-md transition-all duration-500 group-hover/avatar:border-emerald-300 group-hover/avatar:shadow-emerald-500/40">
+                
+                {/* 3D Pop-out Avatar Container */}
+                <div className="relative w-full h-full rounded-full overflow-visible">
+                  
+                  {/* Avatar Image popping out of circular frame border */}
+                  <div className="absolute inset-x-0 bottom-0 h-44 flex items-end justify-center pointer-events-none transition-transform duration-500 group-hover/avatar:scale-110 group-hover/avatar:-translate-y-2">
+                    <img 
+                      src={avatarUrl} 
+                      alt="Foto Profil 3D Kaur Perencanaan" 
+                      className="h-44 object-contain drop-shadow-[0_15px_15px_rgba(0,0,0,0.35)] transition-all duration-300"
+                      onError={(e) => {
+                        // Fallback if custom image fails to load
+                        (e.target as HTMLImageElement).src = "/images/Perangkat Oke.png";
+                      }}
+                    />
+                  </div>
+
+                  {/* Upload Overlay Button on Hover */}
+                  <label 
+                    className="absolute inset-0 bg-slate-950/70 backdrop-blur-xs rounded-full opacity-0 group-hover/avatar:opacity-100 flex flex-col items-center justify-center transition-all duration-300 cursor-pointer z-30 text-white"
+                    title="Klik untuk Mengunggah Foto Profil PNG/3D"
+                  >
+                    <Upload size={20} className="animate-bounce text-emerald-400" />
+                    <span className="text-[9px] font-black uppercase tracking-wider mt-1 text-center px-1">Unggah PNG</span>
+                    <input 
+                      type="file" 
+                      accept="image/png,image/jpeg,image/webp" 
+                      onChange={handleAvatarUpload} 
+                      className="hidden" 
+                    />
+                  </label>
                 </div>
-              )}
-              <span className="block text-[9px] sm:text-[10px] font-black text-slate-500 mb-1.5 sm:mb-2 uppercase tracking-widest truncate relative z-10">Serapan Dana</span>
-              <span className="block text-2xl sm:text-3xl font-black text-slate-900 font-mono tracking-tight relative z-10">
-                {serapan.toFixed(1)}%
-              </span>
+              </div>
+
+              {/* Editable Name Badge below Circular Avatar */}
+              <div className="mt-3 text-center">
+                {isEditingName ? (
+                  <div className="flex items-center gap-1.5 bg-white p-1 rounded-full border-2 border-emerald-500 shadow-md">
+                    <input 
+                      type="text" 
+                      value={kaurName} 
+                      onChange={(e) => setKaurName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') handleSaveName(kaurName); }}
+                      autoFocus
+                      className="px-2 py-0.5 text-xs font-black text-slate-900 outline-none w-44 text-center uppercase"
+                    />
+                    <button 
+                      onClick={() => handleSaveName(kaurName)}
+                      className="p-1 bg-emerald-600 text-white rounded-full hover:bg-emerald-700 cursor-pointer"
+                      title="Simpan Nama"
+                    >
+                      <Check size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <div 
+                    onClick={() => setIsEditingName(true)}
+                    className="text-[10px] font-black text-emerald-950 bg-white border border-emerald-300 px-3.5 py-1 rounded-full uppercase tracking-wider flex items-center gap-1.5 shadow-sm hover:border-emerald-500 hover:shadow-md transition-all cursor-pointer group/name"
+                    title="Klik untuk Mengubah Nama"
+                  >
+                    <Sparkles size={11} className="text-amber-500 animate-spin" /> 
+                    <span>{kaurName}</span>
+                    <Edit3 size={11} className="text-slate-400 group-hover/name:text-emerald-600 transition-colors ml-0.5" />
+                  </div>
+                )}
+              </div>
             </div>
-            
-            <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-3.5 sm:p-5 min-w-0 shadow-sm">
-              <span className="block text-[9px] sm:text-[10px] font-black text-emerald-700 mb-1.5 sm:mb-2 uppercase tracking-widest truncate">Sisa Anggaran</span>
-              <span className="block text-lg sm:text-xl md:text-2xl font-black text-emerald-800 font-mono mt-0.5 sm:mt-1 tracking-tight">
-                Rp 450 Jt
+          </div>
+
+        </div>
+      </div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* 2. DENSE HORIZONTAL TELEMETRY & CONTROL TOOLBAR (FULL WIDTH)   */}
+      {/* ------------------------------------------------------------- */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Shortcut 1: Take Off Sheet */}
+        <button 
+          onClick={() => setActiveTab("tos")} 
+          className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm hover:border-amber-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center gap-3.5 group cursor-pointer text-left"
+        >
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all">
+            <Ruler size={22} />
+          </div>
+          <div>
+            <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider group-hover:text-amber-700">Take Off Sheet</h4>
+            <p className="text-[11px] text-slate-500 font-medium">Hitung Volume & Ukuran</p>
+          </div>
+        </button>
+
+        {/* Shortcut 2: Input RAB */}
+        <button 
+          onClick={() => setActiveTab("rab")} 
+          className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm hover:border-emerald-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center gap-3.5 group cursor-pointer text-left"
+        >
+          <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:-rotate-6 transition-all">
+            <Database size={22} />
+          </div>
+          <div>
+            <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider group-hover:text-emerald-700">Input RAB Kegiatan</h4>
+            <p className="text-[11px] text-slate-500 font-medium">Manajemen Rincian RAB</p>
+          </div>
+        </button>
+
+        {/* Shortcut 3: Realisasi */}
+        <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm flex items-center gap-3.5 group">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0">
+            <Activity size={22} />
+          </div>
+          <div>
+            <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Realisasi Fisik</h4>
+            <p className="text-[11px] text-emerald-600 font-bold font-mono">100% Progres Lapangan</p>
+          </div>
+        </div>
+
+        {/* Telemetry: Server & DB Live Status */}
+        <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm flex items-center justify-between gap-3">
+          <div className="space-y-1.5 w-full">
+            <div className="flex justify-between items-center text-[10px] font-mono font-bold text-slate-500">
+              <span className="flex items-center gap-1">
+                <Cpu size={12} className="text-slate-400" /> SERVER LOAD
               </span>
+              <span className="text-blue-600 font-black">{serverLoad.toFixed(1)}%</span>
+            </div>
+            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+              <div className="bg-blue-600 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${serverLoad}%` }} />
+            </div>
+
+            <div className="flex justify-between items-center text-[10px] font-mono font-bold text-slate-500 pt-1">
+              <span className="flex items-center gap-1">
+                <ShieldCheck size={12} className="text-emerald-500" /> DB SYNC
+              </span>
+              <span className="text-emerald-600 font-black">{dbSync}%</span>
+            </div>
+            <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+              <div className="bg-emerald-600 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${dbSync}%` }} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* DASHBOARD CONTENT GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 relative z-10">
-        {/* LEFT COLUMN: ANALISIS APBDES */}
-        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-          <div className="bg-white rounded-2xl sm:rounded-[2rem] p-4 sm:p-6 md:p-8 shadow-sm border border-slate-200/80">
-            <div className="flex items-center justify-between mb-4 sm:mb-6 border-b border-slate-100 pb-3 sm:pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 sm:w-12 h-10 sm:h-12 bg-emerald-50 border border-emerald-200 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm shrink-0 relative overflow-hidden">
-                  <Wallet size={22} className={isHackerTheme ? "animate-luxury-float text-teal-400 luxury-glow relative z-10 sm:w-6 sm:h-6" : "text-emerald-600 sm:w-6 sm:h-6"} />
-                </div>
-                <div>
-                  <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-wide flex items-center gap-2">
-                    Analisis APBDes 2026
-                    <Sparkles size={16} className={isHackerTheme ? "text-teal-300 animate-luxury-pulse" : "text-yellow-500"} />
-                  </h2>
-                  <p className="text-slate-500 text-[11px] sm:text-xs font-medium mt-0.5">Alokasi & Realisasi Anggaran Berjalan</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-3 sm:space-y-4">
-              {/* PENDAPATAN */}
-              <div className="p-4 sm:p-5 bg-slate-50/80 border border-slate-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-emerald-300 transition-all duration-300 group shadow-sm relative overflow-hidden">
-                <div className="flex items-center gap-3 sm:gap-4 relative z-10">
-                  <div className="w-10 sm:w-12 h-10 sm:h-12 bg-white border border-emerald-200 text-emerald-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm shrink-0">
-                    <ArrowDownRight size={22} className={isHackerTheme ? "animate-luxury-float text-teal-400 luxury-glow sm:w-6 sm:h-6" : "sm:w-6 sm:h-6"} />
-                  </div>
-                  <div>
-                    <h4 className="font-extrabold text-slate-800 uppercase text-xs sm:text-sm tracking-wide">Pendapatan Desa</h4>
-                    <span className="text-[11px] sm:text-xs text-slate-500 font-mono">TARGET: RP 1.2M</span>
-                  </div>
-                </div>
-                <div className="text-left sm:text-right border-t sm:border-t-0 border-slate-200/60 pt-2 sm:pt-0">
-                  <span className="block font-black text-emerald-600 font-mono text-lg sm:text-xl tracking-tight">
-                    Rp 800.000.000
-                  </span>
-                  <span className="inline-block mt-0.5 sm:mt-1 text-[9px] sm:text-[10px] font-black text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                    66% TERCAPAI
-                  </span>
-                </div>
-              </div>
-
-              {/* BELANJA */}
-              <div className="p-4 sm:p-5 bg-slate-50/80 border border-slate-200/80 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 hover:border-rose-300 transition-all duration-300 group shadow-sm relative overflow-hidden">
-                <div className="flex items-center gap-3 sm:gap-4 relative z-10">
-                  <div className="w-10 sm:w-12 h-10 sm:h-12 bg-white border border-rose-200 text-rose-600 rounded-xl sm:rounded-2xl flex items-center justify-center shadow-sm shrink-0">
-                    <ArrowUpRight size={22} className={isHackerTheme ? "animate-luxury-float text-rose-400 luxury-glow sm:w-6 sm:h-6" : "sm:w-6 sm:h-6"} />
-                  </div>
-                  <div>
-                    <h4 className="font-extrabold text-slate-800 uppercase text-xs sm:text-sm tracking-wide">Belanja Desa</h4>
-                    <span className="text-[11px] sm:text-xs text-slate-500 font-mono">PAGU: RP 1.2M</span>
-                  </div>
-                </div>
-                <div className="text-left sm:text-right border-t sm:border-t-0 border-slate-200/60 pt-2 sm:pt-0">
-                  <span className="block font-black text-rose-600 font-mono text-lg sm:text-xl tracking-tight">
-                    Rp 450.000.000
-                  </span>
-                  <span className="inline-block mt-0.5 sm:mt-1 text-[9px] sm:text-[10px] font-black text-rose-800 bg-rose-100 px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                    37% TERSERAP
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN: CONTROL CENTER & SYSTEM STATUS */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-200/80">
-            
-            <h2 className="text-xs font-black text-slate-800 mb-5 uppercase tracking-widest flex items-center gap-2">
-              <MonitorPlay size={16} className={isHackerTheme ? "text-teal-400 animate-luxury-pulse luxury-glow" : "text-slate-400"} /> PUSAT KENDALI
-            </h2>
-            
-            <div className="grid grid-cols-3 gap-3 relative z-10">
-              <button 
-                onClick={() => setActiveTab("tos")} 
-                className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-600 hover:bg-amber-50 hover:border-amber-400 hover:text-amber-700 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
-              >
-                <Ruler size={24} className="group-hover:scale-125 group-hover:-rotate-6 transition-transform duration-300 text-amber-500" />
-                <span className="text-[10px] font-black text-center uppercase tracking-wider">Take Off Sheet</span>
-              </button>
-
-              <button 
-                onClick={() => setActiveTab("rab")} 
-                className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-600 hover:bg-emerald-50 hover:border-emerald-400 hover:text-emerald-700 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
-              >
-                <Database size={24} className="group-hover:scale-125 group-hover:rotate-6 transition-transform duration-300 text-emerald-500" />
-                <span className="text-[10px] font-black text-center uppercase tracking-wider">Input RAB</span>
-              </button>
-              
-              <button 
-                className="flex flex-col items-center justify-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-slate-600 hover:bg-blue-50 hover:border-blue-400 hover:text-blue-700 hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
-              >
-                <Activity size={24} className="group-hover:scale-125 group-hover:rotate-3 transition-transform duration-300 text-blue-500" />
-                <span className="text-[10px] font-black text-center uppercase tracking-wider">Realisasi</span>
-              </button>
-            </div>
-          </div>
-          
-          {/* SYSTEM STATUS CARD */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm">
-             <div className="flex items-center justify-between text-xs font-mono mb-4 border-b border-slate-100 pb-3">
-                <span className="font-extrabold text-slate-700 flex items-center gap-1.5">
-                  <Cpu size={14} className={isHackerTheme ? "text-teal-400 animate-luxury-pulse luxury-glow" : "text-slate-400"} /> SYSTEM STATUS
-                </span>
-                <span className="text-emerald-600 flex items-center gap-1.5 font-bold">
-                  <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"/> 
-                  ONLINE
-                </span>
-             </div>
-             
-             <div className="space-y-4">
-               <div>
-                  <div className="flex justify-between text-[10px] font-mono text-slate-500 mb-1.5 font-bold">
-                    <span>SERVER LOAD</span>
-                    <span className="text-blue-600">{serverLoad.toFixed(1)}%</span>
-                  </div>
-                  {isHackerTheme ? (
-                    <div className="h-16 w-full -mt-2">
-                      <LuxuryRingChart percentage={serverLoad} color="#0ea5e9" />
-                    </div>
-                  ) : (
-                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60">
-                      <div className="bg-blue-600 h-2 rounded-full transition-all duration-1000 ease-in-out" style={{width: `${serverLoad}%`}}></div>
-                    </div>
-                  )}
-               </div>
-
-               <div>
-                  <div className="flex justify-between text-[10px] font-mono text-slate-500 mb-1.5 font-bold">
-                    <span>DATABASE SYNC</span>
-                    <span className="text-emerald-600">{dbSync}%</span>
-                  </div>
-                  {isHackerTheme ? (
-                    <div className="h-16 w-full -mt-2">
-                      <LuxuryRingChart percentage={dbSync} color="#2dd4bf" />
-                    </div>
-                  ) : (
-                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200/60">
-                      <div className="bg-emerald-600 h-2 rounded-full transition-all duration-1000 ease-in-out" style={{width: `${dbSync}%`}}></div>
-                    </div>
-                  )}
-               </div>
-             </div>
-          </div>
-        </div>
+      {/* ------------------------------------------------------------- */}
+      {/* 3. FULL-WIDTH DENSE EXECUTIVE FINANCIAL STATS BOARD           */}
+      {/* ------------------------------------------------------------- */}
+      <div className="w-full">
+        <ApbdesInfografisBoard 
+          onNavigateToApbdes={() => router.push("/dashboard?tab=apbdes")}
+          isHackerTheme={isHackerTheme}
+        />
       </div>
     </div>
   );

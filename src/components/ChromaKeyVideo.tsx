@@ -27,6 +27,8 @@ export default function ChromaKeyVideo({
   const animFrameRef = useRef<number>(0);
   const [ready, setReady] = useState(false);
 
+  const processFrameRef = useRef<() => void>(() => {});
+
   const processFrame = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -63,8 +65,12 @@ export default function ChromaKeyVideo({
       onTimeUpdate(video.currentTime, video.duration || 8);
     }
 
-    animFrameRef.current = requestAnimationFrame(processFrame);
+    animFrameRef.current = requestAnimationFrame(() => processFrameRef.current());
   }, [threshold, onTimeUpdate]);
+
+  useEffect(() => {
+    processFrameRef.current = processFrame;
+  }, [processFrame]);
 
   useEffect(() => {
     const video = videoRef.current;

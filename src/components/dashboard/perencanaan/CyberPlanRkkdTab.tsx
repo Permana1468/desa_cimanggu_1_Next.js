@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   ArrowLeft, 
   Plus, 
@@ -27,8 +27,9 @@ import { RkkdAddSection } from "./RkkdAddSection";
 import { RkkdDdSection } from "./RkkdDdSection";
 import { RkkdBhprdSection } from "./RkkdBhprdSection";
 import { RkkdBankeuSection } from "./RkkdBankeuSection";
+import { RkkdBanprovSection } from "./RkkdBanprovSection";
 
-export type RkkdSubFeature = "apbdes" | "rkkd-add" | "rkkd-dd" | "rkkd-bhprd" | "rkkd-bankeu";
+export type RkkdSubFeature = "apbdes" | "rkkd-add" | "rkkd-dd" | "rkkd-bhprd" | "rkkd-bankeu" | "rkkd-banprov";
 
 interface RkkdActivityItem {
   id: string;
@@ -133,6 +134,12 @@ export function CyberPlanRkkdTab({
   onBack?: () => void 
 }) {
   const [activeSubTab, setActiveSubTab] = useState<RkkdSubFeature>(defaultTab);
+
+  useEffect(() => {
+    if (defaultTab) {
+      setActiveSubTab(defaultTab);
+    }
+  }, [defaultTab]);
   const [activities, setActivities] = useState<RkkdActivityItem[]>(initialActivities);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -249,10 +256,16 @@ export function CyberPlanRkkdTab({
       accentBg: "from-purple-500/20 to-violet-600/10"
     },
     "rkkd-bankeu": {
-      title: "RKKD - Bantuan Keuangan (BANKEU)",
-      subtitle: "Rencana Kerja Kegiatan Desa Bersumber dari Bantuan Keuangan Kabupaten/Provinsi",
+      title: "RKKD - Bantuan Keuangan Kabupaten (BANKEU)",
+      subtitle: "Rencana Kerja Kegiatan Desa Bersumber dari Bantuan Keuangan Kabupaten (SAMISADE)",
       badgeBg: "bg-cyan-500/10 text-cyan-600 border-cyan-500/30",
       accentBg: "from-cyan-500/20 to-sky-600/10"
+    },
+    "rkkd-banprov": {
+      title: "RKKD - Bantuan Keuangan Provinsi (BANPROV)",
+      subtitle: "Rencana Kerja Kegiatan Desa Bersumber dari Bantuan Keuangan Pemerintah Provinsi Jawa Barat",
+      badgeBg: "bg-indigo-500/10 text-indigo-600 border-indigo-500/30",
+      accentBg: "from-indigo-500/20 to-blue-600/10"
     }
   };
 
@@ -297,33 +310,6 @@ export function CyberPlanRkkdTab({
             </button>
           </div>
         </div>
-
-        {/* 5 SUB-FEATURE TABS (APBDes, RKKD ADD, RKKD DD, RKKD BHPRD, RKKD BANKEU) */}
-        <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-2 overflow-x-auto custom-scrollbar pb-1">
-          {[
-            { id: "apbdes", label: "1. APBDes (Total)", icon: PieChart },
-            { id: "rkkd-add", label: "2. RKKD ADD", icon: Banknote },
-            { id: "rkkd-dd", label: "3. RKKD DD", icon: Building2 },
-            { id: "rkkd-bhprd", label: "4. RKKD BHPRD", icon: Layers },
-            { id: "rkkd-bankeu", label: "5. RKKD BANKEU", icon: TrendingUp },
-          ].map((tab) => {
-            const isActive = activeSubTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveSubTab(tab.id as RkkdSubFeature)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all cursor-pointer min-h-[44px] ${
-                  isActive
-                    ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20 scale-[1.02]"
-                    : "bg-slate-100 hover:bg-slate-200 text-slate-600"
-                }`}
-              >
-                <tab.icon size={15} className={isActive ? "text-emerald-400" : "text-slate-400"} />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* CONTENT BASED ON SUB-TAB: APBDES VS RKKD SPECIFIC TABS */}
@@ -335,8 +321,10 @@ export function CyberPlanRkkdTab({
         <RkkdDdSection />
       ) : activeSubTab === "rkkd-bhprd" ? (
         <RkkdBhprdSection />
-      ) : (
+      ) : activeSubTab === "rkkd-bankeu" ? (
         <RkkdBankeuSection />
+      ) : (
+        <RkkdBanprovSection />
       )}
     </div>
   );

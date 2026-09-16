@@ -5,26 +5,34 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Sparkles, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 
+function createParticleData(count: number) {
+  return Array.from({ length: count }).map((_, i) => {
+    const r1 = Math.abs(Math.sin(i * 12.9898 + 78.233));
+    const r2 = Math.abs(Math.sin(i * 63.7264 + 12.543));
+    const r3 = Math.abs(Math.sin(i * 38.9211 + 45.192));
+    const r4 = Math.abs(Math.sin(i * 92.1145 + 23.941));
+    return {
+      position: new THREE.Vector3(0, 0, 0),
+      velocity: new THREE.Vector3(
+        (r1 - 0.5) * 2,
+        (r2 - 0.5) * 2,
+        (r3 - 0.5) * 2
+      ).normalize().multiplyScalar(r4 * 30 + 10),
+      color: new THREE.Color().setHSL(r1 * 0.1 + 0.05, 1, 0.6), // Fire colors
+      scale: 1,
+      life: 1
+    };
+  });
+}
+
 function ParticleExplosion({ active, onComplete }: { active: boolean; onComplete: () => void }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const particleCount = 200;
   const hasCompleted = useRef(false);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   
-  // Initialize particles with random directions and speeds
-  const particlesData = useMemo(() => {
-    return Array.from({ length: particleCount }).map(() => ({
-      position: new THREE.Vector3(0, 0, 0),
-      velocity: new THREE.Vector3(
-        (Math.random() - 0.5) * 2,
-        (Math.random() - 0.5) * 2,
-        (Math.random() - 0.5) * 2
-      ).normalize().multiplyScalar(Math.random() * 30 + 10),
-      color: new THREE.Color().setHSL(Math.random() * 0.1 + 0.05, 1, 0.6), // Fire colors
-      scale: 1,
-      life: 1
-    }));
-  }, []);
+  // Initialize particles with deterministic spread
+  const particlesData = useMemo(() => createParticleData(particleCount), []);
 
   const colorArray = useMemo(() => {
     const arr = new Float32Array(particleCount * 3);

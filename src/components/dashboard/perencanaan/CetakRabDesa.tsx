@@ -136,25 +136,26 @@ export function CetakRabDesa({
       <style dangerouslySetInnerHTML={{
         __html: `
         @media print {
-          body * { visibility: hidden; }
-          #print-area, #print-area * { visibility: visible; font-family: Cambria, 'Times New Roman', Georgia, serif !important; }
+          body > *:not(#print-area) { display: none !important; }
           #print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
+            display: block !important;
+            visibility: visible !important;
+            position: relative !important;
             width: 100% !important;
-            max-width: none !important;
-            padding: 5mm !important;
-            margin: 0 !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+            padding: 0 !important;
+            margin: 0 auto !important;
             background: white !important;
             color: black !important;
             box-shadow: none !important;
             font-family: Cambria, 'Times New Roman', Georgia, serif !important;
           }
+          #print-area * { visibility: visible !important; font-family: Cambria, 'Times New Roman', Georgia, serif !important; box-sizing: border-box !important; }
           .no-print { display: none !important; }
           @page {
-            size: 215.9mm 330.2mm portrait; /* F4 Portrait */
-            margin: 5mm;
+            size: 215.9mm 330.2mm portrait; /* F4 Portrait Default */
+            margin: 5mm 6mm;
           }
           table { page-break-inside: auto; }
           tr { page-break-inside: avoid; page-break-after: auto; }
