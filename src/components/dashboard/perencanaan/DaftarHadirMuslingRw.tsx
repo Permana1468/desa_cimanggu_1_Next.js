@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { SafePrintPortal } from "./SafePrintPortal";
-import { ArrowLeft, Printer, Plus, Trash2, Edit3, Check, RefreshCw, Sparkles, X, PenTool } from "lucide-react";
+import { ArrowLeft, Printer, Plus, Trash2, Edit3, Check, RefreshCw, Sparkles, X, PenTool, CheckCircle2 } from "lucide-react";
 import { UndanganMuslingRwData } from "./UndanganMuslingRw";
 
 export interface PesertaHadir {
@@ -27,14 +27,48 @@ const defaultPeserta: PesertaHadir[] = [
 ];
 
 export function DaftarHadirMuslingRw({ undanganData, onBack }: DaftarHadirMuslingRwProps) {
-  const [pesertaList, setPesertaList] = useState<PesertaHadir[]>(defaultPeserta);
+  const activeRw = (undanganData?.rwNo || "002").trim();
+  const storageKey = `musling_daftar_hadir_list_rw_${activeRw}_v1`;
+
+  const [pesertaList, setPesertaList] = useState<PesertaHadir[]>(() => {
+    return defaultPeserta.map(p => ({
+      ...p,
+      jabatan: p.jabatan.includes("RW 002") ? p.jabatan.replace("RW 002", `RW ${activeRw}`) : p.jabatan
+    }));
+  });
   const [activePesertaId, setActivePesertaId] = useState<string | null>(null);
   const [isSignModalOpen, setIsSignModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    try {
+      const savedPeserta = localStorage.getItem(storageKey);
+      if (savedPeserta) {
+        setPesertaList(JSON.parse(savedPeserta));
+      } else {
+        // Fallback to default list with active RW label
+        setPesertaList(
+          defaultPeserta.map(p => ({
+            ...p,
+            jabatan: p.jabatan.includes("RW 002") ? p.jabatan.replace("RW 002", `RW ${activeRw}`) : p.jabatan
+          }))
+        );
+      }
+    } catch (err) {
+      console.error("Error loading localStorage for Daftar Hadir:", err);
+    }
     setMounted(true);
-  }, []);
+  }, [activeRw, storageKey]);
+
+  useEffect(() => {
+    if (mounted) {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(pesertaList));
+      } catch (err) {
+        console.error("Error saving pesertaList to localStorage:", err);
+      }
+    }
+  }, [pesertaList, storageKey, mounted]);
 
   // Form input untuk tambah peserta baru
   const [newNama, setNewNama] = useState("");
@@ -310,9 +344,15 @@ export function DaftarHadirMuslingRw({ undanganData, onBack }: DaftarHadirMuslin
             </button>
           )}
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 mb-1">
-              <Sparkles size={12} className="text-blue-600" />
-              <span>DAFTAR HADIR SINKRON UNDANGAN</span>
+            <div className="flex items-center gap-2 mb-1">
+              <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200">
+                <Sparkles size={12} className="text-blue-600" />
+                <span>DAFTAR HADIR SINKRON UNDANGAN</span>
+              </div>
+              <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <CheckCircle2 size={11} className="text-emerald-600" />
+                <span>Tersimpan Otomatis</span>
+              </div>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">
               Daftar Hadir Musling RW {undanganData.rwNo}

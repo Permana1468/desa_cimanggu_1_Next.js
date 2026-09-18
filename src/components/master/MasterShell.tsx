@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { MasterSidebar } from "./MasterSidebar";
-import { NotificationPanel } from "./NotificationPanel";
+import { GlobalNotificationPanel } from "../dashboard/GlobalNotificationPanel";
 import { Menu, LayoutDashboard, Settings, Plus, Home as HomeIcon, BarChart3 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -42,7 +42,7 @@ export function MasterShell({
             />
             
             {/* NOTIFICATION PANEL */}
-            <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+            <GlobalNotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
             
             {/* MAIN CONTENT AREA */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">

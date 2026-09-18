@@ -28,7 +28,7 @@ export default async function MusrenbangPage() {
     <div className="max-w-4xl mx-auto py-8">
       <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 animate-in fade-in slide-in-from-bottom-4 duration-700">
          <div className="mb-8 border-b border-slate-100 pb-6">
-            <h1 className="text-2xl font-black text-slate-800">Formulir Usulan Musrenbang</h1>
+            <h1 className="text-2xl font-black text-slate-800">Rekapan Usulan Musrenbang</h1>
             <p className="text-slate-500 mt-2 text-sm">Silakan isi formulir usulan prioritas pembangunan untuk RKPDes dan Bantuan Keuangan Desa Tahun 2025.</p>
          </div>
          <MusrenbangFormClient 

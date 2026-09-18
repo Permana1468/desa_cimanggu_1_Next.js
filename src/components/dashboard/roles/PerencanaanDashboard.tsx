@@ -133,10 +133,18 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
   }
 
   if (tabParam === "tos" || activeTab === "tos" || tabParam === "takeoff" || activeTab === "takeoff") {
-    return <CyberPlanTakeOffTab onBack={() => {
-      setActiveTab("main");
-      router.push("/dashboard?tab=overview");
-    }} />;
+    return (
+      <CyberPlanTakeOffTab 
+        onBack={() => {
+          setActiveTab("main");
+          router.push("/dashboard?tab=overview");
+        }}
+        onNavigateToRab={() => {
+          setActiveTab("rab");
+          router.push("/dashboard?tab=rab");
+        }} 
+      />
+    );
   }
 
   if (tabParam === "harga-satuan" || activeTab === "harga-satuan") {

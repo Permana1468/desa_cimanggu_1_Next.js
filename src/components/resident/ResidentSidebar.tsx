@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { GlobalNotificationPanel } from "@/components/dashboard/GlobalNotificationPanel";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const residentMenuItems = [
     { name: "Beranda", icon: Home, href: "/resident" },
@@ -40,6 +42,8 @@ export const ResidentSidebar = ({ session: propSession }: { session?: any }) => 
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const [showPlusMenu, setShowPlusMenu] = useState(false);
+    const [isNotifOpen, setIsNotifOpen] = useState(false);
+    const { unreadCount } = useNotifications();
 
     const getIsActive = (path: string) => {
         return pathname === path;
@@ -135,14 +139,20 @@ export const ResidentSidebar = ({ session: propSession }: { session?: any }) => 
                             
                             <div className="flex items-center gap-2 pt-2 border-t border-emerald-200/50">
                                 <button 
-                                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-slate-500 hover:bg-emerald-100/50 hover:text-slate-700 transition-colors"
+                                    onClick={() => setIsNotifOpen(true)}
+                                    className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-slate-500 hover:bg-emerald-100/50 hover:text-slate-700 transition-colors relative"
+                                    title="Notifikasi"
                                 >
                                     <Bell size={14} />
                                     <span className="text-[10px] font-bold uppercase">Notif</span>
+                                    {unreadCount > 0 && (
+                                        <span className="absolute top-1 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
+                                    )}
                                 </button>
                                 <button 
-                                    onClick={() => signOut()}
+                                    onClick={() => signOut({ callbackUrl: '/login' })}
                                     className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-red-500 hover:bg-red-100/50 transition-colors"
+                                    title="Keluar Sistem"
                                 >
                                     <LogOut size={14} />
                                     <span className="text-[10px] font-bold uppercase">Keluar</span>
@@ -152,14 +162,19 @@ export const ResidentSidebar = ({ session: propSession }: { session?: any }) => 
                     ) : (
                         <div className="flex flex-col items-center gap-3">
                             <button 
+                                onClick={() => setIsNotifOpen(true)}
                                 className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all relative"
+                                title="Notifikasi"
                             >
                                 <Bell size={20} />
-                                <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+                                {unreadCount > 0 && (
+                                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white animate-pulse" />
+                                )}
                             </button>
                             <button 
-                                onClick={() => signOut()}
+                                onClick={() => signOut({ callbackUrl: '/login' })}
                                 className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                                title="Keluar Sistem"
                             >
                                 <LogOut size={20} />
                             </button>
@@ -289,6 +304,12 @@ export const ResidentSidebar = ({ session: propSession }: { session?: any }) => 
                     </Link>
                 </div>
             </div>
+
+            {/* GLOBAL NOTIFICATION PANEL DRAWER */}
+            <GlobalNotificationPanel 
+                isOpen={isNotifOpen} 
+                onClose={() => setIsNotifOpen(false)} 
+            />
         </>
     );
 };

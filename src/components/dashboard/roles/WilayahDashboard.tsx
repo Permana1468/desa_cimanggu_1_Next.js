@@ -45,6 +45,7 @@ import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import { RwSecurityTab } from "../rw/RwSecurityTab";
 import { RwHealthTab } from "../rw/RwHealthTab";
 import { RwInstitutionsTab } from "../rw/RwInstitutionsTab";
+import { UndanganMuslingRw } from "../perencanaan/UndanganMuslingRw";
 
 export function WilayahDashboard({ session, stats: initialStats }: { session: any, stats: any }) {
   const roleName = session?.user?.role?.replace('_', ' ') || "Perangkat Wilayah";
@@ -64,11 +65,11 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
   const tabParam = searchParams ? searchParams.get("tab") : null;
 
   // Active Main Tab
-  const [activeTab, setActiveTab] = useState<"overview" | "warga" | "rumah" | "finance" | "surat" | "kegiatan" | "lampid" | "announcements" | "complaints" | "inventory" | "geosensus" | "bansos" | "security" | "health" | "institutions">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "warga" | "rumah" | "finance" | "surat" | "kegiatan" | "lampid" | "announcements" | "complaints" | "inventory" | "geosensus" | "bansos" | "security" | "health" | "institutions" | "musling-rw">("overview");
   const [preFilledMutation, setPreFilledMutation] = useState<{ nik: string, namaLengkap: string, type: "mati" | "pindah" } | null>(null);
 
   useEffect(() => {
-    if (tabParam && ["overview", "warga", "rumah", "finance", "surat", "kegiatan", "lampid", "announcements", "complaints", "inventory", "geosensus", "bansos", "security", "health", "institutions"].includes(tabParam)) {
+    if (tabParam && ["overview", "warga", "rumah", "finance", "surat", "kegiatan", "lampid", "announcements", "complaints", "inventory", "geosensus", "bansos", "security", "health", "institutions", "musling-rw"].includes(tabParam)) {
       setActiveTab(tabParam as any);
     }
   }, [tabParam]);
@@ -193,6 +194,14 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
         {activeTab === "security" && <RwSecurityTab session={session} />}
         {activeTab === "health" && <RwHealthTab session={session} />}
         {activeTab === "institutions" && <RwInstitutionsTab session={session} />}
+        {activeTab === "musling-rw" && (
+          <UndanganMuslingRw 
+            userRw={userRw} 
+            userRt={userRt} 
+            userRole={session?.user?.role} 
+            userName={session?.user?.name} 
+          />
+        )}
       </div>
     </div>
   );

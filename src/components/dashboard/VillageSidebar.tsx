@@ -61,11 +61,14 @@ import {
   ScanLine,
   Layers,
   TrendingUp,
-  Mail
+  Mail,
+  Lightbulb
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SidebarThreeBackground } from "./roles/SidebarThreeBackground";
+import { GlobalNotificationPanel } from "./GlobalNotificationPanel";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const menuItems = [
   { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
@@ -102,6 +105,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tabParam = searchParams ? searchParams.get("tab") : null;
+  const subParam = searchParams ? searchParams.get("sub") : null;
   const { data: clientSession } = useSession();
   const session = propSession || clientSession;
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -111,6 +115,8 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
   const [isMusrenbangOpen, setIsMusrenbangOpen] = useState(true);
   const [showPlusMenu, setShowPlusMenu] = useState(false);
   const [kesraRgbTheme, setKesraRgbTheme] = useState<string>("rose");
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const { unreadCount } = useNotifications();
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -1624,6 +1630,77 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                         isActive = pathname === href;
                       }
 
+                      if (item.name === "Usulan Musrenbang") {
+                        const isMusrenbangActive = pathname === "/kelembagaan/musrenbang" || ["musling-rw", "musrenbang", "undangan-musrenbang"].includes(tabParam || "");
+                        return (
+                          <div key={item.name} className="pt-1 relative z-10">
+                            <button
+                              type="button"
+                              onClick={() => (!isCollapsed || isOpen) && setIsMusrenbangOpen(!isMusrenbangOpen)}
+                              className={`w-full flex items-center justify-between gap-3 px-4 py-3 rounded-xl transition-all group cursor-pointer ${
+                                isMusrenbangActive
+                                  ? (isHackerTheme 
+                                      ? "bg-cyan-950/60 text-cyan-300 font-bold border border-cyan-500/50 shadow-[0_0_15px_rgba(34,211,238,0.2)] backdrop-blur-sm" 
+                                      : "bg-emerald-600 text-white font-bold shadow-lg shadow-emerald-600/20")
+                                  : (isHackerTheme 
+                                      ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 hover:border hover:border-cyan-500/30 font-medium backdrop-blur-sm" 
+                                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-medium")
+                              } ${isCollapsed && !isOpen ? "justify-center" : ''}`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <item.icon size={20} className={`shrink-0 transition-all duration-300 ${isMusrenbangActive && isHackerTheme ? 'animate-luxury-pulse luxury-glow-strong text-teal-300' : 'group-hover:scale-125 group-hover:text-emerald-500 group-hover:-translate-y-1 group-hover:rotate-3'}`} />
+                                {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>{item.name}</span>}
+                              </div>
+                              {(!isCollapsed || isOpen) && (
+                                <ChevronDown size={14} className={`transition-transform duration-200 ${isMusrenbangOpen ? 'rotate-180' : ''}`} />
+                              )}
+                            </button>
+                            <AnimatePresence>
+                              {(isMusrenbangOpen && (!isCollapsed || isOpen)) && (
+                                <motion.div
+                                  initial={{ height: 0, opacity: 0 }}
+                                  animate={{ height: "auto", opacity: 1 }}
+                                  exit={{ height: 0, opacity: 0 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="overflow-hidden"
+                                >
+                                   <div className={`mt-1 ml-3 pl-3 border-l space-y-1 ${isHackerTheme ? 'border-cyan-500/30' : 'border-emerald-100'}`}>
+                                      {(role === "RT" ? [
+                                        { label: isHackerTheme ? "[1. Draft Usulan RT]" : "1. DRAFT USULAN RT", tab: "musling-rw", sub: "draft-usulan", icon: Lightbulb, type: "tab" },
+                                      ] : [
+                                        { label: isHackerTheme ? "[1. Rekapan Usulan]" : "1. REKAPAN USULAN", tab: "musling-rw", sub: "rekapan", icon: FileText, type: "tab" },
+                                        { label: isHackerTheme ? "[2. Undangan Musling]" : "2. UNDANGAN MUSLING", tab: "musling-rw", sub: "undangan", icon: Mail, type: "tab" },
+                                        { label: isHackerTheme ? "[3. Daftar Hadir]" : "3. DAFTAR HADIR", tab: "musling-rw", sub: "daftar-hadir", icon: Users, type: "tab" },
+                                        { label: isHackerTheme ? "[4. Draft Usulan RW]" : "4. DRAFT USULAN RW", tab: "musling-rw", sub: "draft-usulan", icon: Lightbulb, type: "tab" },
+                                      ]).map((subItem) => {
+                                        const isSubActive = subItem.type === "direct"
+                                          ? pathname === "/kelembagaan/musrenbang"
+                                          : ((pathname === "/dashboard" || pathname === "/kelembagaan") && tabParam === subItem.tab && (subParam === subItem.sub || (!subParam && (role === "RT" ? subItem.sub === "draft-usulan" : subItem.sub === "rekapan"))));
+                                        const targetHref = subItem.type === "direct" ? ((subItem as any).href ?? "/kelembagaan/musrenbang") : `/dashboard?tab=${subItem.tab}&sub=${subItem.sub}`;
+                                       return (
+                                         <Link
+                                           key={subItem.label}
+                                           href={targetHref}
+                                           onClick={() => setIsOpen(false)}
+                                           className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-xs group ${
+                                             isSubActive
+                                               ? (isHackerTheme ? "bg-cyan-900/50 text-cyan-300 font-bold border border-cyan-500/50 backdrop-blur-sm" : "bg-emerald-600 text-white font-bold")
+                                               : (isHackerTheme ? "text-slate-400 hover:bg-slate-800/60 hover:text-cyan-400 font-mono backdrop-blur-sm" : "text-slate-500 hover:bg-emerald-50 hover:text-emerald-700 font-medium")
+                                           }`}
+                                         >
+                                           <subItem.icon size={14} className={`${isSubActive ? 'text-white' : 'text-emerald-500 group-hover:scale-110 transition-transform'}`} />
+                                           <span>{subItem.label}</span>
+                                         </Link>
+                                       );
+                                     })}
+                                   </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        );
+                      }
+
                       return (
                         <Link
                           key={item.name}
@@ -1777,20 +1854,25 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                     </div>
                     <div className="flex flex-col min-w-0 pr-2">
                         <span className={`text-[11px] font-bold truncate tracking-tight ${isHackerTheme ? 'text-cyan-400 font-mono drop-shadow-[0_0_5px_rgba(34,211,238,0.8)]' : 'text-slate-800'}`}>{session?.user?.name || "Aparatur Desa"}</span>
-                        <span className={`text-[9px] font-bold uppercase tracking-widest truncate ${isHackerTheme ? 'text-emerald-500 animate-pulse font-mono' : 'text-emerald-600'}`}>SYSTEM_ADMIN</span>
+                        <span className={`text-[9px] font-bold uppercase tracking-widest truncate ${isHackerTheme ? 'text-emerald-500 animate-pulse font-mono' : 'text-emerald-600'}`}>
+                            {(session?.user as any)?.role || (role === "KAUR_PERENCANAAN" ? "KAUR PERENCANAAN" : "SYSTEM_ADMIN")}
+                        </span>
                     </div>
                 </div>
                 
                 <div className="flex items-center gap-1 shrink-0">
                     <button 
+                        onClick={() => setIsNotifOpen(true)}
                         title="Notifikasi"
                         className={`w-8 h-8 flex items-center justify-center rounded-full transition-all relative group ${isHackerTheme ? 'text-cyan-500 hover:text-cyan-300 hover:bg-slate-800' : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'}`}
                     >
                         <Bell size={16} className={`group-hover:rotate-12 transition-transform ${isHackerTheme ? 'animate-bounce' : ''}`} />
-                        <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse" />
+                        {unreadCount > 0 && (
+                            <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
+                        )}
                     </button>
                     <button 
-                        onClick={() => signOut()}
+                        onClick={() => signOut({ callbackUrl: '/login' })}
                         title="Keluar Sistem"
                         className={`w-8 h-8 flex items-center justify-center rounded-full transition-all group ${isHackerTheme ? 'text-rose-500 hover:text-rose-400 hover:bg-slate-800' : 'text-slate-400 hover:text-rose-500 hover:bg-rose-50'}`}
                     >
@@ -1801,15 +1883,19 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
           ) : (
             <div className="flex flex-col items-center gap-3">
               <button 
+                onClick={() => setIsNotifOpen(true)}
                 title="Notifikasi"
                 className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all relative"
               >
                   <Bell size={18} />
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse border-2 border-white" />
+                  {unreadCount > 0 && (
+                      <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse border-2 border-white" />
+                  )}
               </button>
               <button 
-                onClick={() => signOut()}
+                onClick={() => signOut({ callbackUrl: '/login' })}
                 className="w-10 h-10 flex items-center justify-center rounded-xl text-rose-500 hover:bg-rose-50 transition-all"
+                title="Keluar Sistem"
               >
                 <LogOut size={18} />
               </button>
@@ -1929,6 +2015,13 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
 
           </div>
       </div>
+
+      {/* GLOBAL NOTIFICATION PANEL DRAWER */}
+      <GlobalNotificationPanel 
+          isOpen={isNotifOpen} 
+          onClose={() => setIsNotifOpen(false)} 
+          isHackerTheme={isHackerTheme} 
+      />
     </>
   );
 };

@@ -1,4 +1,5 @@
 export function formatRelativeTime(date: Date): string {
+  if (!date || isNaN(date.getTime())) return "Baru saja";
   const now = new Date();
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
