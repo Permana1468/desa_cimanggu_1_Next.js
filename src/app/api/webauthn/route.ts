@@ -16,8 +16,6 @@ const rpID = new URL(expectedOrigin).hostname;
 
 export async function POST(req: NextRequest) {
   try {
-    console.log("HELLO FROM WEBAUTHN API");
-    
     const body = await req.json();
     const { action } = body;
 

@@ -638,8 +638,6 @@ export async function updateKesraUsulanUhc(id: string, data: any) {
             updateData.skkmTanggalKtp = new Date(updateData.skkmTanggalKtp);
         }
 
-        console.log("updateKesraUsulanUhc Payload:", updateData);
-
         const usulan = await prisma.kesraUsulanUhc.updateMany({
             where: { id, tenantId },
             data: updateData

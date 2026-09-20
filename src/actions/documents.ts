@@ -231,7 +231,6 @@ export async function ensureDefaultSKKMTemplate(targetTenantId?: string) {
                     formSchema: safeSchema
                 } as any
             });
-            console.log("Successfully seeded SKKM template for tenant:", validTenantId);
         } else {
             // Update form schema to guarantee latest 17 fields match exact prompt specs
             await prisma.letterTemplate.update({

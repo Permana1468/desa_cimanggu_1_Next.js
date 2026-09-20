@@ -14,6 +14,7 @@ export default function SessionTimeoutHandler() {
 
   // 0. Console Developer Signature
   useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
     console.log(
       `%c
 ███╗   ███╗██╗   ██╗██╗  ██╗ █████╗ ███╗   ███╗ █████╗ ██████╗ 

@@ -3,7 +3,6 @@ import prisma from '@/lib/prisma';
 
 export async function GET() {
   try {
-    console.log('Adding columns...');
     await prisma.$executeRawUnsafe(`ALTER TABLE "SensusPoint" ADD COLUMN IF NOT EXISTS "status" TEXT DEFAULT 'MENUNGGU_VERIFIKASI'`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "SensusPoint" ADD COLUMN IF NOT EXISTS "createdById" TEXT`);
     await prisma.$executeRawUnsafe(`ALTER TABLE "SensusPoint" ADD COLUMN IF NOT EXISTS "verifiedById" TEXT`);

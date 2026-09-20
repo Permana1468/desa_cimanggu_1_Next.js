@@ -22,7 +22,7 @@ export const TechNightCanvas: React.FC = () => {
             height = canvas.height = window.innerHeight;
         };
 
-        window.addEventListener('resize', handleResize);
+        window.addEventListener('resize', handleResize, { passive: true });
 
         // Track mouse position for interactive light aura
         let mouseX = width / 2;
@@ -35,7 +35,7 @@ export const TechNightCanvas: React.FC = () => {
             targetMouseY = e.clientY;
         };
 
-        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
         // Optimized Particle System for 60fps performance
         const isMobile = width < 768;

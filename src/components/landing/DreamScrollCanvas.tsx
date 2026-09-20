@@ -45,26 +45,34 @@ export function DreamScrollCanvas({ children }: DreamScrollCanvasProps) {
         let animationFrameId: number;
         let currentFrame = 0;
         let targetFrame = 0;
+        let cachedWinHeight = window.innerHeight;
+        let lastDrawnFrameIndex = -1;
+        let lastDrawnScale = -1;
 
         const updateCanvasSize = () => {
             if (!canvas) return;
             const width = window.innerWidth;
             const height = window.innerHeight;
-            const dpr = window.devicePixelRatio || 1;
+            cachedWinHeight = height;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2); // Cap DPR at 2 for performance
             const targetWidth = Math.round(width * dpr);
             const targetHeight = Math.round(height * dpr);
 
             if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
                 canvas.width = targetWidth;
                 canvas.height = targetHeight;
+                lastDrawnFrameIndex = -1; // Force redraw on resize
             }
         };
+
+        updateCanvasSize();
+        window.addEventListener("resize", updateCanvasSize, { passive: true });
 
         const drawImageCover = (img: HTMLImageElement, scale: number = 1.0) => {
             if (!ctx || !canvas || !img.complete || img.naturalWidth === 0) return;
 
             ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = "high";
+            ctx.imageSmoothingQuality = "medium"; // Medium smoothing for better frame rate
 
             const imageAspect = img.naturalWidth / img.naturalHeight;
             const canvasAspect = canvas.width / canvas.height;
@@ -88,15 +96,14 @@ export function DreamScrollCanvas({ children }: DreamScrollCanvasProps) {
         };
 
         const render = () => {
-            updateCanvasSize();
-
             if (containerRef.current) {
                 const rect = containerRef.current.getBoundingClientRect();
-                const totalScrollable = rect.height - window.innerHeight;
+                const totalScrollable = rect.height - cachedWinHeight;
                 if (totalScrollable > 0) {
                     const scrollY = -rect.top;
                     const progress = Math.max(0, Math.min(1, scrollY / totalScrollable));
-                    setScrollProgress(progress);
+                    
+                    setScrollProgress(prev => Math.abs(prev - progress) > 0.0005 ? progress : prev);
 
                     targetFrame = Math.min(
                         TOTAL_FRAMES - 1,
@@ -106,38 +113,44 @@ export function DreamScrollCanvas({ children }: DreamScrollCanvasProps) {
             }
 
             // Smooth LERP for frame transitions
-            currentFrame += (targetFrame - currentFrame) * 0.12;
+            currentFrame += (targetFrame - currentFrame) * 0.15;
             const targetIndex = Math.round(currentFrame);
 
             // Dynamic 3D camera forward push (1.0 -> 1.06 scale)
             const progressRatio = currentFrame / (TOTAL_FRAMES - 1);
             const cameraParallaxScale = 1.0 + progressRatio * 0.06;
 
-            let imgToDraw: HTMLImageElement | null = null;
-            if (imagesRef.current[targetIndex] && imagesRef.current[targetIndex].complete && imagesRef.current[targetIndex].naturalWidth > 0) {
-                imgToDraw = imagesRef.current[targetIndex];
-            } else {
-                for (let i = targetIndex; i >= 0; i--) {
-                    if (imagesRef.current[i] && imagesRef.current[i].complete && imagesRef.current[i].naturalWidth > 0) {
-                        imgToDraw = imagesRef.current[i];
-                        break;
-                    }
-                }
-                if (!imgToDraw) {
-                    for (let i = targetIndex + 1; i < TOTAL_FRAMES; i++) {
+            // Only redraw if frame index or scale has changed significantly
+            if (targetIndex !== lastDrawnFrameIndex || Math.abs(cameraParallaxScale - lastDrawnScale) > 0.001) {
+                let imgToDraw: HTMLImageElement | null = null;
+                if (imagesRef.current[targetIndex] && imagesRef.current[targetIndex].complete && imagesRef.current[targetIndex].naturalWidth > 0) {
+                    imgToDraw = imagesRef.current[targetIndex];
+                } else {
+                    for (let i = targetIndex; i >= 0; i--) {
                         if (imagesRef.current[i] && imagesRef.current[i].complete && imagesRef.current[i].naturalWidth > 0) {
                             imgToDraw = imagesRef.current[i];
                             break;
                         }
                     }
+                    if (!imgToDraw) {
+                        for (let i = targetIndex + 1; i < TOTAL_FRAMES; i++) {
+                            if (imagesRef.current[i] && imagesRef.current[i].complete && imagesRef.current[i].naturalWidth > 0) {
+                                imgToDraw = imagesRef.current[i];
+                                break;
+                            }
+                        }
+                    }
                 }
-            }
 
-            if (imgToDraw) {
-                lastDrawnImageRef.current = imgToDraw;
-                drawImageCover(imgToDraw, cameraParallaxScale);
-            } else if (lastDrawnImageRef.current) {
-                drawImageCover(lastDrawnImageRef.current, cameraParallaxScale);
+                if (imgToDraw) {
+                    lastDrawnImageRef.current = imgToDraw;
+                    lastDrawnFrameIndex = targetIndex;
+                    lastDrawnScale = cameraParallaxScale;
+                    drawImageCover(imgToDraw, cameraParallaxScale);
+                } else if (lastDrawnImageRef.current) {
+                    lastDrawnScale = cameraParallaxScale;
+                    drawImageCover(lastDrawnImageRef.current, cameraParallaxScale);
+                }
             }
 
             animationFrameId = requestAnimationFrame(render);
@@ -146,6 +159,7 @@ export function DreamScrollCanvas({ children }: DreamScrollCanvasProps) {
         render();
 
         return () => {
+            window.removeEventListener("resize", updateCanvasSize);
             cancelAnimationFrame(animationFrameId);
         };
     }, []);
