@@ -35,6 +35,8 @@ import { LandingStats } from '../components/landing/LandingStats';
 import { LandingNews } from '../components/landing/LandingNews';
 import { LandingOrganization } from '../components/landing/LandingOrganization';
 import { LandingAspiration } from '../components/landing/LandingAspiration';
+import { DreamScrollCanvas, ParallaxStage } from '../components/landing/DreamScrollCanvas';
+import { DreamHeroOverlay } from '../components/landing/DreamHeroOverlay';
 import { LandingSectionsWrapper } from '../components/landing/LandingSectionsWrapper';
 import { cookies } from 'next/headers';
 
@@ -92,15 +94,268 @@ export default async function LandingPage() {
     return (
         <LandingThemeProvider initialIsNightMode={initialIsNightMode}>
             <SmoothScroll>
-                {/* Real-time Dynamic Ambient Canvas & Particle Night Background */}
-                <TechNightCanvas />
+                {/* Desktop View: Fullscreen 3D Scroll Canvas with Transparent Glass UI & 3D Parallax Stages */}
+                <div className="hidden md:block min-h-screen bg-black text-white selection:bg-cyan-500 selection:text-black relative">
+                    <DreamScrollCanvas>
+                        {/* Fixed Glass Navbar */}
+                        <LandingNavbar siteData={siteData} />
 
-                <LandingNavbar siteData={siteData} />
-                <MobileBottomNav />
-                <LandingHero siteData={siteData} heroImages={heroImages} />
+                        {/* Anchor Targets along the 600vh scroll container for smooth navbar navigation */}
+                        <div className="absolute top-[0vh] left-0 pointer-events-none" id="beranda" />
+                        <div className="absolute top-[130vh] left-0 pointer-events-none" id="layanan" />
+                        <div className="absolute top-[150vh] left-0 pointer-events-none" id="wilayah" />
+                        <div className="absolute top-[170vh] left-0 pointer-events-none" id="statistik" />
+                        <div className="absolute top-[260vh] left-0 pointer-events-none" id="profil" />
+                        <div className="absolute top-[300vh] left-0 pointer-events-none" id="peta-interaktif" />
+                        <div className="absolute top-[390vh] left-0 pointer-events-none" id="berita" />
+                        <div className="absolute top-[420vh] left-0 pointer-events-none" id="organisasi" />
+                        <div className="absolute top-[450vh] left-0 pointer-events-none" id="lembaga" />
+                        <div className="absolute top-[520vh] left-0 pointer-events-none" id="aspirasi" />
 
-                <LandingSectionsWrapper>
-                    <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 space-y-20 sm:space-y-32">
+                        {/* STAGE 1 (0.00 - 0.28): HERO SECTION */}
+                        <ParallaxStage startProgress={0.00} endProgress={0.28}>
+                            <DreamHeroOverlay siteData={siteData} />
+                        </ParallaxStage>
+
+                        {/* STAGE 2 (0.30 - 0.46): TELEMETRY DATA & STATISTIK 3D MONOLITHS */}
+                        <ParallaxStage startProgress={0.30} endProgress={0.46}>
+                            <LandingStats statsData={statsRes} />
+                        </ParallaxStage>
+
+                        {/* STAGE 3 (0.46 - 0.60): PROFIL DESA (Pure Floating 3D Typography - Fits Viewport 100%) */}
+                        <ParallaxStage startProgress={0.46} endProgress={0.60}>
+                            <div className="w-full max-w-7xl mx-auto space-y-6 p-2">
+                                <div className="text-center">
+                                    <div className="inline-flex items-center gap-2 text-yellow-300 font-extrabold tracking-[0.25em] uppercase text-xs mb-1.5 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
+                                        <Globe size={16} />
+                                        <span>IDENTITAS & PROFILE DESA</span>
+                                    </div>
+                                    <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight drop-shadow-[0_6px_25px_rgba(0,0,0,0.95)]">
+                                        Profil {siteData.title}
+                                    </h2>
+                                </div>
+
+                                <div className="flex flex-col lg:flex-row gap-8 items-center">
+                                    <div className="w-full lg:w-2/5 aspect-video lg:aspect-square rounded-3xl overflow-hidden border border-white/20 relative group shadow-[0_0_40px_rgba(0,0,0,0.8)] shrink-0">
+                                        <Image
+                                            src={siteData.about_image || "/images/sawah.png"}
+                                            alt="Kantor Desa"
+                                            fill
+                                            sizes="(max-width: 1024px) 100vw, 40vw"
+                                            className="object-cover opacity-90 group-hover:scale-110 transition-transform duration-1000"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
+                                        <div className="absolute inset-x-0 bottom-0 p-5">
+                                            <div className="flex items-center gap-2 text-yellow-300 font-bold text-xs mb-1 drop-shadow">
+                                                <Sparkles size={14} /> PUSAT PELAYANAN UTAMA
+                                            </div>
+                                            <h4 className="text-xl font-extrabold text-white drop-shadow">Kantor Kepala Desa</h4>
+                                            <p className="text-slate-300 text-xs mt-0.5 drop-shadow">Cibungbulang, Kabupaten Bogor</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="w-full lg:w-3/5 text-slate-200 space-y-4 text-left">
+                                        <h3 className="text-2xl md:text-3xl font-extrabold text-white drop-shadow-[0_4px_15px_rgba(0,0,0,0.95)]">
+                                            {siteData.about_title}
+                                        </h3>
+                                        <p className="leading-relaxed text-slate-200 text-sm md:text-base font-light whitespace-pre-wrap border-l-2 border-amber-400/60 pl-4 py-1 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)] max-h-[180px] overflow-y-auto custom-scrollbar">
+                                            {siteData.about_text}
+                                        </p>
+                                        <div className="pt-2 flex items-center gap-6">
+                                            <Link 
+                                                href="/profil" 
+                                                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-[0_0_25px_rgba(245,158,11,0.5)]"
+                                            >
+                                                <span>Baca Profil Selengkapnya</span>
+                                                <ChevronRight size={16} />
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ParallaxStage>
+
+                        {/* STAGE 4 (0.60 - 0.74): GEOSPATIAL COMMAND RADAR (Fits Viewport 100%) */}
+                        <ParallaxStage startProgress={0.60} endProgress={0.74}>
+                            <div className="w-full max-w-7xl mx-auto space-y-6 p-2">
+                                <div className="text-center">
+                                    <div className="inline-flex items-center gap-2 text-cyan-300 font-extrabold tracking-[0.25em] uppercase text-xs mb-1.5 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
+                                        <Compass size={16} />
+                                        <span>GEOSPATIAL COMMAND RADAR</span>
+                                    </div>
+                                    <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight drop-shadow-[0_6px_25px_rgba(0,0,0,0.95)]">
+                                        Peta Interaktif WebGIS
+                                    </h2>
+                                </div>
+
+                                <div className="rounded-3xl overflow-hidden border border-white/20 shadow-2xl flex flex-col md:flex-row min-h-[380px] relative bg-black/40 backdrop-blur-md">
+                                    <div className="w-full md:w-1/3 bg-black/50 p-6 border-r border-white/20 flex flex-col justify-between gap-4 z-10 text-left">
+                                        <div className="space-y-3">
+                                            <div className="flex items-center justify-between border-b border-white/20 pb-2">
+                                                <span className="text-xs font-black uppercase tracking-widest text-cyan-300 flex items-center gap-2">
+                                                    <Radio size={15} className="animate-pulse" /> WILAYAH DUSUN
+                                                </span>
+                                                <span className="text-[10px] font-mono text-cyan-200 border border-white/25 px-2 py-0.5 rounded-full">
+                                                    LAT: -6.5892°
+                                                </span>
+                                            </div>
+
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Cari wilayah RW / RT / Dusun..."
+                                                    className="w-full bg-black/50 border border-white/20 rounded-2xl py-2 pl-9 pr-4 text-white placeholder-slate-400 text-xs focus:outline-none focus:border-yellow-400 focus:shadow-[0_0_15px_rgba(250,204,21,0.3)] transition-all"
+                                                />
+                                                <Search className="absolute left-3 top-2.5 text-cyan-300" size={14} />
+                                            </div>
+
+                                            <div className="space-y-2 custom-scrollbar max-h-[140px] overflow-y-auto pr-1">
+                                                <MapCategory title="Dusun 1" desc="Mencakup RW 01, RW 02 • Pusat Pemerintahan Desa" active />
+                                                <MapCategory title="Dusun 2" desc="Mencakup RW 03, RW 04 • Wilayah Pertanian & Pemukiman" />
+                                                <MapCategory title="Dusun 3" desc="Mencakup RW 05, RW 06 • Kawasan UMKM Produktif" />
+                                                <MapCategory title="Dusun 4" desc="Mencakup RW 07, RW 08, RW 09 • Zona Posyandu & Lembaga" />
+                                            </div>
+                                        </div>
+
+                                        <Link
+                                            href="/dashboard/maps"
+                                            className="w-full py-2.5 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl text-center transition-all shadow-[0_0_20px_rgba(245,158,11,0.5)] flex items-center justify-center gap-2"
+                                        >
+                                            <span>Buka WebGIS Layar Penuh</span>
+                                            <ChevronRight size={16} />
+                                        </Link>
+                                    </div>
+
+                                    <div className="w-full md:w-2/3 bg-black/60 relative group overflow-hidden flex items-center justify-center min-h-[280px]">
+                                        <Image
+                                            src="https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=1600&auto=format&fit=crop"
+                                            alt="Map Background"
+                                            fill
+                                            className="object-cover opacity-50 group-hover:scale-105 transition-transform duration-1000 mix-blend-luminosity"
+                                        />
+                                        <div className="absolute w-[450px] h-[450px] rounded-full border border-cyan-400/30 animate-radar-sweep pointer-events-none flex items-center justify-center">
+                                            <div className="w-full h-0.5 bg-gradient-to-r from-cyan-300 via-transparent to-transparent"></div>
+                                        </div>
+                                        <div className="absolute w-56 h-56 rounded-full border border-cyan-400/20 pointer-events-none"></div>
+                                        <div className="absolute w-32 h-32 rounded-full border border-cyan-400/30 pointer-events-none"></div>
+                                        <div className="absolute w-4 h-4 rounded-full bg-cyan-300 shadow-[0_0_15px_rgba(6,182,212,1)] animate-ping pointer-events-none"></div>
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-black/60 via-transparent to-black/40 pointer-events-none"></div>
+                                        <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md border border-white/20 px-3 py-1 rounded-xl text-[10px] font-mono text-cyan-300 flex items-center gap-2 shadow-lg">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                            WEBGIS RADAR: ONLINE
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ParallaxStage>
+
+                        {/* STAGE 5 (0.74 - 0.88): STRUKTUR ORGANISASI & LEMBAGA */}
+                        <ParallaxStage startProgress={0.74} endProgress={0.88}>
+                            <div className="w-full max-w-7xl mx-auto space-y-8 p-2">
+                                <LandingOrganization orgData={orgData} />
+
+                                {/* Lembaga Kemasyarakatan Section */}
+                                <div className="space-y-4 pt-2">
+                                    <div className="text-center">
+                                        <div className="inline-flex items-center gap-2 text-cyan-300 font-extrabold tracking-[0.25em] uppercase text-xs mb-1 drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
+                                            <ShieldCheck size={16} />
+                                            <span>MITRA & EKOSISTEM DESA</span>
+                                        </div>
+                                        <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight drop-shadow-[0_6px_25px_rgba(0,0,0,0.95)]">
+                                            Lembaga Kemasyarakatan
+                                        </h2>
+                                    </div>
+                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                                        {lembagaRes?.map((lembaga: any) => (
+                                            <div 
+                                                key={lembaga.id} 
+                                                className="flex flex-col items-center justify-center p-3 text-center group hover:-translate-y-1 transition-all duration-300"
+                                            >
+                                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-b from-yellow-500/20 to-amber-600/20 border border-yellow-400/50 flex items-center justify-center mb-2 group-hover:scale-110 shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-transform">
+                                                    <ShieldCheck size={26} className="text-yellow-400" />
+                                                </div>
+                                                <span className="text-[11px] font-extrabold text-white uppercase tracking-wider leading-tight block drop-shadow">
+                                                    {lembaga.name}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </ParallaxStage>
+
+                        {/* STAGE 6 (0.88 - 0.95): SUARA WARGA ASPIRASI */}
+                        <ParallaxStage startProgress={0.88} endProgress={0.95}>
+                            <div className="w-full max-w-7xl mx-auto p-2">
+                                <LandingAspiration />
+                            </div>
+                        </ParallaxStage>
+
+                        {/* STAGE 7 (0.95 - 1.00): FOOTER DESKTOP (Clean Dedicated Viewport Stage) */}
+                        <ParallaxStage startProgress={0.95} endProgress={1.00}>
+                            <div className="w-full max-w-7xl mx-auto p-4">
+                                <footer className="pt-6 text-slate-300 border-t border-white/20">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-6 text-left">
+                                        <div className="col-span-1 sm:col-span-2 space-y-3">
+                                            <div className="flex items-center gap-3">
+                                                <Image src={siteData.logo || "/images/logo-bogor.png"} alt="Logo" width={40} height={40} className="drop-shadow-[0_0_12px_rgba(250,204,21,0.6)]" />
+                                                <span className="text-2xl font-black text-white tracking-wider uppercase">{siteData.title}</span>
+                                            </div>
+                                            <p className="max-w-xl text-xs sm:text-sm leading-relaxed text-slate-200 font-normal">
+                                                Pusat digitalisasi layanan dan informasi Sistem Digitalisasi Desa (SDD) Pemerintah Desa Cimanggu I, Kecamatan Cibungbulang, Kabupaten Bogor.
+                                            </p>
+                                            <div className="flex items-center gap-3 pt-1">
+                                                <span className="flex h-2.5 w-2.5 relative shrink-0">
+                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                                                </span>
+                                                <span className="text-xs font-mono text-cyan-300 font-bold uppercase tracking-wider">
+                                                    SDD CYBERNET v2.4 SERVER ONLINE
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <h4 className="text-white font-extrabold mb-3 uppercase tracking-widest text-xs border-b border-white/20 pb-2">Tautan Cepat</h4>
+                                            <ul className="space-y-2 text-xs sm:text-sm font-medium">
+                                                <li><a href="#beranda" className="hover:text-yellow-400 transition-colors">Beranda Utama</a></li>
+                                                <li><a href="#profil" className="hover:text-yellow-400 transition-colors">Profil Desa</a></li>
+                                                <li><a href="#statistik" className="hover:text-yellow-400 transition-colors">Statistik Penduduk</a></li>
+                                                <li><a href="#berita" className="hover:text-yellow-400 transition-colors">Kabar Desa</a></li>
+                                            </ul>
+                                        </div>
+
+                                        <div>
+                                            <h4 className="text-white font-extrabold mb-3 uppercase tracking-widest text-xs border-b border-white/20 pb-2">Kontak Layanan</h4>
+                                            <ul className="space-y-2 text-xs sm:text-sm font-medium">
+                                                <li>Jl. Raya Cibungbulang No. 1, Bogor</li>
+                                                <li>Email: info@cimanggu1.desa.id</li>
+                                                <li>Telp: (0251) 1234567</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 py-3 border-t border-white/10 text-[10px] sm:text-[11px] uppercase font-bold tracking-[0.2em] text-center sm:text-left text-slate-300">
+                                        <span>© 2026 PEMDES CIMANGGU I. ALL RIGHTS RESERVED.</span>
+                                        <span className="text-cyan-300">POWERED BY SYSTEM DIGITALISASI DESA (SDD)</span>
+                                    </div>
+                                </footer>
+                            </div>
+                        </ParallaxStage>
+                    </DreamScrollCanvas>
+                </div>
+
+                {/* Mobile View: Locked & Untouched */}
+                <div className="block md:hidden">
+                    {/* Real-time Dynamic Ambient Canvas & Particle Night Background */}
+                    <TechNightCanvas />
+
+                    <LandingNavbar siteData={siteData} />
+                    <MobileBottomNav />
+                    <LandingHero siteData={siteData} heroImages={heroImages} />
+
+                    <LandingSectionsWrapper>
+                        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20 space-y-20 sm:space-y-32">
                         {/* Cyber Interactive Statistics Dashboard */}
                         <LandingStats statsData={statsRes} />
 
@@ -370,6 +625,7 @@ export default async function LandingPage() {
                 </footer>
             </div>
             </LandingSectionsWrapper>
+            </div>
             </SmoothScroll>
         </LandingThemeProvider>
     );
@@ -377,15 +633,15 @@ export default async function LandingPage() {
 
 function FeatureCard({ icon: Icon, title, desc, color, badge }: any) {
     const colorStyles: any = {
-        blue: "border-cyan-500/30 text-cyan-400 bg-cyan-500/15 shadow-[0_0_20px_rgba(6,182,212,0.2)]",
-        yellow: "border-yellow-500/30 text-yellow-400 bg-yellow-500/15 shadow-[0_0_20px_rgba(250,204,21,0.2)]",
-        purple: "border-purple-500/30 text-purple-400 bg-purple-500/15 shadow-[0_0_20px_rgba(168,85,247,0.2)]"
+        blue: "border-white/20 text-cyan-300 bg-white/15 shadow-2xl",
+        yellow: "border-white/20 text-yellow-300 bg-white/15 shadow-2xl",
+        purple: "border-white/20 text-purple-300 bg-white/15 shadow-2xl"
     };
 
     return (
-        <div className="group bg-slate-900/60 backdrop-blur-2xl border border-white/10 hover:border-cyan-400/50 transition-all duration-500 rounded-3xl p-8 flex flex-col justify-between transform hover:-translate-y-3 shadow-xl hover:shadow-[0_0_35px_rgba(6,182,212,0.25)] relative overflow-hidden h-full">
+        <div className="group bg-white/10 backdrop-blur-2xl border border-white/20 hover:border-amber-400/50 hover:bg-white/15 transition-all duration-500 rounded-3xl p-8 flex flex-col justify-between transform hover:-translate-y-2 shadow-2xl relative overflow-hidden h-full">
             {/* Top Laser Border Sweep */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
 
             <div>
                 <div className="flex items-center justify-between mb-8">
@@ -393,7 +649,7 @@ function FeatureCard({ icon: Icon, title, desc, color, badge }: any) {
                         <Icon size={34} />
                     </div>
                     {badge && (
-                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 bg-white/5 border border-white/10 px-3 py-1 rounded-full">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-yellow-300 bg-white/15 border border-white/25 px-3 py-1 rounded-full backdrop-blur-md">
                             {badge}
                         </span>
                     )}
@@ -402,12 +658,12 @@ function FeatureCard({ icon: Icon, title, desc, color, badge }: any) {
                 <h4 className="text-2xl font-extrabold text-white mb-4 group-hover:text-yellow-400 transition-colors">
                     {title}
                 </h4>
-                <p className="text-slate-400 text-sm leading-relaxed font-light">
+                <p className="text-slate-300 text-sm leading-relaxed font-light">
                     {desc}
                 </p>
             </div>
 
-            <div className="mt-8 pt-4 border-t border-white/5 flex items-center justify-between text-[11px] font-bold text-cyan-400 uppercase tracking-wider">
+            <div className="mt-8 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] font-bold text-cyan-400 uppercase tracking-wider">
                 <span>AKTIF & TERINTEGRASI</span>
                 <span className="group-hover:translate-x-1 transition-transform">→</span>
             </div>
@@ -419,8 +675,8 @@ function MapCategory({ title, desc, active = false }: any) {
     return (
         <div className={`p-4 rounded-2xl cursor-pointer transition-all border ${
             active 
-                ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]' 
-                : 'bg-slate-900/60 border-white/5 text-slate-300 hover:bg-slate-800 hover:border-white/15'
+                ? 'bg-cyan-950/50 border-cyan-400 text-cyan-300 shadow-[0_0_20px_rgba(6,182,212,0.4)]' 
+                : 'bg-slate-950/40 border-white/10 text-slate-300 hover:bg-slate-900/60 hover:border-white/20'
         }`}>
             <div className="flex justify-between items-center mb-1">
                 <h5 className="font-extrabold text-sm">{title}</h5>

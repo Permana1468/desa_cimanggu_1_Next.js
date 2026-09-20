@@ -132,8 +132,21 @@ textarea:-webkit-autofill:focus {
 /* ── BASE & ACCESSIBILITY ───────────────────────────── */
 html {
   scroll-behavior: smooth;
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE & Edge */
 }
-body { margin: 0; transition: background-color 0.5s ease, color 0.5s ease; }
+body {
+  margin: 0;
+  transition: background-color 0.5s ease, color 0.5s ease;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
+}
 
 /* KEYBOARD NAVIGATION (:FOCUS-VISIBLE) */
 *:focus-visible {

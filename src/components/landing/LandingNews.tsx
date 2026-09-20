@@ -58,7 +58,7 @@ export const LandingNews = ({ newsData }: LandingNewsProps) => {
                     {newsData.slice(currentNewsIndex, currentNewsIndex + 3).map((news, idx) => (
                         <div
                             key={news.id}
-                            className="group bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden hover:border-cyan-500/40 transition-all duration-500 hover:-translate-y-2 shadow-xl hover:shadow-[0_0_30px_rgba(6,182,212,0.2)] flex flex-col justify-between"
+                            className="group bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl overflow-hidden hover:border-amber-400/50 hover:bg-white/15 transition-all duration-500 hover:-translate-y-2 shadow-2xl flex flex-col justify-between"
                         >
                             <div>
                                 <div className="relative aspect-[16/10] overflow-hidden">
@@ -69,8 +69,8 @@ export const LandingNews = ({ newsData }: LandingNewsProps) => {
                                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                                         className="object-cover transition-transform duration-1000 group-hover:scale-110"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
-                                    <div className="absolute top-4 left-4 bg-slate-950/80 backdrop-blur-md border border-yellow-500/40 text-yellow-400 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-1.5">
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                                    <div className="absolute top-4 left-4 bg-white/15 backdrop-blur-md border border-yellow-400/50 text-yellow-300 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-1.5">
                                         <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping"></span>
                                         Kabar Desa
                                     </div>

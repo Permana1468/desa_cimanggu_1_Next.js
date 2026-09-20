@@ -41,9 +41,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
         }
     }, [activeIndex]);
 
-    if (isDualMode) {
-        return null;
-    }
+    // Ensure navbar is always visible in all modes
 
     const handleMouseEnter = (index: number) => {
         const el = itemRefs.current[index];
@@ -84,8 +82,8 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
 
     const navMenuItems = [
         { name: 'Beranda', id: 'beranda' },
-        { 
-            name: 'Informasi Publik', 
+        {
+            name: 'Informasi Publik',
             id: 'informasi-publik',
             hasDropdown: true,
             columns: [
@@ -112,8 +110,8 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                 }
             ]
         },
-        { 
-            name: 'Lembaga Desa', 
+        {
+            name: 'Lembaga Desa',
             id: 'lembaga-desa',
             hasDropdown: true,
             items: [
@@ -122,8 +120,8 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                 { name: 'PKK & Posyandu', id: 'lembaga' },
             ]
         },
-        { 
-            name: 'Kabar & Data', 
+        {
+            name: 'Kabar & Data',
             id: 'kabar-data',
             hasDropdown: true,
             items: [
@@ -136,201 +134,185 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
     ];
 
     return (
-        <header className={`fixed top-0 w-full z-50 transition-all duration-500 ${
-            isScrolled 
-                ? 'bg-[#080e1c]/95 backdrop-blur-xl border-b border-cyan-500/20 shadow-[0_10px_30px_rgba(6,182,212,0.15)] py-2.5 sm:py-3' 
-                : 'bg-transparent py-4 sm:py-6'
-        }`}>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 flex justify-between items-center">
-                {/* Logo & Branding */}
-                <div className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
-                    <div className="relative w-8 h-8 sm:w-10 sm:h-10 transition-transform duration-300 group-hover:scale-110 shrink-0">
-                        <Image
-                            src={siteData?.logo || "/images/logo-bogor.png"}
-                            alt="Logo Desa"
-                            fill
-                            sizes="40px"
-                            priority
-                            className="object-contain drop-shadow-[0_0_12px_rgba(250,204,21,0.6)]"
-                        />
-                    </div>
-                    <div className="flex flex-col justify-center">
-                        <div className="flex items-center gap-1.5 sm:gap-2">
-                            <span className="text-white font-black text-xs sm:text-[15px] md:text-[17px] tracking-wide leading-none uppercase whitespace-nowrap">
-                                {siteData?.title || "DESA CIMANGGU I"}
-                            </span>
-                            <span className="flex h-2 w-2 relative shrink-0">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        <header className="fixed top-0 w-full z-50 bg-transparent py-5 sm:py-6 transition-all duration-300">
+            <div className="w-full px-6 sm:px-12 flex justify-between items-center">
+                {/* Left Side: Logo + Nav Links directly after */}
+                <div className="flex items-center gap-8 xl:gap-12">
+                    {/* Logo & Branding */}
+                    <div className="flex items-center gap-3 group shrink-0">
+                        <div className="relative w-8 h-8 sm:w-10 sm:h-10 transition-transform duration-300 group-hover:scale-110 shrink-0">
+                            <Image
+                                src={siteData?.logo || "/images/logo-bogor.png"}
+                                alt="Logo Desa"
+                                fill
+                                sizes="40px"
+                                priority
+                                className="object-contain drop-shadow-[0_0_12px_rgba(250,204,21,0.6)]"
+                            />
+                        </div>
+                        <div className="flex flex-col justify-center">
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                                <span className="text-white font-black text-xs sm:text-[15px] md:text-[17px] tracking-wide leading-none uppercase whitespace-nowrap drop-shadow">
+                                    {siteData?.title || "DESA CIMANGGU I"}
+                                </span>
+                                <span className="flex h-2 w-2 relative shrink-0">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                </span>
+                            </div>
+                            <span className="text-yellow-400 font-semibold text-[9px] sm:text-[11px] leading-none mt-1 tracking-wider whitespace-nowrap drop-shadow">
+                                Kecamatan Cibungbulang
                             </span>
                         </div>
-                        <span className="text-yellow-400 font-semibold text-[9px] sm:text-[11px] leading-none mt-1 tracking-wider whitespace-nowrap">
-                            Kecamatan Cibungbulang
-                        </span>
                     </div>
+
+                    {/* Desktop Clean Nav Menu (Directly after Logo, pure text links without card box) */}
+                    <nav
+                        className="hidden xl:flex items-center gap-6 xl:gap-8"
+                        onMouseLeave={handleMouseLeaveDropdown}
+                    >
+                        {navMenuItems.map((menu, idx) => {
+                            const commonClass = `relative z-10 text-[12px] xl:text-[13px] font-extrabold tracking-wide uppercase transition-colors duration-300 flex items-center gap-1.5 cursor-pointer drop-shadow ${activeIndex === idx ? 'text-yellow-400 border-b-2 border-yellow-400 pb-0.5' : 'text-slate-100 hover:text-yellow-400'
+                                }`;
+
+                            return (
+                                <div
+                                    key={idx}
+                                    ref={(el) => { itemRefs.current[idx] = el; }}
+                                    className="relative flex items-center"
+                                    onMouseEnter={() => {
+                                        setActiveIndex(idx);
+                                        if (menu.hasDropdown) {
+                                            handleMouseEnterDropdown(menu.id);
+                                        } else {
+                                            setActiveDropdown(null);
+                                        }
+                                    }}
+                                    onMouseLeave={handleMouseLeaveDropdown}
+                                >
+                                    {menu.isRoute ? (
+                                        <Link href={menu.path} className={commonClass} onClick={() => setActiveIndex(idx)}>
+                                            {menu.name}
+                                        </Link>
+                                    ) : (
+                                        <a href={`#${menu.id}`} className={commonClass} onClick={() => setActiveIndex(idx)}>
+                                            <span>{menu.name}</span>
+                                            {menu.hasDropdown && (
+                                                <ChevronDown
+                                                    size={13}
+                                                    className={`opacity-80 transition-transform duration-300 ${activeDropdown === menu.id ? 'rotate-180 text-yellow-400' : ''}`}
+                                                />
+                                            )}
+                                        </a>
+                                    )}
+
+                                    {/* Dropdown Megamenu (Informasi Publik) */}
+                                    {menu.hasDropdown && menu.id === 'informasi-publik' && activeDropdown === 'informasi-publik' && (
+                                        <div
+                                            className="absolute top-full left-0 mt-4 w-[550px] bg-black/60 backdrop-blur-2xl border border-white/20 rounded-[2rem] p-6 shadow-2xl z-50 animate-in fade-in slide-in-from-top-3 duration-300 flex gap-6"
+                                            onMouseEnter={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
+                                            onMouseLeave={handleMouseLeaveDropdown}
+                                        >
+                                            {menu.columns?.map((column, cIdx) => (
+                                                <div key={cIdx} className="flex-1 space-y-3">
+                                                    <div className="text-[11px] font-black text-cyan-300 uppercase tracking-widest pb-2 border-b border-white/15 flex items-center gap-1.5">
+                                                        <Sparkles size={12} /> {column.title}
+                                                    </div>
+                                                    <div className="flex flex-col gap-1.5">
+                                                        {column.items.map((subItem, sIdx) => (
+                                                            <a
+                                                                key={sIdx}
+                                                                href={`#${subItem.id}`}
+                                                                onClick={() => setActiveDropdown(null)}
+                                                                className="text-slate-200 hover:text-yellow-400 text-[12px] font-semibold transition-colors block py-1 hover:translate-x-1 duration-200"
+                                                            >
+                                                                {subItem.name}
+                                                            </a>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Standard Dropdown */}
+                                    {menu.hasDropdown && menu.id !== 'informasi-publik' && activeDropdown === menu.id && (
+                                        <div
+                                            className="absolute top-full left-0 mt-4 w-[220px] bg-black/60 backdrop-blur-2xl border border-white/20 rounded-[1.5rem] p-3.5 shadow-2xl z-50 animate-in fade-in slide-in-from-top-3 duration-300 flex flex-col gap-1.5"
+                                            onMouseEnter={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
+                                            onMouseLeave={handleMouseLeaveDropdown}
+                                        >
+                                            {menu.items?.map((subItem, sIdx) => (
+                                                <a
+                                                    key={sIdx}
+                                                    href={`#${subItem.id}`}
+                                                    onClick={() => setActiveDropdown(null)}
+                                                    className="text-slate-200 hover:text-yellow-400 text-[12px] font-semibold py-1.5 px-3 rounded-xl hover:bg-white/15 transition-all flex items-center justify-between group/sub"
+                                                >
+                                                    <span>{subItem.name}</span>
+                                                    <ChevronRight size={14} className="text-slate-300 group-hover/sub:text-yellow-400 group-hover/sub:translate-x-1 transition-transform" />
+                                                </a>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </nav>
                 </div>
 
-                {/* Desktop Cyber Nav Menu */}
-                <nav
-                    className="hidden xl:flex relative items-center bg-slate-900/60 backdrop-blur-xl border border-cyan-500/30 rounded-full p-1 shadow-[0_0_20px_rgba(6,182,212,0.15)] shrink-0"
-                    onMouseLeave={() => {
-                        handleMouseLeave();
-                        handleMouseLeaveDropdown();
-                    }}
-                >
-                    {/* Glowing Selection Pill */}
-                    <div
-                        className="absolute top-1 bottom-1 bg-gradient-to-r from-yellow-500/30 to-amber-500/30 border border-yellow-400/50 rounded-full transition-all duration-300 ease-out z-0 shadow-[0_0_15px_rgba(250,204,21,0.4)]"
-                        style={{
-                            left: `${pillStyle.left}px`,
-                            width: `${pillStyle.width}px`,
-                            opacity: pillStyle.opacity
-                        }}
-                    />
-
-                    {navMenuItems.map((menu, idx) => {
-                        const commonClass = `relative z-10 px-3 xl:px-4 py-1.5 text-[11px] xl:text-[12.5px] font-bold tracking-wide uppercase transition-colors duration-300 flex items-center gap-1 cursor-pointer ${
-                            activeIndex === idx ? 'text-yellow-400' : 'text-slate-300 hover:text-yellow-400'
-                        }`;
-
-                        return (
-                            <div
-                                key={idx}
-                                ref={(el) => { itemRefs.current[idx] = el; }}
-                                className="relative flex items-center"
-                                onMouseEnter={() => {
-                                    handleMouseEnter(idx);
-                                    if (menu.hasDropdown) {
-                                        handleMouseEnterDropdown(menu.id);
-                                    } else {
-                                        setActiveDropdown(null);
-                                    }
-                                }}
-                                onMouseLeave={handleMouseLeaveDropdown}
-                            >
-                                {menu.isRoute ? (
-                                    <Link href={menu.path} className={commonClass} onClick={() => setActiveIndex(idx)}>
-                                        {menu.name}
-                                    </Link>
-                                ) : (
-                                    <a href={`#${menu.id}`} className={commonClass} onClick={() => setActiveIndex(idx)}>
-                                        <span>{menu.name}</span>
-                                        {menu.hasDropdown && (
-                                            <ChevronDown 
-                                                size={13} 
-                                                className={`opacity-70 transition-transform duration-300 ${activeDropdown === menu.id ? 'rotate-180 text-yellow-400' : ''}`} 
-                                            />
-                                        )}
-                                    </a>
-                                )}
-
-                                {/* Dropdown Megamenu (Informasi Publik) */}
-                                {menu.hasDropdown && menu.id === 'informasi-publik' && activeDropdown === 'informasi-publik' && (
-                                    <div
-                                        className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[550px] bg-slate-950/95 backdrop-blur-2xl border border-cyan-500/30 rounded-[2rem] p-6 shadow-[0_10px_40px_rgba(6,182,212,0.3)] z-50 animate-in fade-in slide-in-from-top-3 duration-300 flex gap-6"
-                                        onMouseEnter={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
-                                        onMouseLeave={handleMouseLeaveDropdown}
-                                    >
-                                        {menu.columns?.map((column, cIdx) => (
-                                            <div key={cIdx} className="flex-1 space-y-3">
-                                                <div className="text-[11px] font-black text-cyan-400 uppercase tracking-widest pb-2 border-b border-cyan-500/20 flex items-center gap-1.5">
-                                                    <Sparkles size={12} /> {column.title}
-                                                </div>
-                                                <div className="flex flex-col gap-1.5">
-                                                    {column.items.map((subItem, sIdx) => (
-                                                        <a
-                                                            key={sIdx}
-                                                            href={`#${subItem.id}`}
-                                                            onClick={() => setActiveDropdown(null)}
-                                                            className="text-slate-300 hover:text-yellow-400 text-[12px] font-semibold transition-colors block py-1 hover:translate-x-1 duration-200"
-                                                        >
-                                                            {subItem.name}
-                                                        </a>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* Standard Dropdown */}
-                                {menu.hasDropdown && menu.id !== 'informasi-publik' && activeDropdown === menu.id && (
-                                    <div
-                                        className="absolute top-full left-1/2 -translate-x-1/2 mt-4 w-[220px] bg-slate-950/95 backdrop-blur-2xl border border-cyan-500/30 rounded-[1.5rem] p-3.5 shadow-[0_10px_40px_rgba(6,182,212,0.3)] z-50 animate-in fade-in slide-in-from-top-3 duration-300 flex flex-col gap-1.5"
-                                        onMouseEnter={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }}
-                                        onMouseLeave={handleMouseLeaveDropdown}
-                                    >
-                                        {menu.items?.map((subItem, sIdx) => (
-                                            <a
-                                                key={sIdx}
-                                                href={`#${subItem.id}`}
-                                                onClick={() => setActiveDropdown(null)}
-                                                className="text-slate-300 hover:text-yellow-400 text-[12px] font-semibold py-1.5 px-3 rounded-xl hover:bg-cyan-500/10 transition-all flex items-center justify-between group/sub"
-                                            >
-                                                <span>{subItem.name}</span>
-                                                <ChevronRight size={14} className="text-slate-500 group-hover/sub:text-yellow-400 group-hover/sub:translate-x-1 transition-transform" />
-                                            </a>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
-                </nav>
-
-                {/* Right Action Area - Round inline button group */}
-                <div className="hidden lg:flex items-center gap-2 shrink-0">
-                    <div className="flex items-center gap-1.5 p-1 rounded-full bg-slate-900/70 backdrop-blur-xl border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.15)]">
-                        {/* 1. Theme Mode (Light / Dark) */}
+                {/* Right Side: Quick Controls, Log In & Sign Up at Far Right */}
+                <div className="hidden lg:flex items-center gap-4 shrink-0">
+                    <div className="flex items-center gap-2">
                         <button
                             onClick={toggleNightMode}
-                            className="w-9 h-9 rounded-full border border-cyan-500/30 text-yellow-400 bg-slate-950/80 hover:scale-110 transition-all flex items-center justify-center relative overflow-hidden group cursor-pointer"
+                            className="w-9 h-9 rounded-full border border-white/20 text-yellow-300 bg-white/10 backdrop-blur-md hover:scale-110 transition-all flex items-center justify-center relative overflow-hidden group cursor-pointer"
                             title={isNightMode ? "Ganti ke Mode Terang" : "Ganti ke Mode Malam"}
                         >
-                            <div className="absolute inset-0 bg-yellow-400/10 group-hover:bg-yellow-400/20 transition-colors" />
                             {isNightMode ? <Sun size={16} className="animate-spin-slow" /> : <Moon size={16} className="text-slate-200" />}
                         </button>
 
-                        {/* 2. Dual Mode Parallax Toggle */}
                         <button
                             onClick={toggleDualMode}
-                            className={`w-9 h-9 rounded-full border transition-all flex items-center justify-center relative overflow-hidden group cursor-pointer ${
-                                isDualMode 
-                                    ? 'border-amber-400 text-amber-300 bg-gradient-to-br from-amber-600/80 to-rose-600/80 shadow-[0_0_15px_rgba(245,158,11,0.6)] scale-105' 
-                                    : 'border-cyan-500/30 text-cyan-300 bg-slate-950/80 hover:scale-110 hover:border-cyan-400'
-                            }`}
-                            title={isDualMode ? "Matikan Dual Mode (Kembali ke Tema Utama)" : "Aktifkan Dual Mode (Tema Campo Santo Parallax)"}
+                            className={`w-9 h-9 rounded-full border transition-all flex items-center justify-center relative overflow-hidden group cursor-pointer ${isDualMode
+                                    ? 'border-amber-400 text-amber-300 bg-gradient-to-br from-amber-600/80 to-rose-600/80 shadow-[0_0_15px_rgba(245,158,11,0.6)] scale-105'
+                                    : 'border-white/20 text-cyan-300 bg-white/10 backdrop-blur-md hover:scale-110'
+                                }`}
+                            title={isDualMode ? "Matikan Dual Mode" : "Aktifkan Dual Mode"}
                         >
-                            <div className="absolute inset-0 bg-amber-500/10 group-hover:bg-amber-500/25 transition-colors" />
                             <Layers size={16} className={isDualMode ? "animate-pulse text-amber-200" : ""} />
-                            {isDualMode && (
-                                <span className="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-amber-400 rounded-full animate-ping" />
-                            )}
                         </button>
 
-                        {/* 3. Public Absensi Circular Kiosk Button */}
                         <Link
                             href="/absensi"
-                            className="w-9 h-9 rounded-full border border-emerald-500/40 text-emerald-400 bg-slate-950/80 hover:scale-110 hover:border-emerald-400 transition-all flex items-center justify-center relative overflow-hidden group cursor-pointer"
-                            title="Halaman Absensi Full Screen (Public Kiosk Scanner)"
+                            className="w-9 h-9 rounded-full border border-white/20 text-emerald-300 bg-white/10 backdrop-blur-md hover:scale-110 transition-all flex items-center justify-center relative overflow-hidden group cursor-pointer"
+                            title="Halaman Absensi Full Screen"
                         >
-                            <div className="absolute inset-0 bg-emerald-500/10 group-hover:bg-emerald-500/25 transition-colors" />
                             <QrCode size={16} className="animate-pulse text-emerald-300" />
                         </Link>
                     </div>
 
-                    <Link 
-                        href="/login"  
-                        className="relative group bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white px-5 py-2 rounded-full text-[11px] xl:text-xs font-black uppercase tracking-wider transition-all duration-300 shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_30px_rgba(6,182,212,0.7)] flex items-center gap-1.5 cursor-pointer ml-1"
-                    >
-                        <ShieldCheck size={15} />
-                        <span>Masuk</span>
-                    </Link>
+                    {/* Log In & Sign Up Buttons at Far Right Corner */}
+                    <div className="flex items-center gap-3 pl-2">
+                        <Link
+                            href="/login"
+                            className="text-white hover:text-yellow-400 font-extrabold text-xs xl:text-sm tracking-wide uppercase transition-colors px-3 py-1.5 drop-shadow"
+                        >
+                            Log In
+                        </Link>
+
+                        <Link
+                            href="/login"
+                            className="px-6 py-2.5 rounded-full bg-white/20 backdrop-blur-xl border border-white/30 hover:bg-white/30 text-white font-black text-xs xl:text-sm uppercase tracking-wider transition-all shadow-lg hover:border-yellow-400 flex items-center gap-1.5"
+                        >
+                            <span>Sign Up</span>
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Mobile Hamburger */}
                 <button
-                    className="hidden text-slate-300 hover:text-white p-2 rounded-xl bg-slate-900/90 border border-cyan-500/40 shadow-[0_0_15px_rgba(6,182,212,0.2)] active:scale-95 transition-all"
+                    className="hidden text-slate-300 hover:text-white p-2 rounded-xl bg-black/40 border border-white/20 backdrop-blur-md active:scale-95 transition-all"
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                     aria-label="Toggle Navigation Menu"
                 >
@@ -345,9 +327,8 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
             </div>
 
             {/* Mobile Menu Dropdown */}
-            <div className={`hidden absolute top-full left-0 w-full bg-slate-950/98 backdrop-blur-3xl border-b border-cyan-500/30 transition-all duration-300 overflow-y-auto ${
-                isMobileMenuOpen ? 'max-h-[85vh] py-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'
-            }`}>
+            <div className={`hidden absolute top-full left-0 w-full bg-slate-950/98 backdrop-blur-3xl border-b border-cyan-500/30 transition-all duration-300 overflow-y-auto ${isMobileMenuOpen ? 'max-h-[85vh] py-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'
+                }`}>
                 <nav className="flex flex-col px-6 sm:px-8 gap-2.5 custom-scrollbar">
                     {navMenuItems.map((menu, idx) => {
                         if (menu.hasDropdown) {
@@ -417,7 +398,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                             <a key={idx} href={`#${menu.id}`} {...commonProps}>{menu.name}</a>
                         );
                     })}
-                    
+
                     {/* Mobile Quick Mode Toggles */}
                     <div className="grid grid-cols-2 gap-2 mt-2">
                         {/* Mobile Night Mode Toggle */}
@@ -441,11 +422,10 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                                 toggleDualMode();
                                 setIsMobileMenuOpen(false);
                             }}
-                            className={`border text-center py-3 rounded-2xl font-bold uppercase text-[11px] tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 ${
-                                isDualMode 
-                                    ? 'bg-amber-600/80 border-amber-400 text-amber-100 shadow-[0_0_15px_rgba(245,158,11,0.4)]' 
+                            className={`border text-center py-3 rounded-2xl font-bold uppercase text-[11px] tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95 ${isDualMode
+                                    ? 'bg-amber-600/80 border-amber-400 text-amber-100 shadow-[0_0_15px_rgba(245,158,11,0.4)]'
                                     : 'bg-slate-900/60 border-cyan-500/30 text-cyan-300'
-                            }`}
+                                }`}
                         >
                             <Layers size={16} className={isDualMode ? "text-amber-200" : "text-cyan-400"} />
                             <span>{isDualMode ? "Dual ON" : "Dual Mode"}</span>
