@@ -97,32 +97,83 @@ export function KesraUsulanUhcTab({ _session }: any) {
     setShowModal(true);
   };
 
+  const openPrintWindow = (html: string, title: string) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${title}</title>
+          <base href="${window.location.origin}">
+          ${document.head.innerHTML}
+          <style>
+             body { background: white !important; margin: 0; padding: 0; }
+             .no-print { display: none !important; }
+             #print-area, #print-area-uhc { position: relative !important; left: auto !important; top: auto !important; height: auto !important; overflow: visible !important; }
+             .bundle-container { position: relative !important; left: auto !important; top: auto !important; height: auto !important; overflow: visible !important; }
+          </style>
+        </head>
+        <body>
+          ${html}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    
+    setTimeout(() => {
+      printWindow.print();
+    }, 500);
+  };
+
   const handlePrint = (d: any) => {
     setPrintData(d);
-    setShowPrint(true);
+    setTimeout(() => {
+      const content = document.getElementById('hidden-print-uhc')?.innerHTML;
+      if (content) openPrintWindow(content, `Formulir Usulan UHC - ${d.namaPasien}`);
+      setPrintData(null);
+    }, 100);
   };
+
+  useEffect(() => {
+    if (showPrintSkkm && printSkkmData) {
+      setTimeout(() => {
+        const content = document.getElementById('hidden-print-skkm')?.innerHTML;
+        if (content) openPrintWindow(content, `SKKM - ${printSkkmData.namaPasien || printSkkmData.namaPemohon || 'Pasien'}`);
+        setShowPrintSkkm(false);
+        setPrintSkkmData(null);
+      }, 100);
+    }
+  }, [showPrintSkkm, printSkkmData]);
+
+  useEffect(() => {
+    if (showPrintSptjm && printSptjmData) {
+      setTimeout(() => {
+        const content = document.getElementById('hidden-print-sptjm')?.innerHTML;
+        if (content) openPrintWindow(content, `SPTJM - ${printSptjmData.namaPasien || printSptjmData.namaPemohon || 'Pasien'}`);
+        setShowPrintSptjm(false);
+        setPrintSptjmData(null);
+      }, 100);
+    }
+  }, [showPrintSptjm, printSptjmData]);
+
+  useEffect(() => {
+    if (showPrintBundle && bundleData) {
+      setTimeout(() => {
+        const content = document.getElementById('hidden-print-bundle')?.innerHTML;
+        if (content) openPrintWindow(content, `Usulan UHC Bundle - ${bundleData.main?.namaPasien || 'Pasien'}`);
+        setShowPrintBundle(false);
+        setBundleData(null);
+      }, 100);
+    }
+  }, [showPrintBundle, bundleData]);
 
   const filteredData = data.filter(d =>
     d.namaPemohon.toLowerCase().includes(search.toLowerCase()) ||
     d.namaPasien.toLowerCase().includes(search.toLowerCase()) ||
     d.nik.includes(search)
   );
-
-  if (showPrint && printData) {
-      return <CetakUsulanUhc data={printData} onBack={() => setShowPrint(false)} />;
-  }
-
-  if (showPrintSkkm && printSkkmData) {
-    return <CetakSkkm data={printSkkmData} onBack={() => setShowPrintSkkm(false)} />;
-  }
-
-  if (showPrintSptjm && printSptjmData) {
-    return <CetakSptjm data={printSptjmData} onBack={() => setShowPrintSptjm(false)} />;
-  }
-
-  if (showPrintBundle && bundleData) {
-    return <CetakBundle data={bundleData.main} sptjmData={bundleData.sptjm} onBack={() => setShowPrintBundle(false)} />;
-  }
 
   const handleBackup = async () => {
     if (!folderId) return alert("Folder ID Google Drive wajib diisi!");
@@ -417,6 +468,14 @@ export function KesraUsulanUhcTab({ _session }: any) {
           </div>
         </div>
       )}
+
+      {/* Hidden containers for instant printing */}
+      <div style={{ display: 'none' }}>
+        {printData && <div id="hidden-print-uhc"><CetakUsulanUhc data={printData} isBundle={true} /></div>}
+        {printSkkmData && <div id="hidden-print-skkm"><CetakSkkm data={printSkkmData} /></div>}
+        {printSptjmData && <div id="hidden-print-sptjm"><CetakSptjm data={printSptjmData} /></div>}
+        {bundleData && <div id="hidden-print-bundle"><CetakBundle data={bundleData.main} sptjmData={bundleData.sptjm} /></div>}
+      </div>
     </div>
   );
 }
