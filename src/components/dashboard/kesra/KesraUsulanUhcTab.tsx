@@ -114,16 +114,18 @@ export function KesraUsulanUhcTab({ _session }: any) {
              }
              @media print {
                * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+               :root { color-scheme: light !important; background-color: #ffffff !important; color: #000000 !important; }
                html, body, #print-mount-root { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; background: white !important; background-color: #ffffff !important; color: black !important; }
                
                /* Fix narrow container so it expands to paper size */
                #print-area, #print-area-uhc, .bundle-container { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
-               #print-area > div, #print-area-uhc > div, .bundle-container > div { max-width: 100% !important; width: 100% !important; margin: 0 auto !important; box-shadow: none !important; border: none !important; min-height: 0 !important; padding: 0 !important; }
+               [class*="max-w-[215.9mm]"], #print-area > div, #print-area-uhc > div, .bundle-container > div { max-width: 100% !important; width: 100% !important; margin: 0 auto !important; box-shadow: none !important; border: none !important; min-height: 0 !important; padding: 0 !important; }
                
                /* Restore fixed layout to respect column percentages, but allow native fonts */
                table { width: 100% !important; max-width: 100% !important; table-layout: fixed !important; }
                tr { page-break-inside: avoid !important; }
              }
+             :root { color-scheme: light !important; background-color: #ffffff !important; color: #000000 !important; }
              html, body { background: white !important; background-color: #ffffff !important; margin: 0; padding: 0; }
              .no-print { display: none !important; }
           </style>
