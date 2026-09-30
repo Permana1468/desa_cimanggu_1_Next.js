@@ -114,7 +114,7 @@ export function KesraUsulanUhcTab({ _session }: any) {
              }
              @media print {
                * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-               body, #print-mount-root { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
+               html, body, #print-mount-root { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; background: white !important; background-color: #ffffff !important; color: black !important; }
                
                /* Fix narrow container so it expands to paper size */
                #print-area, #print-area-uhc, .bundle-container { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
@@ -124,7 +124,7 @@ export function KesraUsulanUhcTab({ _session }: any) {
                table { width: 100% !important; max-width: 100% !important; table-layout: fixed !important; }
                tr { page-break-inside: avoid !important; }
              }
-             body { background: white !important; margin: 0; padding: 0; }
+             html, body { background: white !important; background-color: #ffffff !important; margin: 0; padding: 0; }
              .no-print { display: none !important; }
           </style>
         </head>
