@@ -47,6 +47,15 @@ export function ServerCetakBundle({ data, sptjmData, onBack }: { data: any, sptj
              margin: 0 !important;
              padding: 0 !important;
           }
+          /* FIX DASHBOARD LAYOUT SCROLL & CLIPPING BUGS */
+          html, body, div, main, aside, header {
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            overflow: visible !important;
+            position: static !important;
+            transform: none !important;
+          }
 
           .bundle-content {
              display: block !important;
@@ -68,7 +77,6 @@ export function ServerCetakBundle({ data, sptjmData, onBack }: { data: any, sptj
           }
           
           @page {
-            size: 215.9mm 330.2mm portrait;
             margin: 15mm;
           }
         }

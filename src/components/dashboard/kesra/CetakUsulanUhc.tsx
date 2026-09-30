@@ -58,11 +58,24 @@ export function CetakUsulanUhc({ data, onBack, isBundle }: { data: any; onBack?:
               top: 0;
               width: 100%;
               padding: 0;
+              margin: 0;
               background: white;
               color: black;
             }
             .no-print {
               display: none !important;
+            }
+            /* FIX DASHBOARD LAYOUT SCROLL & CLIPPING BUGS */
+            html, body, div, main, aside, header {
+              height: auto !important;
+              min-height: 0 !important;
+              max-height: none !important;
+              overflow: visible !important;
+              position: static !important;
+              transform: none !important;
+            }
+            #print-area div {
+              position: relative !important;
             }
             @page {
               margin: 15mm;

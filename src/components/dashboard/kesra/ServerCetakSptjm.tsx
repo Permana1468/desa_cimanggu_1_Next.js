@@ -47,7 +47,6 @@ export function ServerCetakSptjm({ data, onBack, isBundle }: { data: any; onBack
             left: 0;
             top: 0;
             width: 100%;
-            height: auto !important;
             padding: 0 !important;
             margin: 0 !important;
             background: white;
@@ -56,8 +55,19 @@ export function ServerCetakSptjm({ data, onBack, isBundle }: { data: any; onBack
           .no-print {
             display: none !important;
           }
+          /* FIX DASHBOARD LAYOUT SCROLL & CLIPPING BUGS */
+          html, body, div, main, aside, header {
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            overflow: visible !important;
+            position: static !important;
+            transform: none !important;
+          }
+          #print-area div {
+            position: relative !important;
+          }
           @page {
-            size: 215.9mm 330.2mm; /* F4 Size */
             margin: 15mm;
           }
         }
