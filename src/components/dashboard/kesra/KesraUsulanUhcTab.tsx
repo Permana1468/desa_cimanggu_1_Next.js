@@ -117,15 +117,14 @@ export function KesraUsulanUhcTab({ _session }: any) {
                body, #print-mount-root { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
                
                /* Fix narrow container so it expands to paper size */
-               #print-area, #print-area-uhc, .bundle-container { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; font-size: 12pt !important; }
+               #print-area, #print-area-uhc, .bundle-container { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
                #print-area > div, #print-area-uhc > div, .bundle-container > div { max-width: 100% !important; width: 100% !important; margin: 0 auto !important; box-shadow: none !important; border: none !important; min-height: 0 !important; padding: 0 !important; }
                
-               /* Force LPJ-style fonts and natural table auto-sizing */
-               #print-mount-root * { font-family: 'Times New Roman', Times, serif !important; }
-               table { width: 100% !important; max-width: 100% !important; table-layout: auto !important; }
+               /* Restore fixed layout to respect column percentages, but allow native fonts */
+               table { width: 100% !important; max-width: 100% !important; table-layout: fixed !important; }
                tr { page-break-inside: avoid !important; }
              }
-             body { background: white !important; margin: 0; padding: 0; font-family: 'Times New Roman', Times, serif !important; }
+             body { background: white !important; margin: 0; padding: 0; }
              .no-print { display: none !important; }
           </style>
         </head>
