@@ -76,7 +76,6 @@ export function CetakBundle({ data, sptjmData, onBack }: { data: any, sptjmData:
           }
           
           @page {
-            size: 215.9mm 330.2mm portrait;
             margin: 15mm;
           }
         }

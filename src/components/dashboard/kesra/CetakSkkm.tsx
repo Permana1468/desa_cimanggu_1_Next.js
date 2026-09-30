@@ -47,7 +47,6 @@ export function CetakSkkm({ data, onBack, isBundle }: { data: any; onBack?: () =
             left: 0;
             top: 0;
             width: 100%;
-            height: auto !important;
             padding: 0;
             background: white;
             color: black;
@@ -56,7 +55,6 @@ export function CetakSkkm({ data, onBack, isBundle }: { data: any; onBack?: () =
             display: none !important;
           }
           @page {
-            size: 215.9mm 330.2mm portrait; /* F4 Size */
             margin: 20mm;
           }
         }
