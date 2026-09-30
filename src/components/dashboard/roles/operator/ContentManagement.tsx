@@ -22,7 +22,19 @@ export function ContentManagement({ session, initialProfile, initialNews }: { se
   const [newsForm, setNewsForm] = useState({
     judul: "",
     konten: "",
+    gambar: "",
   });
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewsForm({ ...newsForm, gambar: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +57,7 @@ export function ContentManagement({ session, initialProfile, initialNews }: { se
       const loadingToast = toast.loading("Mempublikasikan Berita...");
       await createBerita(newsForm);
       toast.success("Berita berhasil dipublikasikan!", { id: loadingToast });
-      setNewsForm({ judul: "", konten: "" });
+      setNewsForm({ judul: "", konten: "", gambar: "" });
     } catch (error) {
       toast.error("Gagal mempublikasikan berita.");
     } finally {
@@ -136,6 +148,16 @@ export function ContentManagement({ session, initialProfile, initialNews }: { se
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Judul Berita</label>
                   <input type="text" value={newsForm.judul} onChange={e => setNewsForm({...newsForm, judul: e.target.value})} placeholder="Contoh: Pembagian Bansos Tahap 2" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-all" required />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Upload Gambar / Thumbnail</label>
+                  <input type="file" accept="image/*" onChange={handleImageChange} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 transition-all file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100" />
+                  {newsForm.gambar && (
+                    <div className="mt-3 relative aspect-video w-48 rounded-xl overflow-hidden border border-slate-200">
+                      <img src={newsForm.gambar} alt="Preview" className="object-cover w-full h-full" />
+                    </div>
+                  )}
                 </div>
 
                 <div>
