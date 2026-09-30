@@ -252,27 +252,69 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
       margin: 0;
       padding: 0;
     }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
     html, body {
       font-family: 'Times New Roman', Times, serif;
       font-size: 10.5pt;
       color: #000;
-      background: #fff;
       line-height: 1.35;
     }
 
-    /* PERFECT INDONESIAN F4 / FOLIO MARGINS (Top 18mm, Sides 22mm, Bottom 15mm) */
-    @page {
-      size: 215mm 330mm;
-      margin: 18mm 22mm 15mm 22mm;
+    /* SCREEN PREVIEW */
+    @media screen {
+      html, body {
+        background: #525659;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0;
+        margin: 0;
+      }
+      .doc-page {
+        background: #fff;
+        width: 215mm;
+        min-height: 330mm;
+        padding: 18mm 22mm 15mm 22mm;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        margin-bottom: 20px;
+        position: relative;
+        page-break-after: always;
+        break-after: page;
+      }
     }
 
-    .doc-page {
-      width: 100%;
-      box-sizing: border-box;
-      padding: 0;
-      page-break-after: always;
-      break-after: page;
-      position: relative;
+    /* PRINT STYLES */
+    @media print {
+      @page {
+        margin: 18mm 22mm 15mm 22mm;
+      }
+      html, body {
+        background: #fff;
+        display: block;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      .doc-page {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+        page-break-after: always;
+        break-after: page;
+      }
+      .no-print { display: none !important; }
     }
 
     /* KOP SURAT */
@@ -329,7 +371,7 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
       margin-top: 3px;
       font-family: Arial, Helvetica, sans-serif;
       font-weight: 500;
-      text-decoration: underline;
+      white-space: nowrap;
     }
     .double-line {
       border-bottom: 3.5px solid #000;
@@ -465,27 +507,8 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
       .no-print { display: none !important; }
     }
   </style>
-
-  <style id="pgstyle">
-    @page { size: 215mm 330mm; margin: 18mm 22mm 15mm 22mm; }
-  </style>
-
-  <script>
-    function setSize(sz, btnId) {
-      document.getElementById('pgstyle').textContent = '@page { size: ' + sz + '; margin: 18mm 22mm 15mm 22mm; }';
-      document.querySelectorAll('.pcontrols button').forEach(function(b) { b.classList.remove('on'); });
-      var el = document.getElementById(btnId); if (el) el.classList.add('on');
-    }
-  </script>
 </head>
 <body>
-
-  <!-- Controls -->
-  <div class="pcontrols no-print">
-    <button id="bf4p" class="on" onclick="setSize('215mm 330mm','bf4p')">F4 Potrait (Folio)</button>
-    <button id="ba4p" onclick="setSize('A4 portrait','ba4p')">A4 Potrait</button>
-    <button onclick="window.print()" style="background:#16a34a;color:#fff;border-color:#16a34a;">&#128438; Cetak Dokumen</button>
-  </div>
 
 
   <!-- ==================== LAMPIRAN 1: SURAT PESANAN BARANG ==================== -->
@@ -735,7 +758,9 @@ export function LpjPesananBarangTab({ session }: { session: any }) {
   </div>
 
   <script>
-    window.onload = function() { window.print(); }
+    setTimeout(function() {
+      window.print();
+    }, 500);
   </script>
 </body>
 </html>`);

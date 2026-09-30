@@ -381,23 +381,69 @@ export function LpjDaftarKtpPekerjaTab({ session }: { session: any }) {
       margin: 0;
       padding: 0;
     }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    
     html, body {
       font-family: 'Times New Roman', Times, serif;
       font-size: 10pt;
       color: #000;
-      background: #fff;
       line-height: 1.2;
     }
 
-    /* DEFAULT F4 / FOLIO PORTRAIT (215mm x 330mm) */
-    @page {
-      size: 215mm 330mm;
-      margin: 15mm 15mm 15mm 15mm;
+    /* SCREEN PREVIEW */
+    @media screen {
+      html, body {
+        background: #525659;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0;
+        margin: 0;
+      }
+      .doc-page {
+        background: #fff;
+        width: 215mm;
+        min-height: 330mm;
+        padding: 15mm;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        margin-bottom: 20px;
+        position: relative;
+        page-break-after: always;
+        break-after: page;
+      }
     }
 
-    .doc-page {
-      width: 100%;
-      box-sizing: border-box;
+    /* PRINT STYLES */
+    @media print {
+      @page {
+        margin: 15mm;
+      }
+      html, body {
+        background: #fff;
+        display: block;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+      }
+      .doc-page {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+        page-break-after: always;
+        break-after: page;
+      }
+      .no-print { display: none !important; }
     }
 
     /* TITLE HEADER EXACT MATCH TO ATTACHED SAMPLE IMAGE */
@@ -506,40 +552,9 @@ export function LpjDaftarKtpPekerjaTab({ session }: { session: any }) {
       .no-print { display: none !important; }
     }
   </style>
-
-  <style id="pgstyle">
-    @page { size: 215mm 330mm; margin: 15mm 15mm 15mm 15mm; }
-  </style>
-
-  <script>
-    function setSize(sz, btnId) {
-      document.getElementById('pgstyle').textContent = '@page { size: ' + sz + '; margin: 15mm 15mm 15mm 15mm; }';
-      document.querySelectorAll('.pcontrols button').forEach(function(b) { b.classList.remove('on'); });
-      var el = document.getElementById(btnId); if (el) el.classList.add('on');
-    }
-  </script>
 </head>
 <body>
-
-  <!-- Controls -->
-  <div class="pcontrols no-print">
-    <button id="bf4p" class="on" onclick="setSize('215mm 330mm','bf4p')">F4 Portrait (Folio)</button>
-    <button id="ba4p" onclick="setSize('210mm 297mm','ba4p')">A4 Portrait</button>
-    <button onclick="window.print()" style="background:#16a34a;color:#fff;border-color:#16a34a;">&#128438; Cetak Dokumen</button>
-  </div>
-
   <div class="doc-page">
-    <!-- OFFICIAL KOP SURAT DESA -->
-    <div class="kop-container" style="position: relative; display: flex; align-items: center; justify-content: center; min-height: 85px; margin-bottom: 2px;">
-      <img src="${window.location.origin}/images/logo-bogor.png" style="position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 80px; width: auto; object-fit: contain;" alt="Logo Kab Bogor" />
-      <div style="text-align: center; width: 100%; padding-left: 85px; padding-right: 10px;">
-        <div style="font-size: 15pt; font-weight: 900; letter-spacing: 0.5px; line-height: 1.15; font-family: Arial, Helvetica, sans-serif; text-transform: uppercase;">PEMERINTAH KABUPATEN BOGOR</div>
-        <div style="font-size: 15pt; font-weight: 900; letter-spacing: 0.5px; line-height: 1.15; font-family: Arial, Helvetica, sans-serif; text-transform: uppercase;">KECAMATAN CIBUNGBULANG</div>
-        <div style="font-size: 17pt; font-weight: 900; letter-spacing: 0.5px; line-height: 1.2; font-family: Arial, Helvetica, sans-serif; text-transform: uppercase;">DESA CIMANGGU I</div>
-        <div style="font-size: 9.5pt; font-style: italic; margin-top: 3px; font-family: Arial, Helvetica, sans-serif; font-weight: 500; text-decoration: underline;">Jl. Raya Gardu Seri Kp. Ciaruteun Rt.004 Rw.008 Desa Cimanggu I Kec. Cibungbulang Kab. Bogor - 16630</div>
-      </div>
-    </div>
-    <div style="border-bottom: 3.5px solid #000; margin-top: 5px; margin-bottom: 16px;"></div>
 
     <!-- TITLE HEADER EXACT MATCH TO IMAGE -->
     <div class="title-header">
@@ -600,7 +615,9 @@ export function LpjDaftarKtpPekerjaTab({ session }: { session: any }) {
   </div>
 
   <script>
-    window.onload = function() { window.print(); }
+    setTimeout(function() {
+      window.print();
+    }, 500);
   </script>
 </body>
 </html>`);
