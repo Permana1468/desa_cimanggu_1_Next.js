@@ -109,14 +109,25 @@ export function KesraUsulanUhcTab({ _session }: any) {
           <base href="${window.location.origin}">
           ${document.head.innerHTML}
           <style>
+             @page {
+               margin: 15mm;
+             }
+             @media print {
+               * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+               body, #print-mount-root { width: 100% !important; max-width: 100% !important; }
+               /* Make paper containers fluid to fit any paper size */
+               .max-w-\\[215\\.9mm\\], [class*="max-w-[215.9mm]"] { max-width: 100% !important; width: 100% !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
+             }
              body { background: white !important; margin: 0; padding: 0; }
              .no-print { display: none !important; }
-             #print-area, #print-area-uhc { position: relative !important; left: auto !important; top: auto !important; height: auto !important; overflow: visible !important; }
-             .bundle-container { position: relative !important; left: auto !important; top: auto !important; height: auto !important; overflow: visible !important; }
+             #print-area, #print-area-uhc { position: relative !important; left: auto !important; top: auto !important; height: auto !important; overflow: visible !important; width: 100% !important; max-width: 100% !important; }
+             .bundle-container { position: relative !important; left: auto !important; top: auto !important; height: auto !important; overflow: visible !important; width: 100% !important; max-width: 100% !important; }
           </style>
         </head>
         <body>
-          ${html}
+          <div id="print-mount-root">
+            ${html}
+          </div>
         </body>
       </html>
     `);

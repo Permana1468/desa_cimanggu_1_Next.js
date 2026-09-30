@@ -46,16 +46,8 @@ export function CetakUsulanUhc({ data, onBack, isBundle }: { data: any; onBack?:
         <style dangerouslySetInnerHTML={{
           __html: `
           @media print {
-            body * {
-              visibility: hidden;
-            }
-            #print-area, #print-area * {
-              visibility: visible;
-            }
             #print-area {
-              position: absolute;
-              left: 0;
-              top: 0;
+              position: relative;
               width: 100%;
               padding: 0;
               margin: 0;

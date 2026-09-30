@@ -40,18 +40,10 @@ export function CetakSptjm({ data, onBack, isBundle }: { data: any; onBack?: () 
     <div className="bg-slate-100 min-h-screen py-8">
       <style dangerouslySetInnerHTML={{
         __html: `
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #print-area, #print-area * {
-            visibility: visible;
-          }
-          #print-area {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
+          @media print {
+            #print-area {
+              position: relative;
+              width: 100%;
             padding: 0 !important;
             margin: 0 !important;
             background: white;

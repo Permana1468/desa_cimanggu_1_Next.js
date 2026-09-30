@@ -39,17 +39,8 @@ export function CetakBundle({ data, sptjmData, onBack }: { data: any, sptjmData:
              display: none !important;
           }
           
-          /* Isolate bundle from scrollable ancestors to fix 1-page truncation bug */
-          body * {
-            visibility: hidden;
-          }
-          .bundle-container, .bundle-container * {
-            visibility: visible;
-          }
           .bundle-container {
-             position: absolute !important;
-             left: 0 !important;
-             top: 0 !important;
+             position: relative !important;
              width: 100% !important;
              background: transparent !important;
              margin: 0 !important;
