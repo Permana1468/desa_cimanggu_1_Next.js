@@ -15,6 +15,18 @@ import { registerWarga } from "@/actions/auth";
 import { LandingThemeProvider } from "@/components/landing/LandingThemeProvider";
 import { startAuthentication } from "@simplewebauthn/browser";
 
+const RocketIllustration = () => (
+    <svg width="80" height="120" viewBox="0 0 100 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M50 10C50 10 20 40 20 90C20 90 30 110 50 110C70 110 80 90 80 90C80 40 50 10 50 10Z" fill="#e2e8f0"/>
+        <path d="M50 10C50 10 80 40 80 90C80 90 70 110 50 110V10Z" fill="#cbd5e1"/>
+        <circle cx="50" cy="65" r="12" fill="#0f172a" stroke="#38bdf8" strokeWidth="4"/>
+        <path d="M20 90L10 110H30L20 90Z" fill="#0ea5e9"/>
+        <path d="M80 90L90 110H70L80 90Z" fill="#0284c7"/>
+        <path d="M40 110L50 130L60 110H40Z" fill="#f59e0b"/>
+        <path d="M45 110L50 120L55 110H45Z" fill="#fef08a"/>
+    </svg>
+);
+
 // ---- Desktop Character with Ultra-Smooth 60FPS GPU Background Removal (ALDY 4.mp4) ----
 function DesktopCharacter({ onVideoProgress }: { onVideoProgress: (currentTime: number) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -318,326 +330,271 @@ export default function LoginPage() {
             </div>
 
 
-            {/* ========== DESKTOP LAYOUT (hidden on mobile) ========== */}
-            <div className="hidden md:block min-h-[100dvh] font-sans relative overflow-hidden" style={{ background: 'linear-gradient(160deg, #bfdbfe 0%, #e0f2fe 35%, #f0f9ff 65%, #dbeafe 100%)' }}>
-
-                {/* Drifting Animated Sky Clouds */}
-                <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-                    <div className="absolute top-[-15%] right-[-5%] w-[600px] h-[600px] rounded-full bg-blue-200/35 blur-[100px]" />
-                    <div className="absolute bottom-[-15%] left-[5%] w-[500px] h-[500px] rounded-full bg-sky-100/60 blur-[80px]" />
-                    
-                    {/* Multiple Layers of Moving Fluffy Clouds */}
-                    {[
-                        { top: "2%", scale: 1.4, speed: 52, delay: 0, opacity: 0.85 },
-                        { top: "7%", scale: 0.9, speed: 42, delay: -15, opacity: 0.7 },
-                        { top: "12%", scale: 1.6, speed: 65, delay: -30, opacity: 0.8 },
-                        { top: "18%", scale: 0.8, speed: 36, delay: -10, opacity: 0.65 },
-                        { top: "4%", scale: 1.1, speed: 48, delay: -45, opacity: 0.75 },
-                        { top: "15%", scale: 1.3, speed: 58, delay: -22, opacity: 0.7 },
-                    ].map((cloud, i) => (
-                        <motion.div
-                            key={`cloud-${i}`}
-                            className="absolute flex items-center"
-                            style={{ top: cloud.top, opacity: cloud.opacity }}
-                            initial={{ x: "-30vw" }}
-                            animate={{ x: "115vw" }}
-                            transition={{
-                                duration: cloud.speed,
-                                repeat: Infinity,
-                                ease: "linear",
-                                delay: cloud.delay,
-                            }}
-                        >
-                            {/* Fluffy SVG-styled Soft Cloud */}
-                            <div className="relative filter drop-shadow-md">
-                                <div
-                                    className="bg-white/80 backdrop-blur-xs rounded-full relative"
-                                    style={{ width: `${160 * cloud.scale}px`, height: `${50 * cloud.scale}px` }}
-                                >
-                                    <div
-                                        className="absolute -top-6 left-6 bg-white/85 rounded-full"
-                                        style={{ width: `${70 * cloud.scale}px`, height: `${70 * cloud.scale}px` }}
-                                    />
-                                    <div
-                                        className="absolute -top-9 left-16 bg-white/90 rounded-full"
-                                        style={{ width: `${85 * cloud.scale}px`, height: `${85 * cloud.scale}px` }}
-                                    />
-                                    <div
-                                        className="absolute -top-5 left-32 bg-white/80 rounded-full"
-                                        style={{ width: `${60 * cloud.scale}px`, height: `${60 * cloud.scale}px` }}
-                                    />
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
+            {/* ========== DESKTOP LAYOUT (Fullscreen Curved Circle Sliding Overlay) ========== */}
+            <div className="hidden md:block relative w-full h-[100dvh] overflow-hidden bg-[#09121f] text-white font-sans">
+                
+                {/* Background Image & Atmosphere Layer */}
+                <div className="absolute inset-0 z-0">
+                    <Image
+                        src="/images/slide_1.png"
+                        alt="Atmosphere"
+                        fill
+                        className="object-cover scale-105"
+                    />
+                    {/* Subtle dark overlay just enough to keep white text readable */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-slate-900/50 via-slate-900/20 to-slate-900/50" />
                 </div>
 
-                {/* Top Header */}
-                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }}
-                    className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-10 py-5"
+                {/* Top Branding Header */}
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.7 }}
+                    className="absolute top-0 left-0 right-0 z-40 flex items-center justify-end px-12 py-6"
                 >
-                    <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 relative drop-shadow-md">
-                            <Image src={villageLogo} alt="Logo" fill sizes="44px" className="object-contain" />
-                        </div>
-                        <div>
-                            <div className="text-blue-900 font-black text-base leading-tight">Desa Cimanggu I</div>
-                            <div className="text-blue-600/65 text-[10px] font-bold tracking-[0.18em] uppercase">Kec. Cibungbulang • Kab. Bogor</div>
-                        </div>
+                    {/* Minimal Active Indicator Badge */}
+                    <div className="flex items-center gap-4">
+                        <span className="flex items-center justify-center bg-white/10 border border-white/15 w-8 h-8 rounded-full backdrop-blur-md shadow-lg" title="Sistem Aktif">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_#34d399]"></span>
+                        </span>
                     </div>
                 </motion.div>
 
-                {/* Main Layout */}
-                <div className="relative w-full h-[100dvh] flex items-center pt-16 overflow-hidden">
+                {/* GIANT SLIDING CURVED CIRCLE OVERLAY */}
+                <motion.div
+                    className="absolute rounded-full z-20 pointer-events-none"
+                    style={{ 
+                        width: '200vw', 
+                        height: '200vw', 
+                        top: '-120vw',
+                    }}
+                    initial={false}
+                    animate={{
+                        left: isLogin ? "-135vw" : "35vw"
+                    }}
+                    transition={{ duration: 1.4, ease: [0.65, 0, 0.35, 1] }}
+                >
+                    <div className="w-full h-full rounded-full bg-gradient-to-br from-white/10 via-cyan-500/5 to-transparent backdrop-blur-[20px] shadow-[0_0_80px_rgba(0,0,0,0.5),inset_0_0_80px_rgba(255,255,255,0.05)] border border-white/20 relative overflow-hidden pointer-events-auto">
+                        <div className="absolute top-[65%] left-[65%] w-[800px] h-[800px] rounded-full bg-cyan-400/20 blur-[100px] pointer-events-none" />
+                        <div className="absolute bottom-[25%] right-[65%] w-[700px] h-[700px] rounded-full bg-blue-500/20 blur-[100px] pointer-events-none" />
+                    </div>
+                </motion.div>
 
-                    {/* LEFT / CENTER-LEFT: Character & Bag video (ALDY 4.mp4) */}
-                    <div className="relative w-full h-full flex items-center justify-center">
-                        <div className="relative w-full h-full max-w-[1400px]">
-                            <DesktopCharacter onVideoProgress={(currentTime) => {
-                                if (currentTime >= 3.3 && desktopPhase !== 'form') {
-                                    setDesktopPhase('form');
-                                }
-                            }} />
-
-                            {/* Volumetric Smoke effect rising directly out of bag */}
-                            <AnimatePresence>
-                                {desktopPhase === 'form' && (
-                                    <div className="absolute bottom-[18%] left-[36%] xl:left-[37%] w-52 h-52 pointer-events-none z-20">
-                                        {[...Array(9)].map((_, i) => (
-                                            <motion.div
-                                                key={`smoke-${i}`}
-                                                className="absolute rounded-full bg-gradient-to-t from-white/95 via-sky-100/70 to-transparent blur-md shadow-sm"
-                                                style={{
-                                                    width: `${45 + i * 14}px`,
-                                                    height: `${45 + i * 14}px`,
-                                                    left: `${(i % 4) * 10}px`,
-                                                    bottom: "10px",
-                                                }}
-                                                initial={{ opacity: 0, scale: 0.15, y: 0, rotate: 0 }}
-                                                animate={{
-                                                    opacity: [0, 0.9, 0.5, 0],
-                                                    scale: [0.15, 1.4, 2.6],
-                                                    y: [-10, -120, -250],
-                                                    x: [(i % 2 === 0 ? 1 : -1) * 15, (i % 2 === 0 ? -1 : 1) * 45],
-                                                    rotate: [0, (i % 2 === 0 ? 45 : -45)],
-                                                }}
-                                                transition={{
-                                                    duration: 2.4,
-                                                    delay: i * 0.14,
-                                                    ease: "easeOut",
-                                                }}
-                                            />
-                                        ))}
-                                    </div>
-                                )}
-                            </AnimatePresence>
-
-                            {/* Form emerging directly UPWARDS slow & smooth directly above the bag & close to character */}
-                            <AnimatePresence>
-                                {desktopPhase === 'form' && (
-                                    <motion.div
-                                        key="login-form-panel"
-                                        initial={{ opacity: 0, y: 180, scale: 0.3, filter: "blur(20px)" }}
-                                        animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-                                        transition={{ duration: 1.6, ease: [0.16, 1, 0.3, 1] }}
-                                        style={{ transformOrigin: "bottom left" }}
-                                        className="absolute top-[18%] lg:top-[20%] xl:top-[21%] left-[34%] lg:left-[35%] xl:left-[36%] w-full max-w-[365px] z-30"
+                {/* CONTENT LAYER */}
+                <div className="relative w-full h-full flex z-30">
+                    
+                    {/* --- LEFT SECTION --- */}
+                    <div className="w-1/2 h-full flex flex-col justify-center items-center px-12 lg:px-20 py-16 relative">
+                        <AnimatePresence mode="wait">
+                            {isLogin ? (
+                                <motion.div
+                                    key="welcome-signup-panel"
+                                    initial={{ opacity: 0, x: -30 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -30 }}
+                                    transition={{ duration: 0.5, delay: 0.2 }}
+                                    className="flex flex-col items-center text-center max-w-md text-white z-30"
+                                >
+                                    <h2 className="text-4xl font-black mb-4 tracking-tight drop-shadow-lg">New here ?</h2>
+                                    <p className="text-xs lg:text-sm text-cyan-50/90 leading-relaxed mb-8 font-medium">
+                                        Selamat datang! Buat akun baru atau beralih ke halaman registrasi warga desa.
+                                    </p>
+                                    <button
+                                        onClick={() => { setIsLogin(false); setError(""); setSuccess(""); }}
+                                        className="px-10 py-3 rounded-full border-2 border-white/90 text-white font-extrabold text-xs uppercase tracking-widest hover:bg-white hover:text-blue-900 shadow-xl hover:shadow-[0_0_30px_rgba(255,255,255,0.6)] active:scale-95 transition-all"
                                     >
-                                        {/* Title & Subtitle */}
-                                        <div className="mb-6">
-                                            <h1 className="text-4xl font-black text-blue-950 tracking-tight leading-none mb-2.5">
-                                                {isLogin ? "Selamat Datang" : "Buat Akun Baru"}
-                                            </h1>
-                                            <p className="text-blue-700/60 text-sm font-medium leading-relaxed">
-                                                {isLogin
-                                                    ? "Silakan masuk untuk mengelola layanan administrasi desa."
-                                                    : "Lengkapi data NIK untuk mendaftar layanan warga."}
-                                            </p>
+                                        SIGN UP
+                                    </button>
+                                    <div className="mt-12 opacity-90 drop-shadow-2xl animate-pulse">
+                                        <RocketIllustration />
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="desktop-signup-form"
+                                    initial={{ opacity: 0, x: -30 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -30 }}
+                                    transition={{ duration: 0.5, delay: 0.2 }}
+                                    className="w-full max-w-sm mx-auto z-30"
+                                >
+                                    {/* Logo Section acting as Title */}
+                                    <div className="flex items-center gap-3.5 mb-4">
+                                        <div className="w-12 h-12 relative drop-shadow-[0_0_15px_rgba(0,180,255,0.5)]">
+                                            <Image src={villageLogo} alt="Logo" fill sizes="48px" className="object-contain" />
                                         </div>
+                                        <div>
+                                            <div className="text-white font-black text-xl leading-tight tracking-wide drop-shadow-md">Desa Cimanggu I</div>
+                                            <div className="text-cyan-400 text-[10px] font-bold tracking-[0.2em] uppercase mt-0.5">Kec. Cibungbulang • Kab. Bogor</div>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-slate-300 mb-6 leading-relaxed">
+                                        Registrasi khusus warga desa menggunakan 16 Digit NIK KTP.
+                                    </p>
 
-                                        {/* Toggle Tabs */}
-                                        <div className="flex gap-6 mb-6 border-b border-blue-200/60 pb-2">
-                                            <button
-                                                onClick={() => { setIsLogin(true); setError(""); setSuccess(""); }}
-                                                className={`relative text-xs font-black uppercase tracking-widest pb-2 transition-colors ${
-                                                    isLogin ? "text-blue-600" : "text-blue-400/60 hover:text-blue-600"
-                                                }`}
-                                            >
-                                                <span>Masuk</span>
-                                                {isLogin && (
-                                                    <motion.div
-                                                        layoutId="activeTabUnderline"
-                                                        className="absolute bottom-[-9px] left-0 right-0 h-[3px] bg-blue-600 rounded-full"
-                                                    />
-                                                )}
-                                            </button>
+                                    {error && !isLogin && (
+                                        <div className="bg-rose-500/20 border border-rose-500/40 text-rose-200 text-xs font-semibold p-3 rounded-2xl flex items-center gap-2 mb-4 backdrop-blur-md">
+                                            <span>❌</span><span>{error}</span>
+                                        </div>
+                                    )}
+                                    {success && !isLogin && (
+                                        <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 text-xs font-semibold p-3 rounded-2xl flex items-center gap-2 mb-4 backdrop-blur-md">
+                                            <span>✅</span><span>{success}</span>
+                                        </div>
+                                    )}
 
-                                            <button
-                                                onClick={() => { setIsLogin(false); setError(""); setSuccess(""); }}
-                                                className={`relative text-xs font-black uppercase tracking-widest pb-2 transition-colors ${
-                                                    !isLogin ? "text-emerald-600" : "text-blue-400/60 hover:text-emerald-600"
-                                                }`}
-                                            >
-                                                <span>Daftar</span>
-                                                {!isLogin && (
-                                                    <motion.div
-                                                        layoutId="activeTabUnderline"
-                                                        className="absolute bottom-[-9px] left-0 right-0 h-[3px] bg-emerald-600 rounded-full"
-                                                    />
-                                                )}
+                                    <form onSubmit={handleRegister} className="space-y-3.5">
+                                        <div className="relative">
+                                            <Fingerprint size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" />
+                                            <input type="text" value={regNik} onChange={(e) => setRegNik(e.target.value)} placeholder="16 Digit NIK KTP" className="w-full bg-white/90 border border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/20 rounded-full py-3.5 pl-11 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold shadow-md" required />
+                                        </div>
+                                        <div className="relative">
+                                            <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" />
+                                            <input type="text" value={regFullName} onChange={(e) => setRegFullName(e.target.value)} placeholder="Nama Lengkap Sesuai KTP" className="w-full bg-white/90 border border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/20 rounded-full py-3.5 pl-11 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold shadow-md" required />
+                                        </div>
+                                        <div className="relative">
+                                            <Phone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" />
+                                            <input type="text" value={regPhone} onChange={(e) => setRegPhone(e.target.value)} placeholder="0812..." className="w-full bg-white/90 border border-slate-200 focus:border-cyan-500 focus:ring-4 focus:ring-cyan-500/20 rounded-full py-3.5 pl-11 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold shadow-md" required />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="relative">
+                                                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400" />
+                                                <input type="password" value={regPass} onChange={(e) => setRegPass(e.target.value)} placeholder="Kata Sandi" className="w-full bg-white/90 border border-slate-200 focus:border-cyan-500 rounded-full py-3 pl-9 pr-3 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold shadow-md" required />
+                                            </div>
+                                            <div className="relative">
+                                                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-cyan-400" />
+                                                <input type="password" value={regConfirmPass} onChange={(e) => setRegConfirmPass(e.target.value)} placeholder="Konfirmasi" className="w-full bg-white/90 border border-slate-200 focus:border-cyan-500 rounded-full py-3 pl-9 pr-3 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold shadow-md" required />
+                                            </div>
+                                        </div>
+                                        <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 rounded-full text-xs uppercase tracking-widest shadow-lg shadow-blue-600/30 active:scale-95 transition-all flex items-center justify-center gap-2 mt-2">
+                                            {loading ? <Loader2 size={18} className="animate-spin" /> : <><ShieldCheck size={18} /><span>DAFTAR SEKARANG</span></>}
+                                        </button>
+                                    </form>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* --- RIGHT SECTION --- */}
+                    <div className="w-1/2 h-full flex flex-col justify-center items-center px-12 lg:px-20 py-16 relative">
+                        <AnimatePresence mode="wait">
+                            {isLogin ? (
+                                <motion.div
+                                    key="desktop-signin-form"
+                                    initial={{ opacity: 0, x: 30 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 30 }}
+                                    transition={{ duration: 0.5, delay: 0.2 }}
+                                    className="w-full max-w-sm mx-auto z-30"
+                                >
+                                    {/* Logo Section acting as Title */}
+                                    <div className="flex items-center gap-3.5 mb-4">
+                                        <div className="w-12 h-12 relative drop-shadow-[0_0_15px_rgba(0,180,255,0.5)]">
+                                            <Image src={villageLogo} alt="Logo" fill sizes="48px" className="object-contain" />
+                                        </div>
+                                        <div>
+                                            <div className="text-white font-black text-xl leading-tight tracking-wide drop-shadow-md">Desa Cimanggu I</div>
+                                            <div className="text-cyan-400 text-[10px] font-bold tracking-[0.2em] uppercase mt-0.5">Kec. Cibungbulang • Kab. Bogor</div>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-slate-300 mb-6 leading-relaxed">
+                                        Silakan masuk untuk mengelola layanan administrasi desa.
+                                    </p>
+
+                                    {error && isLogin && (
+                                        <div className="bg-rose-500/20 border border-rose-500/40 text-rose-200 text-xs font-semibold p-3 rounded-2xl flex items-center gap-2 mb-4 backdrop-blur-md">
+                                            <span>⚠️</span><span>{error}</span>
+                                        </div>
+                                    )}
+                                    {success && isLogin && (
+                                        <div className="bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 text-xs font-semibold p-3 rounded-2xl flex items-center gap-2 mb-4 backdrop-blur-md">
+                                            <span>✅</span><span>{success}</span>
+                                        </div>
+                                    )}
+
+                                    <form onSubmit={handleLogin} className="space-y-4">
+                                        <div className="relative">
+                                            <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                                            <input type="text" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="Email atau NIK" className="w-full bg-white/90 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-full py-3.5 pl-11 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold shadow-md" required />
+                                        </div>
+                                        <div className="relative">
+                                            <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                                            <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Kata Sandi" className="w-full bg-white/90 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 rounded-full py-3.5 pl-11 pr-11 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold shadow-md" required />
+                                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors">
+                                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                             </button>
                                         </div>
+                                        <div className="flex items-center justify-between text-[11px] font-semibold text-slate-300 pt-1 pb-2">
+                                            <label className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
+                                                <input type="checkbox" className="w-3.5 h-3.5 rounded-sm bg-white/10 border-slate-400/30 text-blue-500 focus:ring-blue-500/30" />
+                                                <span>Ingat Saya</span>
+                                            </label>
+                                            <a href="#" className="text-cyan-400 hover:text-cyan-300 transition-colors">Lupa kata sandi?</a>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <button type="button" onClick={async () => {
+                                                setLoading(true); setError("");
+                                                try {
+                                                    const res = await fetch("/api/webauthn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "generate-authentication" }) });
+                                                    if (!res.ok) throw new Error("Gagal");
+                                                    const opts = await res.json();
+                                                    if (opts.error) throw new Error(opts.error);
+                                                    const asseResp = await startAuthentication({ optionsJSON: opts } as any);
+                                                    const r2 = await signIn("credentials", { webauthn: JSON.stringify(asseResp), webauthnChallenge: opts.challenge, redirect: false });
+                                                    if (r2?.error) setError(r2.error); else window.location.href = "/dashboard";
+                                                } catch (e: any) { setError(e.message || "Gagal biometrik"); } finally { setLoading(false); }
+                                            }} className="w-12 h-12 rounded-full bg-white/90 border border-slate-200 text-blue-600 flex items-center justify-center hover:bg-blue-50 shadow-md transition-all shrink-0 active:scale-95 disabled:opacity-40" title="Login dengan Passkey / Fingerprint">
+                                                <Fingerprint size={22} />
+                                            </button>
+                                            <button type="submit" disabled={loading} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-extrabold py-3.5 rounded-full text-xs uppercase tracking-widest shadow-lg shadow-blue-600/30 active:scale-95 transition-all flex items-center justify-center gap-2">
+                                                {loading ? <Loader2 size={18} className="animate-spin" /> : <><KeyRound size={18} /><span>LOGIN</span></>}
+                                            </button>
+                                        </div>
+                                    </form>
 
-                                        {/* Form Fields (Clean White Pill Inputs like Image 1 & 2) */}
-                                        <AnimatePresence mode="wait">
-                                            {isLogin ? (
-                                                <motion.div
-                                                    key="dsk-login"
-                                                    initial={{ opacity: 0, y: 15 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -15 }}
-                                                    transition={{ duration: 0.3 }}
-                                                >
-                                                    {error && isLogin && (
-                                                        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-700 text-xs font-bold p-3 rounded-2xl flex items-center gap-2 mb-4 backdrop-blur-sm">
-                                                            <span>⚠️</span><span>{error}</span>
-                                                        </div>
-                                                    )}
-                                                    {success && isLogin && (
-                                                        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-xs font-bold p-3 rounded-2xl flex items-center gap-2 mb-4 backdrop-blur-sm">
-                                                            <span>✅</span><span>{success}</span>
-                                                        </div>
-                                                    )}
-
-                                                    <form onSubmit={handleLogin} className="space-y-4">
-                                                        <div className="relative group">
-                                                            <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 group-focus-within:text-blue-700 transition-colors z-10" />
-                                                            <input
-                                                                type="text"
-                                                                value={identifier}
-                                                                onChange={(e) => setIdentifier(e.target.value)}
-                                                                placeholder="Email atau NIK"
-                                                                style={{ WebkitBoxShadow: "0 0 0px 1000px white inset" }}
-                                                                className="w-full bg-white border border-slate-200/90 shadow-md shadow-blue-950/5 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-2xl pl-11 pr-4 py-3.5 text-sm text-slate-800 placeholder-slate-400 outline-none transition-all font-semibold"
-                                                                required
-                                                            />
-                                                        </div>
-
-                                                        <div className="relative group">
-                                                            <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 group-focus-within:text-blue-700 transition-colors z-10" />
-                                                            <input
-                                                                type={showPassword ? "text" : "password"}
-                                                                value={password}
-                                                                onChange={(e) => setPassword(e.target.value)}
-                                                                placeholder="Kata Sandi"
-                                                                style={{ WebkitBoxShadow: "0 0 0px 1000px white inset" }}
-                                                                className="w-full bg-white border border-slate-200/90 shadow-md shadow-blue-950/5 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 rounded-2xl pl-11 pr-11 py-3.5 text-sm text-slate-800 placeholder-slate-400 outline-none transition-all font-semibold"
-                                                                required
-                                                            />
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setShowPassword(!showPassword)}
-                                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors z-10"
-                                                            >
-                                                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                                            </button>
-                                                        </div>
-
-                                                        <div className="flex gap-3 pt-2">
-                                                            <button
-                                                                type="button"
-                                                                title="Login Biometrik"
-                                                                disabled={loading}
-                                                                onClick={async () => {
-                                                                    setLoading(true); setError("");
-                                                                    try {
-                                                                        const res = await fetch("/api/webauthn", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "generate-authentication" }) });
-                                                                        if (!res.ok) throw new Error("Gagal");
-                                                                        const opts = await res.json();
-                                                                        if (opts.error) throw new Error(opts.error);
-                                                                        const asseResp = await startAuthentication({ optionsJSON: opts } as any);
-                                                                        const r2 = await signIn("credentials", { webauthn: JSON.stringify(asseResp), webauthnChallenge: opts.challenge, redirect: false });
-                                                                        if (r2?.error) setError(r2.error); else window.location.href = "/dashboard";
-                                                                    } catch (e: any) { setError(e.message || "Gagal biometrik"); } finally { setLoading(false); }
-                                                                }}
-                                                                className="w-12 h-12 rounded-2xl bg-white border border-slate-200/90 shadow-md text-blue-600 flex items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition-all shrink-0 active:scale-95 disabled:opacity-40"
-                                                            >
-                                                                <Fingerprint size={22} />
-                                                            </button>
-
-                                                            <button
-                                                                type="submit"
-                                                                disabled={loading}
-                                                                className="flex-1 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-700 hover:to-sky-600 text-white font-extrabold py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-blue-500/25 active:scale-95 transition-all flex items-center justify-center gap-2"
-                                                            >
-                                                                {loading ? <Loader2 size={18} className="animate-spin" /> : <><KeyRound size={18} /><span>MASUK SEKARANG</span></>}
-                                                            </button>
-                                                        </div>
-                                                    </form>
-                                                </motion.div>
-                                            ) : (
-                                                <motion.div
-                                                    key="dsk-register"
-                                                    initial={{ opacity: 0, y: 15 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -15 }}
-                                                    transition={{ duration: 0.3 }}
-                                                >
-                                                    {error && !isLogin && (
-                                                        <div className="bg-rose-500/10 border border-rose-500/20 text-rose-700 text-xs font-bold p-3 rounded-2xl flex items-center gap-2 mb-4 backdrop-blur-sm">
-                                                            <span>❌</span><span>{error}</span>
-                                                        </div>
-                                                    )}
-                                                    {success && !isLogin && (
-                                                        <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 text-xs font-bold p-3 rounded-2xl flex items-center gap-2 mb-4 backdrop-blur-sm">
-                                                            <span>✅</span><span>{success}</span>
-                                                        </div>
-                                                    )}
-
-                                                    <form onSubmit={handleRegister} className="space-y-3.5">
-                                                        <div className="relative group">
-                                                            <Fingerprint size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500 z-10" />
-                                                            <input type="text" value={regNik} onChange={(e) => setRegNik(e.target.value)} placeholder="NIK (16 Digit)" style={{ WebkitBoxShadow: "0 0 0px 1000px white inset" }} className="w-full bg-white border border-slate-200/90 shadow-md focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl pl-11 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none transition-all font-semibold" required />
-                                                        </div>
-
-                                                        <div className="relative group">
-                                                            <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500 z-10" />
-                                                            <input type="text" value={regFullName} onChange={(e) => setRegFullName(e.target.value)} placeholder="Nama Lengkap" style={{ WebkitBoxShadow: "0 0 0px 1000px white inset" }} className="w-full bg-white border border-slate-200/90 shadow-md focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl pl-11 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none transition-all font-semibold" required />
-                                                        </div>
-
-                                                        <div className="relative group">
-                                                            <Phone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-500 z-10" />
-                                                            <input type="text" value={regPhone} onChange={(e) => setRegPhone(e.target.value)} placeholder="No. WhatsApp" style={{ WebkitBoxShadow: "0 0 0px 1000px white inset" }} className="w-full bg-white border border-slate-200/90 shadow-md focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl pl-11 pr-4 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none transition-all font-semibold" required />
-                                                        </div>
-
-                                                        <div className="grid grid-cols-2 gap-3">
-                                                            <div className="relative group">
-                                                                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-500 z-10" />
-                                                                <input type="password" value={regPass} onChange={(e) => setRegPass(e.target.value)} placeholder="Password" style={{ WebkitBoxShadow: "0 0 0px 1000px white inset" }} className="w-full bg-white border border-slate-200/90 shadow-md focus:border-emerald-500 rounded-2xl pl-9 pr-3 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none transition-all font-semibold" required />
-                                                            </div>
-                                                            <div className="relative group">
-                                                                <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-500 z-10" />
-                                                                <input type="password" value={regConfirmPass} onChange={(e) => setRegConfirmPass(e.target.value)} placeholder="Konfirmasi" style={{ WebkitBoxShadow: "0 0 0px 1000px white inset" }} className="w-full bg-white border border-slate-200/90 shadow-md focus:border-emerald-500 rounded-2xl pl-9 pr-3 py-3 text-sm text-slate-800 placeholder-slate-400 outline-none transition-all font-semibold" required />
-                                                            </div>
-                                                        </div>
-
-                                                        <button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-extrabold py-3.5 rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-2 mt-2">
-                                                            {loading ? <Loader2 size={18} className="animate-spin" /> : <><ShieldCheck size={18} /><span>DAFTAR SEKARANG</span></>}
-                                                        </button>
-                                                    </form>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                                    <div className="mt-6 text-center">
+                                        <p className="text-[11px] text-slate-300 uppercase tracking-widest font-semibold mb-3">Or Sign up with social platforms</p>
+                                        <div className="flex items-center justify-center gap-3">
+                                            <a href="#" title="Facebook" className="w-9 h-9 rounded-full border border-white/30 bg-white/10 flex items-center justify-center text-white hover:bg-white hover:text-blue-600 transition-all">
+                                                <Facebook size={16} />
+                                            </a>
+                                            <a href="#" title="Instagram" className="w-9 h-9 rounded-full border border-white/30 bg-white/10 flex items-center justify-center text-white hover:bg-white hover:text-pink-600 transition-all">
+                                                <Instagram size={16} />
+                                            </a>
+                                            <a href="#" title="Youtube" className="w-9 h-9 rounded-full border border-white/30 bg-white/10 flex items-center justify-center text-white hover:bg-white hover:text-red-600 transition-all">
+                                                <Youtube size={16} />
+                                            </a>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="welcome-signin-panel"
+                                    initial={{ opacity: 0, x: 30 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 30 }}
+                                    transition={{ duration: 0.5, delay: 0.2 }}
+                                    className="flex flex-col items-center text-center max-w-md text-white z-30"
+                                >
+                                    <h2 className="text-4xl font-black mb-4 tracking-tight drop-shadow-lg">Welcome back</h2>
+                                    <p className="text-xs lg:text-sm text-cyan-50/90 leading-relaxed mb-8 font-medium">
+                                        Sudah memiliki akun? Silakan masuk dengan email dan kata sandi Anda yang telah terdaftar.
+                                    </p>
+                                    <button
+                                        onClick={() => { setIsLogin(true); setError(""); setSuccess(""); }}
+                                        className="px-10 py-3 rounded-full border-2 border-white/90 text-white font-extrabold text-xs uppercase tracking-widest hover:bg-white hover:text-blue-900 shadow-xl hover:shadow-[0_0_30px_rgba(255,255,255,0.6)] active:scale-95 transition-all"
+                                    >
+                                        SIGN IN
+                                    </button>
+                                    <div className="mt-12 opacity-90 drop-shadow-2xl animate-pulse">
+                                        <RocketIllustration />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-
-    {/* Bottom gradient line */}
-    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300/40 to-transparent" />
-</div>
         </LandingThemeProvider>
     );
 }

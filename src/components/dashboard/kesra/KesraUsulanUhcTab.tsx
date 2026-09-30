@@ -491,7 +491,7 @@ export function KesraUsulanUhcTab({ _session }: any) {
         {printData && <div id="hidden-print-uhc"><CetakUsulanUhc data={printData} isBundle={true} /></div>}
         {printSkkmData && <div id="hidden-print-skkm"><CetakSkkm data={printSkkmData} /></div>}
         {printSptjmData && <div id="hidden-print-sptjm"><CetakSptjm data={printSptjmData} /></div>}
-        {bundleData && <div id="hidden-print-bundle"><CetakBundle data={bundleData.main} sptjmData={bundleData.sptjm} /></div>}
+        {bundleData && <div id="hidden-print-bundle"><CetakBundle data={bundleData.main} sptjmData={bundleData.sptjm} onBack={() => {}} /></div>}
       </div>
     </div>
   );
