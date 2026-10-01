@@ -4,6 +4,8 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import fs from "fs";
+import path from "path";
 
 async function getSession() {
   const session = await getServerSession(authOptions);
@@ -158,6 +160,7 @@ export async function getVillageProfile() {
     const tenantFilter = await getLandingTenantFilter();
     return await prisma.villageProfile.findFirst({
       where: tenantFilter,
+      orderBy: { updatedAt: 'desc' }
     });
   } catch (error) {
     // Silently handle error
@@ -181,7 +184,30 @@ export async function getLembagaList() {
 export async function updateVillageProfile(data: any) {
   try {
     const session = await getAdminSession();
-    const tenantId = (session.user as any).tenantId || DEFAULT_TENANT_ID;
+    const tenantId = await resolveTenantId();
+
+    let processedVideoUrl = data.hero_video;
+    
+    // Convert base64 video to file and save to public/uploads if necessary
+    if (processedVideoUrl && processedVideoUrl.startsWith("data:video")) {
+      try {
+        const matches = processedVideoUrl.match(/^data:video\/([^;]+);base64,(.+)$/);
+        if (matches && matches.length === 3) {
+          const ext = matches[1].split('+')[0].replace(/[^a-zA-Z0-9]/g, '');
+          const buffer = Buffer.from(matches[2], "base64");
+          const uploadDir = path.join(process.cwd(), "public", "uploads");
+          if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+          const fileName = `hero_video_${Date.now()}.${ext}`;
+          const filePath = path.join(uploadDir, fileName);
+          fs.writeFileSync(filePath, buffer);
+          processedVideoUrl = `/uploads/${fileName}`;
+        }
+      } catch (err) {
+        console.error("Error saving video:", err);
+      }
+    }
 
     const result = await prisma.villageProfile.upsert({
       where: { tenantId },
@@ -189,29 +215,47 @@ export async function updateVillageProfile(data: any) {
         title: data.title,
         hero_title: data.hero_title,
         hero_subtitle: data.hero_subtitle,
+        hero_video: processedVideoUrl,
         about_title: data.about_title,
         about_text: data.about_text,
         about_image: data.about_image,
         logo: data.logo,
         gallery: data.gallery,
+        sambutan_kades: data.sambutan_kades,
+        sejarah: data.sejarah,
+        visi: data.visi,
+        misi: data.misi,
+        kontak_telepon: data.kontak_telepon,
+        kontak_email: data.kontak_email,
+        kontak_alamat: data.kontak_alamat,
       },
       create: {
         tenantId,
         title: data.title,
         hero_title: data.hero_title,
         hero_subtitle: data.hero_subtitle,
+        hero_video: processedVideoUrl,
         about_title: data.about_title,
         about_text: data.about_text,
         about_image: data.about_image,
         logo: data.logo,
         gallery: data.gallery,
+        sambutan_kades: data.sambutan_kades,
+        sejarah: data.sejarah,
+        visi: data.visi,
+        misi: data.misi,
+        kontak_telepon: data.kontak_telepon,
+        kontak_email: data.kontak_email,
+        kontak_alamat: data.kontak_alamat,
       }
     });
 
-    revalidatePath("/");
+    revalidatePath("/", "layout");
+    revalidatePath("/dashboard/cms");
     revalidatePath("/dashboard/settings/landing");
     return result;
   } catch (error) {
+    console.error("Error in updateVillageProfile:", error);
     throw error;
   }
 }

@@ -32,12 +32,24 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
     const [activeTab, setActiveTab] = useState<'hero' | 'informasi' | 'organisasi'>('hero');
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Dynamic background village images matching the 3 circular badges
-    const bgImages = [
-        "/images/slide_1.webp",
-        "/images/sawah.png",
-        "/images/slide_6_.png"
-    ];
+    // Helper to parse gallery items which could be legacy strings or new objects
+    const parseGalleryItem = (item: any, fallback: string) => {
+        if (typeof item === 'string') return item;
+        if (item && typeof item === 'object') return item.url || item.img || fallback;
+        return fallback;
+    };
+
+    // Dynamic background village images based on CMS gallery data
+    const bgImages = (Array.isArray(siteData?.gallery) && siteData.gallery.length > 0)
+        ? siteData.gallery.map((item: any, index: number) => {
+            const fallback = index % 3 === 0 ? "/images/slide_1.webp" : index % 3 === 1 ? "/images/sawah.png" : "/images/slide_6_.png";
+            return parseGalleryItem(item, fallback);
+        })
+        : [
+            "/images/slide_1.webp",
+            "/images/sawah.png",
+            "/images/slide_6_.png"
+        ];
 
     // Current background hero image based on active hovered circle
     const currentBgImage = activeCircle !== null ? bgImages[activeCircle - 1] : bgImages[0];
@@ -60,39 +72,40 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
         return () => window.removeEventListener('mousemove', handleMouseMove);
     }, []);
 
-    // 3 Circular Badge Data
-    const circularItems = [
-        {
-            id: 1,
-            title: "PENGAWASAN KEBAKARAN",
-            subtitle: "E-Absensi & Presensi Biometrik",
-            image: "/images/slide_1.webp",
-            link: "/absensi",
-            colorGlow: "shadow-[0_0_40px_rgba(245,158,11,0.85)] border-amber-300",
-            bgAtmosphere: "rgba(234, 88, 12, 0.35)",
-            marqueeColor: "text-amber-300"
-        },
-        {
-            id: 2,
-            title: "BLOG PENGEMBANGAN",
-            subtitle: "Peta WebGIS & Batas Wilayah",
-            image: "/images/sawah.png",
-            link: "/gis-dashboard",
-            colorGlow: "shadow-[0_0_40px_rgba(16,185,129,0.85)] border-emerald-300",
-            bgAtmosphere: "rgba(16, 185, 129, 0.35)",
-            marqueeColor: "text-emerald-300"
-        },
-        {
-            id: 3,
-            title: "TINJAUAN TRIWULANAN",
-            subtitle: "Statistik & Layanan Digital",
-            image: "/images/slide_6_.png",
-            link: "/login",
-            colorGlow: "shadow-[0_0_40px_rgba(6,182,212,0.85)] border-cyan-300",
-            bgAtmosphere: "rgba(6, 182, 212, 0.35)",
-            marqueeColor: "text-cyan-300"
-        }
-    ];
+    // Dynamic circular items based on bgImages
+    const circularItems = bgImages.map((img, idx) => {
+        const colors = [
+            { glow: "shadow-[0_0_40px_rgba(245,158,11,0.85)] border-amber-300", bg: "rgba(234, 88, 12, 0.35)", marquee: "text-amber-300" },
+            { glow: "shadow-[0_0_40px_rgba(16,185,129,0.85)] border-emerald-300", bg: "rgba(16, 185, 129, 0.35)", marquee: "text-emerald-300" },
+            { glow: "shadow-[0_0_40px_rgba(6,182,212,0.85)] border-cyan-300", bg: "rgba(6, 182, 212, 0.35)", marquee: "text-cyan-300" },
+            { glow: "shadow-[0_0_40px_rgba(168,85,247,0.85)] border-purple-300", bg: "rgba(168, 85, 247, 0.35)", marquee: "text-purple-300" },
+            { glow: "shadow-[0_0_40px_rgba(239,68,68,0.85)] border-red-300", bg: "rgba(239, 68, 68, 0.35)", marquee: "text-red-300" }
+        ];
+        const defaultTitles = [
+            { title: "PENGAWASAN KEBAKARAN", sub: "E-Absensi & Presensi Biometrik", link: "/absensi" },
+            { title: "BLOG PENGEMBANGAN", sub: "Peta WebGIS & Batas Wilayah", link: "/gis-dashboard" },
+            { title: "TINJAUAN TRIWULANAN", sub: "Statistik & Layanan Digital", link: "/login" }
+        ];
+        
+        const color = colors[idx % colors.length];
+        const defaultInfo = defaultTitles[idx % defaultTitles.length];
+        
+        // If CMS data has titles, use them, otherwise use default Info
+        const galleryItem = Array.isArray(siteData?.gallery) ? siteData.gallery[idx] : null;
+        const displayTitle = galleryItem?.title ? galleryItem.title : defaultInfo.title;
+        const displaySub = galleryItem?.sub ? galleryItem.sub : defaultInfo.sub;
+
+        return {
+            id: idx + 1,
+            title: displayTitle,
+            subtitle: displaySub,
+            image: img,
+            link: defaultInfo.link,
+            colorGlow: color.glow,
+            bgAtmosphere: color.bg,
+            marqueeColor: color.marquee
+        };
+    });
 
     // Navbar Menu Items (STRUKTUR ORGANISASI added right after INFORMASI PUBLIK)
     const navMenuItems = [
@@ -132,7 +145,7 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
                     </div>
                     {/* Pure Animated Gradient Text */}
                     <span className="font-black text-xs sm:text-sm tracking-widest uppercase bg-gradient-to-r from-yellow-300 via-amber-400 via-yellow-200 to-amber-300 bg-clip-text text-transparent animate-gradient-shift drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-                        DESA CIMANGGU I
+                        {siteData?.title || "DESA CIMANGGU I"}
                     </span>
                 </button>
 
@@ -236,26 +249,39 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
                 <>
                     {/* LIGHT TRANSLUCENT BACKGROUND LANDSCAPE OVERLAY */}
                     <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-                        {bgImages.map((src, idx) => (
-                            <div
-                                key={idx}
-                                className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                                    currentBgImage === src ? 'opacity-70 scale-105 z-10' : 'opacity-0 scale-100 z-0'
-                                }`}
-                                style={{
-                                    transform: `translate3d(${mousePos.x * -8}px, ${mousePos.y * -5}px, 0)`
-                                }}
-                            >
-                                <Image
-                                    src={src}
-                                    alt={`Village Background Scenery ${idx + 1}`}
-                                    fill
-                                    priority={idx === 0}
-                                    sizes="100vw"
-                                    className="object-cover object-center filter saturate-[1.2] brightness-95"
+                        {siteData?.hero_video ? (
+                            <div className="absolute inset-0 opacity-70 z-10">
+                                <video
+                                    src={siteData.hero_video}
+                                    autoPlay
+                                    loop
+                                    muted
+                                    playsInline
+                                    className="object-cover object-center w-full h-full filter saturate-[1.2] brightness-95"
                                 />
                             </div>
-                        ))}
+                        ) : (
+                            bgImages.map((src, idx) => (
+                                <div
+                                    key={idx}
+                                    className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                                        currentBgImage === src ? 'opacity-70 scale-105 z-10' : 'opacity-0 scale-100 z-0'
+                                    }`}
+                                    style={{
+                                        transform: `translate3d(${mousePos.x * -8}px, ${mousePos.y * -5}px, 0)`
+                                    }}
+                                >
+                                    <Image
+                                        src={src}
+                                        alt={`Village Background Scenery ${idx + 1}`}
+                                        fill
+                                        priority={idx === 0}
+                                        sizes="100vw"
+                                        className="object-cover object-center filter saturate-[1.2] brightness-95"
+                                    />
+                                </div>
+                            ))
+                        )}
 
                         <div className="absolute inset-0 z-20 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />
                         <div 
@@ -288,7 +314,7 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
                                         textShadow: isTitleHovered ? '0 0 35px rgba(245,158,11,0.6)' : '0 4px 16px rgba(0,0,0,0.9), 0 0 45px rgba(245,158,11,0.35)'
                                     }}
                                 >
-                                    DESA CIMANGGU I
+                                    {siteData?.hero_title || siteData?.title || "DESA CIMANGGU I"}
                                 </h1>
                             </div>
 
@@ -309,13 +335,13 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
 
                             {/* PARAGRAPH DESCRIPTION */}
                             <p className="text-white/90 text-xs sm:text-sm md:text-base font-medium leading-relaxed max-w-xl mx-auto px-4 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] mt-3">
-                                Portal digital terpadu Pemdes Cimanggu I untuk transparansi tata kelola, pemetaan WebGIS, dan efisiensi pelayanan publik.
+                                {siteData?.hero_subtitle || "Portal digital terpadu Pemdes Cimanggu I untuk transparansi tata kelola, pemetaan WebGIS, dan efisiensi pelayanan publik."}
                             </p>
                         </div>
 
-                        {/* 3 ROUNDED CIRCULAR BADGES */}
+                        {/* ROUNDED CIRCULAR BADGES */}
                         <div className="w-full py-4 sm:py-6">
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 max-w-4xl mx-auto">
+                            <div className="flex flex-wrap justify-center gap-6 sm:gap-8 lg:gap-12 max-w-6xl mx-auto">
                                 {circularItems.map((item) => {
                                     const isHovered = activeCircle === item.id;
 

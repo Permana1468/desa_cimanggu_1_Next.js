@@ -94,3 +94,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+// Config re-evaluated at 2026-10-01 to reload updated Prisma Client

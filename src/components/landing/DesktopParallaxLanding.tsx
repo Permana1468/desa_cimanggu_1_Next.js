@@ -25,13 +25,15 @@ import {
     MapPin,
     BarChart3,
     Send,
-    Layers
+    Layers,
+    ChevronDown
 } from 'lucide-react';
 import { LandingOrganization } from './LandingOrganization';
 import { LandingNews } from './LandingNews';
 import { LandingAspiration } from './LandingAspiration';
 import { useLandingTheme } from './LandingThemeProvider';
 import { CampoSantoHero } from './CampoSantoHero';
+import ScrollReveal from '../ScrollReveal';
 
 interface DesktopParallaxLandingProps {
     siteData: any;
@@ -121,23 +123,29 @@ export function DesktopParallaxLanding({
     }, []);
 
     // Scenery Carousel Images matching Reference Concept
-    const heroSceneries = [
-        {
-            url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2000&auto=format&fit=crop",
-            title: "Desa Cimanggu I",
-            sub: "Desa Cimanggu I"
-        },
-        {
-            url: "/images/sawah.png",
-            title: "Kawasan Hijau Subur",
-            sub: "Pusat Ketahanan Pangan & Ekosistem Lokal"
-        },
-        {
-            url: "/images/slide_1.webp",
-            title: "Pemerintah Desa Digital",
-            sub: "Layanan Terpadu Berbasis CyberNet SDD"
-        }
-    ];
+    const heroSceneries = (Array.isArray(siteData?.gallery) && siteData.gallery.length > 0)
+        ? siteData.gallery.map((item: any) => 
+            typeof item === 'string' 
+                ? { url: item, title: "", sub: "" }
+                : { url: item.url || item.img, title: item.title || "", sub: item.sub || "" }
+          )
+        : [
+            {
+                url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2000&auto=format&fit=crop",
+                title: "Desa Cimanggu I",
+                sub: "Desa Cimanggu I"
+            },
+            {
+                url: "/images/sawah.png",
+                title: "Kawasan Hijau Subur",
+                sub: "Pusat Ketahanan Pangan & Ekosistem Lokal"
+            },
+            {
+                url: "/images/slide_1.webp",
+                title: "Pemerintah Desa Digital",
+                sub: "Layanan Terpadu Berbasis CyberNet SDD"
+            }
+        ];
 
     const nextScenery = () => {
         setHeroBgIndex((prev) => (prev + 1) % heroSceneries.length);
@@ -150,10 +158,10 @@ export function DesktopParallaxLanding({
     // Auto change background
     useEffect(() => {
         const timer = setInterval(() => {
-            setHeroBgIndex((prev) => (prev + 1) % 3);
+            setHeroBgIndex((prev) => (prev + 1) % heroSceneries.length);
         }, 5000);
         return () => clearInterval(timer);
-    }, []);
+    }, [heroSceneries.length]);
 
     if (isDualMode) {
         return (
@@ -197,24 +205,42 @@ export function DesktopParallaxLanding({
                 </div>
 
                 {/* Center: Overhauled Navigation Menu Links */}
-                <nav className="flex items-center gap-7 text-xs xl:text-sm font-extrabold uppercase tracking-wide">
-                    <a href="#beranda" className="text-amber-400 hover:text-amber-300 transition-colors drop-shadow-md">
+                <nav className="flex items-center gap-7 text-xs xl:text-sm font-extrabold uppercase tracking-wide z-50">
+                    <Link href="/" className="text-amber-400 hover:text-amber-300 transition-colors drop-shadow-md">
                         Beranda
-                    </a>
-                    <a href="#layanan-fitur" className="text-slate-200 hover:text-amber-400 transition-colors drop-shadow-md">
-                        Tentang
-                    </a>
-                    <a href="#statistik" className="text-slate-200 hover:text-amber-400 transition-colors drop-shadow-md">
-                        Statistik & Data
-                    </a>
-                    <a href="#berita" className="text-slate-200 hover:text-amber-400 transition-colors drop-shadow-md">
-                        Berita
-                    </a>
-                    <a href="#organisasi" className="text-slate-200 hover:text-amber-400 transition-colors drop-shadow-md">
-                        Struktur Organisasi
-                    </a>
+                    </Link>
+                    
+                    {/* Dropdown Profil */}
+                    <div className="relative group py-4">
+                        <button className="text-slate-200 hover:text-amber-400 transition-colors drop-shadow-md uppercase font-extrabold flex items-center gap-1">
+                            Profil <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300" />
+                        </button>
+                        <div className="absolute left-0 top-full -mt-2 w-56 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 flex flex-col p-2 pointer-events-none group-hover:pointer-events-auto">
+                            <Link href="/profil/sambutan" className="px-4 py-2.5 text-slate-300 hover:text-amber-400 hover:bg-white/5 rounded-lg text-xs font-bold transition-colors">Sambutan Kepala Desa</Link>
+                            <Link href="/profil/sejarah" className="px-4 py-2.5 text-slate-300 hover:text-amber-400 hover:bg-white/5 rounded-lg text-xs font-bold transition-colors">Sejarah</Link>
+                            <Link href="/profil/visi-misi" className="px-4 py-2.5 text-slate-300 hover:text-amber-400 hover:bg-white/5 rounded-lg text-xs font-bold transition-colors">Visi & Misi</Link>
+                        </div>
+                    </div>
+
+                    {/* Dropdown Organisasi */}
+                    <div className="relative group py-4">
+                        <button className="text-slate-200 hover:text-amber-400 transition-colors drop-shadow-md uppercase font-extrabold flex items-center gap-1">
+                            Organisasi <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300" />
+                        </button>
+                        <div className="absolute left-0 top-full -mt-2 w-56 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 flex flex-col p-2 pointer-events-none group-hover:pointer-events-auto">
+                            <Link href="/organisasi/aparatur" className="px-4 py-2.5 text-slate-300 hover:text-amber-400 hover:bg-white/5 rounded-lg text-xs font-bold transition-colors">Aparatur Desa</Link>
+                            <Link href="/organisasi/kelembagaan" className="px-4 py-2.5 text-slate-300 hover:text-amber-400 hover:bg-white/5 rounded-lg text-xs font-bold transition-colors">Kelembagaan</Link>
+                        </div>
+                    </div>
+
+                    <Link href="/#berita" className="text-slate-200 hover:text-amber-400 transition-colors drop-shadow-md">
+                        Berita & Informasi
+                    </Link>
                     <Link href="/umkm" className="text-slate-200 hover:text-amber-400 transition-colors drop-shadow-md">
                         UMKM
+                    </Link>
+                    <Link href="/kontak" className="text-slate-200 hover:text-amber-400 transition-colors drop-shadow-md">
+                        Kontak
                     </Link>
                 </nav>
 
@@ -265,23 +291,38 @@ export function DesktopParallaxLanding({
                     style={{ scale: heroBgScale, y: heroBgY }}
                     className="absolute inset-0 w-full h-full z-0 pointer-events-none"
                 >
-                    {heroSceneries.map((scenery, index) => (
-                        <div
-                            key={index}
-                            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === heroBgIndex ? 'opacity-100' : 'opacity-0'
-                                }`}
-                        >
-                            <Image
-                                src={scenery.url}
-                                alt="Hero Scenery"
-                                fill
-                                priority={index === 0}
-                                className="object-cover object-center filter brightness-[0.92] contrast-[1.05]"
+                    {siteData?.hero_video ? (
+                        <div className="absolute inset-0 opacity-100 z-10">
+                            <video
+                                src={siteData.hero_video}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="object-cover object-center w-full h-full filter brightness-[0.8] contrast-[1.1]"
                             />
                             {/* Tambahan Overlay */}
                             <div className="absolute inset-0 bg-black/40 mix-blend-multiply" />
                         </div>
-                    ))}
+                    ) : (
+                        heroSceneries.map((scenery, index) => (
+                            <div
+                                key={index}
+                                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === heroBgIndex ? 'opacity-100' : 'opacity-0'
+                                    }`}
+                            >
+                                <Image
+                                    src={scenery.url || scenery.img || "/images/slide_1.webp"}
+                                    alt="Hero Scenery"
+                                    fill
+                                    priority={index === 0}
+                                    className="object-cover object-center filter brightness-[0.92] contrast-[1.05]"
+                                />
+                                {/* Tambahan Overlay */}
+                                <div className="absolute inset-0 bg-black/40 mix-blend-multiply" />
+                            </div>
+                        ))
+                    )}
 
                     {/* Top to Bottom Sun Flare & Gradient Blur Atmosphere */}
                     <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-purple-950/80 pointer-events-none" />
@@ -343,15 +384,25 @@ export function DesktopParallaxLanding({
                         style={{ y: heroSubjectY, scale: heroSubjectScale }}
                         className="relative flex flex-col items-center justify-center my-auto cursor-pointer group"
                     >
-                        {/* Foreground Subject Image / Character with Glowing Aura */}
-                        <div className="relative w-72 h-72 xl:w-96 xl:h-96 rounded-full overflow-hidden border-4 border-amber-400/40 shadow-[0_0_70px_rgba(245,158,11,0.4)] group-hover:shadow-[0_0_90px_rgba(245,158,11,0.7)] transition-all duration-700">
-                            <Image
-                                src={siteData?.about_image || "/images/sawah.png"}
-                                alt="Featured Subject"
-                                fill
-                                className="object-cover group-hover:scale-110 transition-transform duration-1000"
+                        {/* Foreground Subject Image / Character with 3D Pop Out Effect */}
+                        <div className="relative w-72 h-72 xl:w-96 xl:h-96 mt-12 mb-4">
+                            {/* Animated Solid Color Background Circle */}
+                            <motion.div 
+                                animate={{ backgroundColor: ["#f59e0b", "#3b82f6", "#8b5cf6", "#ec4899", "#10b981", "#f59e0b"] }}
+                                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                                className="absolute inset-0 rounded-full border-4 border-white/20 shadow-[0_0_80px_rgba(255,255,255,0.2)] group-hover:shadow-[0_0_120px_rgba(255,255,255,0.4)] transition-all duration-700" 
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+                            
+                            {/* 3D Character Image breaking out of the circle */}
+                            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-[135%] z-10 pointer-events-none">
+                                <Image
+                                    src="/images/HERNAWAN M. SODIK.png"
+                                    alt="Hernawan M. Sodik"
+                                    fill
+                                    priority
+                                    className="object-contain object-bottom drop-shadow-[0_20px_30px_rgba(0,0,0,0.5)] group-hover:scale-105 group-hover:-translate-y-4 transition-transform duration-700"
+                                />
+                            </div>
                         </div>
 
                         {/* Exact Pill Button from Reference Image: "Check here for Registration !" */}
@@ -388,6 +439,7 @@ export function DesktopParallaxLanding({
             {/* SECTION 2: ABOUT US / SEKILAS PANDANG (Smooth Dark Deep Purple Gradient Fade - Image 2) */}
             {/* -------------------------------------------------------------------------- */}
             <section className="relative w-full py-24 px-6 xl:px-16 bg-gradient-to-b from-purple-950 via-slate-950 to-slate-950 z-20">
+                <ScrollReveal>
                 <div className="max-w-7xl mx-auto space-y-12">
 
                     {/* Section Header: "About us" (Exact Typography from Reference Image 2) */}
@@ -460,12 +512,14 @@ export function DesktopParallaxLanding({
                         </div>
                     </div>
                 </div>
+                </ScrollReveal>
             </section>
 
             {/* -------------------------------------------------------------------------- */}
             {/* SECTION 3: ROMBAK TOTAL KONSEP MENU & FITUR UTAMA DESKTOP */}
             {/* -------------------------------------------------------------------------- */}
             <section id="layanan-fitur" className="relative w-full py-24 px-6 xl:px-16 bg-slate-950 z-20 border-t border-white/10">
+                <ScrollReveal>
                 <div className="max-w-7xl mx-auto space-y-16">
 
                     {/* Section Header */}
@@ -585,12 +639,14 @@ export function DesktopParallaxLanding({
                         </div>
                     </div>
                 </div>
+                </ScrollReveal>
             </section>
 
             {/* -------------------------------------------------------------------------- */}
             {/* SECTION 4: GEOSPATIAL COMMAND RADAR (WebGIS Interaktif) */}
             {/* -------------------------------------------------------------------------- */}
             <section id="webgis" className="relative w-full py-24 px-6 xl:px-16 bg-slate-950 z-20 border-t border-white/10">
+                <ScrollReveal>
                 <div className="max-w-7xl mx-auto space-y-12">
                     <div className="text-center space-y-3">
                         <div className="inline-flex items-center gap-2 text-cyan-400 font-extrabold tracking-widest uppercase text-xs">
@@ -676,12 +732,14 @@ export function DesktopParallaxLanding({
                         </div>
                     </div>
                 </div>
+                </ScrollReveal>
             </section>
 
             {/* -------------------------------------------------------------------------- */}
             {/* SECTION 5: DEMOGRAFI & TELEMETRI STATISTIK */}
             {/* -------------------------------------------------------------------------- */}
             <section id="statistik" className="relative w-full py-24 px-6 xl:px-16 bg-slate-950 z-20 border-t border-white/10">
+                <ScrollReveal>
                 <div className="max-w-7xl mx-auto space-y-12">
                     <div className="text-center space-y-3">
                         <div className="inline-flex items-center gap-2 text-amber-400 font-extrabold tracking-widest uppercase text-xs">
@@ -727,6 +785,7 @@ export function DesktopParallaxLanding({
                         </div>
                     </div>
                 </div>
+                </ScrollReveal>
             </section>
 
             {/* -------------------------------------------------------------------------- */}
@@ -741,6 +800,7 @@ export function DesktopParallaxLanding({
                     </div>
 
                     {/* Lembaga Kemasyarakatan Showcase */}
+                    <ScrollReveal>
                     <div className="space-y-6">
                         <div className="text-center space-y-2">
                             <div className="inline-flex items-center gap-2 text-cyan-400 font-extrabold uppercase text-xs tracking-widest">
@@ -762,6 +822,7 @@ export function DesktopParallaxLanding({
                             ))}
                         </div>
                     </div>
+                    </ScrollReveal>
                 </div>
             </section>
 
@@ -773,6 +834,7 @@ export function DesktopParallaxLanding({
                     <LandingAspiration />
 
                     {/* Footer */}
+                    <ScrollReveal>
                     <footer className="pt-12 border-t border-white/15 text-slate-400">
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
                             <div className="col-span-2 space-y-4">
@@ -798,9 +860,9 @@ export function DesktopParallaxLanding({
                             <div>
                                 <h4 className="text-xs font-black uppercase text-white tracking-widest mb-4 border-b border-white/10 pb-2">Kontak Pemdes</h4>
                                 <ul className="space-y-2 text-xs font-medium">
-                                    <li>Jl. Raya Cibungbulang No. 1, Bogor</li>
-                                    <li>Email: info@cimanggu1.desa.id</li>
-                                    <li>Telp: (0251) 1234567</li>
+                                    <li>{siteData?.kontak_alamat || "Jl. Raya Cibungbulang No. 1, Bogor"}</li>
+                                    <li>Email: {siteData?.kontak_email || "info@cimanggu1.desa.id"}</li>
+                                    <li>Telp: {siteData?.kontak_telepon || "(0251) 1234567"}</li>
                                 </ul>
                             </div>
                         </div>
@@ -810,6 +872,7 @@ export function DesktopParallaxLanding({
                             <span className="text-amber-400">POWERED BY SYSTEM DIGITALISASI DESA (SDD)</span>
                         </div>
                     </footer>
+                    </ScrollReveal>
                 </div>
             </section>
 

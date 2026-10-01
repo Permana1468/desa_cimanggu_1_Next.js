@@ -421,6 +421,7 @@ model VillageProfile {
   // Hero Section
   hero_title    String?
   hero_subtitle String?
+  hero_video    String? @db.Text
 
   // About Section
   about_title String?
@@ -430,6 +431,10 @@ model VillageProfile {
   visi         String?  @db.Text
   misi         Json? // Array of strings
   sejarah      String?  @db.Text
+  sambutan_kades String? @db.Text
+  kontak_telepon String?
+  kontak_email   String?
+  kontak_alamat  String? @db.Text
   luasWilayah  String?
   batasUtara   String?
   batasSelatan String?

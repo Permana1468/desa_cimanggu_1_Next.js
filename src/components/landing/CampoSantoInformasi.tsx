@@ -110,11 +110,11 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
                             textShadow: '0 4px 16px rgba(0,0,0,0.9), 0 0 50px rgba(245,158,11,0.4)'
                         }}
                     >
-                        DESA CIMANGGU I
+                        {siteData?.title || "DESA CIMANGGU I"}
                     </h1>
 
                     <p className="text-amber-100/90 text-sm sm:text-base md:text-lg font-medium leading-relaxed max-w-2xl mx-auto drop-shadow-md">
-                        Transparansi tata kelola pemerintahan desa, laporan kinerja pembangunan, pemetaan wilayah WebGIS, dan layanan publik terpadu.
+                        {siteData?.hero_subtitle || "Transparansi tata kelola pemerintahan desa, laporan kinerja pembangunan, pemetaan wilayah WebGIS, dan layanan publik terpadu."}
                     </p>
                 </div>
 
@@ -196,15 +196,12 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
                             textShadow: '0 2px 10px rgba(245,158,11,0.3)'
                         }}
                     >
-                        Desa Cimanggu I adalah pelopor digitalisasi pemerintahan desa di Kecamatan Cibungbulang dengan tata kelola transparan dan inovasi WebGIS.
+                        {siteData?.about_title || "Desa Cimanggu I adalah pelopor digitalisasi pemerintahan desa di Kecamatan Cibungbulang dengan tata kelola transparan dan inovasi WebGIS."}
                     </h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left text-amber-100/80 text-xs sm:text-sm leading-relaxed font-serif pt-4 border-t border-amber-500/20">
-                        <p>
-                            Terletak di wilayah strategis Kecamatan Cibungbulang, Kabupaten Bogor, Desa Cimanggu I berkomitmen penuh untuk menghadirkan pelayanan publik modern yang cepat, mudah, dan dapat diakses oleh seluruh warga.
-                        </p>
-                        <p>
-                            Melalui penerapan Sistem Digitalisasi Desa (SDD), data kependudukan, batas wilayah RT/RW, rencana anggaran biaya (RAB), dan pencatatan absensi aparatur dikelola secara terpusat demi efisiensi dan akuntabilitas.
+                    <div className="text-left text-amber-100/80 text-xs sm:text-sm leading-relaxed font-serif pt-4 border-t border-amber-500/20">
+                        <p className="whitespace-pre-wrap">
+                            {siteData?.about_text || "Terletak di wilayah strategis Kecamatan Cibungbulang, Kabupaten Bogor, Desa Cimanggu I berkomitmen penuh untuk menghadirkan pelayanan publik modern yang cepat, mudah, dan dapat diakses oleh seluruh warga.\n\nMelalui penerapan Sistem Digitalisasi Desa (SDD), data kependudukan, batas wilayah RT/RW, rencana anggaran biaya (RAB), dan pencatatan absensi aparatur dikelola secara terpusat demi efisiensi dan akuntabilitas."}
                         </p>
                     </div>
                 </div>

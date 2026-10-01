@@ -5,14 +5,19 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
 export async function updateUserHeartbeat() {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) return { error: "Unauthorized" };
-    const userId = (session.user as any).id;
-    await prisma.user.update({
-        where: { id: userId },
-        data: { lastActiveAt: new Date() }
-    });
-    return { success: true };
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) return { error: "Unauthorized" };
+        const userId = (session.user as any).id;
+        await prisma.user.update({
+            where: { id: userId },
+            data: { lastActiveAt: new Date() }
+        });
+        return { success: true };
+    } catch (err) {
+        // Silently swallow background heartbeat errors to avoid blocking UI operations
+        return { error: "Heartbeat failed" };
+    }
 }
 
 export async function getChatContacts() {

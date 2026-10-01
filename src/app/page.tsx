@@ -61,6 +61,7 @@ export default async function LandingPage() {
         hero_title: "Pemerintah Desa",
         hero_subtitle: "Platform digital terpadu untuk mengelola, memonitor, dan menganalisis data pemberdayaan masyarakat.",
         logo: "/images/logo-bogor.png",
+        hero_video: "",
         about_title: "Sekilas Pandang",
         about_text: "Desa Cimanggu I merupakan salah satu desa unggulan bagian dari program digitalisasi...",
         about_image: "/images/sawah.png",
@@ -69,8 +70,8 @@ export default async function LandingPage() {
 
     // BACKGROUND HERO SECTION (CAROUSEL)
     const heroImages = (Array.isArray(siteData.gallery) && siteData.gallery.length > 0
-        ? siteData.gallery
-        : ['/images/slide_1.png', '/images/slide_6_.png', '/images/sawah.png']) as string[];
+        ? siteData.gallery.map((item: any) => typeof item === 'string' ? item : (item.url || item.img || '/images/slide_1.webp'))
+        : ['/images/slide_1.webp', '/images/slide_6_.png', '/images/sawah.png']) as string[];
 
     const newsData = newsRes ? newsRes.map((item: any) => ({
         id: item.id,

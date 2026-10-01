@@ -30,25 +30,38 @@ export const LandingHero = ({ siteData, heroImages }: HeroProps) => {
 
     return (
         <section id="beranda" className="relative min-h-[100dvh] flex flex-col justify-center px-4 sm:px-8 md:px-20 lg:px-32 overflow-hidden py-16 sm:py-0">
-            {/* BACKGROUND CAROUSEL WITH DYNAMIC CYBER OVERLAYS */}
+            {/* BACKGROUND CAROUSEL OR VIDEO WITH DYNAMIC CYBER OVERLAYS */}
             <div className="absolute inset-0 z-0 bg-[#060b17] overflow-hidden">
-                {heroImages.map((src, index) => (
-                    <div
-                        key={index}
-                        className={`absolute inset-0 transition-opacity duration-[2500ms] ease-in-out ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
-                            }`}
-                    >
-                        <Image
-                            src={src}
-                            alt={`Hero Slide ${index + 1}`}
-                            fill
-                            priority={index === 0}
-                            sizes="100vw"
-                            className={`object-cover object-center transition-transform duration-[18000ms] ease-out ${index === currentSlide ? 'scale-110 translate-y-0' : 'scale-100 translate-y-2'
-                                }`}
+                {siteData?.hero_video ? (
+                    <div className="absolute inset-0 opacity-100 z-10">
+                        <video
+                            src={siteData.hero_video}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="object-cover object-center w-full h-full filter brightness-[0.8] contrast-[1.1]"
                         />
                     </div>
-                ))}
+                ) : (
+                    heroImages.map((src, index) => (
+                        <div
+                            key={index}
+                            className={`absolute inset-0 transition-opacity duration-[2500ms] ease-in-out ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+                                }`}
+                        >
+                            <Image
+                                src={src}
+                                alt={`Hero Slide ${index + 1}`}
+                                fill
+                                priority={index === 0}
+                                sizes="100vw"
+                                className={`object-cover object-center transition-transform duration-[18000ms] ease-out ${index === currentSlide ? 'scale-110 translate-y-0' : 'scale-100 translate-y-2'
+                                    }`}
+                            />
+                        </div>
+                    ))
+                )}
 
                 {/* Cyber Gradient Vignette Overlays */}
                 <div className="absolute inset-0 z-20 bg-gradient-to-r from-[#060a17]/90 via-[#060a17]/60 to-transparent sm:via-[#060a17]/85"></div>
