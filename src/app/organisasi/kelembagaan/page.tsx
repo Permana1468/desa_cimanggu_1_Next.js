@@ -1,7 +1,7 @@
 import { getLembagaList } from '@/actions/landing';
 import { ArrowLeft, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
-import { LandingThemeProvider } from '@/components/landing/LandingThemeProvider';
+export const revalidate = 60;
 
 export default async function KelembagaanPage() {
     const lembagaRes = await getLembagaList();

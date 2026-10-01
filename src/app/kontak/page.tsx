@@ -1,7 +1,7 @@
 import { getVillageProfile } from '@/actions/landing';
 import { ArrowLeft, Phone, Mail, MapPin } from 'lucide-react';
 import Link from 'next/link';
-import { LandingThemeProvider } from '@/components/landing/LandingThemeProvider';
+export const revalidate = 60;
 
 export default async function KontakPage() {
     const profile = await getVillageProfile();

@@ -251,6 +251,12 @@ export async function updateVillageProfile(data: any) {
     });
 
     revalidatePath("/", "layout");
+    revalidatePath("/profil/sambutan");
+    revalidatePath("/profil/sejarah");
+    revalidatePath("/profil/visi-misi");
+    revalidatePath("/organisasi/aparatur");
+    revalidatePath("/organisasi/kelembagaan");
+    revalidatePath("/kontak");
     revalidatePath("/dashboard/cms");
     revalidatePath("/dashboard/settings/landing");
     return result;

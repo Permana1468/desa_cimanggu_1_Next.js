@@ -39,7 +39,7 @@ import { DreamScrollCanvas, ParallaxStage } from '../components/landing/DreamScr
 import { DreamHeroOverlay } from '../components/landing/DreamHeroOverlay';
 import { LandingSectionsWrapper } from '../components/landing/LandingSectionsWrapper';
 import { DesktopParallaxLanding } from '../components/landing/DesktopParallaxLanding';
-import { cookies } from 'next/headers';
+export const revalidate = 60;
 
 export default async function LandingPage() {
     // Read Initial Theme Cookie (Server-Side)
