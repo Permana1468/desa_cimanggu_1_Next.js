@@ -24,7 +24,7 @@ interface CampoSantoHeroProps {
 }
 
 export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
-    const { toggleDualMode } = useLandingTheme();
+    const { toggleDualMode, language } = useLandingTheme();
     const [activeCircle, setActiveCircle] = useState<number | null>(null);
     const [isTitleHovered, setIsTitleHovered] = useState(false);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -48,8 +48,22 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
         : [
             "/images/slide_1.webp",
             "/images/sawah.png",
-            "/images/slide_6_.png"
+            "/images/slide_6_.png",
+            "https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=800&auto=format&fit=crop"
         ];
+        
+    // Pastikan minimal ada 4 gambar untuk 4 fitur utama jika gallery kurang dari 4
+    if (bgImages.length < 4) {
+        const extraImages = [
+            "/images/slide_1.webp",
+            "/images/sawah.png",
+            "/images/slide_6_.png",
+            "https://images.unsplash.com/photo-1524661135-423995f22d0b?q=80&w=800&auto=format&fit=crop"
+        ];
+        for (let i = bgImages.length; i < 4; i++) {
+            bgImages.push(extraImages[i]);
+        }
+    }
 
     // Current background hero image based on active hovered circle
     const currentBgImage = activeCircle !== null ? bgImages[activeCircle - 1] : bgImages[0];
@@ -81,10 +95,16 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
             { glow: "shadow-[0_0_40px_rgba(168,85,247,0.85)] border-purple-300", bg: "rgba(168, 85, 247, 0.35)", marquee: "text-purple-300" },
             { glow: "shadow-[0_0_40px_rgba(239,68,68,0.85)] border-red-300", bg: "rgba(239, 68, 68, 0.35)", marquee: "text-red-300" }
         ];
-        const defaultTitles = [
-            { title: "PENGAWASAN KEBAKARAN", sub: "E-Absensi & Presensi Biometrik", link: "/absensi" },
-            { title: "BLOG PENGEMBANGAN", sub: "Peta WebGIS & Batas Wilayah", link: "/gis-dashboard" },
-            { title: "TINJAUAN TRIWULANAN", sub: "Statistik & Layanan Digital", link: "/login" }
+        const defaultTitles = language === 'id' ? [
+            { title: "PELAYANAN WARGA", sub: "E-Surat Mandiri & UHC", link: "/login" },
+            { title: "PEMETAAN REGIONAL", sub: "WebGIS Batas Wilayah", link: "#peta-interaktif" },
+            { title: "HEALTH MONITORS", sub: "E-KMS Posyandu Mawar", link: "/login" },
+            { title: "MANAJEMEN PEMDES", sub: "E-Tupoksi & RAB Desa", link: "/login" }
+        ] : [
+            { title: "CITIZEN SERVICES", sub: "Self-Service Letters & UHC", link: "/login" },
+            { title: "REGIONAL MAPPING", sub: "WebGIS Border Mapping", link: "#peta-interaktif" },
+            { title: "HEALTH MONITORS", sub: "E-KMS Mawar Clinic", link: "/login" },
+            { title: "GOVERNMENT MGT", sub: "E-Tasks & Village Budget", link: "/login" }
         ];
         
         const color = colors[idx % colors.length];
@@ -108,12 +128,18 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
     });
 
     // Navbar Menu Items (STRUKTUR ORGANISASI added right after INFORMASI PUBLIK)
-    const navMenuItems = [
+    const navMenuItems = language === 'id' ? [
         { id: 'informasi', name: 'INFORMASI PUBLIK', tab: 'informasi' },
         { id: 'organisasi', name: 'STRUKTUR ORGANISASI', tab: 'organisasi' },
         { id: 'lembaga', name: 'LEMBAGA DESA', path: '#profil' },
         { id: 'kabar', name: 'KABAR & DATA', path: '#berita' },
         { id: 'umkm', name: 'WIRAUSAHA UMKM', path: '/umkm', isRoute: true },
+    ] : [
+        { id: 'informasi', name: 'PUBLIC INFO', tab: 'informasi' },
+        { id: 'organisasi', name: 'ORG STRUCTURE', tab: 'organisasi' },
+        { id: 'lembaga', name: 'VILLAGE INST.', path: '#profil' },
+        { id: 'kabar', name: 'NEWS & DATA', path: '#berita' },
+        { id: 'umkm', name: 'LOCAL ENTERPRISE', path: '/umkm', isRoute: true },
     ];
 
     // Marquee active color based on hover
@@ -208,7 +234,7 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
                             }}
                             className="block text-left w-full text-xs font-black uppercase tracking-widest text-amber-300 py-1.5 border-b border-white/10"
                         >
-                            BERANDA HERO
+                            {language === 'id' ? "BERANDA HERO" : "HOME HERO"}
                         </button>
                         {navMenuItems.map((item, idx) => (
                             item.tab ? (
@@ -321,21 +347,24 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
                             {/* RUNNING MARQUEE SUBTITLE */}
                             <div className="w-full overflow-hidden bg-transparent border-0 py-1 max-w-2xl mx-auto">
                                 <div className={`whitespace-nowrap animate-marquee flex items-center gap-8 text-xs sm:text-sm font-black uppercase tracking-[0.3em] transition-colors duration-700 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] ${currentMarqueeColor}`}>
-                                    <span>KECAMATAN CIBUNGBULANG</span>
+                                    <span>{language === 'id' ? 'KECAMATAN CIBUNGBULANG' : 'CIBUNGBULANG DISTRICT'}</span>
                                     <span>•</span>
-                                    <span>KABUPATEN BOGOR</span>
+                                    <span>{language === 'id' ? 'KABUPATEN BOGOR' : 'BOGOR REGENCY'}</span>
                                     <span>•</span>
-                                    <span>PROVINSI JAWA BARAT</span>
+                                    <span>{language === 'id' ? 'PROVINSI JAWA BARAT' : 'WEST JAVA PROVINCE'}</span>
                                     <span>•</span>
-                                    <span>KECAMATAN CIBUNGBULANG</span>
+                                    <span>{language === 'id' ? 'KECAMATAN CIBUNGBULANG' : 'CIBUNGBULANG DISTRICT'}</span>
                                     <span>•</span>
-                                    <span>KABUPATEN BOGOR</span>
+                                    <span>{language === 'id' ? 'KABUPATEN BOGOR' : 'BOGOR REGENCY'}</span>
                                 </div>
                             </div>
 
                             {/* PARAGRAPH DESCRIPTION */}
                             <p className="text-white/90 text-xs sm:text-sm md:text-base font-medium leading-relaxed max-w-xl mx-auto px-4 drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] mt-3">
-                                {siteData?.hero_subtitle || "Portal digital terpadu Pemdes Cimanggu I untuk transparansi tata kelola, pemetaan WebGIS, dan efisiensi pelayanan publik."}
+                                {siteData?.hero_subtitle || (language === 'id' 
+                                    ? "Portal digital terpadu Pemdes Cimanggu I untuk transparansi tata kelola, pemetaan WebGIS, dan efisiensi pelayanan publik."
+                                    : "Integrated digital portal of Cimanggu I Village for governance transparency, WebGIS mapping, and public service efficiency."
+                                )}
                             </p>
                         </div>
 
@@ -409,11 +438,11 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
                             
                             {/* Quick Site Links */}
                             <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-6 text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] text-white/90 drop-shadow">
-                                <button onClick={() => setActiveTab('informasi')} className="hover:text-amber-300 transition-colors cursor-pointer">INFORMASI PUBLIK</button>
+                                <button onClick={() => setActiveTab('informasi')} className="hover:text-amber-300 transition-colors cursor-pointer">{language === 'id' ? 'INFORMASI PUBLIK' : 'PUBLIC INFO'}</button>
                                 <span className="text-amber-500/50">|</span>
-                                <button onClick={() => setActiveTab('organisasi')} className="hover:text-amber-300 transition-colors cursor-pointer">STRUKTUR ORGANISASI</button>
+                                <button onClick={() => setActiveTab('organisasi')} className="hover:text-amber-300 transition-colors cursor-pointer">{language === 'id' ? 'STRUKTUR ORGANISASI' : 'ORG STRUCTURE'}</button>
                                 <span className="text-amber-500/50">|</span>
-                                <a href="#peta-interaktif" className="hover:text-amber-300 transition-colors">PETA INTERAKTIF</a>
+                                <a href="#peta-interaktif" className="hover:text-amber-300 transition-colors">{language === 'id' ? 'PETA INTERAKTIF' : 'INTERACTIVE MAP'}</a>
                             </div>
 
                             {/* 3 ACTION BUTTONS */}
@@ -422,7 +451,7 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
                                     <button
                                         onClick={toggleDualMode}
                                         className="w-9 h-9 rounded-full border border-amber-400 text-slate-950 bg-amber-400 hover:scale-110 transition-all flex items-center justify-center relative cursor-pointer shadow-[0_0_15px_rgba(245,158,11,0.6)]"
-                                        title="Matikan Dual Mode (Kembali ke Tema Utama)"
+                                        title={language === 'id' ? "Matikan Dual Mode (Kembali ke Tema Utama)" : "Disable Dual Mode (Return to Main Theme)"}
                                     >
                                         <Layers size={16} className="animate-pulse" />
                                     </button>
@@ -430,7 +459,7 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
                                     <Link
                                         href="/absensi"
                                         className="w-9 h-9 rounded-full border border-emerald-500/40 text-emerald-400 bg-slate-950/90 hover:scale-110 transition-all flex items-center justify-center cursor-pointer"
-                                        title="Halaman Kios E-Absensi"
+                                        title={language === 'id' ? "Halaman Kios E-Absensi" : "E-Attendance Kiosk Page"}
                                     >
                                         <QrCode size={16} className="animate-pulse" />
                                     </Link>
@@ -441,7 +470,7 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
                                     className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 px-6 py-2 rounded-full text-xs font-black uppercase tracking-wider transition-all duration-300 shadow-[0_0_20px_rgba(245,158,11,0.5)] flex items-center gap-1.5 cursor-pointer"
                                 >
                                     <ShieldCheck size={16} />
-                                    <span>Masuk Sistem</span>
+                                    <span>{language === 'id' ? 'Masuk Sistem' : 'System Login'}</span>
                                 </Link>
                             </div>
 
@@ -463,7 +492,10 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
 
                             {/* Footer Copyright */}
                             <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70 pt-1">
-                                © 2026 PEMERINTAH DESA CIMANGGU I • KECAMATAN CIBUNGBULANG • KABUPATEN BOGOR
+                                {language === 'id' 
+                                    ? '© 2026 PEMERINTAH DESA CIMANGGU I • KECAMATAN CIBUNGBULANG • KABUPATEN BOGOR'
+                                    : '© 2026 CIMANGGU I VILLAGE GOV • CIBUNGBULANG DISTRICT • BOGOR REGENCY'
+                                }
                             </div>
 
                         </div>

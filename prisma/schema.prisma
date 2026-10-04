@@ -442,6 +442,13 @@ model VillageProfile {
   batasBarat   String?
   gallery      Json? // Array of URLs
   galeri       Json? // Array of string URLs
+  
+  // Right Info Widgets
+  agenda_title     String?
+  agenda_date      String?
+  pengumuman_title String?
+  pengumuman_link  String?
+  local_events     Json?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }

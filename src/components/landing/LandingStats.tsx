@@ -9,8 +9,8 @@ const TickCountUp = ({ end, duration = 1400 }: { end: number, duration?: number 
     const [displayCount, setDisplayCount] = useState(1);
     const hasAnimatedRef = useRef(false);
 
-    // Stage 2 is active in range 0.26 - 0.52
-    const isInStage = progress >= 0.26 && progress <= 0.52;
+    // Active if in Parallax stage 2 (0.26-0.52) OR if standalone (progress === 0 or undefined)
+    const isInStage = !progress || progress === 0 || (progress >= 0.26 && progress <= 0.52);
 
     useEffect(() => {
         // Reset animation trigger when scrolling out of stage

@@ -57,8 +57,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: getDynamicDevOrigins(),
-  cacheComponents: true,
-  reactCompiler: true, // Auto-memoization for much faster rendering
+  cacheComponents: false,
+  reactCompiler: false, // Turned off for dev speed (AST parsing is heavy)
   compress: true, // Enable gzip/brotli compression
   productionBrowserSourceMaps: false, // Disable sourcemaps in production for smaller builds
   compiler: {

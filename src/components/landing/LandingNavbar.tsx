@@ -264,13 +264,6 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                 {/* Right Side: Quick Controls, Log In & Sign Up at Far Right */}
                 <div className="hidden lg:flex items-center gap-4 shrink-0">
                     <div className="flex items-center gap-2">
-                        <button
-                            onClick={toggleNightMode}
-                            className="w-9 h-9 rounded-full border border-white/20 text-yellow-300 bg-white/10 backdrop-blur-md hover:scale-110 transition-all flex items-center justify-center relative overflow-hidden group cursor-pointer"
-                            title={isNightMode ? "Ganti ke Mode Terang" : "Ganti ke Mode Malam"}
-                        >
-                            {isNightMode ? <Sun size={16} className="animate-spin-slow" /> : <Moon size={16} className="text-slate-200" />}
-                        </button>
 
                         <button
                             onClick={toggleDualMode}
@@ -400,21 +393,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                     })}
 
                     {/* Mobile Quick Mode Toggles */}
-                    <div className="grid grid-cols-2 gap-2 mt-2">
-                        {/* Mobile Night Mode Toggle */}
-                        <button
-                            onClick={() => {
-                                toggleNightMode();
-                                setIsMobileMenuOpen(false);
-                            }}
-                            className="bg-slate-900/60 border border-cyan-500/30 text-slate-200 text-center py-3 rounded-2xl font-bold uppercase text-[11px] tracking-wider flex items-center justify-center gap-2 transition-all active:scale-95"
-                        >
-                            {isNightMode ? (
-                                <><Sun size={16} className="text-yellow-400" /> Mode Terang</>
-                            ) : (
-                                <><Moon size={16} className="text-slate-300" /> Mode Malam</>
-                            )}
-                        </button>
+                    <div className="grid grid-cols-1 gap-2 mt-2">
 
                         {/* Mobile Dual Mode Toggle */}
                         <button

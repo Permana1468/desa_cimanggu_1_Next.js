@@ -1,7 +1,8 @@
 import { getVillageProfile } from '@/actions/landing';
 import { ArrowLeft, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-export const revalidate = 60;
+import { LandingThemeProvider } from '@/components/landing/LandingThemeProvider';
+
 
 export default async function VisiMisiPage() {
     const profile = await getVillageProfile();

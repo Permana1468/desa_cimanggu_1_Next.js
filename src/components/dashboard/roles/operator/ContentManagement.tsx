@@ -29,6 +29,16 @@ export function ContentManagement({ session, initialProfile, initialNews }: { se
     kontak_email: initialProfile?.kontak_email || "",
     kontak_alamat: initialProfile?.kontak_alamat || "",
 
+    // Widget Kanan
+    agenda_title: initialProfile?.agenda_title || "Penyuluhan Pertanian Digital",
+    agenda_date: initialProfile?.agenda_date || "20 OKT 2026 • Balai Desa",
+    pengumuman_title: initialProfile?.pengumuman_title || "Pengumuman: Lomba Kebersihan Lingkungan",
+    pengumuman_link: initialProfile?.pengumuman_link || "/informasi-publik",
+    local_events: Array.isArray(initialProfile?.local_events) ? initialProfile.local_events : [
+        { title: "Penyuluhan Digital", date: "20 Okt", color: "amber" },
+        { title: "Kegiatan Posyandu", date: "21 Okt", color: "emerald" }
+    ],
+
     // Carousel / Gallery
     gallery: Array.isArray(initialProfile?.gallery) ? initialProfile.gallery : [],
   });
@@ -49,10 +59,38 @@ export function ContentManagement({ session, initialProfile, initialNews }: { se
         kontak_telepon: initialProfile.kontak_telepon || "",
         kontak_email: initialProfile.kontak_email || "",
         kontak_alamat: initialProfile.kontak_alamat || "",
+        
+        agenda_title: initialProfile.agenda_title || "Penyuluhan Pertanian Digital",
+        agenda_date: initialProfile.agenda_date || "20 OKT 2026 • Balai Desa",
+        pengumuman_title: initialProfile.pengumuman_title || "Pengumuman: Lomba Kebersihan Lingkungan",
+        pengumuman_link: initialProfile.pengumuman_link || "/informasi-publik",
+        local_events: Array.isArray(initialProfile.local_events) ? initialProfile.local_events : [
+            { title: "Penyuluhan Digital", date: "20 Okt", color: "amber" },
+            { title: "Kegiatan Posyandu", date: "21 Okt", color: "emerald" }
+        ],
+
         gallery: Array.isArray(initialProfile.gallery) ? initialProfile.gallery : [],
       });
     }
   }, [initialProfile]);
+
+  const handleAddEventItem = () => {
+    setProfileForm({
+      ...profileForm,
+      local_events: [...profileForm.local_events, { title: "", date: "", color: "amber" }]
+    });
+  };
+
+  const handleEventChange = (index: number, field: string, value: string) => {
+    const newEvents = [...profileForm.local_events];
+    newEvents[index] = { ...newEvents[index], [field]: value };
+    setProfileForm({ ...profileForm, local_events: newEvents });
+  };
+  
+  const handleRemoveEventItem = (index: number) => {
+    const newEvents = profileForm.local_events.filter((_, i) => i !== index);
+    setProfileForm({ ...profileForm, local_events: newEvents });
+  };
 
   const handleAddGalleryItem = () => {
     setProfileForm({
@@ -321,6 +359,70 @@ export function ContentManagement({ session, initialProfile, initialNews }: { se
               </div>
             </div>
             
+            {/* Widget Informasi Kanan */}
+            <div className="space-y-6 lg:col-span-2 pt-6 border-t border-slate-100">
+              <h3 className="text-lg font-bold text-slate-800 border-b border-slate-100 pb-2">Widget Informasi (Beranda Kanan)</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50 border border-slate-200 p-6 rounded-2xl">
+                {/* Agenda Desa */}
+                <div className="space-y-4">
+                  <h4 className="font-bold text-slate-700 text-sm flex items-center gap-2"><Globe size={16} className="text-amber-500"/> Agenda Desa</h4>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Judul Agenda</label>
+                    <input type="text" value={profileForm.agenda_title} onChange={e => setProfileForm({...profileForm, agenda_title: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500" placeholder="Penyuluhan Pertanian Digital" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Waktu & Tempat</label>
+                    <input type="text" value={profileForm.agenda_date} onChange={e => setProfileForm({...profileForm, agenda_date: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500" placeholder="20 OKT 2026 • Balai Desa" />
+                  </div>
+                </div>
+
+                {/* Community Hub */}
+                <div className="space-y-4">
+                  <h4 className="font-bold text-slate-700 text-sm flex items-center gap-2"><Globe size={16} className="text-blue-500"/> Community Hub (Pengumuman)</h4>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Teks Pengumuman</label>
+                    <input type="text" value={profileForm.pengumuman_title} onChange={e => setProfileForm({...profileForm, pengumuman_title: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500" placeholder="Pengumuman: Lomba Kebersihan Lingkungan" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-2">Link Tautan</label>
+                    <input type="text" value={profileForm.pengumuman_link} onChange={e => setProfileForm({...profileForm, pengumuman_link: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500" placeholder="/informasi-publik" />
+                  </div>
+                </div>
+
+                {/* Local Events */}
+                <div className="space-y-4 md:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-slate-700 text-sm flex items-center gap-2"><Globe size={16} className="text-purple-500"/> Local Events (Timeline)</h4>
+                    <button type="button" onClick={handleAddEventItem} className="text-xs font-bold bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg hover:bg-indigo-200 transition-colors">
+                      + Tambah Event
+                    </button>
+                  </div>
+                  <div className="space-y-3">
+                    {profileForm.local_events.map((ev: any, index: number) => (
+                      <div key={index} className="flex flex-col sm:flex-row gap-3 bg-white p-3 rounded-xl border border-slate-200 items-center">
+                        <input type="text" placeholder="Judul Event (Misal: Kegiatan Posyandu)" value={ev.title} onChange={(e) => handleEventChange(index, 'title', e.target.value)} className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" />
+                        <input type="text" placeholder="Waktu (Misal: 21 Okt)" value={ev.date} onChange={(e) => handleEventChange(index, 'date', e.target.value)} className="w-full sm:w-32 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" />
+                        <select value={ev.color} onChange={(e) => handleEventChange(index, 'color', e.target.value)} className="w-full sm:w-32 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500">
+                          <option value="amber">Kuning (Amber)</option>
+                          <option value="emerald">Hijau (Emerald)</option>
+                          <option value="blue">Biru (Blue)</option>
+                          <option value="purple">Ungu (Purple)</option>
+                          <option value="rose">Merah (Rose)</option>
+                        </select>
+                        <button type="button" onClick={() => handleRemoveEventItem(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors shrink-0">
+                          <AlertCircle size={18} />
+                        </button>
+                      </div>
+                    ))}
+                    {profileForm.local_events.length === 0 && (
+                      <p className="text-sm text-slate-500 text-center py-4 bg-white rounded-xl border border-dashed border-slate-300">Belum ada event ditambahkan.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Video Background Section */}
             <div className="space-y-6 lg:col-span-2 pt-6 border-t border-slate-100">
               <div className="flex items-center justify-between border-b border-slate-100 pb-2">

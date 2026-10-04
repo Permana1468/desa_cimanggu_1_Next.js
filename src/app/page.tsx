@@ -1,6 +1,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
 import {
     FileText,
     Map as MapIcon,
@@ -39,12 +40,14 @@ import { DreamScrollCanvas, ParallaxStage } from '../components/landing/DreamScr
 import { DreamHeroOverlay } from '../components/landing/DreamHeroOverlay';
 import { LandingSectionsWrapper } from '../components/landing/LandingSectionsWrapper';
 import { DesktopParallaxLanding } from '../components/landing/DesktopParallaxLanding';
-export const revalidate = 60;
+import { LandingModeHandler } from '../components/landing/LandingModeHandler';
+
 
 export default async function LandingPage() {
     // Read Initial Theme Cookie (Server-Side)
     const cookieStore = await cookies();
     const initialIsNightMode = cookieStore.get('landingThemeMode')?.value === 'night';
+    const initialIsDualMode = cookieStore.get('landingDualMode')?.value === 'true';
 
     // FETCH DATA ON SERVER
     const [statsRes, newsRes, profileRes, aparaturRes, lembagaRes] = await Promise.all([
@@ -94,8 +97,9 @@ export default async function LandingPage() {
     };
 
     return (
-        <LandingThemeProvider initialIsNightMode={initialIsNightMode}>
+        <LandingThemeProvider initialIsNightMode={initialIsNightMode} initialIsDualMode={initialIsDualMode}>
             <SmoothScroll>
+                <LandingModeHandler siteData={siteData}>
                 {/* Desktop View: Fullscreen Modern Parallax Smooth Scroll Landing Page */}
                 <div className="hidden md:block">
                     <DesktopParallaxLanding 
@@ -388,6 +392,7 @@ export default async function LandingPage() {
             </div>
             </LandingSectionsWrapper>
             </div>
+                </LandingModeHandler>
             </SmoothScroll>
         </LandingThemeProvider>
     );

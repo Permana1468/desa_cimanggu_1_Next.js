@@ -228,6 +228,11 @@ export async function updateVillageProfile(data: any) {
         kontak_telepon: data.kontak_telepon,
         kontak_email: data.kontak_email,
         kontak_alamat: data.kontak_alamat,
+        agenda_title: data.agenda_title,
+        agenda_date: data.agenda_date,
+        pengumuman_title: data.pengumuman_title,
+        pengumuman_link: data.pengumuman_link,
+        local_events: data.local_events,
       },
       create: {
         tenantId,
@@ -247,6 +252,11 @@ export async function updateVillageProfile(data: any) {
         kontak_telepon: data.kontak_telepon,
         kontak_email: data.kontak_email,
         kontak_alamat: data.kontak_alamat,
+        agenda_title: data.agenda_title,
+        agenda_date: data.agenda_date,
+        pengumuman_title: data.pengumuman_title,
+        pengumuman_link: data.pengumuman_link,
+        local_events: data.local_events,
       }
     });
 
