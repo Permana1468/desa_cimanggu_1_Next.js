@@ -42,3 +42,9 @@ docker-compose.override.yml
 public/assets/media/
 build_output.txt
 env.tmp
+
+# Private Exports & Account Credentials
+daftar_akun_keseluruhan.xlsx
+*.xlsx
+scripts/export_accounts_excel.ts
+
