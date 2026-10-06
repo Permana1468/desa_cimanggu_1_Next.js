@@ -221,7 +221,7 @@ export function CetakTosDpt({
               <tr>
                 <td className="p-1.5 font-bold bg-slate-100 border-r border-black">Desa</td>
                 <td className="p-1.5 border-r border-black uppercase font-semibold">: {metaDesa}</td>
-                <td className="p-1.5 font-bold border-r border-black">Volume DPT : Panjang : {dptP} m' | Tinggi : {dptT} m'</td>
+                <td className="p-1.5 font-bold border-r border-black">Volume DPT : Panjang : {dptP} m&apos; | Tinggi : {dptT} m&apos;</td>
               </tr>
             </tbody>
           </table>
@@ -335,9 +335,9 @@ export function CetakTosDpt({
         {/* SECTION 3: PIPA PVC */}
         <div className="border border-black p-3 text-[10px] font-mono space-y-0.5">
           <h3 className="font-black text-xs uppercase underline font-sans mb-1">PIPA PVC SULINGAN AIR</h3>
-          <div>Pipa PVC 2" (3m) = 3,00 x 123,00 x 0,75 : 12 = {pvc3m} Batang</div>
-          <div>Pipa PVC 2" (4m) = 4,00 x 16,00 x 0,75 : 12 = {pvc4m} Batang</div>
-          <div className="font-bold border-t border-black pt-0.5">Total Pipa PVC 2" = {btgPipaPvc} Batang</div>
+          <div>Pipa PVC 2&quot; (3m) = 3,00 x 123,00 x 0,75 : 12 = {pvc3m} Batang</div>
+          <div>Pipa PVC 2&quot; (4m) = 4,00 x 16,00 x 0,75 : 12 = {pvc4m} Batang</div>
+          <div className="font-bold border-t border-black pt-0.5">Total Pipa PVC 2&quot; = {btgPipaPvc} Batang</div>
         </div>
 
         {/* SECTION 4: GALIAN PONDASI */}

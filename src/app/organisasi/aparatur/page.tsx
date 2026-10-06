@@ -2,6 +2,7 @@ import { getOrganizationalStructure } from '@/actions/landing';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { LandingThemeProvider } from '@/components/landing/LandingThemeProvider';
+import { LandingOrganization } from '@/components/landing/LandingOrganization';
 
 
 export default async function AparaturDesaPage() {

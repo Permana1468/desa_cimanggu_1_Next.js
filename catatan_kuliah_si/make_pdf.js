@@ -1,3 +1,4 @@
+/* eslint-disable */
 const fs = require('fs');
 const path = require('path');
 const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');

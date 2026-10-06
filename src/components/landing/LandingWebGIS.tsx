@@ -9,47 +9,6 @@ export default function LandingWebGIS() {
     const LRef = useRef<any>(null);
     const layersGroupRef = useRef<any>(null);
 
-    useEffect(() => {
-        let isMounted = true;
-        import("leaflet").then((L) => {
-            if (!isMounted) return;
-            LRef.current = L;
-
-            if (!mapRef.current) {
-                const map = L.map(mapContainerId, {
-                    zoomControl: false,
-                    attributionControl: false,
-                    scrollWheelZoom: false,
-                    dragging: false
-                }).setView([-6.5892, 106.634], 14);
-
-                // Google Earth / Satellite
-                L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-                    maxZoom: 19,
-                }).addTo(map);
-
-                layersGroupRef.current = L.featureGroup().addTo(map);
-                mapRef.current = map;
-            }
-
-            // Fetch Boundaries for standard Tenant ID
-            const tenantId = "f93e947c-1a9b-47a3-913b-2ea2a4290732";
-            getBoundaries(tenantId).then((res) => {
-                if (res.success && res.data) {
-                    drawBoundaries(res.data, L, mapRef.current, layersGroupRef.current);
-                }
-            });
-        });
-
-        return () => {
-            isMounted = false;
-            if (mapRef.current) {
-                mapRef.current.remove();
-                mapRef.current = null;
-            }
-        };
-    }, []);
-
     const drawBoundaries = (boundaries: any[], L: any, map: any, group: any) => {
         if (!L || !map || !group) return;
         group.clearLayers();
@@ -96,6 +55,49 @@ export default function LandingWebGIS() {
             }).addTo(group);
         });
     };
+
+    useEffect(() => {
+        let isMounted = true;
+        import("leaflet").then((L) => {
+            if (!isMounted) return;
+            LRef.current = L;
+
+            if (!mapRef.current) {
+                const map = L.map(mapContainerId, {
+                    zoomControl: false,
+                    attributionControl: false,
+                    scrollWheelZoom: false,
+                    dragging: false
+                }).setView([-6.5892, 106.634], 14);
+
+                // Google Earth / Satellite
+                L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                    maxZoom: 19,
+                }).addTo(map);
+
+                layersGroupRef.current = L.featureGroup().addTo(map);
+                mapRef.current = map;
+            }
+
+            // Fetch Boundaries for standard Tenant ID
+            const tenantId = "f93e947c-1a9b-47a3-913b-2ea2a4290732";
+            getBoundaries(tenantId).then((res) => {
+                if (res.success && res.data) {
+                    drawBoundaries(res.data, L, mapRef.current, layersGroupRef.current);
+                }
+            });
+        });
+
+        return () => {
+            isMounted = false;
+            if (mapRef.current) {
+                mapRef.current.remove();
+                mapRef.current = null;
+            }
+        };
+    }, []);
+
+
 
     return (
         <div id={mapContainerId} className="absolute inset-0 z-0 w-full h-full mix-blend-screen opacity-80 transition-opacity duration-1000" />

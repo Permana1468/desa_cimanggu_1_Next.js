@@ -47,7 +47,7 @@ export default async function VisiMisiPage() {
                             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
                             <h2 className="text-2xl font-black text-amber-400 mb-6 uppercase tracking-widest">Visi</h2>
                             <p className="text-xl md:text-3xl font-extrabold text-white leading-snug italic">
-                                "{profile?.visi || "Belum ada data visi."}"
+                                &quot;{profile?.visi || "Belum ada data visi."}&quot;
                             </p>
                         </div>
 

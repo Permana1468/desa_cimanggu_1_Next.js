@@ -424,7 +424,7 @@ export default function ThreeScannerKiosk({
     // ANIMATION LOOP (OSCILLATING LEFT & RIGHT)
     // -----------------------------------------------------------
     let animFrameId: number;
-    let clock = new THREE.Clock();
+    const clock = new THREE.Clock();
 
     const animate = () => {
       animFrameId = requestAnimationFrame(animate);

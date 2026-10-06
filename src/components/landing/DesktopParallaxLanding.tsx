@@ -370,7 +370,7 @@ export function DesktopParallaxLanding({
                             <div className="absolute inset-0 bg-black/40 mix-blend-multiply" />
                         </div>
                     ) : (
-                        heroSceneries.map((scenery, index) => (
+                        heroSceneries.map((scenery: any, index: number) => (
                             <div
                                 key={index}
                                 className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === heroBgIndex ? 'opacity-100' : 'opacity-0'

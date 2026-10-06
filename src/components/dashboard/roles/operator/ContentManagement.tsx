@@ -88,7 +88,7 @@ export function ContentManagement({ session, initialProfile, initialNews }: { se
   };
   
   const handleRemoveEventItem = (index: number) => {
-    const newEvents = profileForm.local_events.filter((_, i) => i !== index);
+    const newEvents = profileForm.local_events.filter((_: any, i: number) => i !== index);
     setProfileForm({ ...profileForm, local_events: newEvents });
   };
 
@@ -164,7 +164,7 @@ export function ContentManagement({ session, initialProfile, initialNews }: { se
   };
 
   const handleRemoveGalleryItem = (index: number) => {
-    const newGallery = profileForm.gallery.filter((_, i) => i !== index);
+    const newGallery = profileForm.gallery.filter((_: any, i: number) => i !== index);
     setProfileForm({ ...profileForm, gallery: newGallery });
   };
 
@@ -479,7 +479,7 @@ export function ContentManagement({ session, initialProfile, initialNews }: { se
                 ))}
                 {profileForm.gallery.length === 0 && (
                   <div className="col-span-full p-8 text-center text-slate-400 bg-slate-50 border border-dashed border-slate-300 rounded-xl">
-                    Belum ada gambar carousel. Klik "+ Tambah Slide" untuk mulai menambahkan.
+                    Belum ada gambar carousel. Klik &quot;+ Tambah Slide&quot; untuk mulai menambahkan.
                   </div>
                 )}
               </div>

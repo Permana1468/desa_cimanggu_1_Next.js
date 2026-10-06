@@ -97,7 +97,7 @@ export function ApbdesInfografisBoard({ onNavigateToApbdes, isHackerTheme }: Apb
 
       let updatedPendapatan = { ...pendapatanData };
       let updatedBelanja = { ...belanjaData };
-      let updatedPembiayaan = { ...pembiayaanData };
+      const updatedPembiayaan = { ...pembiayaanData };
 
       const savedPenStr = localStorage.getItem("apbdes_pendapatan_list_v1");
       if (savedPenStr) {

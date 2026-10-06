@@ -471,18 +471,18 @@ export function CyberPlanTakeOffTab({
                   <>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-bold text-slate-700 mb-1 block">Panjang DPT (P) [m']</label>
+                        <label className="text-xs font-bold text-slate-700 mb-1 block">Panjang DPT (P) [m&apos;]</label>
                         <input type="number" value={dptP} onChange={(e) => setDptP(Number(e.target.value))} className="w-full p-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none font-semibold" />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-slate-700 mb-1 block">Tinggi DPT (T) [m']</label>
+                        <label className="text-xs font-bold text-slate-700 mb-1 block">Tinggi DPT (T) [m&apos;]</label>
                         <input type="number" value={dptT} onChange={(e) => setDptT(Number(e.target.value))} className="w-full p-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none font-semibold" />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-xs font-bold text-slate-700 mb-1 block">Jarak Antar Tiang [m']</label>
+                        <label className="text-xs font-bold text-slate-700 mb-1 block">Jarak Antar Tiang [m&apos;]</label>
                         <input type="number" step="0.5" value={dptJarakTiang} onChange={(e) => setDptJarakTiang(Number(e.target.value))} className="w-full p-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:outline-none font-semibold" />
                       </div>
                       <div>

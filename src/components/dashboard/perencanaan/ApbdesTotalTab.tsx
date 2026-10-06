@@ -264,7 +264,7 @@ export function ApbdesTotalTab({ rkkdActivities, onNavigateToRkkd }: ApbdesTotal
     };
 
     setPendapatanList(prev => {
-      let updated = [...prev];
+      const updated = [...prev];
       Object.entries(rkkdMap).forEach(([sumber, itemData]) => {
         const existingIdx = updated.findIndex(p => p.sumberDana === sumber || p.kode === itemData.kode);
         if (existingIdx >= 0) {

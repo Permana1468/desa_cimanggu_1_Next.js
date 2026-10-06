@@ -87,7 +87,7 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
     }, []);
 
     // Dynamic circular items based on bgImages
-    const circularItems = bgImages.map((img, idx) => {
+    const circularItems = bgImages.map((img: string, idx: number) => {
         const colors = [
             { glow: "shadow-[0_0_40px_rgba(245,158,11,0.85)] border-amber-300", bg: "rgba(234, 88, 12, 0.35)", marquee: "text-amber-300" },
             { glow: "shadow-[0_0_40px_rgba(16,185,129,0.85)] border-emerald-300", bg: "rgba(16, 185, 129, 0.35)", marquee: "text-emerald-300" },
@@ -287,7 +287,7 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
                                 />
                             </div>
                         ) : (
-                            bgImages.map((src, idx) => (
+                            bgImages.map((src: string, idx: number) => (
                                 <div
                                     key={idx}
                                     className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
@@ -371,7 +371,7 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
                         {/* ROUNDED CIRCULAR BADGES */}
                         <div className="w-full py-4 sm:py-6">
                             <div className="flex flex-wrap justify-center gap-6 sm:gap-8 lg:gap-12 max-w-6xl mx-auto">
-                                {circularItems.map((item) => {
+                                {circularItems.map((item: any) => {
                                     const isHovered = activeCircle === item.id;
 
                                     return (
