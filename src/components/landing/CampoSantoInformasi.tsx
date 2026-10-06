@@ -27,22 +27,30 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
     const [isVideoPlaying, setIsVideoPlaying] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Parallax mouse move
+    // Parallax mouse move (Throttled with RAF)
     useEffect(() => {
+        let rafId: number | null = null;
         const handleMouseMove = (e: MouseEvent) => {
-            if (!containerRef.current) return;
-            const rect = containerRef.current.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            
-            setMousePos({
-                x: (e.clientX - centerX) / (rect.width / 2),
-                y: (e.clientY - centerY) / (rect.height / 2)
+            if (rafId !== null) return;
+            rafId = requestAnimationFrame(() => {
+                rafId = null;
+                if (!containerRef.current) return;
+                const rect = containerRef.current.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                setMousePos({
+                    x: (e.clientX - centerX) / (rect.width / 2),
+                    y: (e.clientY - centerY) / (rect.height / 2)
+                });
             });
         };
 
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            if (rafId !== null) cancelAnimationFrame(rafId);
+        };
     }, []);
 
     return (

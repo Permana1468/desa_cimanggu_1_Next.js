@@ -68,22 +68,30 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
     // Current background hero image based on active hovered circle
     const currentBgImage = activeCircle !== null ? bgImages[activeCircle - 1] : bgImages[0];
 
-    // Handle Subtle Parallax Mouse Movement
+    // Handle Subtle Parallax Mouse Movement (Throttled with RAF for max FPS)
     useEffect(() => {
+        let rafId: number | null = null;
         const handleMouseMove = (e: MouseEvent) => {
-            if (!containerRef.current) return;
-            const rect = containerRef.current.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            
-            const normX = (e.clientX - centerX) / (rect.width / 2);
-            const normY = (e.clientY - centerY) / (rect.height / 2);
-            
-            setMousePos({ x: normX, y: normY });
+            if (rafId !== null) return;
+            rafId = requestAnimationFrame(() => {
+                rafId = null;
+                if (!containerRef.current) return;
+                const rect = containerRef.current.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                
+                const normX = (e.clientX - centerX) / (rect.width / 2);
+                const normY = (e.clientY - centerY) / (rect.height / 2);
+                
+                setMousePos({ x: normX, y: normY });
+            });
         };
 
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            if (rafId !== null) cancelAnimationFrame(rafId);
+        };
     }, []);
 
     // Dynamic circular items based on bgImages

@@ -24,9 +24,10 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
 
     useEffect(() => {
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 20);
+            const nextScrolled = window.scrollY > 20;
+            setIsScrolled((prev) => (prev !== nextScrolled ? nextScrolled : prev));
         };
-        window.addEventListener('scroll', handleScroll);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 

@@ -82,7 +82,6 @@ export function DesktopParallaxLanding({
     const [heroBgIndex, setHeroBgIndex] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFeatureTab, setActiveFeatureTab] = useState<'surat' | 'webgis' | 'posyandu' | 'tupoksi'>('surat');
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [currentTime, setCurrentTime] = useState<Date | null>(null);
     const [weather, setWeather] = useState<{ temp: number; text: string; }>({ temp: 28, text: 'Cerah' });
 
@@ -148,17 +147,7 @@ export function DesktopParallaxLanding({
     // Birds Silhouette Drift
     const birdsX = useTransform(smoothProgress, [0, 0.3], [0, 80]);
 
-    // Mouse movement parallax for interactive depth
-    useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            const { innerWidth, innerHeight } = window;
-            const x = (e.clientX / innerWidth - 0.5) * 30;
-            const y = (e.clientY / innerHeight - 0.5) * 30;
-            setMousePos({ x, y });
-        };
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
-    }, []);
+
 
     // Scenery Carousel Images matching Reference Concept
     const heroSceneries = (Array.isArray(siteData?.gallery) && siteData.gallery.length > 0)
