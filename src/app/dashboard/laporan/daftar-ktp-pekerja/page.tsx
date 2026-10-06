@@ -1,9 +1,9 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { LpjPesananBarangTab } from "@/components/dashboard/kesra/lpj/LpjPesananBarangTab";
+import { LpjDaftarKtpPekerjaTab } from "@/components/dashboard/kesra/lpj/LpjDaftarKtpPekerjaTab";
 
-export default async function PesananBarangReportPage() {
+export default async function DaftarKtpPekerjaReportPage() {
   const session = await getServerSession(authOptions);
   
   if (!session?.user || !["OPERATOR_DESA", "ADMIN_DESA", "ADMIN_MASTER", "KASI_KESEJAHTERAAN"].includes((session.user as any).role)) {
@@ -12,7 +12,7 @@ export default async function PesananBarangReportPage() {
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4">
-      <LpjPesananBarangTab session={session} />
+      <LpjDaftarKtpPekerjaTab session={session} />
     </div>
   );
 }

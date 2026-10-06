@@ -1753,25 +1753,32 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                             >
                               <div className={`mt-1 ml-4 pl-3 border-l space-y-1 ${isHackerTheme ? 'border-cyan-500/30' : 'border-blue-100'}`}>
                                 {[
-                                  { label: "Standar Harga Satuan", href: "/dashboard/laporan/harga-satuan", icon: Database },
-                                  { label: "Pesanan Barang", href: "/dashboard/laporan/pesanan-barang", icon: Package },
-                                  { label: "Absensi & Tanda Terima", href: "/dashboard/laporan/pekerja-absensi", icon: Users },
-                                  { label: "Kegiatan Perangkat", href: "/dashboard/laporan/kegiatan-perangkat", icon: Activity },
-                                ].map((subItem) => (
-                                  <Link
-                                    key={subItem.href}
-                                    href={subItem.href}
-                                    onClick={() => setIsOpen(false)}
-                                    className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
-                                      pathname === subItem.href
-                                        ? (isHackerTheme ? "bg-cyan-900/50 text-cyan-300 font-bold" : "bg-emerald-50 text-emerald-700 font-bold")
-                                        : (isHackerTheme ? "text-slate-400 hover:text-cyan-400 font-mono" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")
-                                    }`}
-                                  >
-                                    <subItem.icon size={14} />
-                                    <span>{subItem.label}</span>
-                                  </Link>
-                                ))}
+                                  { label: "Standar Harga Satuan", href: "/dashboard/laporan/harga-satuan", tab: "harga-satuan", icon: Database },
+                                  { label: "1. Registrasi Pembangunan", href: "/dashboard/laporan/registrasi-pembangunan", tab: "lpj-registrasi-pembangunan", icon: Building2 },
+                                  { label: "2. Pesanan Barang", href: "/dashboard/laporan/pesanan-barang", tab: "lpj-pesanan-barang", icon: ShoppingBag },
+                                  { label: "3. Daftar KTP Pekerja", href: "/dashboard/laporan/daftar-ktp-pekerja", tab: "lpj-daftar-ktp-pekerja", icon: Fingerprint },
+                                  { label: "4. Daftar Hadir Pekerja", href: "/dashboard/laporan/daftar-hadir-pekerja", tab: "lpj-daftar-hadir-pekerja", icon: Users },
+                                  { label: "5. Tanda Terima Pekerja", href: "/dashboard/laporan/tanda-terima-pekerja", tab: "lpj-tanda-terima-pekerja", icon: CheckCircle2 },
+                                  { label: "6. BAST Pekerjaan", href: "/dashboard/laporan/bast-pekerjaan", tab: "lpj-bast-pekerjaan", icon: FileCheck },
+                                  { label: "Kegiatan Perangkat", href: "/dashboard/laporan/kegiatan-perangkat", tab: "kegiatan-perangkat", icon: Activity },
+                                ].map((subItem) => {
+                                  const isActive = pathname === subItem.href || (subItem.tab && tabParam === subItem.tab);
+                                  return (
+                                    <Link
+                                      key={subItem.href}
+                                      href={subItem.href}
+                                      onClick={() => setIsOpen(false)}
+                                      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-sm ${
+                                        isActive
+                                          ? (isHackerTheme ? "bg-cyan-900/50 text-cyan-300 font-bold" : "bg-emerald-50 text-emerald-700 font-bold")
+                                          : (isHackerTheme ? "text-slate-400 hover:text-cyan-400 font-mono" : "text-slate-500 hover:bg-slate-50 hover:text-slate-900")
+                                      }`}
+                                    >
+                                      <subItem.icon size={14} />
+                                      <span>{subItem.label}</span>
+                                    </Link>
+                                  );
+                                })}
                               </div>
                             </motion.div>
                           )}

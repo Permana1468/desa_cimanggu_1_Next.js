@@ -1,3 +1,7 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { 
   Monitor, 
   Database, 
@@ -14,7 +18,33 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+// LPJ Report Components
+import { LpjRegistrasiPembangunanTab } from "../kesra/lpj/LpjRegistrasiPembangunanTab";
+import { LpjPesananBarangTab } from "../kesra/lpj/LpjPesananBarangTab";
+import { LpjDaftarKtpPekerjaTab } from "../kesra/lpj/LpjDaftarKtpPekerjaTab";
+import { LpjDaftarHadirPekerjaTab } from "../kesra/lpj/LpjDaftarHadirPekerjaTab";
+import { LpjTandaTerimaPekerjaTab } from "../kesra/lpj/LpjTandaTerimaPekerjaTab";
+import { LpjBastPekerjaanTab } from "../kesra/lpj/LpjBastPekerjaanTab";
+
 export function OperatorDashboard({ session, stats }: { session: any; stats?: any }) {
+  return (
+    <Suspense fallback={<div className="p-8 text-center text-slate-500 font-medium">Memuat Laporan...</div>}>
+      <OperatorDashboardContent session={session} stats={stats} />
+    </Suspense>
+  );
+}
+
+function OperatorDashboardContent({ session, stats }: { session: any; stats?: any }) {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams?.get("tab");
+
+  if (tabParam === "lpj-registrasi-pembangunan") return <LpjRegistrasiPembangunanTab session={session} />;
+  if (tabParam === "lpj-pesanan-barang") return <LpjPesananBarangTab session={session} />;
+  if (tabParam === "lpj-daftar-ktp-pekerja") return <LpjDaftarKtpPekerjaTab session={session} />;
+  if (tabParam === "lpj-daftar-hadir-pekerja") return <LpjDaftarHadirPekerjaTab session={session} />;
+  if (tabParam === "lpj-tanda-terima-pekerja") return <LpjTandaTerimaPekerjaTab session={session} />;
+  if (tabParam === "lpj-bast-pekerjaan") return <LpjBastPekerjaanTab session={session} />;
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-10">
       {/* 1. PREMIUM HEADER - GLASSMORPHISM */}
