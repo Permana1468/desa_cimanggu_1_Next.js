@@ -1505,8 +1505,8 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
               {(() => {
                 let itemsToRender = menuItems.filter(item => {
                     if (role === "OPERATOR_DESA") {
-                        // Fitur spesifik Operator Desa
-                        return ["Dashboard", "Verifikasi Warga", "Pusat Persuratan", "Manajemen Konten (CMS)", "Log & Sistem"].includes(item.name);
+                        // Fitur spesifik Operator Desa (Log & Sistem removed as requested)
+                        return ["Dashboard", "Verifikasi Warga", "Pusat Persuratan", "Manajemen Konten (CMS)"].includes(item.name);
                     }
                     if (["ADMIN_DESA", "KADES", "SEKDES", "PERANGKAT_DESA", "ADMIN_MASTER"].includes(role as string)) {
                         if (role === "ADMIN_DESA" && item.name === "Usulan Musrenbang") return false;
