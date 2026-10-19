@@ -13,16 +13,25 @@ export const TechNightCanvas: React.FC = () => {
         if (!ctx) return;
 
         let animationFrameId: number;
+        let isVisible = true;
         let width = (canvas.width = window.innerWidth);
         let height = (canvas.height = window.innerHeight);
+
+        const checkVisibility = () => {
+            const hiddenByCSS = canvas.offsetParent === null;
+            isVisible = !document.hidden && !hiddenByCSS;
+        };
 
         const handleResize = () => {
             if (!canvas) return;
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
+            checkVisibility();
         };
 
+        checkVisibility();
         window.addEventListener('resize', handleResize, { passive: true });
+        document.addEventListener('visibilitychange', checkVisibility);
 
         // Track mouse position for interactive light aura
         let mouseX = width / 2;
@@ -100,6 +109,11 @@ export const TechNightCanvas: React.FC = () => {
         let time = 0;
 
         const render = () => {
+            if (!isVisible) {
+                animationFrameId = requestAnimationFrame(render);
+                return;
+            }
+
             time += 0.015;
 
             // Interpolate mouse position for smooth glow
@@ -197,6 +211,7 @@ export const TechNightCanvas: React.FC = () => {
         return () => {
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('visibilitychange', checkVisibility);
             cancelAnimationFrame(animationFrameId);
         };
     }, [isNightMode]);

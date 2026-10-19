@@ -25,7 +25,8 @@ import {
   FileText,
   Brain,
   Store,
-  MessageCircle
+  MessageCircle,
+  Wrench
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,6 +45,7 @@ const menuItems = [
   { name: "Integrasi Cloud", icon: Cloud, href: "/master-admin/integrasi" },
   { name: "Integrasi WhatsApp", icon: MessageCircle, href: "/master-admin/whatsapp" },
   { name: "Kecerdasan Buatan", icon: Brain, href: "/master-admin/ai" },
+  { name: "Mode Pemeliharaan", icon: Wrench, href: "/master-admin/maintenance" },
   { name: "Konfigurasi", icon: Settings, href: "/master-admin/config" },
 ];
 
@@ -78,19 +80,19 @@ export const MasterSidebar = ({
       </AnimatePresence>
 
       <aside 
-        className={`bg-[#0f172a] transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col z-[70] shrink-0 shadow-[10px_0_40px_rgba(0,0,0,0.3)]
-          fixed inset-y-0 left-0 h-full w-80 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        className={`bg-[#0f172a] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col z-[70] shrink-0 shadow-[10px_0_40px_rgba(0,0,0,0.5)]
+          fixed inset-y-0 left-0 h-full w-[85vw] max-w-[320px] sm:w-80 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:relative lg:translate-x-0 lg:h-full ${isCollapsed && !isOpen ? 'lg:w-28' : 'lg:w-80'}`}
       >
         {/* LOGO AREA */}
-        <div className={`h-24 px-8 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
-          <div className="flex items-center gap-4 overflow-hidden">
+        <div className={`h-20 lg:h-24 px-6 lg:px-8 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} border-b border-white/5 lg:border-none`}>
+          <div className="flex items-center gap-3.5 overflow-hidden">
             <motion.div 
               whileHover={{ rotate: 12, scale: 1.1 }}
-              className="w-14 h-14 shrink-0 flex items-center justify-center relative"
+              className="w-11 h-11 lg:w-14 lg:h-14 shrink-0 flex items-center justify-center relative"
             >
               <div className="relative w-full h-full">
-                <Image src="/images/logo-bogor.png" alt="Logo Kabupaten Bogor" fill className="object-contain" />
+                <Image src="/images/logo-bogor.png" alt="Logo Kabupaten Bogor" fill className="object-contain" priority />
               </div>
             </motion.div>
             {(!isCollapsed || isOpen) && (
@@ -99,15 +101,16 @@ export const MasterSidebar = ({
                 animate={{ opacity: 1, x: 0 }}
                 className="flex flex-col"
               >
-                <span className="text-xl font-black text-white tracking-tighter leading-none">MASTER</span>
-                <span className="text-[10px] font-black text-blue-400 tracking-[0.3em] mt-1">DASHBOARD</span>
+                <span className="text-lg lg:text-xl font-black text-white tracking-tighter leading-none">MASTER</span>
+                <span className="text-[9px] lg:text-[10px] font-black text-blue-400 tracking-[0.3em] mt-1">DASHBOARD</span>
               </motion.div>
             )}
           </div>
           
           <button 
             onClick={() => setIsOpen(false)}
-            className="lg:hidden p-2.5 rounded-xl bg-white/5 text-slate-400 hover:text-white transition-colors"
+            aria-label="Tutup Menu"
+            className="lg:hidden p-2.5 rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X size={20} />
           </button>
@@ -115,11 +118,11 @@ export const MasterSidebar = ({
 
         {/* TENANT SWITCHER AREA */}
         {(!isCollapsed || isOpen) && (
-          <div className="px-6 mb-4 flex items-center gap-2">
-            <div className="flex-1 p-1 rounded-[1.5rem] bg-white/5 border border-white/5 shadow-inner">
+          <div className="px-5 lg:px-6 my-3 lg:mb-4 flex items-center gap-2">
+            <div className="flex-1 p-1 rounded-2xl bg-white/5 border border-white/5 shadow-inner">
                <TenantSwitcher tenants={tenants} />
             </div>
-            <button title="Holographic Map Shortcut" className="w-12 h-12 shrink-0 flex items-center justify-center rounded-2xl bg-white/5 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-white/5 shadow-sm overflow-hidden group relative">
+            <button title="Peta Spasial" className="w-11 h-11 lg:w-12 lg:h-12 shrink-0 flex items-center justify-center rounded-2xl bg-white/5 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-white/5 shadow-sm overflow-hidden group relative">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
                 <MapIcon size={18} className="group-hover:scale-110 transition-transform" />
             </button>
@@ -127,7 +130,7 @@ export const MasterSidebar = ({
         )}
 
         {/* NAVIGATION AREA (MAGIC CURVE CONTAINER) */}
-        <nav className="flex-1 mt-6 space-y-1 relative pl-6 overflow-y-auto custom-scrollbar overflow-x-hidden">
+        <nav className="flex-1 mt-2 lg:mt-6 space-y-1 relative px-3 lg:pl-6 lg:pr-0 overflow-y-auto custom-scrollbar overflow-x-hidden">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -135,20 +138,20 @@ export const MasterSidebar = ({
                 <Link
                   href={item.href}
                   onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-5 px-6 py-4.5 transition-all duration-300 relative z-20 ${
+                  className={`flex items-center gap-4 lg:gap-5 px-4 lg:px-6 py-3.5 lg:py-4.5 transition-all duration-300 relative z-20 ${
                     isActive 
-                      ? "magic-curve-active bg-slate-50 text-slate-900 rounded-l-[2rem] font-black" 
-                      : "text-slate-400 hover:text-white font-bold hover:bg-white/5 rounded-l-[2rem]"
+                      ? "lg:magic-curve-active bg-blue-600 text-white lg:bg-slate-50 lg:text-slate-900 rounded-2xl lg:rounded-l-[2rem] lg:rounded-r-none font-black shadow-lg shadow-blue-600/25 lg:shadow-none" 
+                      : "text-slate-400 hover:text-white font-bold hover:bg-white/5 rounded-2xl lg:rounded-l-[2rem] lg:rounded-r-none"
                   } ${isCollapsed && !isOpen ? 'justify-center pr-10' : ''}`}
                 >
-                  <div className={`transition-all duration-500 ${isActive ? 'scale-125 text-blue-600 drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]' : 'group-hover:scale-110 group-hover:text-blue-400'}`}>
-                    <item.icon size={isCollapsed && !isOpen ? 28 : 22} strokeWidth={1.5} />
+                  <div className={`transition-all duration-500 ${isActive ? 'scale-110 text-white lg:text-blue-600 drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]' : 'group-hover:scale-110 group-hover:text-blue-400'}`}>
+                    <item.icon size={isCollapsed && !isOpen ? 26 : 20} strokeWidth={1.75} />
                   </div>
                   {(!isCollapsed || isOpen) && (
-                    <span className="text-sm tracking-tight whitespace-nowrap">{item.name}</span>
+                    <span className="text-xs lg:text-sm tracking-tight whitespace-nowrap">{item.name}</span>
                   )}
                   {isActive && !isCollapsed && (
-                    <motion.div layoutId="active-pill" className="w-1.5 h-1.5 bg-blue-600 rounded-full ml-auto shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
+                    <motion.div layoutId="active-pill" className="w-1.5 h-1.5 bg-white lg:bg-blue-600 rounded-full ml-auto shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
                   )}
                 </Link>
               </div>

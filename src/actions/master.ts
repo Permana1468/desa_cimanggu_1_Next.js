@@ -772,10 +772,43 @@ export async function updateSystemSettings(settings: any) {
 }
 
 export async function backupDatabase() {
-    await checkMaster();
-    // Implementation placeholder
-    // Implementation placeholder
-    return { success: true, timestamp: new Date().toISOString() };
+    const session = await checkMaster();
+    try {
+        const { createBackup } = await import("@/lib/backupService");
+        const result = await createBackup();
+
+        try {
+            await prisma.auditLog.create({
+                data: {
+                    tenantId: (session.user as any).tenantId || "f93e947c-1a9b-47a3-913b-2ea2a4290732",
+                    userId: (session.user as any).id,
+                    action: "CREATE_BACKUP",
+                    entity: "SystemBackup",
+                    category: "SYSTEM",
+                    details: {
+                        archive: result.archiveName,
+                        sizeMB: result.sizeMB,
+                        totalRecords: result.manifest.database.totalRecords,
+                    }
+                }
+            });
+        } catch (auditErr) {
+            // Silently continue if audit log table has constraint
+        }
+
+        return { 
+            success: true, 
+            timestamp: result.manifest.timestamp,
+            archiveName: result.archiveName,
+            sizeMB: result.sizeMB,
+            totalRecords: result.manifest.database.totalRecords,
+            storageFiles: result.manifest.storage.totalFiles,
+            downloadUrl: "/api/backup/download"
+        };
+    } catch (error: any) {
+        console.error("Error in backupDatabase:", error);
+        throw new Error(error.message || "Gagal membuat backup sistem");
+    }
 }
 
 export async function testWhatsAppConnection() {

@@ -1,6 +1,6 @@
 import React from 'react';
 import prisma from "@/lib/prisma";
-import { Database, HardDrive, AlertTriangle, Cloud, Server, ChevronRight } from 'lucide-react';
+import { Database, AlertTriangle, Cloud, Server, ChevronRight, HardDrive } from 'lucide-react';
 import Link from 'next/link';
 
 export async function SupabaseStorageStats() {
@@ -24,102 +24,112 @@ export async function SupabaseStorageStats() {
 
     let statusColor = "bg-emerald-500";
     let statusText = "Aman";
-    let statusBg = "bg-emerald-500/10 text-emerald-600";
-    let barGradient = "from-emerald-400 to-emerald-600";
+    let statusBorder = "border-emerald-200 bg-emerald-50 text-emerald-700";
+    let barGradient = "from-emerald-500 to-teal-500";
     
     if (isCritical) {
         statusColor = "bg-rose-500";
-        statusText = "Kritis (Wajib Backup)";
-        statusBg = "bg-rose-500/10 text-rose-600";
-        barGradient = "from-rose-400 to-rose-600";
+        statusText = "Kritis (Backup)";
+        statusBorder = "border-rose-200 bg-rose-50 text-rose-700";
+        barGradient = "from-rose-500 to-red-600";
     } else if (isWarning) {
         statusColor = "bg-amber-500";
         statusText = "Hampir Penuh";
-        statusBg = "bg-amber-500/10 text-amber-600";
-        barGradient = "from-amber-400 to-amber-500";
+        statusBorder = "border-amber-200 bg-amber-50 text-amber-700";
+        barGradient = "from-amber-400 to-amber-600";
     }
 
     return (
-        <div className="bg-white rounded-[3rem] p-8 md:p-12 border border-slate-100 shadow-xl shadow-slate-200/40 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
-            
-            <div className="relative z-10">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
-                    <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className={`p-3 rounded-2xl ${statusBg}`}>
-                                <Database size={24} />
-                            </div>
-                            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Kapasitas Supabase</h2>
+        <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-7 border border-slate-100 shadow-sm relative overflow-hidden">
+            <div className="relative z-10 space-y-5">
+                {/* Header */}
+                <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 border border-indigo-100">
+                            <Database size={20} />
                         </div>
-                        <p className="text-slate-500 font-medium">Batas penyimpanan database utama aplikasi (Free Tier: 500 MB)</p>
+                        <div>
+                            <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">Kapasitas Database</h3>
+                            <p className="text-slate-400 text-xs font-semibold">PostgreSQL Supabase (Limit 500 MB)</p>
+                        </div>
                     </div>
-                    
-                    <div className={`px-4 py-2 rounded-xl font-bold flex items-center gap-2 border ${isCritical ? 'border-rose-200 bg-rose-50 text-rose-600' : isWarning ? 'border-amber-200 bg-amber-50 text-amber-600' : 'border-emerald-200 bg-emerald-50 text-emerald-600'}`}>
+
+                    <div className={`px-2.5 py-1 rounded-xl text-xs font-black flex items-center gap-1.5 border shrink-0 ${statusBorder}`}>
                         <div className={`w-2 h-2 rounded-full ${statusColor} animate-pulse`} />
-                        Status: {statusText}
+                        <span>{statusText}</span>
                     </div>
                 </div>
 
-                {/* Main Progress Bar */}
-                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 mb-8">
-                    <div className="flex justify-between items-end mb-4">
-                        <div>
-                            <span className="text-4xl font-black text-slate-900 tracking-tighter">{dbSizeMb.toFixed(1)}</span>
-                            <span className="text-slate-500 font-bold ml-1">MB</span>
+                {/* Main Progress Bar & Numbers */}
+                <div className="bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100/80">
+                    <div className="flex justify-between items-baseline mb-3">
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight tabular-nums">
+                                {dbSizeMb.toFixed(1)}
+                            </span>
+                            <span className="text-xs font-bold text-slate-400">MB</span>
                         </div>
                         <div className="text-right">
-                            <span className="text-slate-900 font-bold">{percentage.toFixed(1)}%</span>
-                            <span className="text-slate-400 font-medium ml-1">Terpakai dari {MAX_MB} MB</span>
+                            <span className="text-sm font-black text-slate-800 tabular-nums">{percentage.toFixed(1)}%</span>
+                            <span className="text-[11px] font-semibold text-slate-400 block">dari {MAX_MB} MB</span>
                         </div>
                     </div>
                     
-                    <div className="w-full bg-slate-200 rounded-full h-4 overflow-hidden shadow-inner relative">
+                    <div className="w-full bg-slate-200/80 rounded-full h-3 overflow-hidden shadow-inner relative">
                         <div 
-                            className={`h-full bg-gradient-to-r ${barGradient} transition-all duration-1000 ease-out relative`}
-                            style={{ width: `${percentage}%` }}
+                            className={`h-full bg-gradient-to-r ${barGradient} transition-all duration-1000 ease-out rounded-full relative`}
+                            style={{ width: `${Math.max(percentage, 2)}%` }}
                         >
-                            {/* Reflection effect */}
-                            <div className="absolute top-0 left-0 right-0 h-1/2 bg-white/20" />
+                            <div className="absolute top-0 left-0 right-0 h-1/2 bg-white/25 rounded-full" />
                         </div>
                     </div>
                 </div>
 
-                {/* Educational Alert */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-blue-50 border border-blue-100 p-5 rounded-3xl flex gap-4">
-                        <div className="mt-1 bg-blue-100 text-blue-600 p-2 rounded-xl h-fit">
-                            <Server size={20} />
+                {/* Storage Context Information */}
+                <div className="space-y-2.5">
+                    <div className="bg-blue-50/70 border border-blue-100/80 p-3 sm:p-3.5 rounded-2xl flex items-start gap-3">
+                        <div className="mt-0.5 bg-blue-100 text-blue-600 p-1.5 rounded-xl shrink-0">
+                            <Server size={16} />
                         </div>
-                        <div>
-                            <h4 className="font-bold text-blue-900 text-sm mb-1">Infrastruktur Vercel</h4>
-                            <p className="text-blue-700/80 text-xs font-medium leading-relaxed">Digunakan sebagai otak dan mesin website. <strong>Tidak ada batas penyimpanan</strong>, menangani logika tanpa khawatir penuh.</p>
+                        <div className="min-w-0">
+                            <h4 className="font-bold text-blue-950 text-xs">Vercel Engine</h4>
+                            <p className="text-blue-800/80 text-[11px] font-medium leading-relaxed mt-0.5">
+                                Serverless cloud compute tanpa limit disk lokal, memproses komputasi portal secara otomatis.
+                            </p>
                         </div>
                     </div>
                     
-                    <div className="bg-indigo-50 border border-indigo-100 p-5 rounded-3xl flex gap-4">
-                        <div className="mt-1 bg-indigo-100 text-indigo-600 p-2 rounded-xl h-fit">
-                            <Cloud size={20} />
+                    <div className="bg-indigo-50/70 border border-indigo-100/80 p-3 sm:p-3.5 rounded-2xl flex items-start gap-3">
+                        <div className="mt-0.5 bg-indigo-100 text-indigo-600 p-1.5 rounded-xl shrink-0">
+                            <Cloud size={16} />
                         </div>
-                        <div>
-                            <h4 className="font-bold text-indigo-900 text-sm mb-1">Database Supabase</h4>
-                            <p className="text-indigo-700/80 text-xs font-medium leading-relaxed">Menyimpan teks, NIK, dan Foto Base64. Jika hampir mencapai 500 MB, segera ke menu UHC untuk membackup foto lama.</p>
+                        <div className="min-w-0">
+                            <h4 className="font-bold text-indigo-950 text-xs">Supabase Storage</h4>
+                            <p className="text-indigo-800/80 text-[11px] font-medium leading-relaxed mt-0.5">
+                                Menyimpan relasi tabel, NIK, dan log transaksi desa dengan backup otomatis harian.
+                            </p>
                         </div>
                     </div>
                 </div>
 
-                {/* Call to Action */}
+                {/* Call to Action if Warning or Critical */}
                 {(isWarning || isCritical) && (
-                    <div className="mt-6 p-5 rounded-3xl bg-rose-50 border border-rose-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex gap-4 items-center">
-                            <AlertTriangle size={24} className="text-rose-500 shrink-0" />
+                    <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex flex-col gap-3">
+                        <div className="flex gap-2.5 items-start">
+                            <AlertTriangle size={18} className="text-rose-600 shrink-0 mt-0.5" />
                             <div>
-                                <h4 className="font-bold text-rose-900">Tindakan Diperlukan!</h4>
-                                <p className="text-sm font-medium text-rose-700/80">Penyimpanan foto UHC dan Bansos menumpuk. Cadangkan data ke Google Drive agar sistem tidak error.</p>
+                                <h4 className="font-bold text-rose-900 text-xs">Perhatian Kapasitas!</h4>
+                                <p className="text-[11px] font-medium text-rose-700 leading-relaxed mt-0.5">
+                                    Penyimpanan database mendekati batas kuota. Bersihkan berkas usulan lama atau arsipkan log.
+                                </p>
                             </div>
                         </div>
-                        <Link href="/dashboard?tab=usulan-uhc" className="px-6 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-bold text-sm text-center shadow-lg shadow-rose-600/20 transition-all shrink-0 flex justify-center items-center gap-2">
-                            Mulai Backup <ChevronRight size={16} />
+                        <Link 
+                            href="/master-admin/data" 
+                            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs text-center shadow-md shadow-rose-600/20 transition-all flex justify-center items-center gap-1.5"
+                        >
+                            <span>Kelola Data & Arsip</span>
+                            <ChevronRight size={14} />
                         </Link>
                     </div>
                 )}

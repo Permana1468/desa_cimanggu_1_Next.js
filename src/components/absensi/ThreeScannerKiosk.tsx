@@ -34,12 +34,11 @@ export default function ThreeScannerKiosk({
     camera.position.set(0, 2.8, 14.2);
     camera.lookAt(0, 2.4, 0);
 
-    // RENDERER
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    // RENDERER - Optimized for smooth 60fps on all devices
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.setPixelRatio(Math.min(typeof window !== "undefined" ? window.devicePixelRatio : 1, 1.5));
+    renderer.shadowMap.enabled = false;
 
     container.appendChild(renderer.domElement);
 
@@ -424,10 +423,14 @@ export default function ThreeScannerKiosk({
     // ANIMATION LOOP (OSCILLATING LEFT & RIGHT)
     // -----------------------------------------------------------
     let animFrameId: number;
+    let isVisible = true;
     const clock = new THREE.Clock();
 
     const animate = () => {
       animFrameId = requestAnimationFrame(animate);
+
+      // Skip render when tab is in background to save GPU & battery
+      if (!isVisible) return;
 
       const t = clock.getElapsedTime();
 
@@ -453,6 +456,11 @@ export default function ThreeScannerKiosk({
 
     animate();
 
+    const handleVisibilityChange = () => {
+      isVisible = !document.hidden;
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     // RESIZE HANDLER
     const handleResize = () => {
       if (!containerRef.current) return;
@@ -467,10 +475,24 @@ export default function ThreeScannerKiosk({
 
     return () => {
       cancelAnimationFrame(animFrameId);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("resize", handleResize);
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
+      // Deep dispose geometries and materials to prevent WebGL memory leaks
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+          if (obj.geometry) obj.geometry.dispose();
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach((m) => m.dispose());
+            } else {
+              obj.material.dispose();
+            }
+          }
+        }
+      });
       renderer.dispose();
     };
   }, []);

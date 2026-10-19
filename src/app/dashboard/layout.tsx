@@ -7,9 +7,11 @@ import { Suspense } from "react";
 
 
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { ImoRobotCompanion } from "@/components/dashboard/perencanaan/ImoRobotCompanion";
 import { KaurPerencanaanThreeBackground } from "@/components/dashboard/roles/KaurPerencanaanThreeBackground";
+import { checkPathMaintenance } from "@/lib/maintenanceService";
+import { MaintenanceNotice } from "@/components/common/MaintenanceNotice";
 
 export default async function VillageAdminLayout({
   children,
@@ -35,6 +37,10 @@ export default async function VillageAdminLayout({
   const themeMode = cookieStore?.get('themeMode')?.value || 'hacker';
   
   const isHackerTheme = false; // role === "KAUR_PERENCANAAN" && themeMode === 'hacker';
+
+  const headersList = isBuildTime ? null : await headers();
+  const currentPath = headersList?.get('x-pathname') || '/dashboard';
+  const maintenance = isBuildTime ? { isMaintenance: false, notice: "", isGlobal: false } : await checkPathMaintenance(currentPath, baseRole);
 
   return (
     <div className={`flex h-screen overflow-hidden ${isHackerTheme ? 'bg-slate-950 text-cyan-50' : 'bg-slate-50 text-slate-950 light-mode'}`}>
@@ -157,9 +163,21 @@ export default async function VillageAdminLayout({
                 }
               `}} />
             )}
-            <Suspense fallback={<div className="flex h-full items-center justify-center py-10">Loading...</div>}>
-              {children}
-            </Suspense>
+            {maintenance.isMaintenance ? (
+              <div className="py-4">
+                <MaintenanceNotice 
+                  featureName={maintenance.feature?.name || "Modul Dashboard Desa"}
+                  reason={maintenance.notice}
+                  category={maintenance.feature?.categoryLabel || "Dashboard Desa"}
+                  isGlobal={maintenance.isGlobal}
+                  homeUrl="/dashboard"
+                />
+              </div>
+            ) : (
+              <Suspense fallback={<div className="flex h-full items-center justify-center py-10">Loading...</div>}>
+                {children}
+              </Suspense>
+            )}
           </div>
         </main>
       </div>

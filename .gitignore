@@ -37,6 +37,9 @@ docker-compose.override.yml
 
 # Project Specific
 .backup/
+backups/
+*.tar.gz
+*.dump
 .scratch/
 .logs/
 public/assets/media/
@@ -48,3 +51,6 @@ daftar_akun_keseluruhan.xlsx
 *.xlsx
 scripts/export_accounts_excel.ts
 
+# Catatan Kuliah & Modul Skripsi (Private Notes)
+catatan_kuliah_si/
+*.docx

@@ -23,11 +23,10 @@ interface CampoSantoInformasiProps {
 }
 
 export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInformasiProps) {
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isVideoPlaying, setIsVideoPlaying] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Parallax mouse move (Throttled with RAF)
+    // Parallax mouse move using CSS variables (120fps with 0 React re-renders)
     useEffect(() => {
         let rafId: number | null = null;
         const handleMouseMove = (e: MouseEvent) => {
@@ -39,10 +38,11 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
                 const centerX = rect.left + rect.width / 2;
                 const centerY = rect.top + rect.height / 2;
                 
-                setMousePos({
-                    x: (e.clientX - centerX) / (rect.width / 2),
-                    y: (e.clientY - centerY) / (rect.height / 2)
-                });
+                const normX = (e.clientX - centerX) / (rect.width / 2);
+                const normY = (e.clientY - centerY) / (rect.height / 2);
+
+                containerRef.current.style.setProperty('--mouse-x', `${normX}`);
+                containerRef.current.style.setProperty('--mouse-y', `${normY}`);
             });
         };
 
@@ -72,7 +72,7 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
                         sizes="100vw"
                         className="object-cover object-center filter saturate-[1.3] brightness-90 opacity-60"
                         style={{
-                            transform: `translate3d(${mousePos.x * -10}px, ${mousePos.y * -6}px, 0)`
+                            transform: 'translate3d(calc(var(--mouse-x, 0) * -10px), calc(var(--mouse-y, 0) * -6px), 0)'
                         }}
                     />
                     {/* Firewatch Golden Sunset Gradient Overlay */}
@@ -84,7 +84,7 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
                 <div 
                     className="absolute left-1/2 -translate-x-1/2 top-16 w-[400px] sm:w-[600px] h-[400px] sm:h-[600px] bg-amber-400/40 rounded-full blur-3xl opacity-70 pointer-events-none z-[1]"
                     style={{
-                        transform: `translate3d(${mousePos.x * 12}px, ${mousePos.y * 8}px, 0)`
+                        transform: 'translate3d(calc(var(--mouse-x, 0) * 12px), calc(var(--mouse-y, 0) * 8px), 0)'
                     }}
                 />
 
@@ -92,7 +92,7 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
                 <div 
                     className="absolute left-[8%] sm:left-[12%] bottom-0 w-48 sm:w-72 h-72 sm:h-96 pointer-events-none z-[3] transition-transform duration-200 ease-out"
                     style={{
-                        transform: `translate3d(${mousePos.x * -24}px, ${mousePos.y * -12}px, 0)`
+                        transform: 'translate3d(calc(var(--mouse-x, 0) * -24px), calc(var(--mouse-y, 0) * -12px), 0)'
                     }}
                 >
                     <svg viewBox="0 0 200 300" fill="#1c0410" className="w-full h-full drop-shadow-2xl">

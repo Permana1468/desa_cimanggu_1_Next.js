@@ -7,7 +7,7 @@ import {
     Settings, Shield, Globe, Zap, Database, Lock, Save, RefreshCw, 
     CreditCard, MessageSquare, AlertTriangle, HardDrive, Smartphone, 
     Upload, Bell, CheckCircle2, Loader2, Play, Activity, Fingerprint, ShieldCheck,
-    FileSpreadsheet, FileText
+    FileSpreadsheet, FileText, Download
 } from "lucide-react";
 import { updateSystemSettings, backupDatabase, testWhatsAppConnection, registerMasterDevice } from "@/actions/master";
 
@@ -33,13 +33,16 @@ export function ConfigClient({ initialSettings }: ConfigClientProps) {
         }
     };
 
+    const [backupInfo, setBackupInfo] = useState<any>(null);
+
     const handleBackup = async () => {
         setBackingUp(true);
         try {
             const res = await backupDatabase();
-            alert(`Backup berhasil! Timestamp: ${res.timestamp}`);
-        } catch (error) {
-            alert("Gagal melakukan backup.");
+            setBackupInfo(res);
+            alert(`🎉 Backup Berhasil Dibuat!\n\nFile: ${res.archiveName}\nUkuran: ${res.sizeMB} MB\nTotal Records: ${res.totalRecords}\nStorage Files: ${res.storageFiles}\n\nKlik tombol 'Download (.tar.gz)' untuk menyimpan ke Flashdisk / Harddisk Offline.`);
+        } catch (error: any) {
+            alert("Gagal melakukan backup: " + (error?.message || error));
         } finally {
             setBackingUp(false);
         }
@@ -81,10 +84,17 @@ export function ConfigClient({ initialSettings }: ConfigClientProps) {
                         <button 
                             onClick={handleBackup}
                             disabled={backingUp}
-                            className="px-10 py-5 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 text-white rounded-[2rem] text-sm font-black transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                            className="px-8 py-5 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 text-white rounded-[2rem] text-sm font-black transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
                         >
-                            {backingUp ? <Loader2 className="animate-spin" size={18} /> : <Database size={18} className="text-amber-400" />} Backup DB
+                            {backingUp ? <Loader2 className="animate-spin" size={18} /> : <Database size={18} className="text-amber-400" />} Backup DB & Storage
                         </button>
+                        <a 
+                            href="/api/backup/download"
+                            download
+                            className="px-8 py-5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-300 rounded-[2rem] text-sm font-black transition-all flex items-center justify-center gap-3 active:scale-95 text-center"
+                        >
+                            <Download size={18} /> Download (.tar.gz)
+                        </a>
                         <button 
                             onClick={handleSave}
                             disabled={saving}
@@ -203,17 +213,28 @@ export function ConfigClient({ initialSettings }: ConfigClientProps) {
                                     <Database size={32} />
                                 </div>
                                 <div className="space-y-1">
-                                    <h4 className="text-lg font-black tracking-tight">Emergency DB Backup</h4>
-                                    <p className="text-[11px] font-medium text-slate-400 uppercase tracking-widest">Pre-update safety synchronization</p>
+                                    <h4 className="text-lg font-black tracking-tight">Emergency Full Backup (DB + Storage)</h4>
+                                    <p className="text-[11px] font-medium text-slate-400 uppercase tracking-widest">
+                                        Antisipasi Ransomware / Kerusakan Server
+                                    </p>
                                 </div>
                             </div>
-                            <button 
-                                onClick={handleBackup}
-                                disabled={backingUp}
-                                className="w-full md:w-auto px-10 py-5 bg-white text-slate-900 rounded-[1.75rem] text-[11px] font-black uppercase tracking-[0.2em] hover:bg-amber-400 transition-all flex items-center justify-center gap-3 active:scale-95"
-                            >
-                                {backingUp ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />} Execute
-                            </button>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <button 
+                                    onClick={handleBackup}
+                                    disabled={backingUp}
+                                    className="px-8 py-5 bg-white text-slate-900 rounded-[1.75rem] text-[11px] font-black uppercase tracking-[0.2em] hover:bg-amber-400 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                                >
+                                    {backingUp ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />} Buat Snapshot Baru
+                                </button>
+                                <a 
+                                    href="/api/backup/download"
+                                    download
+                                    className="px-8 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-[1.75rem] text-[11px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 active:scale-95 shadow-xl shadow-blue-600/30 text-center"
+                                >
+                                    <Download size={16} /> Download Arsip .tar.gz
+                                </a>
+                            </div>
                         </div>
                     </div>
 

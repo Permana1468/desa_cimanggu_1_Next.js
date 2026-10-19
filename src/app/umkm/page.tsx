@@ -5,12 +5,30 @@ import { Suspense } from "react";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { ensureUmkmSeedData } from "@/app/actions/umkm";
+import { checkFeatureMaintenance } from "@/lib/maintenanceService";
+import { MaintenanceNotice } from "@/components/common/MaintenanceNotice";
 
 export default async function UmkmHomepage() {
+    const session = await getServerSession(authOptions);
+    const maintenance = await checkFeatureMaintenance("marketplace_umkm", (session?.user as any)?.role);
+
+    if (maintenance.isMaintenance) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+                <MaintenanceNotice 
+                    featureName={maintenance.feature?.name || "Marketplace UMKM Desa"}
+                    reason={maintenance.notice}
+                    category={maintenance.feature?.categoryLabel || "Layanan Publik"}
+                    isGlobal={maintenance.isGlobal}
+                    homeUrl="/"
+                />
+            </div>
+        );
+    }
+
     // Ensure database contains authentic Desa Cimanggu I products
     await ensureUmkmSeedData();
 
-    const session = await getServerSession(authOptions);
     const user = session?.user;
 
     const categories = [

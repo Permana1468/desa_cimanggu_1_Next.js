@@ -304,24 +304,26 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                     </div>
                 </div>
 
-                {/* Mobile Hamburger */}
-                <button
-                    className="hidden text-slate-300 hover:text-white p-2 rounded-xl bg-black/40 border border-white/20 backdrop-blur-md active:scale-95 transition-all"
-                    onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    aria-label="Toggle Navigation Menu"
-                >
-                    <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        {isMobileMenuOpen ? (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
-                        ) : (
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16"></path>
-                        )}
-                    </svg>
-                </button>
+                {/* Mobile Right Hamburger Toggle Only */}
+                <div className="flex xl:hidden items-center">
+                    <button
+                        className="text-slate-200 hover:text-white p-2 rounded-xl bg-slate-900/80 border border-white/20 backdrop-blur-md active:scale-95 transition-all"
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        aria-label="Toggle Navigation Menu"
+                    >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {isMobileMenuOpen ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16"></path>
+                            )}
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             {/* Mobile Menu Dropdown */}
-            <div className={`hidden absolute top-full left-0 w-full bg-slate-950/98 backdrop-blur-3xl border-b border-cyan-500/30 transition-all duration-300 overflow-y-auto ${isMobileMenuOpen ? 'max-h-[85vh] py-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'
+            <div className={`xl:hidden absolute top-full left-0 w-full bg-slate-950/98 backdrop-blur-3xl border-b border-cyan-500/30 transition-all duration-300 overflow-y-auto ${isMobileMenuOpen ? 'max-h-[85vh] py-6 shadow-[0_20px_50px_rgba(0,0,0,0.8)] opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'
                 }`}>
                 <nav className="flex flex-col px-6 sm:px-8 gap-2.5 custom-scrollbar">
                     {navMenuItems.map((menu, idx) => {

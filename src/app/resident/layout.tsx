@@ -12,8 +12,9 @@ import {
     Menu
 } from "lucide-react";
 import { ResidentSidebar } from "@/components/resident/ResidentSidebar";
-
-
+import { headers } from "next/headers";
+import { checkPathMaintenance } from "@/lib/maintenanceService";
+import { MaintenanceNotice } from "@/components/common/MaintenanceNotice";
 
 export default async function ResidentLayout({
     children,
@@ -33,6 +34,10 @@ export default async function ResidentLayout({
         }
     }
 
+    const headersList = isBuildTime ? null : await headers();
+    const currentPath = headersList?.get('x-pathname') || '/resident';
+    const maintenance = isBuildTime ? { isMaintenance: false, notice: "", isGlobal: false } : await checkPathMaintenance(currentPath, (session?.user as any)?.role);
+
     return (
         <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
             {/* Sidebar Resident */}
@@ -41,7 +46,17 @@ export default async function ResidentLayout({
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
                 <main className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar pt-8 lg:pt-8 pb-24 lg:pb-8">
                     <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        {children}
+                        {maintenance.isMaintenance ? (
+                            <MaintenanceNotice 
+                                featureName={maintenance.feature?.name || "Portal Mandiri Warga"}
+                                reason={maintenance.notice}
+                                category={maintenance.feature?.categoryLabel || "Portal Warga"}
+                                isGlobal={maintenance.isGlobal}
+                                homeUrl="/resident"
+                            />
+                        ) : (
+                            children
+                        )}
                     </div>
                 </main>
             </div>

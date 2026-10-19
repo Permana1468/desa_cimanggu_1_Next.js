@@ -3,9 +3,9 @@ import React, { useEffect, useRef } from 'react';
 import { getBoundaries } from '@/actions/gis';
 import "leaflet/dist/leaflet.css";
 
-export default function LandingWebGIS() {
+export default function LandingWebGIS({ containerId = "landing-webgis-map" }: { containerId?: string }) {
     const mapRef = useRef<any>(null);
-    const mapContainerId = "landing-webgis-map";
+    const mapContainerId = containerId;
     const LRef = useRef<any>(null);
     const layersGroupRef = useRef<any>(null);
 
@@ -95,7 +95,7 @@ export default function LandingWebGIS() {
                 mapRef.current = null;
             }
         };
-    }, []);
+    }, [containerId]);
 
 
 

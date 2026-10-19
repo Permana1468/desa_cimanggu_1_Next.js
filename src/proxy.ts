@@ -124,7 +124,14 @@ export async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL(setupPath, req.url));
   }
 
-  const response = NextResponse.next();
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set('x-pathname', pathname);
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
   // Add extra dynamic Security Headers
   response.headers.set('X-XSS-Protection', '1; mode=block');
   response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');

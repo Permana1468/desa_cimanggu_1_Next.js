@@ -3,12 +3,14 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getBoundaries, getGisDashboardStats } from "@/actions/gis";
 import GisDashboardWrapper from "@/components/master/GisDashboardWrapper";
+import { checkFeatureMaintenance } from "@/lib/maintenanceService";
+import { MaintenanceNotice } from "@/components/common/MaintenanceNotice";
 
 export default async function GisDashboardPage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    redirect("/auth/login");
+    redirect("/login");
   }
 
   // We allow ADMIN_MASTER or anyone assigned to GIS (like OPERATOR_DESA)
@@ -17,6 +19,21 @@ export default async function GisDashboardPage() {
     return (
       <div className="flex h-screen items-center justify-center bg-slate-900 text-white">
         <h1 className="text-2xl font-black">AKSES DITOLAK: KHUSUS PETUGAS GIS</h1>
+      </div>
+    );
+  }
+
+  const maintenance = await checkFeatureMaintenance("webgis", role);
+  if (maintenance.isMaintenance) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-900 p-4">
+        <MaintenanceNotice 
+          featureName={maintenance.feature?.name || "Peta WebGIS Interaktif"}
+          reason={maintenance.notice}
+          category={maintenance.feature?.categoryLabel || "Layanan Publik"}
+          isGlobal={maintenance.isGlobal}
+          homeUrl="/"
+        />
       </div>
     );
   }

@@ -27,10 +27,10 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
     const { toggleDualMode, language } = useLandingTheme();
     const [activeCircle, setActiveCircle] = useState<number | null>(null);
     const [isTitleHovered, setIsTitleHovered] = useState(false);
-    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'hero' | 'informasi' | 'organisasi'>('hero');
     const containerRef = useRef<HTMLDivElement>(null);
+    const bgParallaxRef = useRef<HTMLDivElement>(null);
 
     // Helper to parse gallery items which could be legacy strings or new objects
     const parseGalleryItem = (item: any, fallback: string) => {
@@ -68,14 +68,14 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
     // Current background hero image based on active hovered circle
     const currentBgImage = activeCircle !== null ? bgImages[activeCircle - 1] : bgImages[0];
 
-    // Handle Subtle Parallax Mouse Movement (Throttled with RAF for max FPS)
+    // Handle Subtle Parallax Mouse Movement (Direct DOM transform for 120fps with 0 React re-renders)
     useEffect(() => {
         let rafId: number | null = null;
         const handleMouseMove = (e: MouseEvent) => {
             if (rafId !== null) return;
             rafId = requestAnimationFrame(() => {
                 rafId = null;
-                if (!containerRef.current) return;
+                if (!containerRef.current || !bgParallaxRef.current) return;
                 const rect = containerRef.current.getBoundingClientRect();
                 const centerX = rect.left + rect.width / 2;
                 const centerY = rect.top + rect.height / 2;
@@ -83,7 +83,7 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
                 const normX = (e.clientX - centerX) / (rect.width / 2);
                 const normY = (e.clientY - centerY) / (rect.height / 2);
                 
-                setMousePos({ x: normX, y: normY });
+                bgParallaxRef.current.style.transform = `translate3d(${normX * -8}px, ${normY * -5}px, 0)`;
             });
         };
 
@@ -295,26 +295,25 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
                                 />
                             </div>
                         ) : (
-                            bgImages.map((src: string, idx: number) => (
-                                <div
-                                    key={idx}
-                                    className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                                        currentBgImage === src ? 'opacity-70 scale-105 z-10' : 'opacity-0 scale-100 z-0'
-                                    }`}
-                                    style={{
-                                        transform: `translate3d(${mousePos.x * -8}px, ${mousePos.y * -5}px, 0)`
-                                    }}
-                                >
-                                    <Image
-                                        src={src}
-                                        alt={`Village Background Scenery ${idx + 1}`}
-                                        fill
-                                        priority={idx === 0}
-                                        sizes="100vw"
-                                        className="object-cover object-center filter saturate-[1.2] brightness-95"
-                                    />
-                                </div>
-                            ))
+                            <div ref={bgParallaxRef} className="absolute inset-0 will-change-transform">
+                                {bgImages.map((src: string, idx: number) => (
+                                    <div
+                                        key={idx}
+                                        className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                                            currentBgImage === src ? 'opacity-70 scale-105 z-10' : 'opacity-0 scale-100 z-0'
+                                        }`}
+                                    >
+                                        <Image
+                                            src={src}
+                                            alt={`Village Background Scenery ${idx + 1}`}
+                                            fill
+                                            priority={idx === 0}
+                                            sizes="100vw"
+                                            className="object-cover object-center filter saturate-[1.2] brightness-95"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
                         )}
 
                         <div className="absolute inset-0 z-20 bg-gradient-to-b from-black/40 via-black/20 to-black/60" />

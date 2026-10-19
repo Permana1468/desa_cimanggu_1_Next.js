@@ -24,26 +24,61 @@ async function getAdminSession() {
 
 const DEFAULT_TENANT_ID = "f93e947c-1a9b-47a3-913b-2ea2a4290732";
 let cachedTenantId: string | null = null;
+let tenantResolvePromise: Promise<string> | null = null;
 
 async function resolveTenantId() {
   if (cachedTenantId) return cachedTenantId;
-  try {
-    const tenant = await prisma.tenant.findFirst({
-      where: {
-        OR: [
-          { domain: "cimanggu1.desa.id" },
-          { id: DEFAULT_TENANT_ID }
-        ]
+  if (!tenantResolvePromise) {
+    tenantResolvePromise = (async () => {
+      try {
+        const tenant = await prisma.tenant.findFirst({
+          where: {
+            OR: [
+              { domain: "cimanggu1.desa.id" },
+              { id: DEFAULT_TENANT_ID }
+            ]
+          },
+          select: { id: true }
+        });
+        if (tenant) {
+          cachedTenantId = tenant.id;
+          return tenant.id;
+        }
+      } catch (error) {
+        console.error("Failed to resolve tenant ID:", error);
+      } finally {
+        tenantResolvePromise = null;
       }
-    });
-    if (tenant) {
-      cachedTenantId = tenant.id;
-      return tenant.id;
-    }
-  } catch (error) {
-    console.error("Failed to resolve tenant ID:", error);
+      return DEFAULT_TENANT_ID;
+    })();
   }
-  return DEFAULT_TENANT_ID;
+  return tenantResolvePromise;
+}
+
+// In-memory cache for high-traffic landing queries (60s TTL)
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+const landingCache = new Map<string, CacheEntry<any>>();
+const CACHE_TTL = 60 * 1000;
+
+function getCached<T>(key: string): T | null {
+  const entry = landingCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > CACHE_TTL) {
+    landingCache.delete(key);
+    return null;
+  }
+  return entry.data as T;
+}
+
+function setCached<T>(key: string, data: T): void {
+  landingCache.set(key, { data, timestamp: Date.now() });
+}
+
+export async function invalidateLandingCache(): Promise<void> {
+  landingCache.clear();
 }
 
 async function getLandingTenantFilter() {
@@ -77,6 +112,9 @@ function isKepalaKeluarga(val?: string | null): boolean {
 }
 
 export async function getVillageStats() {
+  const cached = getCached<{ totalWarga: number; totalLaki: number; totalPerempuan: number; totalKK: number; }>("village_stats");
+  if (cached) return cached;
+
   try {
     const tenantFilter = await getLandingTenantFilter();
     
@@ -102,12 +140,14 @@ export async function getVillageStats() {
 
     const totalKK = totalKKCount > 0 ? totalKKCount : uniqueKkSet.size;
 
-    return {
+    const result = {
       totalWarga,
       totalLaki,
       totalPerempuan,
       totalKK,
     };
+    setCached("village_stats", result);
+    return result;
   } catch (error) {
     console.error("Error in getVillageStats:", error);
     return {
@@ -120,9 +160,12 @@ export async function getVillageStats() {
 }
 
 export async function getLatestNews() {
+  const cached = getCached<any[]>("latest_news");
+  if (cached) return cached;
+
   try {
     const tenantFilter = await getLandingTenantFilter();
-    return await prisma.berita.findMany({
+    const result = await prisma.berita.findMany({
       where: { 
         ...tenantFilter,
         isPublished: true,
@@ -130,6 +173,8 @@ export async function getLatestNews() {
       orderBy: { createdAt: "desc" },
       take: 3,
     });
+    setCached("latest_news", result);
+    return result;
   } catch (error) {
     // Silently handle error
     return [];
@@ -137,9 +182,12 @@ export async function getLatestNews() {
 }
 
 export async function getOrganizationalStructure() {
+  const cached = getCached<any[]>("org_structure");
+  if (cached) return cached;
+
   try {
     const tenantFilter = await getLandingTenantFilter();
-    return await prisma.aparaturDesa.findMany({
+    const result = await prisma.aparaturDesa.findMany({
       where: { 
         ...tenantFilter,
         isActive: true,
@@ -149,6 +197,8 @@ export async function getOrganizationalStructure() {
         { order: "asc" },
       ],
     });
+    setCached("org_structure", result);
+    return result;
   } catch (error) {
     // Silently handle error
     return [];
@@ -156,12 +206,17 @@ export async function getOrganizationalStructure() {
 }
 
 export async function getVillageProfile() {
+  const cached = getCached<any>("village_profile");
+  if (cached) return cached;
+
   try {
     const tenantFilter = await getLandingTenantFilter();
-    return await prisma.villageProfile.findFirst({
+    const result = await prisma.villageProfile.findFirst({
       where: tenantFilter,
       orderBy: { updatedAt: 'desc' }
     });
+    if (result) setCached("village_profile", result);
+    return result;
   } catch (error) {
     // Silently handle error
     return null;
@@ -169,12 +224,17 @@ export async function getVillageProfile() {
 }
 
 export async function getLembagaList() {
+  const cached = getCached<any[]>("lembaga_list");
+  if (cached) return cached;
+
   try {
     const tenantFilter = await getLandingTenantFilter();
-    return await prisma.lembaga.findMany({
+    const result = await prisma.lembaga.findMany({
       where: tenantFilter,
       orderBy: { name: "asc" },
     });
+    setCached("lembaga_list", result);
+    return result;
   } catch (error) {
     // Silently handle error
     return [];
@@ -260,6 +320,7 @@ export async function updateVillageProfile(data: any) {
       }
     });
 
+    invalidateLandingCache();
     revalidatePath("/", "layout");
     revalidatePath("/profil/sambutan");
     revalidatePath("/profil/sejarah");
@@ -302,6 +363,7 @@ export async function updateAparatur(id: string, data: any) {
       }
     });
 
+    invalidateLandingCache();
     revalidatePath("/");
     revalidatePath("/dashboard/settings/landing");
     return result;
@@ -327,6 +389,7 @@ export async function createBerita(data: any) {
       }
     });
 
+    invalidateLandingCache();
     revalidatePath("/");
     revalidatePath("/dashboard/settings/landing");
     return result;

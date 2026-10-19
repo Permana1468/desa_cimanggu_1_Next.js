@@ -17,6 +17,8 @@ import {
   ShieldCheck,
   Zap
 } from "lucide-react";
+import { checkFeatureMaintenanceAction } from "@/actions/maintenance";
+import { MaintenanceNotice } from "@/components/common/MaintenanceNotice";
 
 // Dynamic import of Three.js 3D Scanner Kiosk Component to prevent SSR issues
 const ThreeScannerKiosk = dynamic(() => import("@/components/absensi/ThreeScannerKiosk"), {
@@ -99,6 +101,7 @@ function playScanBeepSound() {
 }
 
 export default function PublicAbsensiKioskPage() {
+  const [maintenanceState, setMaintenanceState] = useState<{ isMaintenance: boolean; notice: string } | null>(null);
   const [logs, setLogs] = useState<any[]>([]);
   const [scanInput, setScanInput] = useState("");
   const [lastScanned, setLastScanned] = useState<any>(null);
@@ -115,6 +118,19 @@ export default function PublicAbsensiKioskPage() {
   const scanBufferRef = useRef<string>("");
   const lastKeyTimeRef = useRef<number>(0);
   const lastProcessedRef = useRef<{ code: string; time: number }>({ code: "", time: 0 });
+
+  // Check Maintenance Mode
+  useEffect(() => {
+    checkFeatureMaintenanceAction("e_absensi").then(res => {
+      if (res && res.isMaintenance) {
+        setMaintenanceState({ isMaintenance: true, notice: res.notice });
+      } else {
+        setMaintenanceState({ isMaintenance: false, notice: "" });
+      }
+    }).catch(() => {
+      setMaintenanceState({ isMaintenance: false, notice: "" });
+    });
+  }, []);
 
   // Auto-rotate Left & Right Carousels every 5s
   useEffect(() => {
@@ -396,6 +412,19 @@ export default function PublicAbsensiKioskPage() {
 
   const currentLeftMascot = LEFT_MASCOTS[leftIndex];
   const currentRightMascot = RIGHT_MASCOTS[rightIndex];
+
+  if (maintenanceState?.isMaintenance) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+        <MaintenanceNotice 
+          featureName="Kiosk Presensi & E-Absensi Digital"
+          reason={maintenanceState.notice}
+          category="Layanan Publik"
+          homeUrl="/"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen max-h-screen overflow-hidden bg-gradient-to-br from-sky-300 via-cyan-200 to-indigo-300 text-slate-900 font-sans flex flex-col justify-between relative select-none">
