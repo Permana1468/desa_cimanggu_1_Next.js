@@ -6,9 +6,9 @@ const prismaClientSingleton = () => {
   const connectionString = process.env.DATABASE_URL || "postgresql://dummy:dummy@localhost:5432/dummy";
   const pool = new Pool({
     connectionString,
-    max: 5,
-    idleTimeoutMillis: 10000,
-    connectionTimeoutMillis: 8000,
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
     allowExitOnIdle: true,
   });
   const adapter = new PrismaPg(pool);

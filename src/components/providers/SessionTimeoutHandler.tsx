@@ -46,14 +46,10 @@ export default function SessionTimeoutHandler() {
     pathname.startsWith("/master-admin") ||
     pathname.startsWith("/resident");
 
-  // 1. Session Storage check: Tab/Browser Close Detection
+  // 1. Session Storage check: Tab/Browser Active Marker
   useEffect(() => {
     if (status === "authenticated" && isGuardedRoute) {
-      const isTabActive = sessionStorage.getItem("tab_session_active") === "true";
-      if (!isTabActive) {
-        // Automatically sign out if sessionStorage does not have active flag
-        signOut({ callbackUrl: "/login?reason=expired" });
-      }
+      sessionStorage.setItem("tab_session_active", "true");
     }
   }, [status, pathname, isGuardedRoute]);
 

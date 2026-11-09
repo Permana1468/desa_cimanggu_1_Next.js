@@ -8,16 +8,33 @@ import {
 
 const CONFIG_ID = "feature_maintenance";
 
+// In-memory cache for maintenance settings (30 seconds TTL) to avoid hitting database on every layout render
+let cachedSettings: MaintenanceSettings | null = null;
+let cacheTimestamp = 0;
+const CACHE_TTL_MS = 30 * 1000;
+
+export function invalidateMaintenanceCache() {
+  cachedSettings = null;
+  cacheTimestamp = 0;
+}
+
 /**
  * Get current system maintenance settings with fallback to default
  */
 export async function getMaintenanceSettings(): Promise<MaintenanceSettings> {
+  const now = Date.now();
+  if (cachedSettings && now - cacheTimestamp < CACHE_TTL_MS) {
+    return cachedSettings;
+  }
+
   try {
     const record = await prisma.systemSetting.findUnique({
       where: { id: CONFIG_ID }
     });
 
     if (!record || !record.settings) {
+      cachedSettings = DEFAULT_MAINTENANCE_SETTINGS;
+      cacheTimestamp = now;
       return DEFAULT_MAINTENANCE_SETTINGS;
     }
 
@@ -34,16 +51,20 @@ export async function getMaintenanceSettings(): Promise<MaintenanceSettings> {
       }
     }
 
-    return {
+    const result: MaintenanceSettings = {
       isGlobalMaintenance: Boolean(saved.isGlobalMaintenance),
       globalNotice: saved.globalNotice || DEFAULT_MAINTENANCE_SETTINGS.globalNotice,
       features: mergedFeatures,
       updatedAt: saved.updatedAt || record.updatedAt.toISOString(),
       updatedBy: saved.updatedBy || "Admin Master"
     };
+
+    cachedSettings = result;
+    cacheTimestamp = now;
+    return result;
   } catch (error) {
     console.error("Error reading maintenance settings:", error);
-    return DEFAULT_MAINTENANCE_SETTINGS;
+    return cachedSettings || DEFAULT_MAINTENANCE_SETTINGS;
   }
 }
 

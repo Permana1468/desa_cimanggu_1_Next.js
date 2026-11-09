@@ -248,15 +248,26 @@ export async function toggleTenantStatus(id: string, status: boolean) {
 }
 
 
+let cachedTenantsMinimal: { id: string; name: string }[] | null = null;
+let cachedTenantsTimestamp = 0;
+const TENANTS_TTL_MS = 60 * 1000;
+
 export async function getAllTenantsMinimal() {
     await checkMaster();
+    const now = Date.now();
+    if (cachedTenantsMinimal && now - cachedTenantsTimestamp < TENANTS_TTL_MS) {
+        return cachedTenantsMinimal;
+    }
     try {
-        return await prisma.tenant.findMany({
+        const tenants = await prisma.tenant.findMany({
             select: { id: true, name: true },
             orderBy: { name: 'asc' }
         });
+        cachedTenantsMinimal = tenants;
+        cachedTenantsTimestamp = now;
+        return tenants;
     } catch (error) {
-        return [];
+        return cachedTenantsMinimal || [];
     }
 }
 

@@ -27,7 +27,7 @@ export async function getVillageDashboardStats() {
 
         return { suratPending, laporanVerified, totalAparatur, totalProposals };
     } catch (error) {
-    return { suratPending: 0, laporanVerified: 0, totalAparatur: 0 };
+    return { suratPending: 0, laporanVerified: 0, totalAparatur: 0, totalProposals: 0 };
     }
 }
 

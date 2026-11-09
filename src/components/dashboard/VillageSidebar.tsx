@@ -65,8 +65,13 @@ import {
   Lightbulb
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { SidebarThreeBackground } from "./roles/SidebarThreeBackground";
+
+const SidebarThreeBackground = dynamic(
+  () => import("./roles/SidebarThreeBackground").then((mod) => mod.SidebarThreeBackground),
+  { ssr: false }
+);
 import { GlobalNotificationPanel } from "./GlobalNotificationPanel";
 import { useNotifications } from "@/hooks/useNotifications";
 

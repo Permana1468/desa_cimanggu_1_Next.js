@@ -9,7 +9,7 @@ import {
   MaintenanceSettings, 
   ALL_SYSTEM_FEATURES 
 } from "@/lib/maintenanceConfig";
-import { getMaintenanceSettings } from "@/lib/maintenanceService";
+import { getMaintenanceSettings, invalidateMaintenanceCache } from "@/lib/maintenanceService";
 
 const CONFIG_ID = "feature_maintenance";
 
@@ -111,6 +111,7 @@ export async function toggleFeatureAction(
     }
   });
 
+  invalidateMaintenanceCache();
   revalidatePath("/", "layout");
   revalidatePath("/master-admin/maintenance");
   return { success: true, settings: newSettings };
@@ -159,6 +160,7 @@ export async function toggleGlobalMaintenanceAction(
     }
   });
 
+  invalidateMaintenanceCache();
   revalidatePath("/", "layout");
   revalidatePath("/master-admin/maintenance");
   return { success: true, settings: newSettings };
@@ -218,6 +220,7 @@ export async function bulkToggleFeaturesAction(
     }
   });
 
+  invalidateMaintenanceCache();
   revalidatePath("/", "layout");
   revalidatePath("/master-admin/maintenance");
   return { success: true, settings: newSettings };
@@ -264,6 +267,7 @@ export async function updateFeatureNoticeAction(featureId: string, notice: strin
     }
   });
 
+  invalidateMaintenanceCache();
   revalidatePath("/", "layout");
   revalidatePath("/master-admin/maintenance");
   return { success: true, settings: newSettings };

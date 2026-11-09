@@ -8,10 +8,13 @@ import { Suspense } from "react";
 
 
 import { cookies, headers } from "next/headers";
-import { ImoRobotCompanion } from "@/components/dashboard/perencanaan/ImoRobotCompanion";
-import { KaurPerencanaanThreeBackground } from "@/components/dashboard/roles/KaurPerencanaanThreeBackground";
+import dynamic from "next/dynamic";
 import { checkPathMaintenance } from "@/lib/maintenanceService";
 import { MaintenanceNotice } from "@/components/common/MaintenanceNotice";
+
+const KaurPerencanaanThreeBackground = dynamic(
+  () => import("@/components/dashboard/roles/KaurPerencanaanThreeBackground").then((mod) => mod.KaurPerencanaanThreeBackground)
+);
 
 export default async function VillageAdminLayout({
   children,

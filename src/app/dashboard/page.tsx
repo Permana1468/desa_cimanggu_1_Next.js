@@ -30,10 +30,6 @@ export default async function VillageDashboardPage() {
     redirect("/gis-dashboard");
   }
 
-  const stats = await getVillageDashboardStats();
-  const latestSurat = await getSuratList();
-  const realtimeStats = await getDashboardRealtimeStats();
-
   const email = session?.user?.email || "";
   const baseRole = (session?.user as any)?.role || "WARGA";
 
@@ -56,6 +52,17 @@ export default async function VillageDashboardPage() {
       role = "KASI_KESEJAHTERAAN";
     }
   }
+
+  const isExecutive = ["ADMIN_DESA", "KADES", "SEKDES", "ADMIN_MASTER"].includes(role) && !email.includes("operator");
+  const isWarga = role === "WARGA";
+  const needsSurat = isExecutive || isWarga;
+
+  // Fetch only what this role needs, executing in parallel to eliminate waterfall latency
+  const [stats, latestSurat, realtimeStats] = await Promise.all([
+    getVillageDashboardStats(),
+    needsSurat ? getSuratList() : Promise.resolve([] as any[]),
+    isExecutive ? getDashboardRealtimeStats() : Promise.resolve(null)
+  ]);
 
   // 1. EXECUTIVE ROLES (Pimpinan & Manajemen Umum)
   if (["ADMIN_DESA", "KADES", "SEKDES", "ADMIN_MASTER"].includes(role)) {
