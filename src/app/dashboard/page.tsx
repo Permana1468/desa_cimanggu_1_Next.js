@@ -3,22 +3,30 @@ import { authOptions } from "@/lib/auth";
 import { getVillageDashboardStats, getSuratList } from "@/actions/village";
 import { getDashboardRealtimeStats } from "@/actions/dashboard";
 import { redirect } from "next/navigation";
+import dynamic from "next/dynamic";
 
-// Role Components
-import { ExecutiveDashboard } from "@/components/dashboard/roles/ExecutiveDashboard";
-import { WilayahDashboard } from "@/components/dashboard/roles/WilayahDashboard";
-import { KadusDashboard } from "@/components/dashboard/roles/KadusDashboard";
-import { WargaDashboard } from "@/components/dashboard/roles/WargaDashboard";
-import { PelayananDashboard } from "@/components/dashboard/roles/PelayananDashboard";
-import { KeuanganDashboard } from "@/components/dashboard/roles/KeuanganDashboard";
-import { KesejahteraanDashboard } from "@/components/dashboard/roles/KesejahteraanDashboard";
-import { KelembagaanDashboard } from "@/components/dashboard/roles/KelembagaanDashboard";
-import { EkonomiDashboard } from "@/components/dashboard/roles/EkonomiDashboard";
-import { OperatorDashboard } from "@/components/dashboard/roles/OperatorDashboard";
-import { PerencanaanDashboard } from "@/components/dashboard/roles/PerencanaanDashboard";
-import { PosyanduDashboard } from "@/components/dashboard/roles/PosyanduDashboard";
-import { PuskesosDashboard } from "@/components/dashboard/roles/PuskesosDashboard";
-import { KasiPelayananDashboard } from "@/components/dashboard/roles/KasiPelayananDashboard";
+const RoleLoading = () => (
+  <div className="p-10 flex flex-col items-center justify-center min-h-[360px] gap-3">
+    <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+    <p className="text-sm font-medium text-slate-500">Memuat modul...</p>
+  </div>
+);
+
+// Dynamic Role Components (split bundle & compilation per role)
+const ExecutiveDashboard = dynamic(() => import("@/components/dashboard/roles/ExecutiveDashboard").then(m => m.ExecutiveDashboard), { loading: RoleLoading });
+const WilayahDashboard = dynamic(() => import("@/components/dashboard/roles/WilayahDashboard").then(m => m.WilayahDashboard), { loading: RoleLoading });
+const KadusDashboard = dynamic(() => import("@/components/dashboard/roles/KadusDashboard").then(m => m.KadusDashboard), { loading: RoleLoading });
+const WargaDashboard = dynamic(() => import("@/components/dashboard/roles/WargaDashboard").then(m => m.WargaDashboard), { loading: RoleLoading });
+const PelayananDashboard = dynamic(() => import("@/components/dashboard/roles/PelayananDashboard").then(m => m.PelayananDashboard), { loading: RoleLoading });
+const KeuanganDashboard = dynamic(() => import("@/components/dashboard/roles/KeuanganDashboard").then(m => m.KeuanganDashboard), { loading: RoleLoading });
+const KesejahteraanDashboard = dynamic(() => import("@/components/dashboard/roles/KesejahteraanDashboard").then(m => m.KesejahteraanDashboard), { loading: RoleLoading });
+const KelembagaanDashboard = dynamic(() => import("@/components/dashboard/roles/KelembagaanDashboard").then(m => m.KelembagaanDashboard), { loading: RoleLoading });
+const EkonomiDashboard = dynamic(() => import("@/components/dashboard/roles/EkonomiDashboard").then(m => m.EkonomiDashboard), { loading: RoleLoading });
+const OperatorDashboard = dynamic(() => import("@/components/dashboard/roles/OperatorDashboard").then(m => m.OperatorDashboard), { loading: RoleLoading });
+const PerencanaanDashboard = dynamic(() => import("@/components/dashboard/roles/PerencanaanDashboard").then(m => m.PerencanaanDashboard), { loading: RoleLoading });
+const PosyanduDashboard = dynamic(() => import("@/components/dashboard/roles/PosyanduDashboard").then(m => m.PosyanduDashboard), { loading: RoleLoading });
+const PuskesosDashboard = dynamic(() => import("@/components/dashboard/roles/PuskesosDashboard").then(m => m.PuskesosDashboard), { loading: RoleLoading });
+const KasiPelayananDashboard = dynamic(() => import("@/components/dashboard/roles/KasiPelayananDashboard").then(m => m.KasiPelayananDashboard), { loading: RoleLoading });
 
 export default async function VillageDashboardPage() {
   const session = await getServerSession(authOptions);

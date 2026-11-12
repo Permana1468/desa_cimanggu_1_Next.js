@@ -37,31 +37,40 @@ import {
 } from "recharts";
 import { getKesraDtksList, getKesraGisList, getKesraStuntingList, getKesraAtsList, getKesraInsentifList } from "@/actions/kesra";
 
-// Tab Components
-import { KesraDtksTab } from "../kesra/KesraDtksTab";
-import { KesraGisTab } from "../kesra/KesraGisTab";
-import { KesraStuntingTab } from "../kesra/KesraStuntingTab";
-import { KesraPmtTab } from "../kesra/KesraPmtTab";
-import { KesraAtsTab } from "../kesra/KesraAtsTab";
-import { KesraInsentifTab } from "../kesra/KesraInsentifTab";
-import { KesraReportTab } from "../kesra/KesraReportTab";
-import { KesraPengangguranTab } from "../kesra/KesraPengangguranTab";
-import { KesraUhcTab } from "../kesra/KesraUhcTab";
-import { KesraWargaBansosTab } from "../kesra/KesraWargaBansosTab";
-import { KesraUsulanUhcTab } from "../kesra/KesraUsulanUhcTab";
-import { PosyanduRegisterTab } from "../kesra/PosyanduRegisterTab";
-import { PosyanduJadwalAbsensiTab } from "../kesra/PosyanduJadwalAbsensiTab";
-import { PosyanduInventarisTab } from "../kesra/PosyanduInventarisTab";
-import { KesraKependudukanTab } from "../kesra/KesraKependudukanTab";
-import { KesraCloudTab } from "../kesra/KesraCloudTab";
+import dynamic from "next/dynamic";
 
-// LPJ Kesra Sub-Tabs
-import { LpjRegistrasiPembangunanTab } from "../kesra/lpj/LpjRegistrasiPembangunanTab";
-import { LpjPesananBarangTab } from "../kesra/lpj/LpjPesananBarangTab";
-import { LpjDaftarHadirPekerjaTab } from "../kesra/lpj/LpjDaftarHadirPekerjaTab";
-import { LpjTandaTerimaPekerjaTab } from "../kesra/lpj/LpjTandaTerimaPekerjaTab";
-import { LpjDaftarKtpPekerjaTab } from "../kesra/lpj/LpjDaftarKtpPekerjaTab";
-import { LpjBastPekerjaanTab } from "../kesra/lpj/LpjBastPekerjaanTab";
+const KesraTabLoader = () => (
+  <div className="p-10 flex flex-col items-center justify-center min-h-[300px] gap-2">
+    <div className="w-7 h-7 border-4 border-rose-500 border-t-transparent rounded-full animate-spin" />
+    <span className="text-xs font-medium text-slate-500">Memuat modul Kesejahteraan...</span>
+  </div>
+);
+
+// Tab Components (Lazy Loaded)
+const KesraDtksTab = dynamic(() => import("../kesra/KesraDtksTab").then(m => m.KesraDtksTab), { ssr: false, loading: KesraTabLoader });
+const KesraGisTab = dynamic(() => import("../kesra/KesraGisTab").then(m => m.KesraGisTab), { ssr: false, loading: KesraTabLoader });
+const KesraStuntingTab = dynamic(() => import("../kesra/KesraStuntingTab").then(m => m.KesraStuntingTab), { ssr: false, loading: KesraTabLoader });
+const KesraPmtTab = dynamic(() => import("../kesra/KesraPmtTab").then(m => m.KesraPmtTab), { ssr: false, loading: KesraTabLoader });
+const KesraAtsTab = dynamic(() => import("../kesra/KesraAtsTab").then(m => m.KesraAtsTab), { ssr: false, loading: KesraTabLoader });
+const KesraInsentifTab = dynamic(() => import("../kesra/KesraInsentifTab").then(m => m.KesraInsentifTab), { ssr: false, loading: KesraTabLoader });
+const KesraReportTab = dynamic(() => import("../kesra/KesraReportTab").then(m => m.KesraReportTab), { ssr: false, loading: KesraTabLoader });
+const KesraPengangguranTab = dynamic(() => import("../kesra/KesraPengangguranTab").then(m => m.KesraPengangguranTab), { ssr: false, loading: KesraTabLoader });
+const KesraUhcTab = dynamic(() => import("../kesra/KesraUhcTab").then(m => m.KesraUhcTab), { ssr: false, loading: KesraTabLoader });
+const KesraWargaBansosTab = dynamic(() => import("../kesra/KesraWargaBansosTab").then(m => m.KesraWargaBansosTab), { ssr: false, loading: KesraTabLoader });
+const KesraUsulanUhcTab = dynamic(() => import("../kesra/KesraUsulanUhcTab").then(m => m.KesraUsulanUhcTab), { ssr: false, loading: KesraTabLoader });
+const PosyanduRegisterTab = dynamic(() => import("../kesra/PosyanduRegisterTab").then(m => m.PosyanduRegisterTab), { ssr: false, loading: KesraTabLoader });
+const PosyanduJadwalAbsensiTab = dynamic(() => import("../kesra/PosyanduJadwalAbsensiTab").then(m => m.PosyanduJadwalAbsensiTab), { ssr: false, loading: KesraTabLoader });
+const PosyanduInventarisTab = dynamic(() => import("../kesra/PosyanduInventarisTab").then(m => m.PosyanduInventarisTab), { ssr: false, loading: KesraTabLoader });
+const KesraKependudukanTab = dynamic(() => import("../kesra/KesraKependudukanTab").then(m => m.KesraKependudukanTab), { ssr: false, loading: KesraTabLoader });
+const KesraCloudTab = dynamic(() => import("../kesra/KesraCloudTab").then(m => m.KesraCloudTab), { ssr: false, loading: KesraTabLoader });
+
+// LPJ Kesra Sub-Tabs (Lazy Loaded)
+const LpjRegistrasiPembangunanTab = dynamic(() => import("../kesra/lpj/LpjRegistrasiPembangunanTab").then(m => m.LpjRegistrasiPembangunanTab), { ssr: false, loading: KesraTabLoader });
+const LpjPesananBarangTab = dynamic(() => import("../kesra/lpj/LpjPesananBarangTab").then(m => m.LpjPesananBarangTab), { ssr: false, loading: KesraTabLoader });
+const LpjDaftarHadirPekerjaTab = dynamic(() => import("../kesra/lpj/LpjDaftarHadirPekerjaTab").then(m => m.LpjDaftarHadirPekerjaTab), { ssr: false, loading: KesraTabLoader });
+const LpjTandaTerimaPekerjaTab = dynamic(() => import("../kesra/lpj/LpjTandaTerimaPekerjaTab").then(m => m.LpjTandaTerimaPekerjaTab), { ssr: false, loading: KesraTabLoader });
+const LpjDaftarKtpPekerjaTab = dynamic(() => import("../kesra/lpj/LpjDaftarKtpPekerjaTab").then(m => m.LpjDaftarKtpPekerjaTab), { ssr: false, loading: KesraTabLoader });
+const LpjBastPekerjaanTab = dynamic(() => import("../kesra/lpj/LpjBastPekerjaanTab").then(m => m.LpjBastPekerjaanTab), { ssr: false, loading: KesraTabLoader });
 
 // RGB Theme Presets Configuration
 export const RGB_THEMES = [

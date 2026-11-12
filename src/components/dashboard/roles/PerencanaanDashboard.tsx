@@ -22,14 +22,25 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { CyberPlanRabTab } from "../perencanaan/CyberPlanRabTab";
-import { CyberPlanTakeOffTab } from "../perencanaan/CyberPlanTakeOffTab";
-import { CyberPlanHargaSatuanTab } from "../perencanaan/CyberPlanHargaSatuanTab";
-import { CyberPlanAhspTab } from "../perencanaan/CyberPlanAhspTab";
-import { CyberPlanRkkdTab, RkkdSubFeature } from "../perencanaan/CyberPlanRkkdTab";
-import { CyberPlanMusrenbangTab, MusrenbangSubFeature } from "../perencanaan/CyberPlanMusrenbangTab";
-import { ApbdesInfografisBoard } from "../perencanaan/ApbdesInfografisBoard";
+import dynamic from "next/dynamic";
+import type { RkkdSubFeature } from "../perencanaan/CyberPlanRkkdTab";
+import type { MusrenbangSubFeature } from "../perencanaan/CyberPlanMusrenbangTab";
 import { LuxuryRingChart } from "./LuxuryRingChart";
+
+const PlanTabLoader = () => (
+  <div className="p-10 flex flex-col items-center justify-center min-h-[300px] gap-2">
+    <div className="w-7 h-7 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+    <span className="text-xs font-medium text-slate-500">Memuat modul CyberPlan...</span>
+  </div>
+);
+
+const CyberPlanRabTab = dynamic(() => import("../perencanaan/CyberPlanRabTab").then(m => m.CyberPlanRabTab), { ssr: false, loading: PlanTabLoader });
+const CyberPlanTakeOffTab = dynamic(() => import("../perencanaan/CyberPlanTakeOffTab").then(m => m.CyberPlanTakeOffTab), { ssr: false, loading: PlanTabLoader });
+const CyberPlanHargaSatuanTab = dynamic(() => import("../perencanaan/CyberPlanHargaSatuanTab").then(m => m.CyberPlanHargaSatuanTab), { ssr: false, loading: PlanTabLoader });
+const CyberPlanAhspTab = dynamic(() => import("../perencanaan/CyberPlanAhspTab").then(m => m.CyberPlanAhspTab), { ssr: false, loading: PlanTabLoader });
+const CyberPlanRkkdTab = dynamic(() => import("../perencanaan/CyberPlanRkkdTab").then(m => m.CyberPlanRkkdTab), { ssr: false, loading: PlanTabLoader });
+const CyberPlanMusrenbangTab = dynamic(() => import("../perencanaan/CyberPlanMusrenbangTab").then(m => m.CyberPlanMusrenbangTab), { ssr: false, loading: PlanTabLoader });
+const ApbdesInfografisBoard = dynamic(() => import("../perencanaan/ApbdesInfografisBoard").then(m => m.ApbdesInfografisBoard), { ssr: false, loading: PlanTabLoader });
 
 export function PerencanaanDashboard({ session, stats, isHackerTheme }: { session: any, stats: any, isHackerTheme?: boolean }) {
   const roleName = session?.user?.role?.replace(/_/g, ' ') || "KAUR PERENCANAAN";

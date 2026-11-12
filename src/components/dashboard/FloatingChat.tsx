@@ -77,14 +77,18 @@ export function FloatingChat({ session }: { session: any }) {
 
     useEffect(() => {
         if (!role || role === "WARGA") return;
-        updateUserHeartbeat();
+        const initialTimer = setTimeout(() => {
+            updateUserHeartbeat();
+        }, 2500);
 
         const heartbeatInterval = setInterval(() => {
             updateUserHeartbeat();
-        }, 60000); // Increased from 15s to 60s to reduce DB load
+        }, 60000);
 
-        return () => clearInterval(heartbeatInterval);
-     
+        return () => {
+            clearTimeout(initialTimer);
+            clearInterval(heartbeatInterval);
+        };
     }, [role]);
 
 
@@ -127,14 +131,20 @@ export function FloatingChat({ session }: { session: any }) {
     };
 
     useEffect(() => {
-        // Also fetch contacts periodically even if closed to show notifications and unread counts!
-        fetchContacts(contacts.length === 0);
+        // Defer background contact polling slightly on initial mount so main dashboard renders first
+        const delay = isOpen ? 0 : 2500;
+        const initialFetchTimer = setTimeout(() => {
+            fetchContacts(contacts.length === 0);
+        }, delay);
 
         const interval = setInterval(() => {
             fetchContacts();
-        }, 60000); // Increased from 15s to 60s to reduce DB load
+        }, 60000);
 
-        return () => clearInterval(interval);
+        return () => {
+            clearTimeout(initialFetchTimer);
+            clearInterval(interval);
+        };
     }, [isOpen]);
 
     useEffect(() => {

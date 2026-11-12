@@ -35,14 +35,17 @@ import {
 // Realtime Actions
 import { getDashboardRealtimeStats } from "@/actions/dashboard";
 import { getVillageDashboardStats } from "@/actions/village";
+import dynamic from "next/dynamic";
 
-// LPJ Report Components
-import { LpjRegistrasiPembangunanTab } from "../kesra/lpj/LpjRegistrasiPembangunanTab";
-import { LpjPesananBarangTab } from "../kesra/lpj/LpjPesananBarangTab";
-import { LpjDaftarKtpPekerjaTab } from "../kesra/lpj/LpjDaftarKtpPekerjaTab";
-import { LpjDaftarHadirPekerjaTab } from "../kesra/lpj/LpjDaftarHadirPekerjaTab";
-import { LpjTandaTerimaPekerjaTab } from "../kesra/lpj/LpjTandaTerimaPekerjaTab";
-import { LpjBastPekerjaanTab } from "../kesra/lpj/LpjBastPekerjaanTab";
+const TabLoader = () => <div className="p-8 text-center text-slate-500 font-medium animate-pulse">Memuat modul laporan...</div>;
+
+// LPJ Report Components (Lazy loaded per tab)
+const LpjRegistrasiPembangunanTab = dynamic(() => import("../kesra/lpj/LpjRegistrasiPembangunanTab").then(m => m.LpjRegistrasiPembangunanTab), { ssr: false, loading: TabLoader });
+const LpjPesananBarangTab = dynamic(() => import("../kesra/lpj/LpjPesananBarangTab").then(m => m.LpjPesananBarangTab), { ssr: false, loading: TabLoader });
+const LpjDaftarKtpPekerjaTab = dynamic(() => import("../kesra/lpj/LpjDaftarKtpPekerjaTab").then(m => m.LpjDaftarKtpPekerjaTab), { ssr: false, loading: TabLoader });
+const LpjDaftarHadirPekerjaTab = dynamic(() => import("../kesra/lpj/LpjDaftarHadirPekerjaTab").then(m => m.LpjDaftarHadirPekerjaTab), { ssr: false, loading: TabLoader });
+const LpjTandaTerimaPekerjaTab = dynamic(() => import("../kesra/lpj/LpjTandaTerimaPekerjaTab").then(m => m.LpjTandaTerimaPekerjaTab), { ssr: false, loading: TabLoader });
+const LpjBastPekerjaanTab = dynamic(() => import("../kesra/lpj/LpjBastPekerjaanTab").then(m => m.LpjBastPekerjaanTab), { ssr: false, loading: TabLoader });
 
 export function OperatorDashboard({ session, stats }: { session: any; stats?: any }) {
   return (

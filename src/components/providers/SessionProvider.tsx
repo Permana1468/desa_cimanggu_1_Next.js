@@ -6,7 +6,7 @@ import { Suspense } from "react";
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <Suspense>
-      <SessionProvider>{children}</SessionProvider>
+      <SessionProvider refetchOnWindowFocus={false}>{children}</SessionProvider>
     </Suspense>
   );
 };

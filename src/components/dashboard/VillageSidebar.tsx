@@ -1,6 +1,11 @@
 "use client";
 
-import Link from "next/link";
+import NextLink from "next/link";
+import type { ComponentProps } from "react";
+
+function Link(props: ComponentProps<typeof NextLink>) {
+  return <NextLink prefetch={false} {...props} />;
+}
 import { usePathname, useSearchParams } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";

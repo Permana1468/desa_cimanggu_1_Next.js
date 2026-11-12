@@ -65,7 +65,7 @@ const nextConfig: NextConfig = {
     removeConsole: isProd ? { exclude: ["error", "warn"] } : false,
   },
   experimental: {
-    optimizePackageImports: ["lucide-react", "framer-motion", "recharts", "date-fns"],
+    optimizePackageImports: ["lucide-react", "framer-motion", "recharts", "date-fns", "@turf/turf"],
     turbopackFileSystemCacheForDev: true,
     serverActions: {
       bodySizeLimit: '20mb',

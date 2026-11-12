@@ -123,7 +123,6 @@ export const MasterSidebar = ({
                <TenantSwitcher tenants={tenants} />
             </div>
             <button title="Peta Spasial" className="w-11 h-11 lg:w-12 lg:h-12 shrink-0 flex items-center justify-center rounded-2xl bg-white/5 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-white/5 shadow-sm overflow-hidden group relative">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
                 <MapIcon size={18} className="group-hover:scale-110 transition-transform" />
             </button>
           </div>
@@ -137,6 +136,7 @@ export const MasterSidebar = ({
               <div key={item.name} className="relative group">
                 <Link
                   href={item.href}
+                  prefetch={false}
                   onClick={() => setIsOpen(false)}
                   className={`flex items-center gap-4 lg:gap-5 px-4 lg:px-6 py-3.5 lg:py-4.5 transition-all duration-300 relative z-20 ${
                     isActive 

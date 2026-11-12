@@ -4,19 +4,28 @@ import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { PosyanduBalitaTab } from "../posyandu/PosyanduBalitaTab";
-import { PosyanduIbuHamilTab } from "../posyandu/PosyanduIbuHamilTab";
-import { PosyanduLansiaTab } from "../posyandu/PosyanduLansiaTab";
-import { PosyanduLayananBalitaTab } from "../posyandu/PosyanduLayananBalitaTab";
-import { PosyanduLayananIbuHamilTab } from "../posyandu/PosyanduLayananIbuHamilTab";
-import { PosyanduLayananLansiaTab } from "../posyandu/PosyanduLayananLansiaTab";
-import { PosyanduJadwalTab } from "../posyandu/PosyanduJadwalTab";
-import { PosyanduKehadiranTab } from "../posyandu/PosyanduKehadiranTab";
-import { PosyanduAnalisisTab } from "../posyandu/PosyanduAnalisisTab";
-import { PosyanduRegisterTab } from "../kesra/PosyanduRegisterTab";
-import { PosyanduJadwalAbsensiTab } from "../kesra/PosyanduJadwalAbsensiTab";
-import { PosyanduInventarisTab } from "../kesra/PosyanduInventarisTab";
-import { KesraPmtTab } from "../kesra/KesraPmtTab";
+import dynamic from "next/dynamic";
+
+const PosyanduTabLoader = () => (
+  <div className="p-10 flex flex-col items-center justify-center min-h-[300px] gap-2">
+    <div className="w-7 h-7 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
+    <span className="text-xs font-medium text-slate-500">Memuat modul Posyandu...</span>
+  </div>
+);
+
+const PosyanduBalitaTab = dynamic(() => import("../posyandu/PosyanduBalitaTab").then(m => m.PosyanduBalitaTab), { ssr: false, loading: PosyanduTabLoader });
+const PosyanduIbuHamilTab = dynamic(() => import("../posyandu/PosyanduIbuHamilTab").then(m => m.PosyanduIbuHamilTab), { ssr: false, loading: PosyanduTabLoader });
+const PosyanduLansiaTab = dynamic(() => import("../posyandu/PosyanduLansiaTab").then(m => m.PosyanduLansiaTab), { ssr: false, loading: PosyanduTabLoader });
+const PosyanduLayananBalitaTab = dynamic(() => import("../posyandu/PosyanduLayananBalitaTab").then(m => m.PosyanduLayananBalitaTab), { ssr: false, loading: PosyanduTabLoader });
+const PosyanduLayananIbuHamilTab = dynamic(() => import("../posyandu/PosyanduLayananIbuHamilTab").then(m => m.PosyanduLayananIbuHamilTab), { ssr: false, loading: PosyanduTabLoader });
+const PosyanduLayananLansiaTab = dynamic(() => import("../posyandu/PosyanduLayananLansiaTab").then(m => m.PosyanduLayananLansiaTab), { ssr: false, loading: PosyanduTabLoader });
+const PosyanduJadwalTab = dynamic(() => import("../posyandu/PosyanduJadwalTab").then(m => m.PosyanduJadwalTab), { ssr: false, loading: PosyanduTabLoader });
+const PosyanduKehadiranTab = dynamic(() => import("../posyandu/PosyanduKehadiranTab").then(m => m.PosyanduKehadiranTab), { ssr: false, loading: PosyanduTabLoader });
+const PosyanduAnalisisTab = dynamic(() => import("../posyandu/PosyanduAnalisisTab").then(m => m.PosyanduAnalisisTab), { ssr: false, loading: PosyanduTabLoader });
+const PosyanduRegisterTab = dynamic(() => import("../kesra/PosyanduRegisterTab").then(m => m.PosyanduRegisterTab), { ssr: false, loading: PosyanduTabLoader });
+const PosyanduJadwalAbsensiTab = dynamic(() => import("../kesra/PosyanduJadwalAbsensiTab").then(m => m.PosyanduJadwalAbsensiTab), { ssr: false, loading: PosyanduTabLoader });
+const PosyanduInventarisTab = dynamic(() => import("../kesra/PosyanduInventarisTab").then(m => m.PosyanduInventarisTab), { ssr: false, loading: PosyanduTabLoader });
+const KesraPmtTab = dynamic(() => import("../kesra/KesraPmtTab").then(m => m.KesraPmtTab), { ssr: false, loading: PosyanduTabLoader });
 import { POSYANDU_UNITS, getPosyanduUnit, detectUserPosyanduUnit } from "@/lib/posyandu";
 import {
   Activity, AlertTriangle, Baby, Calendar, HeartPulse, Plus,
