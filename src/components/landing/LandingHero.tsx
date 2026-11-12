@@ -18,13 +18,15 @@ import {
 import ScrollReveal from '../ScrollReveal';
 import { useLandingTheme } from './LandingThemeProvider';
 import { CampoSantoHero } from './CampoSantoHero';
+import { DEFAULT_PARTNER_LOGOS, type LandingUiConfig } from '@/lib/landingUiTypes';
 
 interface HeroProps {
     siteData: any;
     heroImages: string[];
+    uiConfig?: LandingUiConfig;
 }
 
-export const LandingHero = ({ siteData, heroImages }: HeroProps) => {
+export const LandingHero = ({ siteData, heroImages, uiConfig }: HeroProps) => {
     const { isDualMode } = useLandingTheme();
     const [currentSlide, setCurrentSlide] = useState(0);
     const [currentTime, setCurrentTime] = useState<Date | null>(null);
@@ -43,7 +45,9 @@ export const LandingHero = ({ siteData, heroImages }: HeroProps) => {
 
         const fetchWeather = async () => {
             try {
-                const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-6.5944&longitude=106.7892&current_weather=true');
+                const lat = encodeURIComponent(uiConfig?.weatherLat || "-6.5944");
+                const lng = encodeURIComponent(uiConfig?.weatherLng || "106.7892");
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true`);
                 const data = await res.json();
                 if (data?.current_weather) {
                     const code = data.current_weather.weathercode;
@@ -310,7 +314,7 @@ export const LandingHero = ({ siteData, heroImages }: HeroProps) => {
                             className="w-full bg-slate-900/80 backdrop-blur-md text-white border border-cyan-500/40 px-6 py-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-semibold text-cyan-200 uppercase tracking-wide"
                         >
                             <MapPin size={15} className="text-cyan-400" />
-                            <span>Jelajahi WebGIS Desa</span>
+                            <span>{uiConfig?.heroCtaText || "Jelajahi WebGIS Desa"}</span>
                         </a>
                     </div>
                 </ScrollReveal>
@@ -324,13 +328,8 @@ export const LandingHero = ({ siteData, heroImages }: HeroProps) => {
                     className="flex items-center gap-6 w-max"
                 >
                     {[
-                        '/images/logo-bogor.png', '/images/PUSKESOS-1.png', '/images/logo-katar.png',
-                        '/images/dinsos.png', '/images/pokmas.png', '/images/PSM_v2.png',
-                        '/images/ASTA_v2.png', '/images/BPBD_v2.png', '/images/DINKES_v2.png', '/images/DPMD.png',
-                        // Duplicate for infinite loop
-                        '/images/logo-bogor.png', '/images/PUSKESOS-1.png', '/images/logo-katar.png',
-                        '/images/dinsos.png', '/images/pokmas.png', '/images/PSM_v2.png',
-                        '/images/ASTA_v2.png', '/images/BPBD_v2.png', '/images/DINKES_v2.png', '/images/DPMD.png'
+                        ...(uiConfig?.partnerLogos?.length ? uiConfig.partnerLogos : DEFAULT_PARTNER_LOGOS),
+                        ...(uiConfig?.partnerLogos?.length ? uiConfig.partnerLogos : DEFAULT_PARTNER_LOGOS),
                     ].map((src, i) => (
                         <div key={i} className="relative w-8 h-8 shrink-0 opacity-70 grayscale hover:grayscale-0 transition-all">
                             <Image src={src} alt="Sponsor" fill className="object-contain" />

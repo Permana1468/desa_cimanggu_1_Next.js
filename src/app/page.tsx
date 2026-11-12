@@ -25,6 +25,7 @@ import {
     getVillageProfile,
     getLembagaList
 } from '@/actions/landing';
+import { getLandingUiConfig } from '@/lib/landingUiConfig';
 
 // Import Modular Components
 import { MobileWebGIS } from '../components/landing/MobileWebGIS';
@@ -44,17 +45,33 @@ import { LandingModeHandler } from '../components/landing/LandingModeHandler';
 export default async function LandingPage() {
     // Read Initial Theme Cookie (Server-Side)
     const cookieStore = await cookies();
-    const initialIsNightMode = cookieStore.get('landingThemeMode')?.value === 'night';
-    const initialIsDualMode = cookieStore.get('landingDualMode')?.value === 'true';
 
     // FETCH DATA ON SERVER
-    const [statsRes, newsRes, profileRes, aparaturRes, lembagaRes] = await Promise.all([
+    const [statsRes, newsRes, profileRes, aparaturRes, lembagaRes, uiConfig] = await Promise.all([
         getVillageStats(),
         getLatestNews(),
         getVillageProfile(),
         getOrganizationalStructure(),
-        getLembagaList()
+        getLembagaList(),
+        getLandingUiConfig()
     ]);
+
+    const hasThemeCookie = cookieStore.has('landingThemeMode');
+    const hasDualCookie = cookieStore.has('landingDualMode');
+    const jakartaHour = Number(
+        new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Asia/Jakarta',
+            hour: 'numeric',
+            hour12: false,
+        }).format(new Date())
+    );
+    const isAutoNight = jakartaHour >= 18 || jakartaHour < 6;
+    const initialIsNightMode = hasThemeCookie
+        ? cookieStore.get('landingThemeMode')?.value === 'night'
+        : uiConfig.defaultThemeMode === 'night' || (uiConfig.defaultThemeMode === 'auto' && isAutoNight);
+    const initialIsDualMode = hasDualCookie
+        ? cookieStore.get('landingDualMode')?.value === 'true'
+        : uiConfig.defaultThemeMode === 'dual';
 
     // Data Mapping
     const siteData = profileRes || {
@@ -106,6 +123,7 @@ export default async function LandingPage() {
                         newsData={newsData} 
                         orgData={orgData} 
                         lembagaRes={lembagaRes} 
+                        uiConfig={uiConfig}
                     />
                 </div>
 
@@ -113,9 +131,20 @@ export default async function LandingPage() {
                 <div className="block md:hidden relative w-full bg-slate-950 text-white selection:bg-amber-400 selection:text-black font-sans overflow-x-hidden min-h-screen">
                     <LandingNavbar siteData={siteData} />
                     <MobileBottomNav />
+                    {uiConfig.urgentAnnouncementEnabled && uiConfig.urgentAnnouncementText && (
+                        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md">
+                            <Link
+                                href={uiConfig.urgentAnnouncementLink || "/informasi-publik"}
+                                className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-amber-500/95 text-slate-950 shadow-lg border border-amber-300 text-[11px] font-bold backdrop-blur-md"
+                            >
+                                <Radio size={14} className="shrink-0 animate-pulse" />
+                                <span className="truncate">{uiConfig.urgentAnnouncementText}</span>
+                            </Link>
+                        </div>
+                    )}
                     
                     {/* SECTION 1: HERO */}
-                    <LandingHero siteData={siteData} heroImages={heroImages} />
+                    <LandingHero siteData={siteData} heroImages={heroImages} uiConfig={uiConfig} />
 
                     <LandingSectionsWrapper>
                         {/* SECTION 2: ABOUT US / SEKILAS PANDANG */}
@@ -125,7 +154,7 @@ export default async function LandingPage() {
                                     {/* Section Header: "About us" */}
                                     <div className="text-center space-y-2">
                                         <h2 className="text-3xl sm:text-4xl font-black text-amber-400 tracking-tight drop-shadow-[0_4px_25px_rgba(245,158,11,0.5)] font-serif italic">
-                                            About us
+                                            {uiConfig.aboutSectionHeading || "About us"}
                                         </h2>
                                         <div className="w-36 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto opacity-70" />
                                     </div>
@@ -144,9 +173,9 @@ export default async function LandingPage() {
                                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
                                             <div className="absolute inset-x-0 bottom-0 p-3.5 bg-slate-950/85 backdrop-blur-md border-t border-white/10">
                                                 <div className="flex items-center gap-1.5 text-amber-400 font-bold text-[10px] uppercase tracking-wider mb-0.5">
-                                                    <Sparkles size={13} /> KANTOR KEPALA DESA CIMANGGU I
+                                                    <Sparkles size={13} /> {uiConfig.officeCardTitle || "KANTOR KEPALA DESA CIMANGGU I"}
                                                 </div>
-                                                <p className="text-slate-300 text-[11px]">Pusat Integrasi Data & Pelayanan Warga Berbasis WebGIS Digital.</p>
+                                                <p className="text-slate-300 text-[11px]">{uiConfig.officeCardSubtitle || "Pusat Integrasi Data & Pelayanan Warga Berbasis WebGIS Digital."}</p>
                                             </div>
 
                                             <div className="absolute inset-x-0 h-0.5 bg-cyan-400 opacity-60 animate-laser-scan pointer-events-none"></div>
@@ -234,7 +263,7 @@ export default async function LandingPage() {
                                             color="blue"
                                             badge="PEMETAAN REGIONAL"
                                             link="#peta-interaktif"
-                                            linkText="Jelajahi WebGIS"
+                                            linkText={uiConfig.heroCtaText || "Jelajahi WebGIS"}
                                         />
 
                                         {/* Pillar 3: E-KMS Posyandu */}
@@ -393,8 +422,16 @@ export default async function LandingPage() {
                                                 <span className="text-lg font-black text-white tracking-wider uppercase">{siteData.title}</span>
                                             </div>
                                             <p className="text-xs leading-relaxed text-slate-400">
-                                                Pusat digitalisasi layanan dan informasi terpadu Sistem Digitalisasi Desa (SDD) Pemerintah Desa Cimanggu I, Kecamatan Cibungbulang, Kabupaten Bogor.
+                                                {uiConfig.footerDescription || "Pusat digitalisasi layanan dan informasi terpadu Sistem Digitalisasi Desa (SDD) Pemerintah Desa Cimanggu I, Kecamatan Cibungbulang, Kabupaten Bogor."}
                                             </p>
+                                            {(uiConfig.socialLinks?.instagram || uiConfig.socialLinks?.youtube || uiConfig.socialLinks?.tiktok || uiConfig.socialLinks?.whatsapp) && (
+                                                <div className="flex flex-wrap gap-2 pt-1">
+                                                    {uiConfig.socialLinks.instagram && <a href={uiConfig.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/10 hover:bg-amber-500 hover:text-slate-950 transition-colors">Instagram</a>}
+                                                    {uiConfig.socialLinks.youtube && <a href={uiConfig.socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/10 hover:bg-amber-500 hover:text-slate-950 transition-colors">YouTube</a>}
+                                                    {uiConfig.socialLinks.tiktok && <a href={uiConfig.socialLinks.tiktok} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/10 hover:bg-amber-500 hover:text-slate-950 transition-colors">TikTok</a>}
+                                                    {uiConfig.socialLinks.whatsapp && <a href={uiConfig.socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-white/10 hover:bg-amber-500 hover:text-slate-950 transition-colors">WhatsApp</a>}
+                                                </div>
+                                            )}
                                             <div className="flex items-center gap-2 pt-1">
                                                 <span className="flex h-2 w-2 relative shrink-0">
                                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -422,16 +459,16 @@ export default async function LandingPage() {
                                             <div>
                                                 <h4 className="text-white font-extrabold mb-3 uppercase tracking-widest text-[10px] border-b border-white/10 pb-1.5">Kontak Layanan</h4>
                                                 <ul className="space-y-2 text-xs font-medium">
-                                                    <li>Jl. Raya Cibungbulang No. 1, Bogor</li>
-                                                    <li>info@cimanggu1.desa.id</li>
-                                                    <li>(0251) 1234567</li>
+                                                    <li>{siteData?.kontak_alamat || "Jl. Raya Cibungbulang No. 1, Bogor"}</li>
+                                                    <li>{siteData?.kontak_email || "info@cimanggu1.desa.id"}</li>
+                                                    <li>{siteData?.kontak_telepon || "(0251) 1234567"}</li>
                                                 </ul>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="flex flex-col justify-between items-center gap-2 py-6 border-t border-white/5 text-[9px] uppercase font-bold tracking-widest text-center">
-                                        <span>© 2026 PEMDES CIMANGGU I. ALL RIGHTS RESERVED.</span>
+                                        <span>{uiConfig.footerCopyright || "© 2026 PEMDES CIMANGGU I. ALL RIGHTS RESERVED."}</span>
                                         <span className="text-amber-400">POWERED BY SYSTEM DIGITALISASI DESA (SDD)</span>
                                     </div>
                                 </footer>

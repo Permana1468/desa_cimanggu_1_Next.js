@@ -7,6 +7,7 @@ import { StatusSurat } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { buildWilayahFilterScope, buildReportFilterScope } from "./rt";
+import { invalidateLandingCache } from "./landing";
 
 function cleanDigits(val: string): string {
     return val ? val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0' : '';
@@ -556,13 +557,19 @@ export async function updateVillageProfile(data: any) {
         if (!session?.user) throw new Error("Unauthorized");
         const tenantId = (session.user as { tenantId: string }).tenantId;
 
-        return await prisma.villageProfile.update({
+        const updated = await prisma.villageProfile.update({
             where: { tenantId },
             data: {
                 ...data,
                 updatedAt: new Date()
             }
         });
+        await invalidateLandingCache();
+        revalidatePath("/", "layout");
+        revalidatePath("/dashboard/profil");
+        revalidatePath("/dashboard/cms");
+        revalidatePath("/dashboard/settings/landing");
+        return updated;
     } catch (error) {
         throw error;
     }

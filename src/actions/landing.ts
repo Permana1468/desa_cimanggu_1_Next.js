@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import fs from "fs";
 import path from "path";
+import { LandingUiConfig, invalidateLandingUiCache, DEFAULT_LANDING_UI_CONFIG } from "@/lib/landingUiConfig";
 
 async function getSession() {
   const session = await getServerSession(authOptions);
@@ -273,6 +274,7 @@ export async function updateVillageProfile(data: any) {
       where: { tenantId },
       update: {
         title: data.title,
+        address: data.address,
         hero_title: data.hero_title,
         hero_subtitle: data.hero_subtitle,
         hero_video: processedVideoUrl,
@@ -280,6 +282,11 @@ export async function updateVillageProfile(data: any) {
         about_text: data.about_text,
         about_image: data.about_image,
         logo: data.logo,
+        luasWilayah: data.luasWilayah,
+        batasUtara: data.batasUtara,
+        batasSelatan: data.batasSelatan,
+        batasTimur: data.batasTimur,
+        batasBarat: data.batasBarat,
         gallery: data.gallery,
         sambutan_kades: data.sambutan_kades,
         sejarah: data.sejarah,
@@ -297,6 +304,7 @@ export async function updateVillageProfile(data: any) {
       create: {
         tenantId,
         title: data.title,
+        address: data.address,
         hero_title: data.hero_title,
         hero_subtitle: data.hero_subtitle,
         hero_video: processedVideoUrl,
@@ -304,6 +312,11 @@ export async function updateVillageProfile(data: any) {
         about_text: data.about_text,
         about_image: data.about_image,
         logo: data.logo,
+        luasWilayah: data.luasWilayah,
+        batasUtara: data.batasUtara,
+        batasSelatan: data.batasSelatan,
+        batasTimur: data.batasTimur,
+        batasBarat: data.batasBarat,
         gallery: data.gallery,
         sambutan_kades: data.sambutan_kades,
         sejarah: data.sejarah,
@@ -329,6 +342,7 @@ export async function updateVillageProfile(data: any) {
     revalidatePath("/organisasi/kelembagaan");
     revalidatePath("/kontak");
     revalidatePath("/dashboard/cms");
+    revalidatePath("/dashboard/profil");
     revalidatePath("/dashboard/settings/landing");
     return result;
   } catch (error) {
@@ -365,6 +379,7 @@ export async function updateAparatur(id: string, data: any) {
 
     invalidateLandingCache();
     revalidatePath("/");
+    revalidatePath("/dashboard/cms");
     revalidatePath("/dashboard/settings/landing");
     return result;
   } catch (error) {
@@ -391,7 +406,94 @@ export async function createBerita(data: any) {
 
     invalidateLandingCache();
     revalidatePath("/");
+    revalidatePath("/dashboard/cms");
     revalidatePath("/dashboard/settings/landing");
+    return result;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function updateBerita(
+  id: string,
+  data: { judul: string; konten: string; gambar?: string; kategori?: string }
+) {
+  await getAdminSession();
+  try {
+    const updated = await prisma.berita.update({
+      where: { id },
+      data: {
+        judul: data.judul,
+        konten: data.konten,
+        gambar: data.gambar,
+        kategori: data.kategori || "Umum",
+      },
+    });
+    invalidateLandingCache();
+    revalidatePath("/");
+    revalidatePath("/dashboard/cms");
+    revalidatePath("/dashboard/settings/landing");
+    return updated;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function deleteBerita(id: string) {
+  await getAdminSession();
+  try {
+    const deleted = await prisma.berita.delete({
+      where: { id },
+    });
+    invalidateLandingCache();
+    revalidatePath("/");
+    revalidatePath("/dashboard/cms");
+    revalidatePath("/dashboard/settings/landing");
+    return deleted;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function updateLandingUiConfig(config: LandingUiConfig) {
+  await getAdminSession();
+  try {
+    const cleanConfig: LandingUiConfig = {
+      aboutSectionHeading: config.aboutSectionHeading?.trim() || DEFAULT_LANDING_UI_CONFIG.aboutSectionHeading,
+      officeCardTitle: config.officeCardTitle?.trim() || DEFAULT_LANDING_UI_CONFIG.officeCardTitle,
+      officeCardSubtitle: config.officeCardSubtitle?.trim() || DEFAULT_LANDING_UI_CONFIG.officeCardSubtitle,
+      heroCtaText: config.heroCtaText?.trim() || DEFAULT_LANDING_UI_CONFIG.heroCtaText,
+      footerCopyright: config.footerCopyright?.trim() || DEFAULT_LANDING_UI_CONFIG.footerCopyright,
+      footerDescription: config.footerDescription?.trim() || DEFAULT_LANDING_UI_CONFIG.footerDescription,
+      defaultThemeMode: ["day", "night", "dual", "auto"].includes(config.defaultThemeMode)
+        ? config.defaultThemeMode
+        : DEFAULT_LANDING_UI_CONFIG.defaultThemeMode,
+      partnerLogos:
+        Array.isArray(config.partnerLogos) && config.partnerLogos.length > 0
+          ? config.partnerLogos.filter((u) => typeof u === "string" && u.trim().length > 0)
+          : DEFAULT_LANDING_UI_CONFIG.partnerLogos,
+      weatherLat: config.weatherLat?.trim() || DEFAULT_LANDING_UI_CONFIG.weatherLat,
+      weatherLng: config.weatherLng?.trim() || DEFAULT_LANDING_UI_CONFIG.weatherLng,
+      urgentAnnouncementEnabled: Boolean(config.urgentAnnouncementEnabled),
+      urgentAnnouncementText: config.urgentAnnouncementText?.trim() || "",
+      urgentAnnouncementLink: config.urgentAnnouncementLink?.trim() || DEFAULT_LANDING_UI_CONFIG.urgentAnnouncementLink,
+      socialLinks: {
+        instagram: config.socialLinks?.instagram?.trim() || "",
+        youtube: config.socialLinks?.youtube?.trim() || "",
+        tiktok: config.socialLinks?.tiktok?.trim() || "",
+        whatsapp: config.socialLinks?.whatsapp?.trim() || "",
+      },
+    };
+
+    const result = await prisma.systemSetting.upsert({
+      where: { id: "landing_ui_config" },
+      update: { settings: cleanConfig as any },
+      create: { id: "landing_ui_config", settings: cleanConfig as any },
+    });
+
+    invalidateLandingUiCache();
+    revalidatePath("/", "layout");
+    revalidatePath("/dashboard/cms");
     return result;
   } catch (error) {
     throw error;

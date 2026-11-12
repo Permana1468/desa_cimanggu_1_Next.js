@@ -38,6 +38,7 @@ import { LandingAspiration } from './LandingAspiration';
 import { useLandingTheme } from './LandingThemeProvider';
 import { CampoSantoHero } from './CampoSantoHero';
 import ScrollReveal from '../ScrollReveal';
+import { DEFAULT_PARTNER_LOGOS, type LandingUiConfig } from '@/lib/landingUiTypes';
 
 interface DesktopParallaxLandingProps {
     siteData: any;
@@ -45,6 +46,7 @@ interface DesktopParallaxLandingProps {
     newsData: any[];
     orgData: any;
     lembagaRes: any[];
+    uiConfig?: LandingUiConfig;
 }
 
 const AnimatedCounter = ({ end, duration = 2, suffix = '', prefix = '' }: { end: number, duration?: number, suffix?: string, prefix?: string }) => {
@@ -74,7 +76,8 @@ export function DesktopParallaxLanding({
     statsRes,
     newsData,
     orgData,
-    lembagaRes
+    lembagaRes,
+    uiConfig
 }: DesktopParallaxLandingProps) {
     const { isDualMode, toggleDualMode, language, setLanguage } = useLandingTheme();
 
@@ -93,7 +96,9 @@ export function DesktopParallaxLanding({
         // Live Weather (Open-Meteo API for Bogor area roughly)
         const fetchWeather = async () => {
             try {
-                const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-6.5944&longitude=106.7892&current_weather=true');
+                const lat = encodeURIComponent(uiConfig?.weatherLat || "-6.5944");
+                const lng = encodeURIComponent(uiConfig?.weatherLng || "106.7892");
+                const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true`);
                 const data = await res.json();
                 if (data?.current_weather) {
                     const code = data.current_weather.weathercode;
@@ -193,6 +198,17 @@ export function DesktopParallaxLanding({
 
     return (
         <div ref={containerRef} className="relative w-full bg-slate-950 text-white selection:bg-amber-400 selection:text-black font-sans overflow-x-hidden">
+            {uiConfig?.urgentAnnouncementEnabled && uiConfig?.urgentAnnouncementText && (
+                <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 max-w-2xl w-[calc(100%-3rem)]">
+                    <Link
+                        href={uiConfig.urgentAnnouncementLink || "/informasi-publik"}
+                        className="flex items-center justify-center gap-2.5 px-5 py-2 rounded-full bg-amber-500/95 hover:bg-amber-400 text-slate-950 shadow-xl border border-amber-300 text-xs font-extrabold backdrop-blur-md transition-colors"
+                    >
+                        <Radio size={15} className="shrink-0 animate-pulse" />
+                        <span className="truncate">{uiConfig.urgentAnnouncementText}</span>
+                    </Link>
+                </div>
+            )}
 
             {/* -------------------------------------------------------------------------- */}
             {/* TOP NAVBAR (Exact Reference Header Style: Logo, Menu, Search, Sign in, Sign up) */}
@@ -488,7 +504,7 @@ export function DesktopParallaxLanding({
                                     transition={{ duration: 0.8, delay: 0.5 }}
                                     className="text-4xl xl:text-5xl font-black text-white leading-tight uppercase tracking-wide [text-shadow:0_4px_8px_rgba(0,0,0,0.8)] whitespace-nowrap"
                                 >
-                                    Desa Cimanggu I
+                                    {siteData?.title || "Desa Cimanggu I"}
                                 </motion.h2>
                             </motion.div>
 
@@ -696,13 +712,8 @@ export function DesktopParallaxLanding({
                             className="flex items-center gap-6 w-max"
                         >
                             {[
-                                '/images/logo-bogor.png', '/images/PUSKESOS-1.png', '/images/logo-katar.png',
-                                '/images/dinsos.png', '/images/pokmas.png', '/images/PSM_v2.png',
-                                '/images/ASTA_v2.png', '/images/BPBD_v2.png', '/images/DINKES_v2.png', '/images/DPMD.png',
-                                // Duplicate for seamless looping
-                                '/images/logo-bogor.png', '/images/PUSKESOS-1.png', '/images/logo-katar.png',
-                                '/images/dinsos.png', '/images/pokmas.png', '/images/PSM_v2.png',
-                                '/images/ASTA_v2.png', '/images/BPBD_v2.png', '/images/DINKES_v2.png', '/images/DPMD.png'
+                                ...(uiConfig?.partnerLogos?.length ? uiConfig.partnerLogos : DEFAULT_PARTNER_LOGOS),
+                                ...(uiConfig?.partnerLogos?.length ? uiConfig.partnerLogos : DEFAULT_PARTNER_LOGOS),
                             ].map((src, i) => (
                                 <div key={i} className="relative w-8 h-8 sm:w-10 sm:h-10 shrink-0 opacity-70 hover:opacity-100 transition-opacity grayscale hover:grayscale-0">
                                     <Image src={src} alt="Sponsor" fill className="object-contain" />
@@ -723,7 +734,7 @@ export function DesktopParallaxLanding({
                     {/* Section Header: "About us" (Exact Typography from Reference Image 2) */}
                     <div className="text-center space-y-3">
                         <h2 className="text-4xl xl:text-5xl font-black text-amber-400 tracking-tight drop-shadow-[0_4px_25px_rgba(245,158,11,0.5)] font-serif italic">
-                            About us
+                            {uiConfig?.aboutSectionHeading || "About us"}
                         </h2>
                         <div className="w-48 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto opacity-70" />
                     </div>
@@ -743,10 +754,10 @@ export function DesktopParallaxLanding({
                                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
                                 <div className="absolute bottom-4 left-4 right-4 p-4 bg-slate-950/80 backdrop-blur-md rounded-2xl border border-white/10">
                                     <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
-                                        <MapPin size={14} /> {language === 'id' ? 'KANTOR KEPALA DESA CIMANGGU I' : 'CIMANGGU I VILLAGE HEAD OFFICE'}
+                                        <MapPin size={14} /> {language === 'id' ? (uiConfig?.officeCardTitle || 'KANTOR KEPALA DESA CIMANGGU I') : 'CIMANGGU I VILLAGE HEAD OFFICE'}
                                     </div>
                                     <p className="text-xs text-slate-300 mt-1">
-                                        {language === 'id' ? 'Pusat Integrasi Data & Pelayanan Warga Berbasis WebGIS Digital.' : 'WebGIS-Based Digital Data Integration & Citizen Services Center.'}
+                                        {language === 'id' ? (uiConfig?.officeCardSubtitle || 'Pusat Integrasi Data & Pelayanan Warga Berbasis WebGIS Digital.') : 'WebGIS-Based Digital Data Integration & Citizen Services Center.'}
                                     </p>
                                 </div>
                             </div>
@@ -869,7 +880,7 @@ export function DesktopParallaxLanding({
                             </div>
                             <div className="pt-6 border-t border-white/10 mt-6 flex items-center justify-between text-xs font-bold text-cyan-400">
                                 <a href="#webgis" className="flex items-center gap-1 hover:underline">
-                                    <span>{language === 'id' ? 'Jelajahi WebGIS' : 'Explore WebGIS'}</span>
+                                    <span>{language === 'id' ? (uiConfig?.heroCtaText || 'Jelajahi WebGIS') : 'Explore WebGIS'}</span>
                                     <ArrowUpRight size={15} />
                                 </a>
                             </div>
@@ -1135,9 +1146,17 @@ export function DesktopParallaxLanding({
                                 </div>
                                 <p className="text-xs text-slate-300 leading-relaxed max-w-md">
                                     {language === 'id' 
-                                        ? 'Platform digitalisasi layanan dan informasi terpadu Sistem Digitalisasi Desa (SDD) Pemerintah Desa Cimanggu I, Kecamatan Cibungbulang, Kabupaten Bogor.' 
+                                        ? (uiConfig?.footerDescription || 'Platform digitalisasi layanan dan informasi terpadu Sistem Digitalisasi Desa (SDD) Pemerintah Desa Cimanggu I, Kecamatan Cibungbulang, Kabupaten Bogor.')
                                         : 'Integrated digital service and information platform of the Village Digitalization System (SDD) of Cimanggu I Village Government, Cibungbulang District, Bogor Regency.'}
                                 </p>
+                                {(uiConfig?.socialLinks?.instagram || uiConfig?.socialLinks?.youtube || uiConfig?.socialLinks?.tiktok || uiConfig?.socialLinks?.whatsapp) && (
+                                    <div className="flex flex-wrap gap-2 pt-1">
+                                        {uiConfig.socialLinks.instagram && <a href={uiConfig.socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold px-3 py-1 rounded-full bg-white/10 hover:bg-amber-500 hover:text-slate-950 transition-colors">Instagram</a>}
+                                        {uiConfig.socialLinks.youtube && <a href={uiConfig.socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold px-3 py-1 rounded-full bg-white/10 hover:bg-amber-500 hover:text-slate-950 transition-colors">YouTube</a>}
+                                        {uiConfig.socialLinks.tiktok && <a href={uiConfig.socialLinks.tiktok} target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold px-3 py-1 rounded-full bg-white/10 hover:bg-amber-500 hover:text-slate-950 transition-colors">TikTok</a>}
+                                        {uiConfig.socialLinks.whatsapp && <a href={uiConfig.socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="text-[11px] font-bold px-3 py-1 rounded-full bg-white/10 hover:bg-amber-500 hover:text-slate-950 transition-colors">WhatsApp</a>}
+                                    </div>
+                                )}
                             </div>
 
                             <div>
@@ -1161,7 +1180,7 @@ export function DesktopParallaxLanding({
                         </div>
 
                         <div className="pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-[11px] font-bold uppercase tracking-widest text-slate-400">
-                            <span>{language === 'id' ? '© 2026 PEMDES CIMANGGU I. ALL RIGHTS RESERVED.' : '© 2026 CIMANGGU I GOV. ALL RIGHTS RESERVED.'}</span>
+                            <span>{language === 'id' ? (uiConfig?.footerCopyright || '© 2026 PEMDES CIMANGGU I. ALL RIGHTS RESERVED.') : '© 2026 CIMANGGU I GOV. ALL RIGHTS RESERVED.'}</span>
                             <span className="text-amber-400">POWERED BY SYSTEM DIGITALISASI DESA (SDD)</span>
                         </div>
                     </footer>
