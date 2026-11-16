@@ -220,17 +220,6 @@ export default async function LandingPage() {
                 <div className="block md:hidden relative w-full bg-slate-950 text-white selection:bg-amber-400 selection:text-black font-sans overflow-x-hidden min-h-screen">
                     <LandingNavbar siteData={siteData} />
                     <MobileBottomNav />
-                    {uiConfig.urgentAnnouncementEnabled && uiConfig.urgentAnnouncementText && (
-                        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md">
-                            <Link
-                                href={uiConfig.urgentAnnouncementLink || "/informasi-publik"}
-                                className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-amber-500/95 text-slate-950 shadow-lg border border-amber-300 text-[11px] font-bold backdrop-blur-md"
-                            >
-                                <Radio size={14} className="shrink-0 animate-pulse" />
-                                <span className="truncate">{uiConfig.urgentAnnouncementText}</span>
-                            </Link>
-                        </div>
-                    )}
                     
                     {/* SECTION 1: HERO */}
                     <LandingHero siteData={siteData} heroImages={heroImages} uiConfig={uiConfig} />

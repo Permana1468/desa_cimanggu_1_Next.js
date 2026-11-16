@@ -260,18 +260,6 @@ export function DesktopParallaxLanding({
 
     return (
         <div ref={containerRef} className="relative w-full bg-slate-950 text-white selection:bg-amber-400 selection:text-black font-sans overflow-x-hidden">
-            {uiConfig?.urgentAnnouncementEnabled && uiConfig?.urgentAnnouncementText && (
-                <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 max-w-2xl w-[calc(100%-3rem)]">
-                    <Link
-                        href={uiConfig.urgentAnnouncementLink || "/informasi-publik"}
-                        className="flex items-center justify-center gap-2.5 px-5 py-2 rounded-full bg-amber-500/95 hover:bg-amber-400 text-slate-950 shadow-xl border border-amber-300 text-xs font-extrabold backdrop-blur-md transition-colors"
-                    >
-                        <Radio size={15} className="shrink-0 animate-pulse" />
-                        <span className="truncate">{uiConfig.urgentAnnouncementText}</span>
-                    </Link>
-                </div>
-            )}
-
             {/* -------------------------------------------------------------------------- */}
             {/* TOP NAVBAR (Exact Reference Header Style: Logo, Menu, Search, Sign in, Sign up) */}
             {/* -------------------------------------------------------------------------- */}
