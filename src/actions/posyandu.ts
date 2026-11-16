@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { getRWsForPosyandu, getPosyanduUnit, detectUserPosyanduUnit } from "@/lib/posyandu";
+import { getRWsForPosyandu, getPosyanduUnit, detectUserPosyanduUnit, normalizeRwList } from "@/lib/posyandu";
 
 async function verifyPosyanduAccess(posyanduFilter?: string) {
     const session = await getServerSession(authOptions);
@@ -40,7 +40,8 @@ async function verifyPosyanduAccess(posyanduFilter?: string) {
         }
     }
 
-    return { tenantId, rws, user: session.user, role };
+    const normalizedRws = normalizeRwList(rws);
+    return { tenantId, rws, normalizedRws, user: session.user, role };
 }
 
 // =======================
@@ -48,7 +49,7 @@ async function verifyPosyanduAccess(posyanduFilter?: string) {
 // =======================
 
 export async function searchWargaForPosyandu(query: string, posyanduFilter?: string) {
-    const { tenantId, rws } = await verifyPosyanduAccess(posyanduFilter);
+    const { tenantId, normalizedRws } = await verifyPosyanduAccess(posyanduFilter);
 
     if (!query || query.trim().length === 0) return [];
 
@@ -62,10 +63,8 @@ export async function searchWargaForPosyandu(query: string, posyanduFilter?: str
     };
 
     // Filter by RW if scoped to a specific posyandu
-    if (rws.length === 1) {
-        whereCondition.rw = rws[0];
-    } else if (rws.length > 1) {
-        whereCondition.rw = { in: rws };
+    if (normalizedRws.length > 0) {
+        whereCondition.rw = { in: normalizedRws };
     }
 
     return await prisma.dataKependudukan.findMany({
@@ -80,13 +79,11 @@ export async function searchWargaForPosyandu(query: string, posyanduFilter?: str
 // =======================
 
 export async function getPosyanduBalita(posyanduFilter?: string) {
-    const { tenantId, rws } = await verifyPosyanduAccess(posyanduFilter);
+    const { tenantId, normalizedRws } = await verifyPosyanduAccess(posyanduFilter);
 
     const whereClause: any = { tenantId };
-    if (rws.length === 1) {
-        whereClause.rw = rws[0];
-    } else if (rws.length > 1) {
-        whereClause.rw = { in: rws };
+    if (normalizedRws.length > 0) {
+        whereClause.rw = { in: normalizedRws };
     }
 
     return await prisma.posyanduBalita.findMany({
@@ -96,7 +93,10 @@ export async function getPosyanduBalita(posyanduFilter?: string) {
 }
 
 export async function addPosyanduBalita(data: any) {
-    const { tenantId } = await verifyPosyanduAccess(data.posyanduFilter);
+    const { tenantId, user } = await verifyPosyanduAccess(data.posyanduFilter);
+    const userUnit = detectUserPosyanduUnit(user);
+    const unitObj = getPosyanduUnit(data.posyanduFilter) || userUnit;
+    const resolvedPosyanduName = data.posyanduName || unitObj?.name || "Posyandu";
 
     const balita = await prisma.posyanduBalita.create({
         data: {
@@ -107,7 +107,7 @@ export async function addPosyanduBalita(data: any) {
             namaOrangTua: data.namaOrangTua,
             rt: data.rt,
             rw: data.rw,
-            posyanduName: data.posyanduName || "Posyandu",
+            posyanduName: resolvedPosyanduName,
             statusStunting: Boolean(data.statusStunting),
             tenantId
         }
@@ -196,13 +196,11 @@ export async function getBalitaDetail(balitaId: string) {
 // =======================
 
 export async function getPosyanduIbuHamil(posyanduFilter?: string) {
-    const { tenantId, rws } = await verifyPosyanduAccess(posyanduFilter);
+    const { tenantId, normalizedRws } = await verifyPosyanduAccess(posyanduFilter);
 
     const whereClause: any = { tenantId };
-    if (rws.length === 1) {
-        whereClause.rw = rws[0];
-    } else if (rws.length > 1) {
-        whereClause.rw = { in: rws };
+    if (normalizedRws.length > 0) {
+        whereClause.rw = { in: normalizedRws };
     }
 
     return await prisma.posyanduIbuHamil.findMany({
@@ -212,7 +210,10 @@ export async function getPosyanduIbuHamil(posyanduFilter?: string) {
 }
 
 export async function addPosyanduIbuHamil(data: any) {
-    const { tenantId } = await verifyPosyanduAccess(data.posyanduFilter);
+    const { tenantId, user } = await verifyPosyanduAccess(data.posyanduFilter);
+    const userUnit = detectUserPosyanduUnit(user);
+    const unitObj = getPosyanduUnit(data.posyanduFilter) || userUnit;
+    const resolvedPosyanduName = data.posyanduName || unitObj?.name || "Posyandu";
 
     const ibuHamil = await prisma.posyanduIbuHamil.create({
         data: {
@@ -224,7 +225,7 @@ export async function addPosyanduIbuHamil(data: any) {
             rt: data.rt,
             rw: data.rw,
             risikoTinggi: Boolean(data.risikoTinggi),
-            posyanduName: data.posyanduName || "Posyandu",
+            posyanduName: resolvedPosyanduName,
             tenantId
         }
     });
@@ -312,13 +313,11 @@ export async function getIbuHamilDetail(ibuHamilId: string) {
 // =======================
 
 export async function getPosyanduLansia(posyanduFilter?: string) {
-    const { tenantId, rws } = await verifyPosyanduAccess(posyanduFilter);
+    const { tenantId, normalizedRws } = await verifyPosyanduAccess(posyanduFilter);
 
     const whereClause: any = { tenantId };
-    if (rws.length === 1) {
-        whereClause.rw = rws[0];
-    } else if (rws.length > 1) {
-        whereClause.rw = { in: rws };
+    if (normalizedRws.length > 0) {
+        whereClause.rw = { in: normalizedRws };
     }
 
     return await prisma.posyanduLansia.findMany({
@@ -328,7 +327,10 @@ export async function getPosyanduLansia(posyanduFilter?: string) {
 }
 
 export async function addPosyanduLansia(data: any) {
-    const { tenantId } = await verifyPosyanduAccess(data.posyanduFilter);
+    const { tenantId, user } = await verifyPosyanduAccess(data.posyanduFilter);
+    const userUnit = detectUserPosyanduUnit(user);
+    const unitObj = getPosyanduUnit(data.posyanduFilter) || userUnit;
+    const resolvedPosyanduName = data.posyanduName || unitObj?.name || "Posyandu";
 
     const lansia = await prisma.posyanduLansia.create({
         data: {
@@ -340,7 +342,7 @@ export async function addPosyanduLansia(data: any) {
             rt: data.rt,
             rw: data.rw,
             memilikiPenyakitBawaan: Boolean(data.memilikiPenyakitBawaan),
-            posyanduName: data.posyanduName || "Posyandu",
+            posyanduName: resolvedPosyanduName,
             tenantId
         }
     });
@@ -416,13 +418,24 @@ export async function getLansiaDetail(lansiaId: string) {
 // =======================
 
 export async function getPosyanduDashboardStats(posyanduFilter?: string) {
-    const { tenantId, rws } = await verifyPosyanduAccess(posyanduFilter);
+    const { tenantId, normalizedRws } = await verifyPosyanduAccess(posyanduFilter);
 
-    const whereClause: any = { tenantId };
-    if (rws.length === 1) {
-        whereClause.rw = rws[0];
-    } else if (rws.length > 1) {
-        whereClause.rw = { in: rws };
+    const memberWhere: any = { tenantId };
+    if (normalizedRws.length > 0) {
+        memberWhere.rw = { in: normalizedRws };
+    }
+
+    const rwFilterBalita = normalizedRws.length > 0 ? { rw: { in: normalizedRws } } : undefined;
+    const rwFilterIbuHamil = normalizedRws.length > 0 ? { rw: { in: normalizedRws } } : undefined;
+    const rwFilterLansia = normalizedRws.length > 0 ? { rw: { in: normalizedRws } } : undefined;
+
+    const recordScopeWhere: any = { tenantId };
+    if (normalizedRws.length > 0) {
+        recordScopeWhere.OR = [
+            { balita: rwFilterBalita },
+            { ibuHamil: rwFilterIbuHamil },
+            { lansia: rwFilterLansia }
+        ];
     }
 
     const [
@@ -441,12 +454,12 @@ export async function getPosyanduDashboardStats(posyanduFilter?: string) {
         layananIbuHamilCount,
         layananLansiaCount
     ] = await Promise.all([
-        prisma.posyanduBalita.count({ where: whereClause }),
-        prisma.posyanduIbuHamil.count({ where: whereClause }),
-        prisma.posyanduLansia.count({ where: whereClause }),
-        prisma.posyanduBalita.count({ where: { ...whereClause, statusStunting: true } }),
+        prisma.posyanduBalita.count({ where: memberWhere }),
+        prisma.posyanduIbuHamil.count({ where: memberWhere }),
+        prisma.posyanduLansia.count({ where: memberWhere }),
+        prisma.posyanduBalita.count({ where: { ...memberWhere, statusStunting: true } }),
         prisma.posyanduRecord.findMany({
-            where: { tenantId },
+            where: recordScopeWhere,
             orderBy: { tanggal: 'desc' },
             take: 10,
             include: {
@@ -455,9 +468,27 @@ export async function getPosyanduDashboardStats(posyanduFilter?: string) {
                 lansia: true
             }
         }),
-        prisma.posyanduRecord.count({ where: { tenantId, statusGizi: "Normal" } }),
-        prisma.posyanduRecord.count({ where: { tenantId, statusGizi: "Gizi Kurang" } }),
-        prisma.posyanduRecord.count({ where: { tenantId, statusGizi: "Gizi Lebih" } }),
+        prisma.posyanduRecord.count({
+            where: {
+                tenantId,
+                statusGizi: "Normal",
+                ...(rwFilterBalita ? { balita: rwFilterBalita } : { balitaId: { not: null } })
+            }
+        }),
+        prisma.posyanduRecord.count({
+            where: {
+                tenantId,
+                statusGizi: "Gizi Kurang",
+                ...(rwFilterBalita ? { balita: rwFilterBalita } : { balitaId: { not: null } })
+            }
+        }),
+        prisma.posyanduRecord.count({
+            where: {
+                tenantId,
+                statusGizi: "Gizi Lebih",
+                ...(rwFilterBalita ? { balita: rwFilterBalita } : { balitaId: { not: null } })
+            }
+        }),
         prisma.posyanduJadwal.count({ where: { tenantId } }),
         prisma.posyanduJadwal.findMany({
             where: { tenantId },
@@ -466,11 +497,30 @@ export async function getPosyanduDashboardStats(posyanduFilter?: string) {
         }),
         prisma.posyanduKehadiran.findMany({
             where: { tenantId },
-            orderBy: { tanggal: 'desc' }
+            orderBy: { tanggal: 'desc' },
+            take: 20
         }),
-        prisma.posyanduRecord.count({ where: { tenantId, balitaId: { not: null } } }),
-        prisma.posyanduRecord.count({ where: { tenantId, ibuHamilId: { not: null } } }),
-        prisma.posyanduRecord.count({ where: { tenantId, lansiaId: { not: null } } })
+        prisma.posyanduRecord.count({
+            where: {
+                tenantId,
+                balitaId: { not: null },
+                ...(rwFilterBalita ? { balita: rwFilterBalita } : {})
+            }
+        }),
+        prisma.posyanduRecord.count({
+            where: {
+                tenantId,
+                ibuHamilId: { not: null },
+                ...(rwFilterIbuHamil ? { ibuHamil: rwFilterIbuHamil } : {})
+            }
+        }),
+        prisma.posyanduRecord.count({
+            where: {
+                tenantId,
+                lansiaId: { not: null },
+                ...(rwFilterLansia ? { lansia: rwFilterLansia } : {})
+            }
+        })
     ]);
 
     const recordsThisYear = await prisma.posyanduRecord.findMany({
@@ -479,7 +529,8 @@ export async function getPosyanduDashboardStats(posyanduFilter?: string) {
             tanggal: {
                 gte: new Date(new Date().getFullYear(), 0, 1)
             },
-            balitaId: { not: null }
+            balitaId: { not: null },
+            ...(rwFilterBalita ? { balita: rwFilterBalita } : {})
         },
         select: {
             tanggal: true,
@@ -531,13 +582,11 @@ export async function getPosyanduDashboardStats(posyanduFilter?: string) {
 }
 
 export async function exportPosyanduReport(posyanduFilter?: string) {
-    const { tenantId, rws } = await verifyPosyanduAccess(posyanduFilter);
+    const { tenantId, normalizedRws } = await verifyPosyanduAccess(posyanduFilter);
 
     const whereClause: any = { tenantId };
-    if (rws.length === 1) {
-        whereClause.rw = rws[0];
-    } else if (rws.length > 1) {
-        whereClause.rw = { in: rws };
+    if (normalizedRws.length > 0) {
+        whereClause.rw = { in: normalizedRws };
     }
 
     const balitas = await prisma.posyanduBalita.findMany({
@@ -580,10 +629,10 @@ export async function exportPosyanduReport(posyanduFilter?: string) {
 // =======================
 
 export async function getPosyanduRecords(kategori: "BALITA" | "IBU_HAMIL" | "LANSIA", posyanduFilter?: string) {
-    const { tenantId, rws } = await verifyPosyanduAccess(posyanduFilter);
+    const { tenantId, normalizedRws } = await verifyPosyanduAccess(posyanduFilter);
     
     // Auto-sync missing initial records for existing master entities
-    const rwCondition = rws.length === 1 ? rws[0] : rws.length > 1 ? { in: rws } : undefined;
+    const rwCondition = normalizedRws.length > 0 ? { in: normalizedRws } : undefined;
 
     if (kategori === "BALITA") {
         const balitasWithoutRecords = await prisma.posyanduBalita.findMany({

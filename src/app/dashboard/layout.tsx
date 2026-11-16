@@ -61,7 +61,7 @@ export default async function VillageAdminLayout({
       {/* Main Workspace Area: Curved Sidebar + Content */}
       <div className="flex-1 flex min-w-0 overflow-hidden relative bg-white">
         {/* Village Sidebar */}
-        <Suspense fallback={<div className="hidden lg:block w-72 h-full shrink-0 bg-[#1d64ec]" />}>
+        <Suspense fallback={<div className={`hidden lg:block w-72 h-full shrink-0 ${baseRole === 'POSYANDU' ? 'bg-[#047857]' : 'bg-[#1d64ec]'}`} />}>
           <VillageSidebar session={session} isHackerTheme={isHackerTheme} />
         </Suspense>
 

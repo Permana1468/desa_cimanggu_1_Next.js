@@ -141,7 +141,7 @@ export function DesktopDashboardHeader({ session }: DesktopDashboardHeaderProps)
                 {brandTitle}
               </span>
             </div>
-            <span className="text-[10px] font-extrabold text-[#1d64ec] uppercase tracking-wider mt-0.5">
+            <span className={`text-[10px] font-extrabold ${baseRole === 'POSYANDU' ? 'text-emerald-600' : 'text-[#1d64ec]'} uppercase tracking-wider mt-0.5`}>
               Desa Cimanggu I
             </span>
           </div>
@@ -156,7 +156,9 @@ export function DesktopDashboardHeader({ session }: DesktopDashboardHeaderProps)
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari berkas, data warga, surat, atau agenda..."
-              className="w-full pl-11 pr-16 py-2.5 rounded-full bg-[#f4f7fc] border border-transparent focus:border-[#1d64ec]/30 focus:bg-white text-xs sm:text-sm text-slate-700 placeholder:text-slate-400 transition-all outline-none"
+              className={`w-full pl-11 pr-16 py-2.5 rounded-full bg-[#f4f7fc] border border-transparent ${
+                baseRole === 'POSYANDU' ? 'focus:border-emerald-600/30' : 'focus:border-[#1d64ec]/30'
+              } focus:bg-white text-xs sm:text-sm text-slate-700 placeholder:text-slate-400 transition-all outline-none`}
             />
             <kbd className="absolute right-3.5 hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-bold text-slate-400 bg-white border border-slate-200/80 rounded-full shadow-2xs">
               Ctrl K
@@ -203,7 +205,9 @@ export function DesktopDashboardHeader({ session }: DesktopDashboardHeaderProps)
               className="flex items-center gap-2.5 p-1 rounded-full hover:bg-[#f4f7fc] transition-all cursor-pointer group"
               title="Menu Profil & Keamanan Akun"
             >
-              <div className="relative w-9 h-9 rounded-full bg-[#1d64ec] text-white font-black text-sm flex items-center justify-center shadow-md overflow-hidden ring-2 ring-blue-100 group-hover:ring-[#1d64ec] transition-all shrink-0">
+              <div className={`relative w-9 h-9 rounded-full ${
+                baseRole === 'POSYANDU' ? 'bg-emerald-700 ring-emerald-100 group-hover:ring-emerald-600' : 'bg-[#1d64ec] ring-blue-100 group-hover:ring-[#1d64ec]'
+              } text-white font-black text-sm flex items-center justify-center shadow-md overflow-hidden ring-2 transition-all shrink-0`}>
                 {user?.photo ? (
                   <Image
                     src={user.photo}
@@ -219,7 +223,9 @@ export function DesktopDashboardHeader({ session }: DesktopDashboardHeaderProps)
               </div>
 
               <div className="text-left hidden xl:block pr-1">
-                <span className="block text-xs font-bold text-slate-800 leading-tight group-hover:text-[#1d64ec] transition-colors">
+                <span className={`block text-xs font-bold text-slate-800 leading-tight ${
+                  baseRole === 'POSYANDU' ? 'group-hover:text-emerald-700' : 'group-hover:text-[#1d64ec]'
+                } transition-colors`}>
                   {userName}
                 </span>
                 <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
@@ -245,7 +251,9 @@ export function DesktopDashboardHeader({ session }: DesktopDashboardHeaderProps)
                 <div className="absolute right-0 mt-2.5 w-64 bg-white rounded-3xl shadow-2xl border border-slate-100 p-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                   {/* User Profile Card Header */}
                   <div className="p-3 bg-[#f4f7fc] rounded-2xl flex items-center gap-3 mb-1.5">
-                    <div className="w-10 h-10 rounded-full bg-[#1d64ec] text-white font-black text-sm flex items-center justify-center shadow-md overflow-hidden shrink-0 ring-2 ring-white">
+                    <div className={`w-10 h-10 rounded-full ${
+                      baseRole === 'POSYANDU' ? 'bg-emerald-700' : 'bg-[#1d64ec]'
+                    } text-white font-black text-sm flex items-center justify-center shadow-md overflow-hidden shrink-0 ring-2 ring-white`}>
                       {user?.photo ? (
                         <Image
                           src={user.photo}
@@ -262,7 +270,9 @@ export function DesktopDashboardHeader({ session }: DesktopDashboardHeaderProps)
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-black text-slate-900 truncate">{userName}</p>
                       <p className="text-[10px] text-slate-400 truncate">{userEmail}</p>
-                      <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full bg-blue-100/70 text-[#1d64ec] text-[9px] font-black uppercase tracking-wider">
+                      <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full ${
+                        baseRole === 'POSYANDU' ? 'bg-emerald-100/70 text-emerald-800' : 'bg-blue-100/70 text-[#1d64ec]'
+                      } text-[9px] font-black uppercase tracking-wider`}>
                         {userRole}
                       </span>
                     </div>

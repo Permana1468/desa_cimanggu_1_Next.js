@@ -45,6 +45,28 @@ export function getRWsForPosyandu(key?: string | null): string[] {
 }
 
 /**
+ * Normalizes an array of RW strings to include both padded ("001", "01") and unpadded ("1") versions
+ * to ensure 100% accurate database matching across DataKependudukan and Posyandu entities.
+ */
+export function normalizeRwList(rws: string[]): string[] {
+  if (!Array.isArray(rws) || rws.length === 0) return [];
+  const set = new Set<string>();
+  for (const rw of rws) {
+    if (!rw) continue;
+    const clean = String(rw).trim();
+    if (!clean) continue;
+    set.add(clean);
+    const num = parseInt(clean, 10);
+    if (!isNaN(num)) {
+      set.add(String(num));
+      set.add(String(num).padStart(2, "0"));
+      set.add(String(num).padStart(3, "0"));
+    }
+  }
+  return Array.from(set);
+}
+
+/**
  * Detect user's assigned Posyandu unit from session user object (email, fullName, name, position, rw).
  * Matches posyandu001, posyandu002 ... posyandu007 and Posyandu Unit 001 ... Posyandu Unit 007.
  */

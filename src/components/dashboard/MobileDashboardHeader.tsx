@@ -66,7 +66,9 @@ export function MobileDashboardHeader({ session: initialSession }: { session: an
           <div className="relative">
             <button
               onClick={() => setShowProfileMenu(!showProfileMenu)}
-              className="w-9 h-9 rounded-full bg-[#1d64ec] text-white overflow-hidden flex items-center justify-center font-extrabold text-xs active:scale-95 transition-all shadow-sm ring-2 ring-blue-100"
+              className={`w-9 h-9 rounded-full ${
+                userRole === 'POSYANDU' ? 'bg-emerald-700 ring-emerald-100' : 'bg-[#1d64ec] ring-blue-100'
+              } text-white overflow-hidden flex items-center justify-center font-extrabold text-xs active:scale-95 transition-all shadow-sm ring-2`}
             >
               {session?.user?.photo ? (
                 <Image
@@ -92,7 +94,9 @@ export function MobileDashboardHeader({ session: initialSession }: { session: an
                   <div className="p-2.5 border-b border-slate-100">
                     <p className="text-xs font-black text-slate-900 truncate">{userName}</p>
                     <p className="text-[10px] font-medium text-slate-400 truncate">{session?.user?.email}</p>
-                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-blue-50 text-[#1d64ec] text-[9px] font-bold uppercase">
+                    <span className={`inline-block mt-1 px-2 py-0.5 rounded-full ${
+                      userRole === 'POSYANDU' ? 'bg-emerald-50 text-emerald-700' : 'bg-blue-50 text-[#1d64ec]'
+                    } text-[9px] font-bold uppercase`}>
                       {userRole}
                     </span>
                   </div>

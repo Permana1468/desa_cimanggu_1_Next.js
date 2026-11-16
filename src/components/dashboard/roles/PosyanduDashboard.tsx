@@ -269,21 +269,27 @@ function PosyanduDashboardContent({ session }: any) {
                       </div>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row lg:flex-col gap-2.5 sm:gap-3 shrink-0 pt-2 sm:pt-0">
-                      <button
-                        onClick={handleExport}
-                        disabled={exporting}
-                        className="bg-white hover:bg-teal-50 text-teal-900 font-bold px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md text-xs sm:text-sm disabled:opacity-50 active:scale-98 cursor-pointer"
+                    <div className="flex flex-col sm:flex-row lg:flex-col gap-2 sm:gap-2.5 shrink-0 pt-2 sm:pt-0">
+                      <Link
+                        href="/dashboard?tab=layanan-balita"
+                        className="bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md text-xs sm:text-sm active:scale-98 cursor-pointer"
                       >
-                        <FileText size={16} />
-                        <span>{exporting ? "Mengunduh..." : "Export Laporan CSV"}</span>
-                      </button>
+                        <Stethoscope size={16} /> Catat Pemeriksaan
+                      </Link>
                       <Link
                         href="/dashboard?tab=balita"
-                        className="bg-teal-500/40 hover:bg-teal-500/60 border border-white/30 text-white font-bold px-4 py-2.5 sm:px-5 sm:py-3 rounded-xl flex items-center justify-center gap-2 transition-all text-xs sm:text-sm backdrop-blur-sm active:scale-98"
+                        className="bg-white/20 hover:bg-white/30 border border-white/30 text-white font-bold px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all text-xs sm:text-sm backdrop-blur-sm active:scale-98"
                       >
                         <Plus size={16} /> Input Data Balita
                       </Link>
+                      <button
+                        onClick={handleExport}
+                        disabled={exporting}
+                        className="bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold px-4 py-2 sm:px-5 sm:py-2 rounded-xl flex items-center justify-center gap-2 transition-all text-xs disabled:opacity-50 active:scale-98 cursor-pointer"
+                      >
+                        <FileText size={14} />
+                        <span>{exporting ? "Mengunduh..." : "Export Laporan CSV"}</span>
+                      </button>
                     </div>
                   </div>
                 </div>

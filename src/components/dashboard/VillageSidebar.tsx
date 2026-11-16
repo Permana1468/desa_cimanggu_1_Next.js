@@ -347,7 +347,12 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
         className={`transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col z-[70] shrink-0 overflow-hidden
           fixed inset-y-0 left-0 h-full w-72 ${isOpen ? 'translate-x-0 shadow-[10px_0_40px_rgba(0,0,0,0.15)]' : '-translate-x-full'}
           lg:relative lg:translate-x-0 lg:h-full ${isCollapsed && !isOpen ? 'lg:w-20' : 'lg:w-72'}
-          ${isHackerTheme ? 'bg-transparent border-cyan-500/30 text-cyan-50 shadow-[0_0_30px_rgba(6,182,212,0.1)] border-r' : 'bg-[#1d64ec] text-white shadow-2xl lg:rounded-tr-[3.5rem] lg:rounded-br-[2.5rem]'}
+          ${isHackerTheme 
+            ? 'bg-transparent border-cyan-500/30 text-cyan-50 shadow-[0_0_30px_rgba(6,182,212,0.1)] border-r' 
+            : role === 'POSYANDU' 
+            ? 'bg-gradient-to-b from-[#065f46] via-[#047857] to-[#0f766e] text-white shadow-2xl lg:rounded-tr-[3.5rem] lg:rounded-br-[2.5rem]' 
+            : 'bg-[#1d64ec] text-white shadow-2xl lg:rounded-tr-[3.5rem] lg:rounded-br-[2.5rem]'
+          }
         `}
       >
         {isHackerTheme && <SidebarThreeBackground />}
@@ -383,7 +388,9 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
           <div className="px-5 pt-2 pb-4">
             <Link
               href={
-                role === "KASI_PELAYANAN" 
+                role === "POSYANDU"
+                  ? "/dashboard?tab=layanan-balita"
+                  : role === "KASI_PELAYANAN" 
                   ? "/dashboard?tab=buat-surat" 
                   : role === "RT" 
                   ? "/dashboard?tab=surat-pengantar" 
@@ -391,10 +398,14 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
               }
               prefetch={false}
               onClick={() => setIsOpen(false)}
-              className="w-full py-3.5 px-5 rounded-full bg-white text-[#1d64ec] hover:bg-blue-50 font-black text-xs uppercase tracking-wider shadow-lg shadow-black/15 flex items-center justify-center gap-2.5 transition-all active:scale-95 group cursor-pointer"
+              className={`w-full py-3.5 px-5 rounded-full bg-white ${
+                role === "POSYANDU" 
+                  ? "text-emerald-800 hover:bg-emerald-50 hover:text-emerald-900" 
+                  : "text-[#1d64ec] hover:bg-blue-50"
+              } font-black text-xs uppercase tracking-wider shadow-lg shadow-black/15 flex items-center justify-center gap-2.5 transition-all active:scale-95 group cursor-pointer`}
             >
-              <Plus size={17} className="group-hover:rotate-90 transition-transform text-[#1d64ec]" />
-              <span>{role === "KAUR_TU" ? "Buku Agenda Surat" : role === "RT" ? "Buat Pengantar" : "Buat Surat Baru"}</span>
+              <Plus size={17} className={`group-hover:rotate-90 transition-transform ${role === "POSYANDU" ? "text-emerald-700" : "text-[#1d64ec]"}`} />
+              <span>{role === "POSYANDU" ? "Catat Layanan Baru" : role === "KAUR_TU" ? "Buku Agenda Surat" : role === "RT" ? "Buat Pengantar" : "Buat Surat Baru"}</span>
             </Link>
           </div>
         )}
@@ -411,7 +422,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                 onClick={() => setIsOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all group ${
                   (tabParam || "overview") === "overview"
-                    ? "bg-white text-[#1d64ec] font-black shadow-lg shadow-black/10"
+                    ? "bg-white text-emerald-800 font-black shadow-lg shadow-black/10"
                     : "text-white/80 hover:bg-white/10 hover:text-white font-medium"
                 } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
               >
