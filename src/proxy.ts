@@ -68,15 +68,21 @@ export async function proxy(req: NextRequest) {
   const role = (token as CustomJWT)?.role || "";
 
     // 1. Public routes & API auth
-    if (pathname === "/login" || pathname === "/" || pathname.startsWith("/api/auth") || pathname.startsWith("/api/webauthn")) {
-    if (isAuth && (pathname === "/login" || pathname === "/")) {
-      if (CORE_ADMIN_ROLES.includes(role)) return NextResponse.redirect(new URL("/dashboard", req.url));
-      if (INSTITUTIONAL_ROLES.includes(role)) return NextResponse.redirect(new URL("/kelembagaan", req.url));
-      if (MASTER_ROLES.includes(role)) return NextResponse.redirect(new URL("/master-admin", req.url));
-      if (RESIDENT_ROLES.includes(role)) return NextResponse.redirect(new URL("/resident", req.url));
+    if (
+      pathname === "/login" || 
+      pathname === "/" || 
+      pathname.startsWith("/api/auth") || 
+      pathname.startsWith("/api/webauthn") ||
+      (pathname === "/api/village-profile" && req.method === "GET")
+    ) {
+      if (isAuth && (pathname === "/login" || pathname === "/")) {
+        if (CORE_ADMIN_ROLES.includes(role)) return NextResponse.redirect(new URL("/dashboard", req.url));
+        if (INSTITUTIONAL_ROLES.includes(role)) return NextResponse.redirect(new URL("/kelembagaan", req.url));
+        if (MASTER_ROLES.includes(role)) return NextResponse.redirect(new URL("/master-admin", req.url));
+        if (RESIDENT_ROLES.includes(role)) return NextResponse.redirect(new URL("/resident", req.url));
+      }
+      return NextResponse.next();
     }
-    return NextResponse.next();
-  }
 
   // Auth Guard
   if (!isAuth) {
