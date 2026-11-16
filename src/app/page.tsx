@@ -41,6 +41,8 @@ import { LandingSectionsWrapper } from '../components/landing/LandingSectionsWra
 import { DesktopParallaxLanding } from '../components/landing/DesktopParallaxLanding';
 import { LandingModeHandler } from '../components/landing/LandingModeHandler';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function LandingPage() {
     // Read Initial Theme Cookie (Server-Side)
@@ -106,12 +108,17 @@ export default async function LandingPage() {
     const siteData = {
         ...defaultSiteData,
         ...(profileRes || {}),
-        about_text: (profileRes?.about_text && profileRes.about_text.length > 50) ? profileRes.about_text : defaultSiteData.about_text,
+        title: profileRes?.title || defaultSiteData.title,
+        about_text: profileRes?.about_text || defaultSiteData.about_text,
+        about_title: profileRes?.about_title || defaultSiteData.about_title,
+        about_image: profileRes?.about_image || defaultSiteData.about_image,
         kontak_alamat: profileRes?.kontak_alamat || defaultSiteData.kontak_alamat,
         kontak_email: profileRes?.kontak_email || defaultSiteData.kontak_email,
         kontak_telepon: profileRes?.kontak_telepon || defaultSiteData.kontak_telepon,
         hero_subtitle: profileRes?.hero_subtitle || defaultSiteData.hero_subtitle,
         hero_title: profileRes?.hero_title || defaultSiteData.hero_title,
+        hero_video: profileRes?.hero_video || defaultSiteData.hero_video,
+        gallery: (Array.isArray(profileRes?.gallery) && profileRes.gallery.length > 0) ? profileRes.gallery : defaultSiteData.gallery,
     };
 
     // BACKGROUND HERO SECTION (CAROUSEL)

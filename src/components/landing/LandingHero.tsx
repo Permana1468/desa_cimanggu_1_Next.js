@@ -188,7 +188,7 @@ export const LandingHero = ({ siteData, heroImages, uiConfig }: HeroProps) => {
                         </div>
 
                         <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight uppercase tracking-wide [text-shadow:0_4px_8px_rgba(0,0,0,0.8)] mb-2">
-                            {siteData?.title || "DESA CIMANGGU I"}
+                            {siteData?.hero_title || siteData?.title || "DESA CIMANGGU I"}
                         </h1>
 
                         <div className="inline-flex items-center px-3 py-1.5 bg-emerald-500/15 border border-emerald-400/30 rounded-full backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.4)] mb-3">
@@ -197,7 +197,7 @@ export const LandingHero = ({ siteData, heroImages, uiConfig }: HeroProps) => {
                         </div>
 
                         <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-medium px-4 [text-shadow:0_2px_4px_rgba(0,0,0,0.8)]">
-                            Melangkah maju dengan tata kelola pemerintahan yang <strong className="text-emerald-400 font-bold">transparan</strong> dan pelayanan publik yang <strong className="text-emerald-400 font-bold">cepat</strong>.
+                            {siteData?.hero_subtitle || "Melangkah maju dengan tata kelola pemerintahan yang transparan dan pelayanan publik yang cepat."}
                         </p>
                     </div>
                 </ScrollReveal>

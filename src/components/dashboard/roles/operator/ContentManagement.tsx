@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { updateVillageProfile, createBerita, updateBerita, deleteBerita, updateLandingUiConfig } from "@/actions/landing";
 import { DEFAULT_LANDING_UI_CONFIG, DEFAULT_PARTNER_LOGOS, LandingUiConfig } from "@/lib/landingUiTypes";
 import { ImageUpload } from "@/components/dashboard/ImageUpload";
@@ -19,6 +20,7 @@ export function ContentManagement({
   initialUiConfig?: LandingUiConfig;
 }) {
   const [activeTab, setActiveTab] = useState<"profil" | "hero" | "wilayah" | "tampilan" | "berita">("profil");
+  const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingUi, setIsSavingUi] = useState(false);
   const [newsList, setNewsList] = useState<any[]>(Array.isArray(initialNews) ? initialNews : []);
@@ -329,6 +331,8 @@ export function ContentManagement({
       };
 
       await updateVillageProfile(payloadToSave);
+      router.refresh();
+      setPreviewKey((k) => k + 1);
       toast.success("Profil Desa berhasil diperbarui dan disinkronkan ke Landing Page!", { id: loadingToast });
     } catch (error: any) {
       console.error("Gagal menyimpan profil:", error);
@@ -398,6 +402,7 @@ export function ContentManagement({
     const loadingToast = toast.loading("Menyimpan Pengaturan Tampilan UI...");
     try {
       await updateLandingUiConfig(uiForm);
+      router.refresh();
       setPreviewKey((k) => k + 1);
       toast.success("Pengaturan Tampilan UI berhasil disimpan!", { id: loadingToast });
     } catch (error: any) {

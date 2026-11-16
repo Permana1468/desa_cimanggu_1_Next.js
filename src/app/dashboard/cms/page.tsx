@@ -9,7 +9,8 @@ export default async function CMSPage() {
   const session = await getServerSession(authOptions);
   
   // Guard access
-  if (!session?.user || !["OPERATOR_DESA", "ADMIN_DESA", "ADMIN_MASTER"].includes(session.user.role)) {
+  const allowedRoles = ["OPERATOR_DESA", "ADMIN_DESA", "ADMIN_MASTER", "KADES", "SEKDES", "KAUR", "KASI", "PERANGKAT_DESA"];
+  if (!session?.user || !allowedRoles.includes(session.user.role)) {
     redirect("/dashboard");
   }
 

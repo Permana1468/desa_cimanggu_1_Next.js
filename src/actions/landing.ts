@@ -16,7 +16,7 @@ async function getSession() {
 
 async function getAdminSession() {
   const session = await getSession();
-  const adminRoles = ["ADMIN_DESA", "KADES", "SEKDES", "OPERATOR_DESA", "ADMIN_MASTER"];
+  const adminRoles = ["ADMIN_DESA", "KADES", "SEKDES", "OPERATOR_DESA", "ADMIN_MASTER", "KAUR", "KASI", "PERANGKAT_DESA"];
   if (!adminRoles.includes(session.user.role)) {
     throw new Error("Unauthorized: Akses Admin Diperlukan");
   }
@@ -207,19 +207,15 @@ export async function getOrganizationalStructure() {
 }
 
 export async function getVillageProfile() {
-  const cached = getCached<any>("village_profile");
-  if (cached) return cached;
-
   try {
     const tenantFilter = await getLandingTenantFilter();
     const result = await prisma.villageProfile.findFirst({
       where: tenantFilter,
       orderBy: { updatedAt: 'desc' }
     });
-    if (result) setCached("village_profile", result);
     return result;
   } catch (error) {
-    // Silently handle error
+    console.error("Error in getVillageProfile:", error);
     return null;
   }
 }
@@ -245,7 +241,10 @@ export async function getLembagaList() {
 export async function updateVillageProfile(data: any) {
   try {
     const session = await getAdminSession();
-    const tenantId = await resolveTenantId();
+    const sessionTenantId = (session.user as any)?.tenantId;
+    const resolvedId = await resolveTenantId();
+    const existingProfile = await prisma.villageProfile.findFirst();
+    const tenantId = existingProfile?.tenantId || sessionTenantId || resolvedId || DEFAULT_TENANT_ID;
 
     let processedVideoUrl = data.hero_video;
     

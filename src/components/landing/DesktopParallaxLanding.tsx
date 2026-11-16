@@ -517,7 +517,7 @@ export function DesktopParallaxLanding({
                                     transition={{ duration: 0.8, delay: 0.5 }}
                                     className="text-4xl xl:text-5xl font-black text-white leading-tight uppercase tracking-wide [text-shadow:0_4px_8px_rgba(0,0,0,0.8)] whitespace-nowrap"
                                 >
-                                    {siteData?.title || "Desa Cimanggu I"}
+                                    {siteData?.hero_title || siteData?.title || "Desa Cimanggu I"}
                                 </motion.h2>
                             </motion.div>
 
@@ -546,7 +546,7 @@ export function DesktopParallaxLanding({
                                     className="absolute left-0 top-1 bottom-1 w-[2px] bg-gradient-to-b from-emerald-400/80 to-transparent"
                                 ></motion.div>
                                 <p className="text-sm xl:text-base text-slate-100 leading-relaxed font-medium pl-6 text-justify [text-shadow:0_2px_4px_rgba(0,0,0,0.8)] pr-2">
-                                    Melangkah maju dengan tata kelola pemerintahan yang <strong className="text-emerald-400 font-bold">transparan</strong> dan pelayanan publik yang <strong className="text-emerald-400 font-bold">cepat</strong>. Kami mengintegrasikan potensi desa, pemberdayaan UMKM, dan kesejahteraan masyarakat secara terpadu.
+                                    {siteData?.hero_subtitle || "Melangkah maju dengan tata kelola pemerintahan yang transparan dan pelayanan publik yang cepat. Kami mengintegrasikan potensi desa, pemberdayaan UMKM, dan kesejahteraan masyarakat secara terpadu."}
                                 </p>
                             </motion.div>
                         </motion.div>

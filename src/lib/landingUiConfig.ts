@@ -17,10 +17,6 @@ export function invalidateLandingUiCache() {
 
 export async function getLandingUiConfig(): Promise<LandingUiConfig> {
   const now = Date.now();
-  if (cachedUiConfig && now - cacheTimestamp < CACHE_TTL_MS) {
-    return cachedUiConfig;
-  }
-
   try {
     const record = await prisma.systemSetting.findUnique({
       where: { id: LANDING_UI_CONFIG_ID },
