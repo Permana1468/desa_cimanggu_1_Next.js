@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Search, Loader2, CalendarClock, Plus, CheckCircle2, UserX } from "lucide-react";
 import { getPosyanduAbsensi, addPosyanduAbsensi, deletePosyanduAbsensi } from "@/actions/posyandu-baru";
+import { getPosyanduUnit } from "@/lib/posyandu";
 
 const PERAN = ["KADER_POSYANDU", "BIDAN", "PETUGAS_PUSKESMAS", "LAINNYA"];
 const STATUS = ["HADIR", "IZIN", "SAKIT", "ALPA"];
@@ -15,12 +16,12 @@ export function PosyanduJadwalAbsensiTab({ session, selectedPosyandu }: any) {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedPosyandu]);
 
   async function fetchData() {
     setLoading(true);
     try {
-      const res = await getPosyanduAbsensi();
+      const res = await getPosyanduAbsensi(selectedPosyandu);
       setData(res);
     } catch (e) {
       console.error(e);
@@ -144,14 +145,19 @@ export function PosyanduJadwalAbsensiTab({ session, selectedPosyandu }: any) {
       </div>
 
       {showModal && (
-        <ModalFormAbsensi onClose={() => setShowModal(false)} onRefresh={fetchData} />
+        <ModalFormAbsensi
+          onClose={() => setShowModal(false)}
+          onRefresh={fetchData}
+          selectedPosyandu={selectedPosyandu}
+        />
       )}
     </div>
   );
 }
 
-function ModalFormAbsensi({ onClose, onRefresh }: any) {
+function ModalFormAbsensi({ onClose, onRefresh, selectedPosyandu }: any) {
   const [loading, setLoading] = useState(false);
+  const defaultPosyanduName = getPosyanduUnit(selectedPosyandu)?.name || "Posyandu";
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -159,7 +165,7 @@ function ModalFormAbsensi({ onClose, onRefresh }: any) {
     const fd = new FormData(e.target);
     
     await addPosyanduAbsensi({
-      posyanduName: fd.get("posyanduName"),
+      posyanduName: (fd.get("posyanduName") as string) || defaultPosyanduName,
       namaKader: fd.get("namaKader"),
       peran: fd.get("peran"),
       tanggal: fd.get("tanggal"),
@@ -191,7 +197,13 @@ function ModalFormAbsensi({ onClose, onRefresh }: any) {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">Lokasi (Posyandu) *</label>
-              <input name="posyanduName" required className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-teal-500" placeholder="Cth: Posyandu Melati" />
+              <input
+                name="posyanduName"
+                required
+                defaultValue={defaultPosyanduName}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-teal-500"
+                placeholder="Cth: Posyandu Mawar IV"
+              />
             </div>
           </div>
 

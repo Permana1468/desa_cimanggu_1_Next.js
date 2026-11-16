@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { 
   ShieldAlert, 
   CheckCircle2, 
@@ -12,6 +12,7 @@ import {
   Clock,
   LucideIcon 
 } from "lucide-react";
+import { getLiveNotifications, LiveNotification } from "@/actions/notifications";
 
 export interface NotificationItem {
   id: string;
@@ -23,100 +24,88 @@ export interface NotificationItem {
   actionUrl?: string;
   iconType?: string;
   badgeColor?: string;
+  priority?: "high" | "medium" | "low";
 }
 
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: "notif-1",
-    type: "surat",
-    title: "Permohonan Surat Masuk",
-    description: "Warga mengajukan Surat Keterangan Usaha (SKU) #SKU-2026-089 perlu verifikasi.",
-    time: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
-    read: false,
-    actionUrl: "/dashboard/surat",
-    iconType: "surat",
-    badgeColor: "text-amber-500 bg-amber-500/10 border-amber-500/20",
-  },
-  {
-    id: "notif-2",
-    type: "pengaduan",
-    title: "Laporan Pengaduan Baru",
-    description: "Pengaduan mengenai perbaikan lampu jalan RT 02/RW 04 telah masuk.",
-    time: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    read: false,
-    actionUrl: "/dashboard/layanan/pengaduan",
-    iconType: "pengaduan",
-    badgeColor: "text-rose-500 bg-rose-500/10 border-rose-500/20",
-  },
-  {
-    id: "notif-3",
-    type: "posyandu",
-    title: "Jadwal Posyandu Mawar",
-    description: "Kegiatan penimbangan balita rutin akan diselenggarakan esok hari pukul 08:00 WIB.",
-    time: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
-    read: false,
-    actionUrl: "/dashboard/posyandu",
-    iconType: "posyandu",
-    badgeColor: "text-emerald-500 bg-emerald-500/10 border-emerald-500/20",
-  },
-  {
-    id: "notif-4",
-    type: "system",
-    title: "Pemberitahuan Sistem",
-    description: "Backup otomatis basis data desa diselesaikan dengan sukses.",
-    time: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-    read: true,
-    actionUrl: "/master-admin/logs",
-    iconType: "system",
-    badgeColor: "text-blue-500 bg-blue-500/10 border-blue-500/20",
-  },
-  {
-    id: "notif-5",
-    type: "security",
-    title: "Sesi Login Baru",
-    description: "Login terdeteksi dari perangkat Firefox Linux di Wilayah Desa Cimanggu.",
-    time: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    read: true,
-    actionUrl: "/dashboard/pengaturan",
-    iconType: "security",
-    badgeColor: "text-purple-500 bg-purple-500/10 border-purple-500/20",
-  }
-];
+const STORAGE_READ_KEY = "desa_cimanggu_read_notif_ids_v2";
+const STORAGE_DELETED_KEY = "desa_cimanggu_deleted_notif_ids_v2";
 
-const STORAGE_KEY = "desa_cimanggu_notifications_v1";
+export function triggerNotificationRefresh() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("refresh-notifications"));
+  }
+}
 
 export function useNotifications() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const isFetchingRef = useRef(false);
 
-  // Load from localStorage or initialize
-  useEffect(() => {
+  const getStoredSet = (key: string): Set<string> => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(key);
       if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setNotifications(parsed);
-          setIsLoaded(true);
-          return;
-        }
+        const arr = JSON.parse(stored);
+        if (Array.isArray(arr)) return new Set(arr);
       }
-    } catch (e) {
-      console.warn("Failed to load notifications from localStorage:", e);
+    } catch {
+      // ignore JSON parse error
     }
-    setNotifications(INITIAL_NOTIFICATIONS);
-    setIsLoaded(true);
+    return new Set<string>();
+  };
+
+  const saveStoredSet = (key: string, set: Set<string>) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(Array.from(set)));
+    } catch (e) {
+      console.warn("Failed to persist notification state to localStorage:", e);
+    }
+  };
+
+  const fetchLive = useCallback(async () => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+
+    try {
+      const liveData = await getLiveNotifications();
+      const readSet = getStoredSet(STORAGE_READ_KEY);
+      const deletedSet = getStoredSet(STORAGE_DELETED_KEY);
+
+      const mapped: NotificationItem[] = liveData
+        .filter((item) => !deletedSet.has(item.id))
+        .map((item) => ({
+          ...item,
+          read: readSet.has(item.id) || item.read,
+          iconType: item.type,
+        }));
+
+      setNotifications(mapped);
+      setIsLoaded(true);
+    } catch (err) {
+      console.error("Error fetching live notifications:", err);
+    } finally {
+      isFetchingRef.current = false;
+    }
   }, []);
 
-  // Save to localStorage
   useEffect(() => {
-    if (!isLoaded) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
-    } catch (e) {
-      console.warn("Failed to save notifications to localStorage:", e);
-    }
-  }, [notifications, isLoaded]);
+    fetchLive();
+
+    const handleRefresh = () => fetchLive();
+    const handleFocus = () => fetchLive();
+
+    window.addEventListener("refresh-notifications", handleRefresh);
+    window.addEventListener("focus", handleFocus);
+
+    // Realtime polling every 25 seconds
+    const interval = setInterval(fetchLive, 25000);
+
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleFocus);
+      clearInterval(interval);
+    };
+  }, [fetchLive]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -124,20 +113,29 @@ export function useNotifications() {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
+    const readSet = getStoredSet(STORAGE_READ_KEY);
+    readSet.add(id);
+    saveStoredSet(STORAGE_READ_KEY, readSet);
   }, []);
 
   const markAllAsRead = useCallback(() => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  }, []);
+    const readSet = getStoredSet(STORAGE_READ_KEY);
+    notifications.forEach((n) => readSet.add(n.id));
+    saveStoredSet(STORAGE_READ_KEY, readSet);
+  }, [notifications]);
 
   const removeNotification = useCallback((id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
+    const deletedSet = getStoredSet(STORAGE_DELETED_KEY);
+    deletedSet.add(id);
+    saveStoredSet(STORAGE_DELETED_KEY, deletedSet);
   }, []);
 
   const addNotification = useCallback((notif: Omit<NotificationItem, "id" | "time" | "read">) => {
     const newNotif: NotificationItem = {
       ...notif,
-      id: `notif-${Date.now()}`,
+      id: `manual-notif-${Date.now()}`,
       time: new Date().toISOString(),
       read: false,
     };
@@ -151,6 +149,7 @@ export function useNotifications() {
     markAllAsRead,
     removeNotification,
     addNotification,
+    refreshNotifications: fetchLive,
     isLoaded,
   };
 }

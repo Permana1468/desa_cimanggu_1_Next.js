@@ -4,8 +4,9 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { detectUserPosyanduUnit, getPosyanduUnit } from "@/lib/posyandu";
 
-async function verifyPosyanduAccess() {
+async function verifyPosyanduAccess(posyanduFilter?: string) {
     const session = await getServerSession(authOptions);
     if (!session?.user) throw new Error("Unauthorized");
     
@@ -13,32 +14,48 @@ async function verifyPosyanduAccess() {
     const rwString = (session.user as any).rw;
     const tenantId = (session.user as any).tenantId;
 
-    if (role !== "POSYANDU" && role !== "RW" && role !== "ADMIN_DESA" && role !== "KADES" && role !== "ADMIN_MASTER") {
+    if (role !== "POSYANDU" && role !== "RW" && role !== "ADMIN_DESA" && role !== "KADES" && role !== "ADMIN_MASTER" && role !== "KASI_KESEJAHTERAAN") {
         throw new Error("Akses ditolak.");
     }
 
     const rws = rwString ? rwString.split(",").map((s: string) => s.trim()).filter((s: string) => s) : [];
+    const userUnit = detectUserPosyanduUnit(session.user);
+    const resolvedUnit = getPosyanduUnit(posyanduFilter) || userUnit;
 
-    return { tenantId, rws, user: session.user, role };
+    return { tenantId, rws, user: session.user, role, resolvedUnit };
 }
 
 // =======================
 // NEW POSYANDU MODULES
 // =======================
 
-export async function getPosyanduRegisters(formatNumber: number) {
-    const { tenantId } = await verifyPosyanduAccess();
+export async function getPosyanduRegisters(formatNumber: number, posyanduFilter?: string) {
+    const { tenantId, resolvedUnit } = await verifyPosyanduAccess(posyanduFilter);
+    const whereClause: any = { tenantId, formatNumber };
+
+    if (resolvedUnit) {
+        whereClause.OR = [
+            { posyanduName: { contains: resolvedUnit.name, mode: "insensitive" } },
+            { posyanduName: { contains: resolvedUnit.id, mode: "insensitive" } },
+            { posyanduName: { equals: "Posyandu Utama" } }
+        ];
+    }
+
     return await prisma.posyanduRegisterFormat.findMany({
-        where: { tenantId, formatNumber },
+        where: whereClause,
         orderBy: { recordedDate: "desc" }
     });
 }
 
-export async function addPosyanduRegister(data: { formatNumber: number, posyanduName: string, dataString: string }) {
-    const { tenantId } = await verifyPosyanduAccess();
+export async function addPosyanduRegister(data: { formatNumber: number, posyanduName?: string, dataString: string }) {
+    const { tenantId, resolvedUnit } = await verifyPosyanduAccess();
+    const resolvedName = data.posyanduName?.trim() || resolvedUnit?.name || "Posyandu";
+
     const res = await prisma.posyanduRegisterFormat.create({
         data: {
-            ...data,
+            formatNumber: data.formatNumber,
+            posyanduName: resolvedName,
+            dataString: data.dataString,
             tenantId
         }
     });
@@ -52,22 +69,34 @@ export async function deletePosyanduRegister(id: string) {
     revalidatePath("/dashboard");
 }
 
-export async function getPosyanduInventaris() {
-    const { tenantId } = await verifyPosyanduAccess();
+export async function getPosyanduInventaris(posyanduFilter?: string) {
+    const { tenantId, resolvedUnit } = await verifyPosyanduAccess(posyanduFilter);
+    const whereClause: any = { tenantId };
+
+    if (resolvedUnit) {
+        whereClause.OR = [
+            { posyanduName: { contains: resolvedUnit.name, mode: "insensitive" } },
+            { posyanduName: { contains: resolvedUnit.id, mode: "insensitive" } },
+            { posyanduName: { equals: "Posyandu Induk" } }
+        ];
+    }
+
     return await prisma.posyanduInventory.findMany({
-        where: { tenantId },
+        where: whereClause,
         orderBy: { tanggalMasuk: "desc" }
     });
 }
 
 export async function addPosyanduInventaris(data: any) {
-    const { tenantId } = await verifyPosyanduAccess();
+    const { tenantId, resolvedUnit } = await verifyPosyanduAccess();
+    const resolvedName = data.posyanduName?.trim() || resolvedUnit?.name || "Posyandu";
+
     const res = await prisma.posyanduInventory.create({
         data: {
-            posyanduName: data.posyanduName,
+            posyanduName: resolvedName,
             namaBarang: data.namaBarang,
             kategori: data.kategori,
-            jumlah: parseInt(data.jumlah),
+            jumlah: parseInt(data.jumlah) || 1,
             kondisi: data.kondisi,
             tanggalMasuk: new Date(data.tanggalMasuk),
             sumberDana: data.sumberDana,
@@ -79,14 +108,16 @@ export async function addPosyanduInventaris(data: any) {
 }
 
 export async function updatePosyanduInventaris(id: string, data: any) {
-    await verifyPosyanduAccess();
+    const { resolvedUnit } = await verifyPosyanduAccess();
+    const resolvedName = data.posyanduName?.trim() || resolvedUnit?.name || "Posyandu";
+
     const res = await prisma.posyanduInventory.update({
         where: { id },
         data: {
-            posyanduName: data.posyanduName,
+            posyanduName: resolvedName,
             namaBarang: data.namaBarang,
             kategori: data.kategori,
-            jumlah: parseInt(data.jumlah),
+            jumlah: parseInt(data.jumlah) || 1,
             kondisi: data.kondisi,
             tanggalMasuk: new Date(data.tanggalMasuk),
             sumberDana: data.sumberDana,
@@ -102,19 +133,31 @@ export async function deletePosyanduInventaris(id: string) {
     revalidatePath("/dashboard");
 }
 
-export async function getPosyanduAbsensi() {
-    const { tenantId } = await verifyPosyanduAccess();
+export async function getPosyanduAbsensi(posyanduFilter?: string) {
+    const { tenantId, resolvedUnit } = await verifyPosyanduAccess(posyanduFilter);
+    const whereClause: any = { tenantId };
+
+    if (resolvedUnit) {
+        whereClause.OR = [
+            { posyanduName: { contains: resolvedUnit.name, mode: "insensitive" } },
+            { posyanduName: { contains: resolvedUnit.id, mode: "insensitive" } },
+            { posyanduName: { equals: "Posyandu Induk" } }
+        ];
+    }
+
     return await prisma.posyanduAbsensi.findMany({
-        where: { tenantId },
+        where: whereClause,
         orderBy: { tanggal: "desc" }
     });
 }
 
 export async function addPosyanduAbsensi(data: any) {
-    const { tenantId } = await verifyPosyanduAccess();
+    const { tenantId, resolvedUnit } = await verifyPosyanduAccess();
+    const resolvedName = data.posyanduName?.trim() || resolvedUnit?.name || "Posyandu";
+
     const res = await prisma.posyanduAbsensi.create({
         data: {
-            posyanduName: data.posyanduName,
+            posyanduName: resolvedName,
             namaKader: data.namaKader,
             peran: data.peran,
             tanggal: new Date(data.tanggal),
@@ -134,22 +177,34 @@ export async function deletePosyanduAbsensi(id: string) {
 }
 
 // =======================
-// ANGGARAN
+// ANGGARAN & PMT
 // =======================
 
-export async function getPosyanduAnggarans() {
-    const { tenantId } = await verifyPosyanduAccess();
+export async function getPosyanduAnggarans(posyanduFilter?: string) {
+    const { tenantId, resolvedUnit } = await verifyPosyanduAccess(posyanduFilter);
+    const whereClause: any = { tenantId };
+
+    if (resolvedUnit) {
+        whereClause.OR = [
+            { posyanduName: { contains: resolvedUnit.name, mode: "insensitive" } },
+            { posyanduName: { contains: resolvedUnit.id, mode: "insensitive" } },
+            { posyanduName: { equals: "Posyandu Induk" } }
+        ];
+    }
+
     return await prisma.posyanduAnggaran.findMany({
-        where: { tenantId },
+        where: whereClause,
         orderBy: { tanggal: "desc" }
     });
 }
 
 export async function addPosyanduAnggaran(data: any) {
-    const { tenantId } = await verifyPosyanduAccess();
+    const { tenantId, resolvedUnit } = await verifyPosyanduAccess();
+    const resolvedName = data.posyanduName?.trim() || resolvedUnit?.name || "Posyandu";
+
     const res = await prisma.posyanduAnggaran.create({
         data: {
-            posyanduName: data.posyanduName,
+            posyanduName: resolvedName,
             jenisDana: data.jenisDana,
             tipe: data.tipe,
             jumlah: parseFloat(data.jumlah),

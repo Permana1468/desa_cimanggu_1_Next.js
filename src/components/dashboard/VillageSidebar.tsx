@@ -47,6 +47,8 @@ import {
   Stethoscope,
   CalendarClock,
   ClipboardList,
+  BookOpen,
+  Wallet,
   UserCog,
   SlidersHorizontal,
   BarChart3,
@@ -598,7 +600,64 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                 </AnimatePresence>
               </div>
 
-              {/* Group 4: Manajemen Sistem */}
+              {/* Group 4: Administrasi & PMT */}
+              <div>
+                <button
+                  onClick={() => (!isCollapsed || isOpen) && toggleGroup("administrasi")}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all group cursor-pointer ${
+                    ["posyandu-register","posyandu-jadwal","posyandu-inventaris","pmt"].includes(tabParam || "")
+                      ? "bg-white/15 text-white font-bold"
+                      : "text-white/80 hover:bg-white/10 hover:text-white font-medium"
+                  } ${isCollapsed && !isOpen ? "justify-center" : ""}`}
+                >
+                  <BookOpen size={20} className="shrink-0" />
+                  {(!isCollapsed || isOpen) && (
+                    <>
+                      <span className="text-sm flex-1 text-left">Administrasi & PMT</span>
+                      <ChevronDown
+                        size={14}
+                        className={`transition-transform duration-200 ${openGroup === "administrasi" ? "rotate-180" : ""}`}
+                      />
+                    </>
+                  )}
+                </button>
+                <AnimatePresence>
+                  {(openGroup === "administrasi" && (!isCollapsed || isOpen)) && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-1 ml-3 pl-3 border-l-2 border-white/20 space-y-1">
+                        {[
+                          { label: "Buku Register SIP", tab: "posyandu-register", icon: BookOpen },
+                          { label: "Absensi Petugas", tab: "posyandu-jadwal", icon: CalendarClock },
+                          { label: "Inventaris Alat", tab: "posyandu-inventaris", icon: Package },
+                          { label: "Anggaran & PMT", tab: "pmt", icon: Wallet },
+                        ].map(({ label, tab, icon: Icon }) => (
+                          <Link
+                            key={tab}
+                            href={`/dashboard?tab=${tab}`}
+                            onClick={() => setIsOpen(false)}
+                            className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all text-sm ${
+                              tabParam === tab
+                                ? "bg-white/25 text-white font-extrabold shadow-sm"
+                                : "text-white/70 hover:bg-white/10 hover:text-white font-medium"
+                            }`}
+                          >
+                            <Icon size={16} />
+                            <span>{label}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Group 5: Manajemen Sistem */}
               <div>
                 <button
                   onClick={() => (!isCollapsed || isOpen) && toggleGroup("sistem")}

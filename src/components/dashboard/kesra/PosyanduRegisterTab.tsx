@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Search, Loader2, BookOpen, Plus, FileText, Download } from "lucide-react";
 import { getPosyanduRegisters, addPosyanduRegister, deletePosyanduRegister } from "@/actions/posyandu-baru";
+import { getPosyanduUnit } from "@/lib/posyandu";
 
 const FORMATS = [
   { id: 1, name: "Format 1", desc: "Register Bayi dan Balita" },
@@ -23,12 +24,12 @@ export function PosyanduRegisterTab({ session, selectedPosyandu }: any) {
 
   useEffect(() => {
     fetchData(activeFormat);
-  }, [activeFormat]);
+  }, [activeFormat, selectedPosyandu]);
 
   async function fetchData(formatNumber: number) {
     setLoading(true);
     try {
-      const res = await getPosyanduRegisters(formatNumber);
+      const res = await getPosyanduRegisters(formatNumber, selectedPosyandu);
       setData(res);
     } catch (e) {
       console.error(e);
@@ -149,14 +150,16 @@ export function PosyanduRegisterTab({ session, selectedPosyandu }: any) {
           formatName={FORMATS.find(f => f.id === activeFormat)?.name}
           onClose={() => setShowModal(false)} 
           onRefresh={() => fetchData(activeFormat)} 
+          selectedPosyandu={selectedPosyandu}
         />
       )}
     </div>
   );
 }
 
-function ModalTambahRegister({ formatId, formatName, onClose, onRefresh }: any) {
+function ModalTambahRegister({ formatId, formatName, onClose, onRefresh, selectedPosyandu }: any) {
   const [loading, setLoading] = useState(false);
+  const defaultPosyanduName = getPosyanduUnit(selectedPosyandu)?.name || "Posyandu";
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -171,7 +174,7 @@ function ModalTambahRegister({ formatId, formatName, onClose, onRefresh }: any) 
 
     await addPosyanduRegister({
       formatNumber: formatId,
-      posyanduName: fd.get("posyanduName") as string || "Posyandu Utama",
+      posyanduName: (fd.get("posyanduName") as string) || defaultPosyanduName,
       dataString: JSON.stringify(dataObj, null, 2)
     });
     setLoading(false);
@@ -193,7 +196,13 @@ function ModalTambahRegister({ formatId, formatName, onClose, onRefresh }: any) 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1">Nama Posyandu *</label>
-            <input name="posyanduName" required className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-teal-500" placeholder="Cth: Posyandu Melati 1" />
+            <input
+              name="posyanduName"
+              required
+              defaultValue={defaultPosyanduName}
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-teal-500"
+              placeholder="Cth: Posyandu Mawar IV"
+            />
           </div>
 
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">

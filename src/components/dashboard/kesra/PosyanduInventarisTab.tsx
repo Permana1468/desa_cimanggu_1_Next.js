@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Search, Loader2, Package, Plus, PackageCheck, Archive, AlertTriangle } from "lucide-react";
 import { getPosyanduInventaris, addPosyanduInventaris, deletePosyanduInventaris, updatePosyanduInventaris } from "@/actions/posyandu-baru";
+import { getPosyanduUnit } from "@/lib/posyandu";
 
 const KATEGORI = ["ANTROPOMETRI", "MEDIS", "UMUM", "KONSUMSI", "LAINNYA"];
 const KONDISI = ["BAIK", "RUSAK_RINGAN", "RUSAK_BERAT"];
@@ -16,12 +17,12 @@ export function PosyanduInventarisTab({ session, selectedPosyandu }: any) {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedPosyandu]);
 
   async function fetchData() {
     setLoading(true);
     try {
-      const res = await getPosyanduInventaris();
+      const res = await getPosyanduInventaris(selectedPosyandu);
       setData(res);
     } catch (e) {
       console.error(e);
@@ -171,14 +172,16 @@ export function PosyanduInventarisTab({ session, selectedPosyandu }: any) {
           item={selectedItem} 
           onClose={() => setShowModal(false)} 
           onRefresh={fetchData} 
+          selectedPosyandu={selectedPosyandu}
         />
       )}
     </div>
   );
 }
 
-function ModalFormInventaris({ item, onClose, onRefresh }: any) {
+function ModalFormInventaris({ item, onClose, onRefresh, selectedPosyandu }: any) {
   const [loading, setLoading] = useState(false);
+  const defaultPosyanduName = item?.posyanduName || getPosyanduUnit(selectedPosyandu)?.name || "Posyandu";
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -186,7 +189,7 @@ function ModalFormInventaris({ item, onClose, onRefresh }: any) {
     const fd = new FormData(e.target);
     
     const dataObj = {
-      posyanduName: fd.get("posyanduName"),
+      posyanduName: (fd.get("posyanduName") as string) || defaultPosyanduName,
       namaBarang: fd.get("namaBarang"),
       kategori: fd.get("kategori"),
       jumlah: fd.get("jumlah"),
@@ -251,7 +254,13 @@ function ModalFormInventaris({ item, onClose, onRefresh }: any) {
 
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1">Lokasi (Posyandu) *</label>
-            <input name="posyanduName" defaultValue={item?.posyanduName} required className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-teal-500" placeholder="Cth: Posyandu Melati 1" />
+            <input
+              name="posyanduName"
+              defaultValue={defaultPosyanduName}
+              required
+              className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-teal-500"
+              placeholder="Cth: Posyandu Mawar IV"
+            />
           </div>
 
           <div>

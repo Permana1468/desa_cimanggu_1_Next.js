@@ -31,7 +31,8 @@ import {
   Activity, AlertTriangle, Baby, Calendar, HeartPulse, Plus,
   FileText, Users, Stethoscope, ClipboardList, CheckCircle2,
   TrendingUp, TrendingDown, ArrowRight, Clock, MapPin, ShieldAlert,
-  BarChart3, Sparkles, Filter, ChevronDown, Download, Lock
+  BarChart3, Sparkles, Filter, ChevronDown, Download, Lock,
+  BookOpen, Package, Wallet, CalendarClock
 } from "lucide-react";
 import { getPosyanduDashboardStats, exportPosyanduReport } from "@/actions/posyandu";
 import {
@@ -522,6 +523,68 @@ function PosyanduDashboardContent({ session }: any) {
                           <div className="py-8 text-center text-slate-400 text-xs">Tidak ada kegiatan terdekat.</div>
                         )}
                       </div>
+                    </div>
+                  </div>
+
+                  {/* ---- SECTION 4: MODUL ADMINISTRASI & PMT ---- */}
+                  <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-bold text-slate-800 text-sm sm:text-base">Administrasi, Sarana & Logistik PMT</h3>
+                        <p className="text-[11px] sm:text-xs text-slate-400 mt-0.5">Akses cepat ke buku register SIP, absensi kader, inventaris alat, dan anggaran PMT</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                      {[
+                        {
+                          title: "Buku Register SIP",
+                          desc: "Pencatatan Format 1 s/d 7",
+                          tab: "posyandu-register",
+                          icon: BookOpen,
+                          color: "text-emerald-700 bg-emerald-50 border-emerald-200"
+                        },
+                        {
+                          title: "Absensi Petugas",
+                          desc: "Presensi kader & bidan",
+                          tab: "posyandu-jadwal",
+                          icon: CalendarClock,
+                          color: "text-teal-700 bg-teal-50 border-teal-200"
+                        },
+                        {
+                          title: "Inventaris Alat",
+                          desc: "Alat ukur & antropometri",
+                          tab: "posyandu-inventaris",
+                          icon: Package,
+                          color: "text-blue-700 bg-blue-50 border-blue-200"
+                        },
+                        {
+                          title: "Anggaran & PMT",
+                          desc: "Alokasi dana & makanan tambahan",
+                          tab: "pmt",
+                          icon: Wallet,
+                          color: "text-amber-700 bg-amber-50 border-amber-200"
+                        },
+                      ].map((item) => (
+                        <Link
+                          key={item.tab}
+                          href={`/dashboard?tab=${item.tab}`}
+                          className="p-3.5 rounded-xl border border-slate-100 hover:border-emerald-300 hover:bg-emerald-50/20 transition-all flex items-start gap-3 group"
+                        >
+                          <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${item.color}`}>
+                            <item.icon size={18} />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="text-xs font-bold text-slate-800 group-hover:text-emerald-700 transition-colors truncate">
+                              {item.title}
+                            </h4>
+                            <p className="text-[10px] text-slate-400 mt-0.5 line-clamp-1">
+                              {item.desc}
+                            </p>
+                          </div>
+                          <ArrowRight size={14} className="text-slate-300 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
+                        </Link>
+                      ))}
                     </div>
                   </div>
 

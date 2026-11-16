@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Search, Loader2, Wallet, Plus, TrendingDown, TrendingUp, DollarSign } from "lucide-react";
 import { getPosyanduAnggarans, addPosyanduAnggaran, deletePosyanduAnggaran } from "@/actions/posyandu-baru";
+import { getPosyanduUnit } from "@/lib/posyandu";
 
 const JENIS_DANA = ["OPERASIONAL", "PMT", "INSENTIF_KADER", "LAINNYA"];
 const TIPE = ["PEMASUKAN", "PENGELUARAN"];
@@ -15,12 +16,12 @@ export function KesraPmtTab({ session, selectedPosyandu }: any) {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedPosyandu]);
 
   async function fetchData() {
     setLoading(true);
     try {
-      const res = await getPosyanduAnggarans();
+      const res = await getPosyanduAnggarans(selectedPosyandu);
       setData(res);
     } catch (e) {
       console.error(e);
@@ -163,15 +164,20 @@ export function KesraPmtTab({ session, selectedPosyandu }: any) {
       </div>
 
       {showModal && (
-        <ModalFormAnggaran onClose={() => setShowModal(false)} onRefresh={fetchData} />
+        <ModalFormAnggaran
+          onClose={() => setShowModal(false)}
+          onRefresh={fetchData}
+          selectedPosyandu={selectedPosyandu}
+        />
       )}
     </div>
   );
 }
 
-function ModalFormAnggaran({ onClose, onRefresh }: any) {
+function ModalFormAnggaran({ onClose, onRefresh, selectedPosyandu }: any) {
   const [loading, setLoading] = useState(false);
   const [tipe, setTipe] = useState("PEMASUKAN");
+  const defaultPosyanduName = getPosyanduUnit(selectedPosyandu)?.name || "Posyandu";
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -182,7 +188,7 @@ function ModalFormAnggaran({ onClose, onRefresh }: any) {
     const rawJumlah = fd.get("jumlah")?.toString().replace(/\D/g, '') || "0";
     
     await addPosyanduAnggaran({
-      posyanduName: fd.get("posyanduName"),
+      posyanduName: (fd.get("posyanduName") as string) || defaultPosyanduName,
       jenisDana: fd.get("jenisDana"),
       tipe: fd.get("tipe"),
       jumlah: rawJumlah,
@@ -214,7 +220,13 @@ function ModalFormAnggaran({ onClose, onRefresh }: any) {
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">Lokasi (Posyandu) *</label>
-              <input name="posyanduName" required className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-500" placeholder="Cth: Posyandu Melati 1" />
+              <input
+                name="posyanduName"
+                required
+                defaultValue={defaultPosyanduName}
+                className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm outline-none focus:border-emerald-500"
+                placeholder="Cth: Posyandu Mawar IV"
+              />
             </div>
           </div>
 
