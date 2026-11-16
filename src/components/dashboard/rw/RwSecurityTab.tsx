@@ -37,18 +37,19 @@ export function RwSecurityTab({ session }: { session: any }) {
     // Structure RT options
     const [rtList, setRtList] = useState<string[]>([]);
 
-    const isRw = session?.user?.role === "RW" || session?.user?.role === "ADMIN_DESA" || session?.user?.role === "KADES";
+    const rawRole = String(session?.user?.role || "").toUpperCase();
+    const isRw = rawRole === "RW" || rawRole === "ADMIN_DESA" || rawRole === "KADES" || rawRole === "SEKDES" || Boolean((session?.user as any)?.rw && (!(session?.user as any)?.rt || (session?.user as any)?.rt === "000"));
 
     const loadLogs = async () => {
         setLoadingLogs(true);
-        const data = await getRwSecurityLogs();
+        const data = await getRwSecurityLogs(rwNo);
         setLogs(data);
         setLoadingLogs(false);
     };
 
     const loadSchedules = async () => {
         setLoadingSchedules(true);
-        const data = await getRwPatrolSchedules();
+        const data = await getRwPatrolSchedules(rwNo);
         setSchedules(data);
         setLoadingSchedules(false);
     };
@@ -61,7 +62,7 @@ export function RwSecurityTab({ session }: { session: any }) {
                 setRtList(res.rtList);
             }
         });
-    }, []);
+    }, [rwNo]);
 
     const handleAddLog = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -71,7 +72,8 @@ export function RwSecurityTab({ session }: { session: any }) {
             reporter: logForm.reporter,
             title: logForm.title,
             description: logForm.description,
-            date: new Date()
+            date: new Date(),
+            rw: rwNo
         });
         setLogForm({ type: "TAMU", reporter: "", title: "", description: "" });
         setSubmittingLog(false);
@@ -86,7 +88,8 @@ export function RwSecurityTab({ session }: { session: any }) {
             rt: patrolForm.rt,
             date: new Date(patrolForm.date),
             personnel: patrolForm.personnel,
-            notes: patrolForm.notes
+            notes: patrolForm.notes,
+            rw: rwNo
         });
         setPatrolForm({ 
             rt: "", 

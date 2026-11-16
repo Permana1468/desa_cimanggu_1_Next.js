@@ -335,6 +335,7 @@ export async function updateVillageProfile(data: any) {
 
     invalidateLandingCache();
     revalidatePath("/", "layout");
+    revalidatePath("/profil");
     revalidatePath("/profil/sambutan");
     revalidatePath("/profil/sejarah");
     revalidatePath("/profil/visi-misi");

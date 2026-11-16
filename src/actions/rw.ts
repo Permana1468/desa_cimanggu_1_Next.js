@@ -14,7 +14,7 @@ async function verifyRwAccess() {
     const rw = (session.user as any).rw;
     const tenantId = (session.user as any).tenantId;
 
-    if (role !== "RW" && role !== "ADMIN_DESA" && role !== "ADMIN_MASTER" && role !== "KADES") {
+    if (role !== "RW" && role !== "ADMIN_DESA" && role !== "ADMIN_MASTER" && role !== "KADES" && role !== "SEKDES") {
         throw new Error("Akses ditolak. Fitur ini hanya untuk pengurus RW.");
     }
 
@@ -38,13 +38,18 @@ export async function getRwSecurityLogs(rwParam?: string) {
     });
 }
 
-export async function addRwSecurityLog(data: { type: string, reporter: string, title: string, description: string, date: Date }) {
-    const { tenantId, rw } = await verifyRwAccess();
+export async function addRwSecurityLog(data: { type: string, reporter: string, title: string, description: string, date: Date, rw?: string }) {
+    const { tenantId, rw: userRw } = await verifyRwAccess();
+    const targetRw = data.rw || userRw || "009";
 
     const log = await prisma.rwSecurityLog.create({
         data: {
-            ...data,
-            rw,
+            type: data.type,
+            reporter: data.reporter,
+            title: data.title,
+            description: data.description,
+            date: data.date,
+            rw: targetRw,
             tenantId
         }
     });
@@ -93,13 +98,17 @@ export async function getRwPatrolSchedules(rwParam?: string) {
     });
 }
 
-export async function addRwPatrolSchedule(data: { rt: string, date: Date, personnel: string, notes?: string }) {
-    const { tenantId, rw } = await verifyRwAccess();
+export async function addRwPatrolSchedule(data: { rt: string, date: Date, personnel: string, notes?: string, rw?: string }) {
+    const { tenantId, rw: userRw } = await verifyRwAccess();
+    const targetRw = data.rw || userRw || "009";
 
     const schedule = await prisma.rwPatrolSchedule.create({
         data: {
-            ...data,
-            rw,
+            rt: data.rt,
+            date: data.date,
+            personnel: data.personnel,
+            notes: data.notes,
+            rw: targetRw,
             tenantId
         }
     });
@@ -156,24 +165,27 @@ export async function getRwHealthData(rwParam?: string) {
 export async function addRwHealthData(data: { 
     month: number, year: number, posyanduName?: string,
     balitaTotal: number, balitaStunting: number,
-    ibuHamil: number, lansia: number, imunisasiPercentage: number, notes?: string
+    ibuHamil: number, lansia: number, imunisasiPercentage: number, notes?: string,
+    rw?: string
 }) {
     // Health data can also be updated by POSYANDU role
     const session = await getServerSession(authOptions);
     if (!session?.user) throw new Error("Unauthorized");
     
     const role = (session.user as any).role;
-    const rw = (session.user as any).rw;
+    const userRw = (session.user as any).rw;
+    const targetRw = data.rw || userRw || "009";
     const tenantId = (session.user as any).tenantId;
 
-    if (role !== "RW" && role !== "POSYANDU" && role !== "ADMIN_DESA" && role !== "KADES") {
+    if (role !== "RW" && role !== "POSYANDU" && role !== "ADMIN_DESA" && role !== "KADES" && role !== "SEKDES") {
         throw new Error("Akses ditolak. Fitur ini untuk pengurus RW atau Kader Posyandu.");
     }
 
+    const { rw: _discard, ...restData } = data;
     const healthData = await prisma.rwHealthData.create({
         data: {
-            ...data,
-            rw: rw || "000",
+            ...restData,
+            rw: targetRw,
             tenantId
         }
     });
@@ -290,13 +302,15 @@ export async function getRwInstitutions(rwParam?: string) {
     });
 }
 
-export async function addRwInstitution(data: { name: string, description?: string }) {
-    const { tenantId, rw } = await verifyRwAccess();
+export async function addRwInstitution(data: { name: string, description?: string, rw?: string }) {
+    const { tenantId, rw: userRw } = await verifyRwAccess();
+    const targetRw = data.rw || userRw || "009";
 
     const institution = await prisma.rwInstitution.create({
         data: {
-            ...data,
-            rw,
+            name: data.name,
+            description: data.description,
+            rw: targetRw,
             tenantId
         }
     });

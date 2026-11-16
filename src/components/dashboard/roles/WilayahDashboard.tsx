@@ -78,17 +78,26 @@ const renderAvatars = (names: string[], isBlueFolder = false) => (
   </div>
 );
 
-export function WilayahDashboard({ session, stats: initialStats }: { session: any, stats: any }) {
-  const roleName = session?.user?.role?.replace('_', ' ') || "Perangkat Wilayah";
+export function isRwUser(session: any): boolean {
+  const rawRole = String(session?.user?.role || "").toUpperCase();
   const userRt = (session?.user as any)?.rt;
   const userRw = (session?.user as any)?.rw;
+  return rawRole === "RW" || Boolean(userRw && (!userRt || userRt === "000"));
+}
+
+export function WilayahDashboard({ session, stats: initialStats }: { session: any, stats: any }) {
+  const rawRole = String(session?.user?.role || "").toUpperCase();
+  const userRt = (session?.user as any)?.rt;
+  const userRw = (session?.user as any)?.rw;
+  const isRw = isRwUser(session);
+  const roleName = isRw ? "RW" : (rawRole || "Perangkat Wilayah");
 
   let displayTitle = `Dashboard ${roleName}`;
-  if (roleName === "RT" && userRt && userRw) {
+  if (!isRw && userRt && userRw) {
     displayTitle = `Dashboard RT ${userRt} / RW ${userRw}`;
-  } else if (roleName === "RW" && userRw) {
+  } else if (isRw && userRw) {
     displayTitle = `Dashboard RW ${userRw}`;
-  } else if (roleName === "KADUS" && userRw) {
+  } else if (rawRole === "KADUS" && userRw) {
     displayTitle = `Dashboard ${userRw}`;
   }
 
@@ -114,6 +123,7 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
     totalWarga: 0,
     totalKK: 0,
     totalKas: 0,
+    totalKegiatan: 0,
     pendingLetters: 0,
     births: 0,
     deaths: 0,
@@ -127,25 +137,35 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
   // Load stats
   const fetchStats = async () => {
     setLoadingStats(true);
-    let data;
-    if (session?.user?.role === "RW" || session?.user?.role === "KADUS") {
+    if (isRw || rawRole === "KADUS") {
         const rwData = await getRwDashboardStats();
         if (rwData.success) {
             setRtBreakdown(rwData.rtBreakdown);
-            let tWarga = 0, tKK = 0, tKas = 0;
-            rwData.rtBreakdown.forEach((r: any) => {
-                tWarga += r.totalWarga; tKK += r.totalKK; tKas += r.totalKas;
-            });
-            // Fetch normal stats to get pending letters and LAMPID
-            data = await getRtDashboardStats();
-            data.totalWarga = tWarga;
-            data.totalKK = tKK;
-            data.totalKas = tKas;
-            setStats(data);
+            if (rwData.stats) {
+                setStats(rwData.stats);
+            } else {
+                let tWarga = 0, tKK = 0, tKas = 0, tKegiatan = 0;
+                rwData.rtBreakdown.forEach((r: any) => {
+                    tWarga += r.totalWarga; tKK += r.totalKK; tKas += r.totalKas; tKegiatan += (r.totalActivities || 0);
+                });
+                setStats({
+                    totalWarga: tWarga,
+                    totalKK: tKK,
+                    totalKas: tKas,
+                    totalKegiatan: tKegiatan,
+                    pendingLetters: 0,
+                    births: 0,
+                    deaths: 0,
+                    moves: 0,
+                    incoming: 0
+                });
+            }
         }
     } else {
-        data = await getRtDashboardStats();
-        setStats(data);
+        const data = await getRtDashboardStats();
+        if (data) {
+            setStats(data);
+        }
     }
     setLoadingStats(false);
   };
@@ -201,7 +221,7 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
                   : "text-slate-500 hover:text-slate-800"
               }`}
             >
-              {session?.user?.role === "RW" ? "Kas RW" : "Kas RT"}
+              {isRw ? "Kas RW" : "Kas RT"}
             </button>
             <button
               onClick={() => setActiveTab("surat")}
@@ -226,7 +246,7 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
             >
               LAMPID
             </button>
-            {session?.user?.role === "RW" && (
+            {isRw && (
               <>
                 <button
                   onClick={() => setActiveTab("institutions")}
@@ -303,14 +323,14 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
               <div className="grid grid-cols-2 gap-4 shrink-0">
                   <div className="bg-white/10 border border-white/20 rounded-2xl p-5 min-w-[150px] backdrop-blur-md shadow-xs">
                       <span className="block text-[10px] font-extrabold text-blue-200 uppercase tracking-wider mb-1">
-                        {session?.user?.role === "RW" ? "Total Warga RW" : "Total Warga RT"}
+                        {isRw ? "Total Warga RW" : "Total Warga RT"}
                       </span>
                       <span className="block text-3xl lg:text-4xl font-black text-white">{stats.totalWarga}</span>
                       <span className="block text-[10px] text-blue-200/80 font-medium mt-1">Jiwa Terdata Aktif</span>
                   </div>
                   <div className="bg-white/10 border border-white/20 rounded-2xl p-5 min-w-[150px] backdrop-blur-md shadow-xs">
                       <span className="block text-[10px] font-extrabold text-blue-200 uppercase tracking-wider mb-1">
-                        {session?.user?.role === "RW" ? "Saldo Kas RW" : "Saldo Kas RT"}
+                        {isRw ? "Saldo Kas RW" : "Saldo Kas RT"}
                       </span>
                       <span className="block text-2xl lg:text-3xl font-black text-emerald-300">
                         Rp {stats.totalKas.toLocaleString("id-ID")}
@@ -339,6 +359,7 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
             session={session} 
             rtBreakdown={rtBreakdown} 
             onNavigateTab={setActiveTab}
+            isRw={isRw}
           />
         )}
         {activeTab === "warga" && (
@@ -407,14 +428,18 @@ function OverviewTab({
   loading, 
   session, 
   rtBreakdown,
-  onNavigateTab 
+  onNavigateTab,
+  isRw: propIsRw
 }: { 
   stats: any; 
   loading: boolean; 
   session?: any; 
   rtBreakdown?: any[];
   onNavigateTab: (tab: any) => void;
+  isRw?: boolean;
 }) {
+  const isRw = propIsRw ?? isRwUser(session);
+
   if (loading) {
     return (
       <div className="py-20 text-center flex flex-col items-center justify-center gap-4">
@@ -424,7 +449,7 @@ function OverviewTab({
     );
   }
 
-  const totalMutasi = stats.births + stats.deaths + stats.moves + stats.incoming;
+  const totalMutasi = (stats?.births || 0) + (stats?.deaths || 0) + (stats?.moves || 0) + (stats?.incoming || 0);
 
   return (
     <div className="space-y-8">
@@ -432,7 +457,7 @@ function OverviewTab({
       <div className="space-y-3.5">
         <div className="flex items-center justify-between">
           <h2 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">
-            Quick Access • Modul Pelayanan RT
+            Quick Access • Modul Pelayanan {isRw ? "RW" : "RT"}
           </h2>
           <span className="text-[11px] font-semibold text-slate-400">
             4 Modul Utama Wilayah
@@ -453,7 +478,7 @@ function OverviewTab({
             {/* Folder Body */}
             <div className="bg-[#1d64ec] text-white rounded-3xl rounded-tl-none p-5 lg:p-6 shadow-xl shadow-blue-600/25 space-y-4">
               <div className="flex items-center justify-between">
-                {renderAvatars(["Warga", "RT", "Kasi"], true)}
+                {renderAvatars(["Warga", isRw ? "RW" : "RT", "Kasi"], true)}
                 {stats.pendingLetters > 0 ? (
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" title="Ada permohonan surat baru" />
                 ) : (
@@ -463,7 +488,7 @@ function OverviewTab({
 
               <div>
                 <p className="text-[10px] font-extrabold text-blue-200 uppercase tracking-widest mb-0.5">
-                  FOLDER • PENGANTAR RT
+                  FOLDER • PENGANTAR {isRw ? "RW" : "RT"}
                 </p>
                 <h3 className="text-base sm:text-lg font-black tracking-tight leading-snug">
                   Verifikasi Surat
@@ -512,7 +537,7 @@ function OverviewTab({
             </div>
           </button>
 
-          {/* FOLDER 3: KAS KEUANGAN RT (CLEAN SOFT TINT FOLDER) */}
+          {/* FOLDER 3: KAS KEUANGAN (CLEAN SOFT TINT FOLDER) */}
           <button
             onClick={() => onNavigateTab("finance")}
             className="text-left group block relative transition-all duration-300 hover:-translate-y-1 active:scale-[0.99] cursor-pointer"
@@ -534,7 +559,7 @@ function OverviewTab({
                   FOLDER • KEUANGAN
                 </p>
                 <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug">
-                  Kas &amp; Iuran RT
+                  Kas &amp; Iuran {isRw ? "RW" : "RT"}
                 </h3>
               </div>
 
@@ -584,7 +609,7 @@ function OverviewTab({
       <div className="space-y-3.5">
         <div className="flex items-center justify-between">
           <h2 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em]">
-            Statistik Mutasi Wilayah RT (LAMPID)
+            Statistik Mutasi Wilayah {isRw ? "RW" : "RT"} (LAMPID)
           </h2>
           <span className="text-[11px] font-semibold text-slate-400">
             Pembaruan Realtime
@@ -711,7 +736,7 @@ function OverviewTab({
         {/* PANDUAN TUGAS & SOP (EXECUTIVE BRIEFING STYLE) */}
         <div className="lg:col-span-1 bg-white rounded-3xl p-7 border border-slate-200/80 shadow-xs space-y-5">
           <div className="flex items-center justify-between">
-            <h3 className="text-base font-black text-slate-900 tracking-tight">{session?.user?.role === "RW" ? "Panduan Tugas RW" : "Panduan Tugas RT"}</h3>
+            <h3 className="text-base font-black text-slate-900 tracking-tight">{isRw ? "Panduan Tugas RW" : "Panduan Tugas RT"}</h3>
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
           </div>
 
@@ -726,7 +751,7 @@ function OverviewTab({
             </li>
             <li className="flex items-start gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
               <CheckCircle2 size={16} className="text-[#1d64ec] shrink-0 mt-0.5" />
-              <span>Kelola transparansi kas swadaya {session?.user?.role === "RW" ? "RW & pantau kas RT" : "RT"} dengan mencatat debit dan kredit secara akuntabel.</span>
+              <span>Kelola transparansi kas swadaya {isRw ? "RW & pantau kas RT" : "RT"} dengan mencatat debit dan kredit secara akuntabel.</span>
             </li>
           </ul>
 
@@ -743,11 +768,11 @@ function OverviewTab({
       </div>
 
       {/* REKAPITULASI RW (JIKA ROLE RW) */}
-      {session?.user?.role === "RW" && rtBreakdown && rtBreakdown.length > 0 && (
+      {isRw && rtBreakdown && rtBreakdown.length > 0 && (
         <div className="bg-white rounded-3xl p-7 border border-slate-200/80 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-base font-black text-slate-900 tracking-tight">Rekapitulasi RT di Wilayah RW {(session.user as any).rw}</h3>
+              <h3 className="text-base font-black text-slate-900 tracking-tight">Rekapitulasi RT di Wilayah RW {(session?.user as any)?.rw || "009"}</h3>
               <p className="text-xs text-slate-400 font-medium mt-0.5">Ringkasan agregat seluruh RT dalam naungan RW</p>
             </div>
             <span className="text-xs font-black text-[#1d64ec] bg-blue-50 px-3 py-1 rounded-full">
@@ -905,8 +930,10 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
     setFilterRt("");
   };
 
+  const isRw = isRwUser(session);
+
   const rtOptions = useMemo(() => {
-    if (session?.user?.role === "RW") {
+    if (isRw) {
       return allowedRts;
     } else if (session?.user?.role === "KADUS") {
       if (!filterRw) return [];
@@ -914,7 +941,7 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
       return rwObj ? rwObj.rt : [];
     }
     return [];
-  }, [session, filterRw, allowedRts, allowedRws]);
+  }, [isRw, session, filterRw, allowedRts, allowedRws]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -927,7 +954,7 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
 
   const handleOpenAdd = () => {
     setEditingId(null);
-    const prefillRw = (userRole === "RT" || userRole === "RW") ? userRw : "";
+    const prefillRw = (userRole === "RT" || isRw) ? userRw : "";
     const prefillRt = userRole === "RT" ? userRt : "";
     let prefillDusun = dusunName;
     if (userRole === "KADUS") prefillDusun = (session?.user as any)?.rw || "";
@@ -1063,11 +1090,11 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h3 className="text-lg font-black text-slate-800 flex items-center gap-3">
-            {session?.user?.role === "KADUS" ? `Manajemen Data Warga ${session?.user?.rw}` : session?.user?.role === "RW" ? "Manajemen Data Warga RW" : "Manajemen Data Warga RT"}
+            {session?.user?.role === "KADUS" ? `Manajemen Data Warga ${session?.user?.rw}` : isRw ? "Manajemen Data Warga RW" : "Manajemen Data Warga RT"}
             <span className="bg-teal-100 text-teal-700 px-3 py-1 text-[10px] rounded-full font-bold">Total Terintegrasi: {displayedWarga.length} Warga</span>
           </h3>
           <p className="text-slate-500 text-xs mt-0.5">
-            {session?.user?.role === "KADUS" ? "Kelola dan pantau seluruh warga di wilayah Dusun Anda." : session?.user?.role === "RW" ? "Kelola dan pantau seluruh warga di wilayah RW Anda." : "Kelola, tambah, edit, dan hapus warga di wilayah RT Anda saja."}
+            {session?.user?.role === "KADUS" ? "Kelola dan pantau seluruh warga di wilayah Dusun Anda." : isRw ? "Kelola dan pantau seluruh warga di wilayah RW Anda." : "Kelola, tambah, edit, dan hapus warga di wilayah RT Anda saja."}
           </p>
         </div>
         <button
@@ -1090,7 +1117,7 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
             className="w-full pl-11 pr-4 py-3 bg-slate-50 border-none rounded-xl text-xs font-bold focus:ring-2 focus:ring-blue-500 transition-all text-slate-900"
           />
         </div>
-        {session?.user?.role === "RW" && (
+        {isRw && (
           <select
             value={filterRt}
             onChange={e => setFilterRt(e.target.value)}
@@ -1188,7 +1215,7 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
               <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-wider">
                 <th className="py-3 px-4">Nama / NIK</th>
                 <th className="py-3 px-4">No KK</th>
-                {(session?.user?.role === "RW" || session?.user?.role === "KADUS") && <th className="py-3 px-4">WILAYAH (RT/RW/DUSUN)</th>}
+                {(isRw || session?.user?.role === "KADUS") && <th className="py-3 px-4">WILAYAH (RT/RW/DUSUN)</th>}
                 <th className="py-3 px-4">Hub. Keluarga</th>
                 <th className="py-3 px-4">Pekerjaan</th>
                 <th className="py-3 px-4 text-center">Aksi</th>
@@ -1224,7 +1251,7 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
                     <div className="text-[10px] text-slate-400 mt-0.5"><HoverMask value={w.nik} /></div>
                   </td>
                   <td className="py-3.5 px-4 text-slate-500 font-mono"><HoverMask value={w.noKK} /></td>
-                  {(session?.user?.role === "RW" || session?.user?.role === "KADUS") && (
+                  {(isRw || session?.user?.role === "KADUS") && (
                     <td className="py-3.5 px-4">
                       <span className="px-2.5 py-1 bg-blue-50 text-teal-700 rounded-lg text-[10px] font-black uppercase">{w.alamat ? `${w.alamat} ` : ""}{formatWilayah(w.rt, w.rw, w.dusun)}</span>
                     </td>
@@ -1578,7 +1605,7 @@ function FinanceTab({ session }: { session?: any }) {
   const printRef = useRef<HTMLDivElement>(null);
   const [rtList, setRtList] = useState<string[]>([]);
 
-  const isRw = session?.user?.role === "RW";
+  const isRw = isRwUser(session);
 
   const loadFinances = async () => {
     setLoading(true);
@@ -2064,7 +2091,7 @@ function SuratTab({ onNavigateTab, session }: { onNavigateTab?: (tab: any) => vo
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
   const [actionLoading, setActionLoading] = useState(false);
 
-  const isRw = session?.user?.role === "RW";
+  const isRw = isRwUser(session);
 
   const loadSurat = async () => {
     setLoading(true);
@@ -2337,7 +2364,7 @@ function KegiatanTab({ session }: { session?: any }) {
   const [showModal, setShowModal] = useState(false);
   const [rtList, setRtList] = useState<string[]>([]);
 
-  const isRw = session?.user?.role === "RW";
+  const isRw = isRwUser(session);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -3488,7 +3515,7 @@ function AnnouncementsTab({ rt, rw, session }: { rt: string; rw: string; session
   const [form, setForm] = useState({ title: "", content: "", category: "Kerja Bakti", date: "" });
   const [actionLoading, setActionLoading] = useState(false);
 
-  const isRw = session?.user?.role === "RW";
+  const isRw = isRwUser(session);
 
   const fetchAnnouncements = async () => {
     setLoading(true);
@@ -3681,7 +3708,7 @@ function ComplaintsTab({ rt, rw, session }: { rt: string; rw: string; session?: 
   const [showNotesModal, setShowNotesModal] = useState<any | null>(null);
   const [notes, setNotes] = useState("");
 
-  const isRw = session?.user?.role === "RW";
+  const isRw = isRwUser(session);
 
   const fetchComplaints = async () => {
     setLoading(true);
@@ -3943,7 +3970,7 @@ function InventoryTab({ rt, rw, session }: { rt: string; rw: string; session?: a
   const [showLoanForm, setShowLoanForm] = useState(false);
   const [rtList, setRtList] = useState<string[]>([]);
 
-  const isRw = session?.user?.role === "RW";
+  const isRw = isRwUser(session);
   
   const [itemForm, setItemForm] = useState({ itemName: "", quantity: 1, condition: "Baik", rt: "" });
   const [loanForm, setLoanForm] = useState({ inventoryId: "", borrowerName: "", borrowerPhone: "", quantity: 1, loanDate: "" });
@@ -4252,7 +4279,7 @@ function InventoryTab({ rt, rw, session }: { rt: string; rw: string; session?: a
                     <tr className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200">
                       <th className="p-6">Peminjam</th>
                       <th className="p-6">Barang</th>
-                      {session?.user?.role === "RW" && <th className="p-6">RT</th>}
+                      {isRw && <th className="p-6">RT</th>}
                       <th className="p-6">Jumlah</th>
                       <th className="p-6">Tgl Pinjam</th>
                       <th className="p-6">Tgl Kembali</th>
@@ -4268,7 +4295,7 @@ function InventoryTab({ rt, rw, session }: { rt: string; rw: string; session?: a
                           {item.borrowerPhone && <div className="text-[10px] text-slate-400 font-medium">{item.borrowerPhone}</div>}
                         </td>
                         <td className="p-6 font-bold text-slate-800">{item.inventory?.itemName || "Barang Dihapus"}</td>
-                        {session?.user?.role === "RW" && (
+                        {isRw && (
                           <td className="p-6">
                             <span className="px-2.5 py-1 bg-blue-50 text-teal-700 rounded-lg text-[10px] font-black">RT {item.inventory?.rt}</span>
                           </td>
@@ -4315,6 +4342,7 @@ function InventoryTab({ rt, rw, session }: { rt: string; rw: string; session?: a
 // 10. GeoSENSUS TAB
 // ==========================================
 function GeoSensusTab({ session }: { session: any }) {
+  const isRw = isRwUser(session);
   const rt = (session?.user as any)?.rt || "";
   const rw = (session?.user as any)?.rw || "";
   const tenantId = (session?.user as any)?.tenantId || "";
@@ -4398,7 +4426,7 @@ function GeoSensusTab({ session }: { session: any }) {
 
   const fetchInitialData = async () => {
     setLoading(true);
-    if (session?.user?.role === "RW") {
+    if (isRw) {
       const [pts, fams, rwBoundRes] = await Promise.all([
         getSensusPoints(),
         getResidentKks(),
@@ -4479,7 +4507,7 @@ function GeoSensusTab({ session }: { session: any }) {
     pointGroup.clearLayers();
     boundGroup.clearLayers();
 
-    if (session?.user?.role === "RW") {
+    if (isRw) {
       if (layers.boundary && rtBoundaries.length > 0) {
         rtBoundaries.forEach(b => {
           try {
@@ -4613,7 +4641,7 @@ function GeoSensusTab({ session }: { session: any }) {
       let defaultCenter: [number, number] = [-6.5971, 106.6786];
       const defaultZoom = 16;
 
-      if (session?.user?.role === "RW" && rwBoundary) {
+      if (isRw && rwBoundary) {
         try {
           const coords = typeof rwBoundary.coordinates === "string" ? JSON.parse(rwBoundary.coordinates) : rwBoundary.coordinates;
           if (coords && coords.length > 0) defaultCenter = coords[0];
@@ -4683,7 +4711,7 @@ function GeoSensusTab({ session }: { session: any }) {
       const res = await saveRtMapBoundary(coordinates);
       setActionLoading(false);
       if (res.success) {
-        alert(`Batas wilayah ${session?.user?.role === "RW" ? "RW" : "RT"} berhasil disimpan!`);
+        alert(`Batas wilayah ${isRw ? "RW" : "RT"} berhasil disimpan!`);
         fetchInitialData();
       } else {
         alert("Gagal menyimpan batas wilayah: " + res.error);
@@ -4967,7 +4995,7 @@ function GeoSensusTab({ session }: { session: any }) {
           {boundary && (
             <div className="bg-slate-950 p-6 md:p-8 rounded-[2.5rem] text-white space-y-4 shadow-xl">
               <div className="flex items-center gap-2 text-[10px] font-black text-rose-400 uppercase tracking-widest">
-                <Compass size={12} /> Estimasi Batas Teritorial {session?.user?.role === "RW" ? "RW" : "RT"}
+                <Compass size={12} /> Estimasi Batas Teritorial {isRw ? "RW" : "RT"}
               </div>
               <div className="grid grid-cols-2 gap-4 border-t border-white/10 pt-4">
                 <div>

@@ -30,13 +30,14 @@ export function RwHealthTab({ session }: { session: any }) {
         notes: ""
     });
 
-    const canEdit = session?.user?.role === "RW" || session?.user?.role === "POSYANDU" || session?.user?.role === "ADMIN_DESA" || session?.user?.role === "KADES";
+    const rawRole = String(session?.user?.role || "").toUpperCase();
+    const canEdit = rawRole === "RW" || rawRole === "POSYANDU" || rawRole === "ADMIN_DESA" || rawRole === "KADES" || rawRole === "SEKDES" || Boolean((session?.user as any)?.rw && (!(session?.user as any)?.rt || (session?.user as any)?.rt === "000"));
 
     const loadData = async () => {
         setLoading(true);
         const [data, summary] = await Promise.all([
-            getRwHealthData(),
-            getRwHealthRealtimeSummary()
+            getRwHealthData(rwNo),
+            getRwHealthRealtimeSummary(rwNo)
         ]);
         setDataList(data);
         setRealtimeSummary(summary);
@@ -45,7 +46,7 @@ export function RwHealthTab({ session }: { session: any }) {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [rwNo]);
 
     const handleApplyRealtimeStats = () => {
         if (!realtimeSummary) return;
@@ -61,6 +62,7 @@ export function RwHealthTab({ session }: { session: any }) {
         setSubmitting(true);
         await addRwHealthData({
             ...form,
+            rw: rwNo,
             month: Number(form.month),
             year: Number(form.year),
             balitaTotal: Number(form.balitaTotal),

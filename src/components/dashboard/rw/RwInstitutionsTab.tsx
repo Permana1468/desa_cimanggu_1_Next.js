@@ -30,24 +30,25 @@ export function RwInstitutionsTab({ session }: { session: any }) {
     const [submittingMember, setSubmittingMember] = useState(false);
     const [actionLoading, setActionLoading] = useState(false);
 
-    const isRw = session?.user?.role === "RW" || session?.user?.role === "ADMIN_DESA" || session?.user?.role === "KADES";
+    const rawRole = String(session?.user?.role || "").toUpperCase();
+    const isRw = rawRole === "RW" || rawRole === "ADMIN_DESA" || rawRole === "KADES" || rawRole === "SEKDES" || Boolean((session?.user as any)?.rw && (!(session?.user as any)?.rt || (session?.user as any)?.rt === "000"));
 
     const loadInstitutions = async () => {
         setLoading(true);
-        const data = await getRwInstitutions();
+        const data = await getRwInstitutions(rwNo);
         setInstitutions(data);
         setLoading(false);
     };
 
     useEffect(() => {
         loadInstitutions();
-    }, []);
+    }, [rwNo]);
 
     const handleAddInst = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!instForm.name.trim()) return;
         setSubmittingInst(true);
-        await addRwInstitution(instForm);
+        await addRwInstitution({ ...instForm, rw: rwNo });
         setInstForm({ name: "", description: "" });
         setSubmittingInst(false);
         loadInstitutions();
@@ -56,7 +57,7 @@ export function RwInstitutionsTab({ session }: { session: any }) {
     const handleQuickAdd = async (name: string, description: string) => {
         if (!confirm(`Tambahkan template kelembagaan "${name}"?`)) return;
         setActionLoading(true);
-        await addRwInstitution({ name, description });
+        await addRwInstitution({ name, description, rw: rwNo });
         setActionLoading(false);
         loadInstitutions();
     };
@@ -414,7 +415,7 @@ export function RwInstitutionsTab({ session }: { session: any }) {
                 )}
 
                 {/* LIST OF INSTITUTIONS (RIGHT) */}
-                <div className={`xl:col-span-${isRw ? '2' : '3'} space-y-6`}>
+                <div className={`${isRw ? 'xl:col-span-2' : 'xl:col-span-3'} space-y-6`}>
                     {loading ? (
                         <div className="bg-white p-12 text-center rounded-[2.5rem] border border-slate-200/80">
                             <RefreshCw className="animate-spin text-indigo-600 mx-auto mb-3" size={32} />

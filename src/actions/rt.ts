@@ -1389,12 +1389,59 @@ export async function getRwDashboardStats() {
             };
         });
 
+        const [pendingLetters, births, deaths, moves, incoming] = await Promise.all([
+            prisma.surat.count({
+                where: {
+                    status: "TERTUNDA",
+                    warga: filterScope
+                }
+            }),
+            prisma.rtBirthReport.count({ where: reportFilterScope }),
+            prisma.rtDeathReport.count({ where: reportFilterScope }),
+            prisma.rtMoveReport.count({ where: reportFilterScope }),
+            prisma.rtIncomingReport.count({ where: reportFilterScope })
+        ]);
+
+        let sumWarga = 0, sumKK = 0, sumKas = 0, sumKegiatan = 0;
+        rtBreakdown.forEach(item => {
+            sumWarga += item.totalWarga;
+            sumKK += item.totalKK;
+            sumKas += item.totalKas;
+            sumKegiatan += item.totalActivities;
+        });
+
         return {
             success: true,
-            rtBreakdown
+            rtBreakdown,
+            stats: {
+                totalWarga: sumWarga,
+                totalKK: sumKK,
+                totalKas: sumKas,
+                totalKegiatan: sumKegiatan,
+                pendingLetters,
+                births,
+                deaths,
+                moves,
+                incoming
+            }
         };
     } catch (error: any) {
-        return { success: false, rtBreakdown: [], error: error.message };
+        return { 
+            success: false, 
+            rtBreakdown: [], 
+            stats: {
+                totalWarga: 0,
+                totalKK: 0,
+                totalKas: 0,
+                totalKegiatan: 0,
+                pendingLetters: 0,
+                births: 0,
+                deaths: 0,
+                moves: 0,
+                incoming: 0
+            },
+            error: error.message 
+        };
     }
 }
 

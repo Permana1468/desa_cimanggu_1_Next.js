@@ -1750,24 +1750,26 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                   ];
                 }
 
-                if (role === "RT" || role === "RW") {
+                const isRwRole = role === "RW" || String(role || "").toUpperCase() === "RW" || Boolean((session?.user as any)?.rw && (!(session?.user as any)?.rt || (session?.user as any)?.rt === "000"));
+
+                if (role === "RT" || role === "RW" || isRwRole) {
                   itemsToRender = [
                     { name: "Dashboard", icon: LayoutDashboard, href: "/dashboard?tab=overview" },
                     { name: "Data Warga", icon: Users, href: "/dashboard?tab=warga" },
                     { name: "Rumah Warga", icon: HomeIcon, href: "/dashboard?tab=rumah" },
-                    { name: role === "RW" ? "Kas Keuangan RW" : "Kas Keuangan", icon: Banknote, href: "/dashboard?tab=finance" },
+                    { name: isRwRole ? "Kas Keuangan RW" : "Kas Keuangan", icon: Banknote, href: "/dashboard?tab=finance" },
                     { name: "Cek Surat", icon: FileText, href: "/dashboard?tab=surat" },
                     { name: "Laporan Kegiatan", icon: Sparkles, href: "/dashboard?tab=kegiatan" },
                     { name: "Laporan LAMPID", icon: Milestone, href: "/dashboard?tab=lampid" },
                     { name: "Pengumuman", icon: Megaphone, href: "/dashboard?tab=announcements" },
                     { name: "Aduan Warga", icon: AlertCircle, href: "/dashboard?tab=complaints" },
-                    { name: role === "RW" ? "Inventaris RW" : "Inventaris RT", icon: Package, href: "/dashboard?tab=inventory" },
+                    { name: isRwRole ? "Inventaris RW" : "Inventaris RT", icon: Package, href: "/dashboard?tab=inventory" },
                     { name: "GeoSENSUS", icon: Compass, href: "/dashboard?tab=geosensus" },
                     { name: "Data Bansos", icon: HeartHandshake, href: "/dashboard?tab=bansos" },
                     { name: "Keamanan Lingkungan", icon: ShieldCheck, href: "/dashboard?tab=security" },
                     { name: "Usulan Musrenbang", icon: Banknote, href: "/kelembagaan/musrenbang" }
                   ];
-                  if (role === "RW") {
+                  if (isRwRole) {
                     itemsToRender.push(
                       { name: "Posyandu & Kesehatan", icon: HeartPulse, href: "/dashboard?tab=health" },
                       { name: "Kelembagaan RW", icon: Building2, href: "/dashboard?tab=institutions" }
