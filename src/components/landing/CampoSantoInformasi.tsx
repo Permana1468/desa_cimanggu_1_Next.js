@@ -14,15 +14,18 @@ import {
     ArrowRight,
     Award,
     Compass,
-    Radio
+    Radio,
+    ArrowLeft,
+    X
 } from 'lucide-react';
 
 interface CampoSantoInformasiProps {
     siteData?: any;
+    uiConfig?: any;
     onBackToHero?: () => void;
 }
 
-export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInformasiProps) {
+export function CampoSantoInformasi({ siteData, uiConfig, onBackToHero }: CampoSantoInformasiProps) {
     const [isVideoPlaying, setIsVideoPlaying] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -53,20 +56,43 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
         };
     }, []);
 
+    // Resolve video source (handles YouTube links or local MP4 drone footage)
+    const rawVideo = siteData?.hero_video || "/uploads/1791134991185-DRONE_DESA_2.mp4";
+    const isYouTube = rawVideo.includes('youtube.com') || rawVideo.includes('youtu.be');
+    const getYouTubeEmbed = (url: string) => {
+        if (url.includes('embed/')) return url;
+        const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+        return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1` : url;
+    };
+
     return (
         <div 
             ref={containerRef}
-            className="w-full min-h-screen bg-[#1c0410] text-white font-sans selection:bg-amber-500 selection:text-slate-950 pb-16 overflow-x-hidden"
+            className="w-full min-h-screen bg-[#1c0410] text-white font-sans selection:bg-amber-500 selection:text-slate-950 pb-16 overflow-x-hidden relative"
         >
+            {/* STICKY TOP-LEFT BACK TO HERO BUTTON */}
+            <div className="fixed top-4 left-4 sm:top-6 sm:left-8 z-50">
+                <button
+                    onClick={() => {
+                        if (onBackToHero) onBackToHero();
+                    }}
+                    className="min-w-[44px] min-h-[44px] w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-black/80 hover:bg-amber-400 text-amber-300 hover:text-slate-950 border border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.5)] backdrop-blur-md flex items-center justify-center transition-all duration-300 group cursor-pointer"
+                    title="Kembali ke Beranda Hero"
+                    aria-label="Kembali ke Beranda"
+                >
+                    <ArrowLeft size={20} className="animate-pulse group-hover:-translate-x-1 transition-transform" />
+                </button>
+            </div>
+
             {/* ========================================================================= */}
-            {/* 1. FIREWATCH STYLE PARALLAX HERO BANNER WITH CLIFF SILHOUETTE (SCREENSHOT 2) */}
+            {/* 1. FIREWATCH STYLE PARALLAX HERO BANNER WITH CLIFF SILHOUETTE */}
             {/* ========================================================================= */}
             <div className="relative w-full h-[650px] sm:h-[750px] overflow-hidden bg-[#240614] flex flex-col justify-between items-center text-center">
                 {/* Background Parallax Sky & Sunset Gradient */}
                 <div className="absolute inset-0 z-0 pointer-events-none">
                     <Image
                         src="/images/sawah.png"
-                        alt="Sunset Scenery"
+                        alt="Sunset Scenery Desa Cimanggu I"
                         fill
                         priority
                         sizes="100vw"
@@ -126,76 +152,109 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
                     </p>
                 </div>
 
-                {/* Banner Ribbon (Screenshot 3 Style) */}
+                {/* Banner Ribbon - Real Functional Next.js Routes */}
                 <div className="relative z-10 w-full max-w-4xl px-4 mb-8">
                     <div className="text-amber-300 font-black text-xs uppercase tracking-[0.3em] mb-4 drop-shadow">
                         LAYANAN TERSEDIA SEKARANG UNTUK MASYARAKAT
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-                        <div className="bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 font-black text-[11px] sm:text-xs py-3 px-4 uppercase tracking-wider rounded-sm shadow-xl flex items-center justify-center gap-2 transform hover:-translate-y-1 transition-transform cursor-pointer border border-amber-300">
+                        <Link 
+                            href="/gis-dashboard"
+                            className="bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 font-black text-[11px] sm:text-xs py-3 px-4 uppercase tracking-wider rounded-sm shadow-xl flex items-center justify-center gap-2 transform hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(245,158,11,0.6)] transition-all cursor-pointer border border-amber-300"
+                        >
                             <Globe size={15} />
                             <span>WEBGIS ENGINE</span>
-                        </div>
-                        <div className="bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 font-black text-[11px] sm:text-xs py-3 px-4 uppercase tracking-wider rounded-sm shadow-xl flex items-center justify-center gap-2 transform hover:-translate-y-1 transition-transform cursor-pointer border border-amber-300">
+                        </Link>
+                        <Link 
+                            href="/absensi"
+                            className="bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 font-black text-[11px] sm:text-xs py-3 px-4 uppercase tracking-wider rounded-sm shadow-xl flex items-center justify-center gap-2 transform hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(245,158,11,0.6)] transition-all cursor-pointer border border-amber-300"
+                        >
                             <ShieldCheck size={15} />
                             <span>E-ABSENSI REALTIME</span>
-                        </div>
-                        <div className="bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 font-black text-[11px] sm:text-xs py-3 px-4 uppercase tracking-wider rounded-sm shadow-xl flex items-center justify-center gap-2 transform hover:-translate-y-1 transition-transform cursor-pointer border border-amber-300">
+                        </Link>
+                        <Link 
+                            href="/dashboard/apbdes"
+                            className="bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 font-black text-[11px] sm:text-xs py-3 px-4 uppercase tracking-wider rounded-sm shadow-xl flex items-center justify-center gap-2 transform hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(245,158,11,0.6)] transition-all cursor-pointer border border-amber-300"
+                        >
                             <FileText size={15} />
                             <span>TRANSPARANSI APBDES</span>
-                        </div>
-                        <div className="bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 font-black text-[11px] sm:text-xs py-3 px-4 uppercase tracking-wider rounded-sm shadow-xl flex items-center justify-center gap-2 transform hover:-translate-y-1 transition-transform cursor-pointer border border-amber-300">
+                        </Link>
+                        <Link 
+                            href="/login"
+                            className="bg-gradient-to-r from-amber-500 to-yellow-600 text-slate-950 font-black text-[11px] sm:text-xs py-3 px-4 uppercase tracking-wider rounded-sm shadow-xl flex items-center justify-center gap-2 transform hover:-translate-y-1 hover:shadow-[0_0_20px_rgba(245,158,11,0.6)] transition-all cursor-pointer border border-amber-300"
+                        >
                             <Sparkles size={15} />
                             <span>KMS POSYANDU</span>
-                        </div>
+                        </Link>
                     </div>
                 </div>
             </div>
 
             {/* ========================================================================= */}
-            {/* 2. VIDEO SHOWCASE & NARRATIVE STORY SECTION (SCREENSHOT 4) */}
+            {/* 2. REAL VIDEO SHOWCASE & NARRATIVE STORY SECTION */}
             {/* ========================================================================= */}
             <div className="max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-20 space-y-16">
                 
-                {/* Embed Video Showcase Frame */}
+                {/* Real Video Showcase Frame */}
                 <div className="relative w-full aspect-video rounded-2xl overflow-hidden border-4 border-amber-500/30 shadow-[0_0_50px_rgba(245,158,11,0.25)] bg-slate-950 group">
-                    <Image
-                        src="/images/slide_1.webp"
-                        alt="Video Preview"
-                        fill
-                        className="object-cover filter saturate-[1.2] brightness-75 group-hover:scale-105 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-
                     {!isVideoPlaying ? (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center p-6 z-10">
-                            <button
-                                onClick={() => setIsVideoPlaying(true)}
-                                className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-red-600 hover:bg-amber-400 hover:text-slate-950 text-white flex items-center justify-center shadow-2xl transition-all transform hover:scale-110 cursor-pointer border-2 border-white/50"
-                            >
-                                <Play size={32} className="ml-1 fill-current" />
-                            </button>
-                            <div className="space-y-1">
-                                <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wide drop-shadow">
-                                    Dokumentasi Digitalisasi Desa Cimanggu I
-                                </h3>
-                                <p className="text-amber-200/90 text-xs sm:text-sm font-medium">
-                                    Tonton video profil pelayanan publik dan pemetaan wilayah terpadu.
-                                </p>
+                        <>
+                            <Image
+                                src="/images/slide_1.webp"
+                                alt="Video Preview Desa Cimanggu I"
+                                fill
+                                className="object-cover filter saturate-[1.2] brightness-75 group-hover:scale-105 transition-transform duration-700"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-center p-6 z-10">
+                                <button
+                                    onClick={() => setIsVideoPlaying(true)}
+                                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-red-600 hover:bg-amber-400 hover:text-slate-950 text-white flex items-center justify-center shadow-2xl transition-all transform hover:scale-110 cursor-pointer border-2 border-white/50"
+                                    title="Putar Video Profil Desa"
+                                >
+                                    <Play size={32} className="ml-1 fill-current" />
+                                </button>
+                                <div className="space-y-1">
+                                    <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-wide drop-shadow">
+                                        Dokumentasi Digitalisasi Desa Cimanggu I
+                                    </h3>
+                                    <p className="text-amber-200/90 text-xs sm:text-sm font-medium">
+                                        Tonton video dokumentasi udara dan profil pelayanan publik terpadu.
+                                    </p>
+                                </div>
                             </div>
-                        </div>
+                        </>
                     ) : (
-                        <iframe
-                            className="w-full h-full relative z-20"
-                            src="https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
-                            title="Video Profil Desa"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                        />
+                        <div className="relative w-full h-full bg-black">
+                            <button
+                                onClick={() => setIsVideoPlaying(false)}
+                                className="absolute top-4 right-4 z-30 p-2 rounded-full bg-black/70 hover:bg-amber-500 text-white hover:text-slate-950 transition-colors"
+                                title="Tutup Video"
+                            >
+                                <X size={20} />
+                            </button>
+                            {isYouTube ? (
+                                <iframe
+                                    className="w-full h-full relative z-20"
+                                    src={getYouTubeEmbed(rawVideo)}
+                                    title="Video Profil Desa Cimanggu I"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                />
+                            ) : (
+                                <video
+                                    src={rawVideo}
+                                    controls
+                                    autoPlay
+                                    playsInline
+                                    className="w-full h-full object-cover relative z-20"
+                                />
+                            )}
+                        </div>
                     )}
                 </div>
 
-                {/* Firewatch Warm Text Narrative Story Section */}
+                {/* Firewatch Warm Text Narrative Story Section (CMS Grounded) */}
                 <div className="text-center space-y-6 max-w-3xl mx-auto">
                     <h2 
                         className="text-2xl sm:text-4xl font-extrabold text-amber-400 leading-tight uppercase"
@@ -204,12 +263,12 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
                             textShadow: '0 2px 10px rgba(245,158,11,0.3)'
                         }}
                     >
-                        {siteData?.about_title || "Desa Cimanggu I adalah pelopor digitalisasi pemerintahan desa di Kecamatan Cibungbulang dengan tata kelola transparan dan inovasi WebGIS."}
+                        {siteData?.about_title || "Sekilas Pandang Pemdes Cimanggu I"}
                     </h2>
 
-                    <div className="text-left text-amber-100/80 text-xs sm:text-sm leading-relaxed font-serif pt-4 border-t border-amber-500/20">
+                    <div className="text-left text-amber-100/90 text-xs sm:text-sm leading-relaxed font-serif pt-4 border-t border-amber-500/20">
                         <p className="whitespace-pre-wrap">
-                            {siteData?.about_text || "Terletak di wilayah strategis Kecamatan Cibungbulang, Kabupaten Bogor, Desa Cimanggu I berkomitmen penuh untuk menghadirkan pelayanan publik modern yang cepat, mudah, dan dapat diakses oleh seluruh warga.\n\nMelalui penerapan Sistem Digitalisasi Desa (SDD), data kependudukan, batas wilayah RT/RW, rencana anggaran biaya (RAB), dan pencatatan absensi aparatur dikelola secara terpusat demi efisiensi dan akuntabilitas."}
+                            {siteData?.about_text || "Desa Cimanggu I adalah salah satu desa strategis yang terletak di wilayah Kecamatan Cibungbulang, Kabupaten Bogor, Provinsi Jawa Barat. Berada di kawasan yang subur dan asri, Desa Cimanggu I memiliki bentang alam persawahan hijau, perkebunan produktif, serta pemukiman warga yang guyub rukun. Terbagi ke dalam 4 Wilayah Dusun, 9 Rukun Warga (RW), dan 36 Rukun Tetangga (RT), Pemerintah Desa Cimanggu I berkomitmen penuh menghadirkan transformasi pelayanan publik modern, transparan, dan terintegrasi melalui Sistem Digitalisasi Desa (SDD), pemantauan kesehatan terpadu Posyandu Mawar, pemberdayaan ekonomi UMKM lokal, serta partisipasi aktif warga dalam pembangunan desa."}
                         </p>
                     </div>
                 </div>
@@ -217,7 +276,7 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
             </div>
 
             {/* ========================================================================= */}
-            {/* 3. VISUAL GALLERY SECTION (SCREENSHOT 5 STYLE) */}
+            {/* 3. VISUAL GALLERY SECTION */}
             {/* ========================================================================= */}
             <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 space-y-12">
                 <div className="text-center space-y-2">
@@ -237,7 +296,7 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
 
                 {/* 3 Gallery Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-[#2a091a] border border-amber-500/30 rounded-xl overflow-hidden shadow-xl group hover:border-amber-400 transition-all">
+                    <Link href="/gis-dashboard" className="block bg-[#2a091a] border border-amber-500/30 rounded-xl overflow-hidden shadow-xl group hover:border-amber-400 transition-all cursor-pointer">
                         <div className="relative h-48 w-full overflow-hidden">
                             <Image
                                 src="/images/sawah.png"
@@ -247,14 +306,17 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
                             />
                         </div>
                         <div className="p-5 space-y-2">
-                            <h4 className="text-base font-bold text-amber-300 uppercase">PETA WEBGIS TERPADU</h4>
+                            <h4 className="text-base font-bold text-amber-300 uppercase group-hover:text-amber-200 flex items-center justify-between">
+                                <span>PETA WEBGIS TERPADU</span>
+                                <ArrowRight size={16} className="transform group-hover:translate-x-1 transition-transform" />
+                            </h4>
                             <p className="text-amber-100/70 text-xs leading-relaxed">
-                                Pemetaan partisipatif batas wilayah RT/RW, batas dusun, dan lokasi keluarga penerima manfaat.
+                                Pemetaan partisipatif batas wilayah RT/RW, batas 4 dusun, dan lokasi keluarga penerima manfaat.
                             </p>
                         </div>
-                    </div>
+                    </Link>
 
-                    <div className="bg-[#2a091a] border border-amber-500/30 rounded-xl overflow-hidden shadow-xl group hover:border-amber-400 transition-all">
+                    <Link href="/absensi" className="block bg-[#2a091a] border border-amber-500/30 rounded-xl overflow-hidden shadow-xl group hover:border-amber-400 transition-all cursor-pointer">
                         <div className="relative h-48 w-full overflow-hidden">
                             <Image
                                 src="/images/slide_1.webp"
@@ -264,14 +326,17 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
                             />
                         </div>
                         <div className="p-5 space-y-2">
-                            <h4 className="text-base font-bold text-amber-300 uppercase">PRESENSI APARATUR</h4>
+                            <h4 className="text-base font-bold text-amber-300 uppercase group-hover:text-amber-200 flex items-center justify-between">
+                                <span>PRESENSI APARATUR</span>
+                                <ArrowRight size={16} className="transform group-hover:translate-x-1 transition-transform" />
+                            </h4>
                             <p className="text-amber-100/70 text-xs leading-relaxed">
                                 Sistem pencatatan kehadiran digital aparatur desa berbasis biometrik dan geofencing realtime.
                             </p>
                         </div>
-                    </div>
+                    </Link>
 
-                    <div className="bg-[#2a091a] border border-amber-500/30 rounded-xl overflow-hidden shadow-xl group hover:border-amber-400 transition-all">
+                    <Link href="/login" className="block bg-[#2a091a] border border-amber-500/30 rounded-xl overflow-hidden shadow-xl group hover:border-amber-400 transition-all cursor-pointer">
                         <div className="relative h-48 w-full overflow-hidden">
                             <Image
                                 src="/images/slide_6_.png"
@@ -281,28 +346,31 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
                             />
                         </div>
                         <div className="p-5 space-y-2">
-                            <h4 className="text-base font-bold text-amber-300 uppercase">E-KMS & KESEHATAN</h4>
+                            <h4 className="text-base font-bold text-amber-300 uppercase group-hover:text-amber-200 flex items-center justify-between">
+                                <span>E-KMS & KESEHATAN</span>
+                                <ArrowRight size={16} className="transform group-hover:translate-x-1 transition-transform" />
+                            </h4>
                             <p className="text-amber-100/70 text-xs leading-relaxed">
                                 Modul pencatatan digital tumbuh kembang balita Posyandu Mawar 1 hingga 7 Desa Cimanggu I.
                             </p>
                         </div>
-                    </div>
+                    </Link>
                 </div>
 
-                {/* Bottom Ribbon Buttons (Screenshot 5 Style) */}
+                {/* Bottom Ribbon Action Buttons */}
                 <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-8">
-                    <a
-                        href="#layanan"
+                    <Link
+                        href="/kontak"
                         className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-black text-xs py-3 px-8 uppercase tracking-widest rounded-sm shadow-xl border border-amber-300 transition-all transform hover:scale-105"
                     >
                         DUKUNGAN TEKNIS & PENGADUAN
-                    </a>
-                    <a
-                        href="#berita"
+                    </Link>
+                    <Link
+                        href="/dashboard/apbdes"
                         className="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-black text-xs py-3 px-8 uppercase tracking-widest rounded-sm shadow-xl border border-amber-300 transition-all transform hover:scale-105"
                     >
                         TRANSPARANSI DOKUMEN APBDES
-                    </a>
+                    </Link>
                 </div>
             </div>
 
@@ -311,8 +379,8 @@ export function CampoSantoInformasi({ siteData, onBackToHero }: CampoSantoInform
                 <div className="text-[11px] font-black uppercase tracking-[0.25em] text-amber-400">
                     DESA CIMANGGU I • KECAMATAN CIBUNGBULANG • KABUPATEN BOGOR
                 </div>
-                <p className="text-[10px] text-amber-200/60 uppercase tracking-widest">
-                    © 2026 PEMERINTAH DESA CIMANGGU I. DILINDUNGI UNDANG-UNDANG.
+                <p className="text-[10px] text-amber-200/70 uppercase tracking-widest">
+                    {uiConfig?.footerCopyright || "© 2026 PEMERINTAH DESA CIMANGGU I • KECAMATAN CIBUNGBULANG • KABUPATEN BOGOR"}
                 </p>
             </div>
         </div>

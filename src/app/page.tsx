@@ -203,7 +203,7 @@ export default async function LandingPage() {
     return (
         <LandingThemeProvider initialIsNightMode={initialIsNightMode} initialIsDualMode={initialIsDualMode}>
             <SmoothScroll>
-                <LandingModeHandler siteData={siteData} orgData={orgData}>
+                <LandingModeHandler siteData={siteData} orgData={orgData} uiConfig={uiConfig}>
                 {/* Desktop View: Fullscreen Modern Parallax Smooth Scroll Landing Page */}
                 <div className="hidden md:block">
                     <DesktopParallaxLanding 

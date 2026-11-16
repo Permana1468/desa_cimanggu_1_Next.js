@@ -13,7 +13,8 @@ import {
     Instagram,
     Facebook,
     Youtube,
-    Twitter
+    Twitter,
+    Phone
 } from 'lucide-react';
 import { useLandingTheme } from './LandingThemeProvider';
 import { CampoSantoInformasi } from './CampoSantoInformasi';
@@ -22,9 +23,10 @@ import { CampoSantoOrganisasi } from './CampoSantoOrganisasi';
 interface CampoSantoHeroProps {
     siteData?: any;
     orgData?: any;
+    uiConfig?: any;
 }
 
-export function CampoSantoHero({ siteData, orgData }: CampoSantoHeroProps) {
+export function CampoSantoHero({ siteData, orgData, uiConfig }: CampoSantoHeroProps) {
     const { toggleDualMode, language } = useLandingTheme();
     const [activeCircle, setActiveCircle] = useState<number | null>(null);
     const [isTitleHovered, setIsTitleHovered] = useState(false);
@@ -32,6 +34,15 @@ export function CampoSantoHero({ siteData, orgData }: CampoSantoHeroProps) {
     const [activeTab, setActiveTab] = useState<'hero' | 'informasi' | 'organisasi'>('hero');
     const containerRef = useRef<HTMLDivElement>(null);
     const bgParallaxRef = useRef<HTMLDivElement>(null);
+
+    const socialLinks = {
+        instagram: uiConfig?.socialLinks?.instagram || siteData?.socialLinks?.instagram || "https://instagram.com/pemdescimanggu1",
+        facebook: uiConfig?.socialLinks?.facebook || siteData?.socialLinks?.facebook || "https://facebook.com/pemdescimanggu1",
+        youtube: uiConfig?.socialLinks?.youtube || siteData?.socialLinks?.youtube || "https://youtube.com/@DesaCimanggu1Official",
+        whatsapp: uiConfig?.socialLinks?.whatsapp || siteData?.socialLinks?.whatsapp || "https://wa.me/6281289001126",
+        tiktok: uiConfig?.socialLinks?.tiktok || siteData?.socialLinks?.tiktok || "https://tiktok.com/@desacimanggu1",
+        twitter: uiConfig?.socialLinks?.twitter || siteData?.socialLinks?.twitter || "https://twitter.com"
+    };
 
     // Helper to parse gallery items which could be legacy strings or new objects
     const parseGalleryItem = (item: any, fallback: string) => {
@@ -106,12 +117,12 @@ export function CampoSantoHero({ siteData, orgData }: CampoSantoHeroProps) {
         ];
         const defaultTitles = language === 'id' ? [
             { title: "PELAYANAN WARGA", sub: "E-Surat Mandiri & UHC", link: "/login" },
-            { title: "PEMETAAN REGIONAL", sub: "WebGIS Batas Wilayah", link: "#peta-interaktif" },
+            { title: "PEMETAAN REGIONAL", sub: "WebGIS Batas Wilayah", link: "/gis-dashboard" },
             { title: "HEALTH MONITORS", sub: "E-KMS Posyandu Mawar", link: "/login" },
             { title: "MANAJEMEN PEMDES", sub: "E-Tupoksi & RAB Desa", link: "/login" }
         ] : [
             { title: "CITIZEN SERVICES", sub: "Self-Service Letters & UHC", link: "/login" },
-            { title: "REGIONAL MAPPING", sub: "WebGIS Border Mapping", link: "#peta-interaktif" },
+            { title: "REGIONAL MAPPING", sub: "WebGIS Border Mapping", link: "/gis-dashboard" },
             { title: "HEALTH MONITORS", sub: "E-KMS Mawar Clinic", link: "/login" },
             { title: "GOVERNMENT MGT", sub: "E-Tasks & Village Budget", link: "/login" }
         ];
@@ -136,18 +147,18 @@ export function CampoSantoHero({ siteData, orgData }: CampoSantoHeroProps) {
         };
     });
 
-    // Navbar Menu Items (STRUKTUR ORGANISASI added right after INFORMASI PUBLIK)
+    // Navbar Menu Items (Fully connected to application routes)
     const navMenuItems = language === 'id' ? [
         { id: 'informasi', name: 'INFORMASI PUBLIK', tab: 'informasi' },
         { id: 'organisasi', name: 'STRUKTUR ORGANISASI', tab: 'organisasi' },
-        { id: 'lembaga', name: 'LEMBAGA DESA', path: '#profil' },
-        { id: 'kabar', name: 'KABAR & DATA', path: '#berita' },
+        { id: 'lembaga', name: 'LEMBAGA DESA', path: '/organisasi/kelembagaan', isRoute: true },
+        { id: 'kabar', name: 'KABAR & DATA', path: '/profil', isRoute: true },
         { id: 'umkm', name: 'WIRAUSAHA UMKM', path: '/umkm', isRoute: true },
     ] : [
         { id: 'informasi', name: 'PUBLIC INFO', tab: 'informasi' },
         { id: 'organisasi', name: 'ORG STRUCTURE', tab: 'organisasi' },
-        { id: 'lembaga', name: 'VILLAGE INST.', path: '#profil' },
-        { id: 'kabar', name: 'NEWS & DATA', path: '#berita' },
+        { id: 'lembaga', name: 'VILLAGE INST.', path: '/organisasi/kelembagaan', isRoute: true },
+        { id: 'kabar', name: 'NEWS & DATA', path: '/profil', isRoute: true },
         { id: 'umkm', name: 'LOCAL ENTERPRISE', path: '/umkm', isRoute: true },
     ];
 
@@ -276,9 +287,9 @@ export function CampoSantoHero({ siteData, orgData }: CampoSantoHeroProps) {
             {/* DYNAMIC TAB CONTENT SWITCHER */}
             {/* ========================================================================= */}
             {activeTab === 'informasi' ? (
-                <CampoSantoInformasi siteData={siteData} onBackToHero={() => setActiveTab('hero')} />
+                <CampoSantoInformasi siteData={siteData} uiConfig={uiConfig} onBackToHero={() => setActiveTab('hero')} />
             ) : activeTab === 'organisasi' ? (
-                <CampoSantoOrganisasi siteData={siteData} orgData={orgData} onBackToHero={() => setActiveTab('hero')} />
+                <CampoSantoOrganisasi siteData={siteData} orgData={orgData} uiConfig={uiConfig} onBackToHero={() => setActiveTab('hero')} />
             ) : (
                 /* MAIN CAMPO SANTO HERO VIEW */
                 <>
@@ -352,18 +363,27 @@ export function CampoSantoHero({ siteData, orgData }: CampoSantoHeroProps) {
                                 </h1>
                             </div>
 
-                            {/* RUNNING MARQUEE SUBTITLE */}
+                            {/* RUNNING MARQUEE SUBTITLE (SEAMLESS INFINITE LOOP) */}
                             <div className="w-full overflow-hidden bg-transparent border-0 py-1 max-w-2xl mx-auto">
                                 <div className={`whitespace-nowrap animate-marquee flex items-center gap-8 text-xs sm:text-sm font-black uppercase tracking-[0.3em] transition-colors duration-700 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] ${currentMarqueeColor}`}>
+                                    {/* Set 1 */}
                                     <span>{language === 'id' ? 'KECAMATAN CIBUNGBULANG' : 'CIBUNGBULANG DISTRICT'}</span>
                                     <span>•</span>
                                     <span>{language === 'id' ? 'KABUPATEN BOGOR' : 'BOGOR REGENCY'}</span>
                                     <span>•</span>
                                     <span>{language === 'id' ? 'PROVINSI JAWA BARAT' : 'WEST JAVA PROVINCE'}</span>
                                     <span>•</span>
+                                    <span>{language === 'id' ? 'SISTEM DIGITALISASI DESA' : 'DIGITAL VILLAGE SYSTEM'}</span>
+                                    <span>•</span>
+                                    {/* Set 2 (Exact mirror duplicate for 50% translation without jumps) */}
                                     <span>{language === 'id' ? 'KECAMATAN CIBUNGBULANG' : 'CIBUNGBULANG DISTRICT'}</span>
                                     <span>•</span>
                                     <span>{language === 'id' ? 'KABUPATEN BOGOR' : 'BOGOR REGENCY'}</span>
+                                    <span>•</span>
+                                    <span>{language === 'id' ? 'PROVINSI JAWA BARAT' : 'WEST JAVA PROVINCE'}</span>
+                                    <span>•</span>
+                                    <span>{language === 'id' ? 'SISTEM DIGITALISASI DESA' : 'DIGITAL VILLAGE SYSTEM'}</span>
+                                    <span>•</span>
                                 </div>
                             </div>
 
@@ -450,7 +470,7 @@ export function CampoSantoHero({ siteData, orgData }: CampoSantoHeroProps) {
                                 <span className="text-amber-500/50">|</span>
                                 <button onClick={() => setActiveTab('organisasi')} className="hover:text-amber-300 transition-colors cursor-pointer">{language === 'id' ? 'STRUKTUR ORGANISASI' : 'ORG STRUCTURE'}</button>
                                 <span className="text-amber-500/50">|</span>
-                                <a href="#peta-interaktif" className="hover:text-amber-300 transition-colors">{language === 'id' ? 'PETA INTERAKTIF' : 'INTERACTIVE MAP'}</a>
+                                <Link href="/gis-dashboard" className="hover:text-amber-300 transition-colors">{language === 'id' ? 'PETA INTERAKTIF' : 'INTERACTIVE MAP'}</Link>
                             </div>
 
                             {/* 3 ACTION BUTTONS */}
@@ -482,28 +502,28 @@ export function CampoSantoHero({ siteData, orgData }: CampoSantoHeroProps) {
                                 </Link>
                             </div>
 
-                            {/* SOCIAL MEDIA ICONS ROW */}
+                            {/* SOCIAL MEDIA ICONS ROW (DYNAMIC CMS GROUNDED) */}
                             <div className="flex items-center justify-center gap-4 text-white/80 py-1">
-                                <a href="https://instagram.com" target="_blank" rel="noreferrer" className="p-2 rounded-full bg-white/5 hover:bg-amber-400 hover:text-slate-950 transition-all duration-200 drop-shadow" title="Instagram Desa">
+                                <a href={socialLinks.instagram} target="_blank" rel="noreferrer" className="p-2 rounded-full bg-white/5 hover:bg-amber-400 hover:text-slate-950 transition-all duration-200 drop-shadow" title="Instagram Desa">
                                     <Instagram size={16} />
                                 </a>
-                                <a href="https://facebook.com" target="_blank" rel="noreferrer" className="p-2 rounded-full bg-white/5 hover:bg-amber-400 hover:text-slate-950 transition-all duration-200 drop-shadow" title="Facebook Desa">
+                                <a href={socialLinks.facebook} target="_blank" rel="noreferrer" className="p-2 rounded-full bg-white/5 hover:bg-amber-400 hover:text-slate-950 transition-all duration-200 drop-shadow" title="Facebook Desa">
                                     <Facebook size={16} />
                                 </a>
-                                <a href="https://youtube.com" target="_blank" rel="noreferrer" className="p-2 rounded-full bg-white/5 hover:bg-amber-400 hover:text-slate-950 transition-all duration-200 drop-shadow" title="YouTube Desa">
+                                <a href={socialLinks.youtube} target="_blank" rel="noreferrer" className="p-2 rounded-full bg-white/5 hover:bg-amber-400 hover:text-slate-950 transition-all duration-200 drop-shadow" title="YouTube Desa">
                                     <Youtube size={16} />
                                 </a>
-                                <a href="https://twitter.com" target="_blank" rel="noreferrer" className="p-2 rounded-full bg-white/5 hover:bg-amber-400 hover:text-slate-950 transition-all duration-200 drop-shadow" title="Twitter / X Desa">
-                                    <Twitter size={16} />
+                                <a href={socialLinks.whatsapp} target="_blank" rel="noreferrer" className="p-2 rounded-full bg-white/5 hover:bg-amber-400 hover:text-slate-950 transition-all duration-200 drop-shadow" title="WhatsApp Pemdes">
+                                    <Phone size={16} />
                                 </a>
                             </div>
 
                             {/* Footer Copyright */}
                             <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70 pt-1">
-                                {language === 'id' 
+                                {uiConfig?.footerCopyright || (language === 'id' 
                                     ? '© 2026 PEMERINTAH DESA CIMANGGU I • KECAMATAN CIBUNGBULANG • KABUPATEN BOGOR'
                                     : '© 2026 CIMANGGU I VILLAGE GOV • CIBUNGBULANG DISTRICT • BOGOR REGENCY'
-                                }
+                                )}
                             </div>
 
                         </div>
