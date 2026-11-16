@@ -73,17 +73,45 @@ export default async function LandingPage() {
         ? cookieStore.get('landingDualMode')?.value === 'true'
         : uiConfig.defaultThemeMode === 'dual';
 
-    // Data Mapping
-    const siteData = profileRes || {
+    // Data Mapping with Rich Cimanggu I Defaults
+    const defaultSiteData = {
         title: "Desa Cimanggu I",
-        hero_title: "Pemerintah Desa",
-        hero_subtitle: "Platform digital terpadu untuk mengelola, memonitor, dan menganalisis data pemberdayaan masyarakat.",
+        hero_title: "Pemerintah Desa Cimanggu I",
+        hero_subtitle: "Mewujudkan Tata Kelola Desa Mandiri, Akuntabel, dan Sejahtera Berbasis Sistem Digitalisasi Desa (SDD) dan Pemetaan Geospasial Wilayah Terpadu.",
         logo: "/images/logo-bogor.png",
-        hero_video: "",
-        about_title: "Sekilas Pandang",
-        about_text: "Desa Cimanggu I merupakan salah satu desa unggulan bagian dari program digitalisasi...",
+        hero_video: "/uploads/1791134991185-DRONE_DESA_2.mp4",
+        about_title: "Sekilas Pandang Pemdes Cimanggu I",
+        about_text: "Desa Cimanggu I adalah salah satu desa strategis yang terletak di wilayah Kecamatan Cibungbulang, Kabupaten Bogor, Provinsi Jawa Barat. Berada di kawasan yang subur dan asri, Desa Cimanggu I memiliki bentang alam persawahan hijau, perkebunan produktif, serta pemukiman warga yang guyub rukun. Terbagi ke dalam 4 Wilayah Dusun, 9 Rukun Warga (RW), dan 36 Rukun Tetangga (RT), Pemerintah Desa Cimanggu I berkomitmen penuh menghadirkan transformasi pelayanan publik modern, transparan, dan terintegrasi melalui Sistem Digitalisasi Desa (SDD), pemantauan kesehatan terpadu Posyandu Mawar, pemberdayaan ekonomi UMKM lokal, serta partisipasi aktif warga dalam pembangunan desa.",
         about_image: "/images/sawah.png",
-        gallery: ['/images/slide_1.webp', '/images/slide_6_.png', '/images/sawah.png']
+        gallery: ['/images/slide_1.webp', '/images/sawah.png', '/images/slide_6_.png'],
+        kontak_alamat: "Jl. Raya Cibungbulang - Cimanggu I No. 01, RT 01/RW 01, Desa Cimanggu I, Kec. Cibungbulang, Kab. Bogor, Jawa Barat 16630",
+        kontak_email: "pemdes@cimanggu1.desa.id",
+        kontak_telepon: "(0251) 8642101 / +62 812-8900-1126",
+        luasWilayah: "± 284,5 Ha",
+        batasUtara: "Desa Cibatok I, Kec. Cibungbulang",
+        batasSelatan: "Desa Situ Udik, Kec. Cibungbulang",
+        batasTimur: "Desa Dukuh, Kec. Cibungbulang",
+        batasBarat: "Desa Leuweung Kolot, Kec. Cibungbulang",
+        agenda_title: "Musrenbangdes & Pelayanan Keliling SDD",
+        agenda_date: "25 NOV 2026 • Aula Balai Desa",
+        pengumuman_title: "Penyaluran Bantuan Pangan & Pengaktifan UHC BPJS",
+        pengumuman_link: "/login",
+        local_events: [
+            { title: "Pemeriksaan Balita & Lansia Posyandu Mawar", date: "18 Nov", color: "emerald" },
+            { title: "Rembuk Warga & Gotong Royong Lingkungan RW", date: "22 Nov", color: "amber" },
+            { title: "Pelatihan Digitalisasi UMKM Desa Cimanggu I", date: "28 Nov", color: "blue" }
+        ]
+    };
+
+    const siteData = {
+        ...defaultSiteData,
+        ...(profileRes || {}),
+        about_text: (profileRes?.about_text && profileRes.about_text.length > 50) ? profileRes.about_text : defaultSiteData.about_text,
+        kontak_alamat: profileRes?.kontak_alamat || defaultSiteData.kontak_alamat,
+        kontak_email: profileRes?.kontak_email || defaultSiteData.kontak_email,
+        kontak_telepon: profileRes?.kontak_telepon || defaultSiteData.kontak_telepon,
+        hero_subtitle: profileRes?.hero_subtitle || defaultSiteData.hero_subtitle,
+        hero_title: profileRes?.hero_title || defaultSiteData.hero_title,
     };
 
     // BACKGROUND HERO SECTION (CAROUSEL)
@@ -91,14 +119,49 @@ export default async function LandingPage() {
         ? siteData.gallery.map((item: any) => typeof item === 'string' ? item : (item.url || item.img || '/images/slide_1.webp'))
         : ['/images/slide_1.webp', '/images/slide_6_.png', '/images/sawah.png']) as string[];
 
-    const newsData = newsRes ? newsRes.map((item: any) => ({
+    const defaultNews = [
+        {
+            id: "berita-1",
+            title: "Pemerintah Desa Cimanggu I Luncurkan Sistem Digitalisasi Desa (SDD) Terpadu",
+            content: "Pemerintah Desa Cimanggu I, Kecamatan Cibungbulang, Kabupaten Bogor secara resmi meluncurkan Sistem Digitalisasi Desa (SDD) terpadu guna mempercepat pelayanan administrasi kependudukan dan meningkatkan transparansi tata kelola desa.",
+            category: "Pemerintahan",
+            date: "16 Nov 2026",
+            image: "/images/slide_1.webp"
+        },
+        {
+            id: "berita-2",
+            title: "Optimalisasi Pemantauan Tumbuh Kembang Anak & Pencegahan Stunting di 7 Posyandu Mawar",
+            content: "Pemerintah Desa Cimanggu I bersama TP-PKK dan tenaga kesehatan Puskesmas Cibungbulang gencar melaksanakan pemantauan gizi terpadu di 7 titik Posyandu Mawar yang tersebar di seluruh wilayah dusun.",
+            category: "Kesehatan",
+            date: "14 Nov 2026",
+            image: "/images/slide_6_.png"
+        },
+        {
+            id: "berita-3",
+            title: "Penguatan Kapasitas UMKM Lokal Cimanggu I Melalui Pemasaran Digital dan Sertifikasi Halal",
+            content: "Sektor Usaha Mikro, Kecil, dan Menengah (UMKM) di Desa Cimanggu I menunjukkan potensi luar biasa, khususnya pada produk olahan singkong, keripik tempe, makanan ringan khas Bogor, serta kerajinan tangan warga.",
+            category: "Perekonomian",
+            date: "12 Nov 2026",
+            image: "/images/sawah.png"
+        },
+        {
+            id: "berita-4",
+            title: "Pembangunan Saluran Drainase dan Jalan Usaha Tani Dusun 2 Perkuat Ketahanan Pangan Warga",
+            content: "Pemerintah Desa Cimanggu I merealisasikan pembangunan saluran drainase persawahan dan rabat beton jalan usaha tani di Dusun 2 melalui alokasi Dana Desa Tahun Anggaran 2026.",
+            category: "Pembangunan",
+            date: "10 Nov 2026",
+            image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=800&auto=format&fit=crop"
+        }
+    ];
+
+    const newsData = (newsRes && newsRes.length > 0) ? newsRes.map((item: any) => ({
         id: item.id,
         title: item.judul,
         content: item.konten || "",
         category: item.kategori || "Umum",
         date: new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
-        image: item.gambar || "https://images.unsplash.com/photo-1593113544338-9cb52bce56bc?q=80&w=800&auto=format&fit=crop"
-    })) : [];
+        image: item.gambar || "/images/slide_1.webp"
+    })) : defaultNews;
 
     const mapPejabat = (obj: any) => ({
         name: obj.name,
@@ -106,11 +169,35 @@ export default async function LandingPage() {
         foto: obj.photo
     });
 
+    const defaultStaff = [
+        { name: "Ahmad Subagja", role: "Kaur Keuangan", foto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop" },
+        { name: "Dedi Mulyadi", role: "Kaur Umum & Tata Usaha", foto: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop" },
+        { name: "Siti Rahmawati", role: "Kaur Perencanaan", foto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop" },
+        { name: "Hendra Wijaya", role: "Kasi Pemerintahan", foto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=800&auto=format&fit=crop" },
+        { name: "Ujang Suryana", role: "Kasi Kesejahteraan", foto: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=800&auto=format&fit=crop" },
+        { name: "Asep Saepudin", role: "Kasi Pelayanan", foto: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=800&auto=format&fit=crop" }
+    ];
+
+    const defaultKadus = [
+        { name: "Kepala Dusun 1", role: "Kepala Dusun 1 (RW 01 & RW 02)", foto: "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?q=80&w=800&auto=format&fit=crop" },
+        { name: "Kepala Dusun 2", role: "Kepala Dusun 2 (RW 03 & RW 08)", foto: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=800&auto=format&fit=crop" },
+        { name: "Kepala Dusun 3", role: "Kepala Dusun 3 (RW 05, RW 06, RW 07)", foto: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=800&auto=format&fit=crop" },
+        { name: "Kepala Dusun 4", role: "Kepala Dusun 4 (RW 04 & RW 09)", foto: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=800&auto=format&fit=crop" }
+    ];
+
+    const staffList = (aparaturRes && aparaturRes.filter((x: any) => x.level === 2).length > 0)
+        ? aparaturRes.filter((x: any) => x.level === 2).map(mapPejabat)
+        : defaultStaff;
+
+    const kadusList = (aparaturRes && aparaturRes.filter((x: any) => x.level === 3).length > 0)
+        ? aparaturRes.filter((x: any) => x.level === 3).map(mapPejabat)
+        : defaultKadus;
+
     const orgData = {
-        kades: aparaturRes?.find((x: any) => x.level === 0) ? mapPejabat(aparaturRes.find((x: any) => x.level === 0)) : { name: "Hernawan M. Sodik", role: "Kepala Desa" },
-        sekdes: aparaturRes?.find((x: any) => x.level === 1) ? mapPejabat(aparaturRes.find((x: any) => x.level === 1)) : { name: "Fajar Tri Apriana", role: "Sekretaris Desa" },
-        staff: aparaturRes?.filter((x: any) => x.level === 2).map(mapPejabat) || [],
-        kadus: aparaturRes?.filter((x: any) => x.level === 3).map(mapPejabat) || []
+        kades: aparaturRes?.find((x: any) => x.level === 0) ? mapPejabat(aparaturRes.find((x: any) => x.level === 0)) : { name: "Hernawan M. Sodik", role: "Kepala Desa Cimanggu I", foto: "/images/KADES_baru.png" },
+        sekdes: aparaturRes?.find((x: any) => x.level === 1) ? mapPejabat(aparaturRes.find((x: any) => x.level === 1)) : { name: "Fajar Tri Apriana", role: "Sekretaris Desa", foto: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=800&auto=format&fit=crop" },
+        staff: staffList,
+        kadus: kadusList
     };
 
     return (
@@ -391,7 +478,14 @@ export default async function LandingPage() {
                                             </h2>
                                         </div>
                                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                                            {lembagaRes?.map((lembaga: any) => (
+                                            {(lembagaRes && lembagaRes.length > 0 ? lembagaRes : [
+                                                { id: "bpd", name: "BPD" },
+                                                { id: "lpm", name: "LPM" },
+                                                { id: "pkk", name: "TP-PKK" },
+                                                { id: "katar", name: "Karang Taruna" },
+                                                { id: "posyandu", name: "Posyandu Mawar" },
+                                                { id: "puskesos", name: "Puskesos" }
+                                            ]).map((lembaga: any) => (
                                                 <div 
                                                     key={lembaga.id} 
                                                     className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 text-center hover:border-amber-400/50 transition-all duration-300 group flex flex-col items-center justify-center shadow-lg"

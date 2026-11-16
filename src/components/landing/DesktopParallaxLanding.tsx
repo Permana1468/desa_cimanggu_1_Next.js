@@ -218,28 +218,43 @@ export function DesktopParallaxLanding({
     // Birds Silhouette Drift
     const birdsX = useTransform(scrollYProgress, [0, 0.3], [0, 80]);
 
-    // Scenery Carousel Images matching Reference Concept
+    // Scenery Carousel Images matching Reference Concept with Rich Cimanggu I Data
+    const defaultSceneryLabels: Record<string, { title: string; sub: string }> = {
+        "/images/slide_1.webp": { title: "Pemerintah Desa Cimanggu I", sub: "Layanan Terpadu Berbasis Sistem Digitalisasi Desa (SDD)" },
+        "/images/sawah.png": { title: "Bentang Alam Asri Cimanggu I", sub: "Kawasan Subur Persawahan & Ketahanan Pangan Desa" },
+        "/images/slide_6_.png": { title: "Kebersamaan & Gotong Royong", sub: "Pemberdayaan Warga Menuju Desa Mandiri dan Sejahtera" },
+    };
+
     const heroSceneries = (Array.isArray(siteData?.gallery) && siteData.gallery.length > 0)
-        ? siteData.gallery.map((item: any) => 
-            typeof item === 'string' 
-                ? { url: item, title: "", sub: "" }
-                : { url: item.url || item.img, title: item.title || "", sub: item.sub || "" }
-          )
+        ? siteData.gallery.map((item: any) => {
+            if (typeof item === 'string') {
+                const label = defaultSceneryLabels[item] || {
+                    title: "Pesona Desa Cimanggu I",
+                    sub: "Kecamatan Cibungbulang, Kabupaten Bogor"
+                };
+                return { url: item, title: label.title, sub: label.sub };
+            }
+            return {
+                url: item.url || item.img || "/images/slide_1.webp",
+                title: item.title || "Pemerintah Desa Cimanggu I",
+                sub: item.sub || "Kecamatan Cibungbulang, Kabupaten Bogor"
+            };
+        })
         : [
             {
-                url: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2000&auto=format&fit=crop",
-                title: "Desa Cimanggu I",
-                sub: "Desa Cimanggu I"
+                url: "/images/slide_1.webp",
+                title: "Pemerintah Desa Cimanggu I",
+                sub: "Layanan Terpadu Berbasis Sistem Digitalisasi Desa (SDD)"
             },
             {
                 url: "/images/sawah.png",
-                title: "Kawasan Hijau Subur",
-                sub: "Pusat Ketahanan Pangan & Ekosistem Lokal"
+                title: "Bentang Alam Asri Cimanggu I",
+                sub: "Kawasan Subur Persawahan & Ketahanan Pangan Desa"
             },
             {
-                url: "/images/slide_1.webp",
-                title: "Pemerintah Desa Digital",
-                sub: "Layanan Terpadu Berbasis CyberNet SDD"
+                url: "/images/slide_6_.png",
+                title: "Kebersamaan & Gotong Royong",
+                sub: "Pemberdayaan Warga Menuju Desa Mandiri dan Sejahtera"
             }
         ];
 
@@ -465,7 +480,7 @@ export function DesktopParallaxLanding({
                             transition={{ duration: 5, repeat: Infinity, ease: "linear", delay: 1 }}
                         />
 
-                        <motion.path d="M-100,800 L200,800 L300,900 L1100,900" fill="none" stroke="url(#glowLine1)" strokeWidth="4" filter="blur(3px)"
+                        <motion.path d="M-100,800 L200,800 L300,900 L1100,900" fill="none" stroke="url(#glowLine1)" strokeWidth="4" className="blur-[2px] transform-gpu"
                             initial={{ pathLength: 0, opacity: 0 }}
                             animate={{ pathLength: 1, opacity: [0, 1, 0] }}
                             transition={{ duration: 6, repeat: Infinity, ease: "linear", delay: 2.5 }}
@@ -1116,7 +1131,14 @@ export function DesktopParallaxLanding({
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                            {lembagaRes?.map((item: any) => (
+                            {(lembagaRes && lembagaRes.length > 0 ? lembagaRes : [
+                                { id: "bpd", name: "BPD" },
+                                { id: "lpm", name: "LPM" },
+                                { id: "pkk", name: "TP-PKK" },
+                                { id: "katar", name: "Karang Taruna" },
+                                { id: "posyandu", name: "Posyandu Mawar" },
+                                { id: "puskesos", name: "Puskesos" }
+                            ]).map((item: any) => (
                                 <div key={item.id} className="p-4 rounded-2xl bg-slate-900/60 border border-white/10 text-center hover:border-amber-400/50 transition-all group">
                                     <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-400/30 flex items-center justify-center text-amber-400 mx-auto mb-3 group-hover:scale-110 transition-transform">
                                         <ShieldCheck size={24} />
