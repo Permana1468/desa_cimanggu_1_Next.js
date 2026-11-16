@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, HeartPulse, Trash2, Stethoscope } from "lucide-react";
 import { getPosyanduRecords, addPosyanduRecord, deletePosyanduRecord, getPosyanduIbuHamil } from "@/actions/posyandu";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 const risikoOptions = ["Normal", "Risiko Rendah", "Risiko Sedang", "Risiko Tinggi"];
 
@@ -35,12 +36,14 @@ export function PosyanduLayananIbuHamilTab({ session, selectedPosyandu }: { sess
   const handleTambah = async (record: any) => {
     await addPosyanduRecord({ ...record, posyanduFilter: selectedPosyandu });
     fetchData();
+    triggerNotificationRefresh();
   };
 
   const handleDelete = async (id: string) => {
     if (confirm("Hapus data layanan ini?")) {
       await deletePosyanduRecord(id);
       fetchData();
+      triggerNotificationRefresh();
     }
   };
 

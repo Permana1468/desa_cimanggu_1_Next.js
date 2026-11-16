@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, Baby, Trash2, Stethoscope, Sparkles, AlertTriangle, CheckCircle2, Calculator } from "lucide-react";
 import { getPosyanduRecords, addPosyanduRecord, deletePosyanduRecord, getPosyanduBalita, updatePosyanduBalitaStatus } from "@/actions/posyandu";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 const statusGiziOptions = ["Normal", "Gizi Kurang", "Stunting", "Gizi Buruk", "Gizi Lebih"];
 const imunisasiOptions = ["Tidak Ada", "BCG", "DPT-HB-Hib", "Polio", "Campak/MR", "PCV", "Rotavirus"];
@@ -111,12 +112,14 @@ export function PosyanduLayananBalitaTab({ session, selectedPosyandu }: { sessio
       await updatePosyanduBalitaStatus(record.balitaId, record.isStunting);
     }
     fetchData();
+    triggerNotificationRefresh();
   };
 
   const handleDelete = async (id: string) => {
     if (confirm("Hapus data layanan ini?")) {
       await deletePosyanduRecord(id);
       fetchData();
+      triggerNotificationRefresh();
     }
   };
 

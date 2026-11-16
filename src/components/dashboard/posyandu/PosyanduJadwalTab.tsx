@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, ClipboardList, Trash2, MapPin, Clock, User } from "lucide-react";
 import { getPosyanduJadwals, addPosyanduJadwal, updatePosyanduJadwalStatus, deletePosyanduJadwal } from "@/actions/posyandu";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 const statusOptions = ["Terjadwal", "Berlangsung", "Selesai", "Dibatalkan"];
 
@@ -37,18 +38,21 @@ export function PosyanduJadwalTab({ session, selectedPosyandu }: { session?: any
   const handleTambah = async (record: any) => {
     await addPosyanduJadwal(record);
     fetchData();
+    triggerNotificationRefresh();
   };
 
   const handleDelete = async (id: string) => {
     if (confirm("Hapus jadwal ini?")) {
       await deletePosyanduJadwal(id);
       fetchData();
+      triggerNotificationRefresh();
     }
   };
 
   const handleUpdateStatus = async (id: string, newStatus: string) => {
     await updatePosyanduJadwalStatus(id, newStatus);
     fetchData();
+    triggerNotificationRefresh();
   };
 
   const filtered = data.filter(d =>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, Users, Trash2 } from "lucide-react";
 import { getPosyanduRecords, addPosyanduRecord, deletePosyanduRecord, getPosyanduLansia } from "@/actions/posyandu";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 const kondisiOptions = ["Baik", "Cukup", "Kurang Baik", "Perlu Rujukan"];
 
@@ -35,12 +36,14 @@ export function PosyanduLayananLansiaTab({ session, selectedPosyandu }: { sessio
   const handleTambah = async (record: any) => {
     await addPosyanduRecord({ ...record, posyanduFilter: selectedPosyandu });
     fetchData();
+    triggerNotificationRefresh();
   };
 
   const handleDelete = async (id: string) => {
     if (confirm("Hapus data layanan ini?")) {
       await deletePosyanduRecord(id);
       fetchData();
+      triggerNotificationRefresh();
     }
   };
 

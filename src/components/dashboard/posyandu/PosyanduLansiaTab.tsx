@@ -10,6 +10,7 @@ import {
   getPosyanduLansia, addPosyanduLansia, deletePosyanduLansia,
   getLansiaDetail
 } from "@/actions/posyandu";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 import { CitizenSearchAutocomplete } from "./CitizenSearchAutocomplete";
 import { getRWsForPosyandu, POSYANDU_UNITS } from "@/lib/posyandu";
 
@@ -148,6 +149,7 @@ export function PosyanduLansiaTab({ session, selectedPosyandu }: { session?: any
     if (confirm("Hapus data lansia ini?")) {
       await deletePosyanduLansia(id);
       fetchData();
+      triggerNotificationRefresh();
     }
   };
 
@@ -739,6 +741,7 @@ function ModalTambahLansia({ onClose, onRefresh, session, selectedPosyandu }: an
 
     setLoading(false);
     onRefresh();
+    triggerNotificationRefresh();
     onClose();
   };
 

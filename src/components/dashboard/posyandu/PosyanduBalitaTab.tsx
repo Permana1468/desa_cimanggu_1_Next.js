@@ -10,6 +10,7 @@ import {
   getPosyanduBalita, addPosyanduBalita, updatePosyanduBalitaStatus,
   deletePosyanduBalita, getBalitaDetail
 } from "@/actions/posyandu";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 import { CitizenSearchAutocomplete } from "./CitizenSearchAutocomplete";
 import { getRWsForPosyandu, POSYANDU_UNITS } from "@/lib/posyandu";
 
@@ -155,12 +156,14 @@ export function PosyanduBalitaTab({ session, selectedPosyandu }: { session?: any
   const handleToggleStunting = async (id: string, currentStatus: boolean) => {
     await updatePosyanduBalitaStatus(id, !currentStatus);
     fetchData();
+    triggerNotificationRefresh();
   };
 
   const handleDelete = async (id: string) => {
     if (confirm("Hapus data balita ini?")) {
       await deletePosyanduBalita(id);
       fetchData();
+      triggerNotificationRefresh();
     }
   };
 
@@ -890,6 +893,7 @@ function ModalTambahBalita({ onClose, onRefresh, session, selectedPosyandu }: an
 
     setLoading(false);
     onRefresh();
+    triggerNotificationRefresh();
     onClose();
   };
 

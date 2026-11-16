@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, Activity, CheckCircle2, XCircle, Trash2 } from "lucide-react";
 import { getPosyanduKehadirans, addPosyanduKehadiran, deletePosyanduKehadiran } from "@/actions/posyandu";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 import { CitizenSearchAutocomplete } from "./CitizenSearchAutocomplete";
 
 const kategoriConfig: Record<string, { color: string }> = {
@@ -36,12 +37,14 @@ export function PosyanduKehadiranTab({ session, selectedPosyandu }: { session?: 
   const handleTambah = async (record: any) => {
     await addPosyanduKehadiran(record);
     fetchData();
+    triggerNotificationRefresh();
   };
 
   const handleDelete = async (id: string) => {
     if (confirm("Hapus data kehadiran ini?")) {
       await deletePosyanduKehadiran(id);
       fetchData();
+      triggerNotificationRefresh();
     }
   };
 

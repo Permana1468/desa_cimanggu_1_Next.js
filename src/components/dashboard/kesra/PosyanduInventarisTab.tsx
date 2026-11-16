@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Search, Loader2, Package, Plus, PackageCheck, Archive, AlertTriangle } from "lucide-react";
 import { getPosyanduInventaris, addPosyanduInventaris, deletePosyanduInventaris, updatePosyanduInventaris } from "@/actions/posyandu-baru";
 import { getPosyanduUnit } from "@/lib/posyandu";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 const KATEGORI = ["ANTROPOMETRI", "MEDIS", "UMUM", "KONSUMSI", "LAINNYA"];
 const KONDISI = ["BAIK", "RUSAK_RINGAN", "RUSAK_BERAT"];
@@ -35,6 +36,7 @@ export function PosyanduInventarisTab({ session, selectedPosyandu }: any) {
       setLoading(true);
       await deletePosyanduInventaris(id);
       await fetchData();
+      triggerNotificationRefresh();
     }
   };
 
@@ -206,6 +208,7 @@ function ModalFormInventaris({ item, onClose, onRefresh, selectedPosyandu }: any
     
     setLoading(false);
     onRefresh();
+    triggerNotificationRefresh();
     onClose();
   };
 

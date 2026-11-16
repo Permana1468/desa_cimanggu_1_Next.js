@@ -329,6 +329,21 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
     };
   }, [role]);
 
+  // Auto-expand active group for Posyandu navigation based on active tab
+  useEffect(() => {
+    if (role === "POSYANDU") {
+      if (["balita", "ibuhamil", "lansia"].includes(tabParam || "")) {
+        setOpenGroup("manajemen-data");
+      } else if (["layanan-balita", "layanan-ibuhamil", "layanan-lansia"].includes(tabParam || "")) {
+        setOpenGroup("layanan");
+      } else if (["jadwal", "kehadiran", "analisis"].includes(tabParam || "")) {
+        setOpenGroup("jadwal");
+      } else if (["posyandu-register", "posyandu-jadwal", "posyandu-inventaris", "pmt"].includes(tabParam || "")) {
+        setOpenGroup("administrasi");
+      }
+    }
+  }, [role, tabParam]);
+
   return (
     <>
       {/* MOBILE BACKDROP */}

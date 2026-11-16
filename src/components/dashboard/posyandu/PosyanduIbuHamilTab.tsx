@@ -10,6 +10,7 @@ import {
   getPosyanduIbuHamil, addPosyanduIbuHamil, updatePosyanduIbuHamilStatus,
   deletePosyanduIbuHamil, getIbuHamilDetail
 } from "@/actions/posyandu";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 import { CitizenSearchAutocomplete } from "./CitizenSearchAutocomplete";
 import { getRWsForPosyandu, POSYANDU_UNITS } from "@/lib/posyandu";
 
@@ -147,12 +148,14 @@ export function PosyanduIbuHamilTab({ session, selectedPosyandu }: { session?: a
   const handleToggleRisiko = async (id: string, currentStatus: boolean) => {
     await updatePosyanduIbuHamilStatus(id, !currentStatus);
     fetchData();
+    triggerNotificationRefresh();
   };
 
   const handleDelete = async (id: string) => {
     if (confirm("Hapus data ibu hamil ini?")) {
       await deletePosyanduIbuHamil(id);
       fetchData();
+      triggerNotificationRefresh();
     }
   };
 
@@ -735,6 +738,7 @@ function ModalTambahIbuHamil({ onClose, onRefresh, session, selectedPosyandu }: 
 
     setLoading(false);
     onRefresh();
+    triggerNotificationRefresh();
     onClose();
   };
 
