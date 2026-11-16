@@ -128,29 +128,22 @@ export function DesktopParallaxLanding({
         offset: ["start start", "end end"]
     });
 
-    // Smooth Spring for Fluid Physics (Dioptimasi agar hemat CPU/GPU)
-    const smoothProgress = useSpring(scrollYProgress, {
-        stiffness: 90,
-        damping: 25,
-        restDelta: 0.01
-    });
-
-    // Parallax Transforms for Multi-Layer Depth
-    const heroBgScale = useTransform(smoothProgress, [0, 0.2], [1, 1.15]);
-    const heroBgY = useTransform(smoothProgress, [0, 0.25], ["0%", "25%"]);
-    const heroSubjectY = useTransform(smoothProgress, [0, 0.25], ["0%", "-18%"]);
-    const heroSubjectScale = useTransform(smoothProgress, [0, 0.25], [1, 1.08]);
-    const heroOverlayOpacity = useTransform(smoothProgress, [0, 0.15, 0.25], [0.1, 0.5, 0.95]);
+    // Parallax Transforms for Multi-Layer Depth (Langsung terikat dengan scroll Lenis yang sudah halus tanpa lag spring tambahan)
+    const heroBgScale = useTransform(scrollYProgress, [0, 0.2], [1, 1.15]);
+    const heroBgY = useTransform(scrollYProgress, [0, 0.25], ["0%", "25%"]);
+    const heroSubjectY = useTransform(scrollYProgress, [0, 0.25], ["0%", "-18%"]);
+    const heroSubjectScale = useTransform(scrollYProgress, [0, 0.25], [1, 1.08]);
+    const heroOverlayOpacity = useTransform(scrollYProgress, [0, 0.15, 0.25], [0.1, 0.5, 0.95]);
 
     // Floating Golden Leaves Parallax Translations
-    const leafY1 = useTransform(smoothProgress, [0, 0.3], [0, -140]);
-    const leafY2 = useTransform(smoothProgress, [0, 0.3], [0, -220]);
-    const leafY3 = useTransform(smoothProgress, [0, 0.3], [0, -180]);
-    const leafY4 = useTransform(smoothProgress, [0, 0.3], [0, -260]);
-    const leafRotate = useTransform(smoothProgress, [0, 0.3], [0, 45]);
+    const leafY1 = useTransform(scrollYProgress, [0, 0.3], [0, -140]);
+    const leafY2 = useTransform(scrollYProgress, [0, 0.3], [0, -220]);
+    const leafY3 = useTransform(scrollYProgress, [0, 0.3], [0, -180]);
+    const leafY4 = useTransform(scrollYProgress, [0, 0.3], [0, -260]);
+    const leafRotate = useTransform(scrollYProgress, [0, 0.3], [0, 45]);
 
     // Birds Silhouette Drift
-    const birdsX = useTransform(smoothProgress, [0, 0.3], [0, 80]);
+    const birdsX = useTransform(scrollYProgress, [0, 0.3], [0, 80]);
 
 
 

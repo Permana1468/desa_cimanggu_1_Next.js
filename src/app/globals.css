@@ -131,7 +131,6 @@ textarea:-webkit-autofill:focus {
 
 /* ── BASE & ACCESSIBILITY ───────────────────────────── */
 html {
-  scroll-behavior: smooth;
   scrollbar-width: none !important; /* Firefox */
   -ms-overflow-style: none !important; /* IE & Edge */
 }
@@ -213,17 +212,21 @@ body::-webkit-scrollbar {
 .text-fluid-body { font-size: var(--font-fluid-body); line-height: 1.6; }
 
 /* ── LENIS SMOOTH SCROLL ────────────────────────────── */
-html.lenis, html.lenis body {
-  height: auto;
+html.lenis,
+html.lenis body {
+  height: auto !important;
 }
+html.lenis,
 .lenis.lenis-smooth {
   scroll-behavior: auto !important;
 }
-.lenis.lenis-smooth [data-lenis-prevent] {
+.lenis.lenis-smooth [data-lenis-prevent],
+.lenis [data-lenis-prevent-wheel],
+.lenis [data-lenis-prevent-touch] {
   overscroll-behavior: contain;
 }
-.lenis.lenis-stopped {
-  overflow: hidden;
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
 }
 .lenis.lenis-smooth iframe {
   pointer-events: none;
