@@ -71,6 +71,74 @@ const AnimatedCounter = ({ end, duration = 2, suffix = '', prefix = '' }: { end:
     return <span ref={ref}>{prefix}0{suffix}</span>;
 };
 
+// Sub-komponen Carousel Latar Hero terisolasi agar perputaran gambar tiap 5 detik TIDAK me-render ulang seluruh halaman
+const HeroBackgroundScenery = React.memo(function HeroBackgroundScenery({
+    siteData,
+    heroSceneries,
+    scale,
+    y
+}: {
+    siteData: any;
+    heroSceneries: any[];
+    scale: any;
+    y: any;
+}) {
+    const [bgIndex, setBgIndex] = useState(0);
+
+    useEffect(() => {
+        if (!heroSceneries || heroSceneries.length <= 1) return;
+        const timer = setInterval(() => {
+            setBgIndex((prev) => (prev + 1) % heroSceneries.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, [heroSceneries.length]);
+
+    return (
+        <motion.div
+            style={{ scale, y }}
+            className="absolute inset-0 w-full h-full z-0 pointer-events-none transform-gpu will-change-transform"
+        >
+            {siteData?.hero_video ? (
+                <div className="absolute inset-0 opacity-100 z-10">
+                    <video
+                        src={siteData.hero_video}
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        className="object-cover object-center w-full h-full filter brightness-[0.8] contrast-[1.1]"
+                    />
+                    <div className="absolute inset-0 bg-black/40 mix-blend-multiply" />
+                </div>
+            ) : (
+                heroSceneries.map((scenery: any, index: number) => (
+                    <div
+                        key={index}
+                        className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+                            index === bgIndex ? 'opacity-100' : 'opacity-0'
+                        }`}
+                    >
+                        <Image
+                            src={scenery.url || scenery.img || "/images/slide_1.webp"}
+                            alt="Hero Scenery"
+                            fill
+                            priority={index === 0}
+                            className="object-cover object-center filter brightness-[0.92] contrast-[1.05]"
+                        />
+                        <div className="absolute inset-0 bg-black/40 mix-blend-multiply" />
+                    </div>
+                ))
+            )}
+
+            {/* Top to Bottom Sun Flare & Gradient Blur Atmosphere */}
+            <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-purple-950/80 pointer-events-none" />
+
+            {/* Soft Vignette Overlay */}
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/20 to-black/70 pointer-events-none" />
+        </motion.div>
+    );
+});
+
 export function DesktopParallaxLanding({
     siteData,
     statsRes,
@@ -82,11 +150,16 @@ export function DesktopParallaxLanding({
     const { isDualMode, toggleDualMode, language, setLanguage } = useLandingTheme();
 
     const containerRef = useRef<HTMLDivElement>(null);
-    const [heroBgIndex, setHeroBgIndex] = useState(0);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [activeFeatureTab, setActiveFeatureTab] = useState<'surat' | 'webgis' | 'posyandu' | 'tupoksi'>('surat');
     const [currentTime, setCurrentTime] = useState<Date | null>(null);
     const [weather, setWeather] = useState<{ temp: number; text: string; }>({ temp: 28, text: 'Cerah' });
+    const [selectedDusun, setSelectedDusun] = useState<number>(1);
+
+    const dusunList = [
+        { id: 1, name: language === 'id' ? 'Dusun 1' : 'Hamlet 1', desc: language === 'id' ? 'Mencakup RW 001, RW 002 • Pusat Kantor Desa' : 'Includes RW 001, RW 002', lat: '-6.5892°', lng: '106.7721°' },
+        { id: 2, name: language === 'id' ? 'Dusun 2' : 'Hamlet 2', desc: language === 'id' ? 'Mencakup RW 003, RW 008 • Pertanian & Pemukiman' : 'Includes RW 003, RW 008', lat: '-6.5915°', lng: '106.7754°' },
+        { id: 3, name: language === 'id' ? 'Dusun 3' : 'Hamlet 3', desc: language === 'id' ? 'Mencakup RW 005, RW 006, RW 007 • Kawasan UMKM' : 'Includes RW 005, RW 006, RW 007', lat: '-6.5841°', lng: '106.7698°' },
+        { id: 4, name: language === 'id' ? 'Dusun 4' : 'Hamlet 4', desc: language === 'id' ? 'Mencakup RW 004, RW 009 • Posyandu & Fasum' : 'Includes RW 004, RW 009', lat: '-6.5960°', lng: '106.7782°' },
+    ];
 
     useEffect(() => {
         // Live Clock
@@ -145,8 +218,6 @@ export function DesktopParallaxLanding({
     // Birds Silhouette Drift
     const birdsX = useTransform(scrollYProgress, [0, 0.3], [0, 80]);
 
-
-
     // Scenery Carousel Images matching Reference Concept
     const heroSceneries = (Array.isArray(siteData?.gallery) && siteData.gallery.length > 0)
         ? siteData.gallery.map((item: any) => 
@@ -171,23 +242,6 @@ export function DesktopParallaxLanding({
                 sub: "Layanan Terpadu Berbasis CyberNet SDD"
             }
         ];
-
-    const nextScenery = () => {
-        setHeroBgIndex((prev) => (prev + 1) % heroSceneries.length);
-    };
-
-    const prevScenery = () => {
-        setHeroBgIndex((prev) => (prev - 1 + heroSceneries.length) % heroSceneries.length);
-    };
-
-    // Auto change background
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setHeroBgIndex((prev) => (prev + 1) % heroSceneries.length);
-        }, 5000);
-        return () => clearInterval(timer);
-    }, [heroSceneries.length]);
-
 
     return (
         <div ref={containerRef} className="relative w-full bg-slate-950 text-white selection:bg-amber-400 selection:text-black font-sans overflow-x-hidden">
@@ -349,50 +403,13 @@ export function DesktopParallaxLanding({
             {/* -------------------------------------------------------------------------- */}
             <section id="beranda" className="relative w-full h-[110vh] overflow-hidden flex flex-col justify-between pt-24 pb-12 px-6 xl:px-12">
 
-                {/* Layer 0: Dynamic Background Scenery with Smooth Parallax Zoom */}
-                <motion.div
-                    style={{ scale: heroBgScale, y: heroBgY }}
-                    className="absolute inset-0 w-full h-full z-0 pointer-events-none transform-gpu will-change-transform"
-                >
-                    {siteData?.hero_video ? (
-                        <div className="absolute inset-0 opacity-100 z-10">
-                            <video
-                                src={siteData.hero_video}
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                className="object-cover object-center w-full h-full filter brightness-[0.8] contrast-[1.1]"
-                            />
-                            {/* Tambahan Overlay */}
-                            <div className="absolute inset-0 bg-black/40 mix-blend-multiply" />
-                        </div>
-                    ) : (
-                        heroSceneries.map((scenery: any, index: number) => (
-                            <div
-                                key={index}
-                                className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === heroBgIndex ? 'opacity-100' : 'opacity-0'
-                                    }`}
-                            >
-                                <Image
-                                    src={scenery.url || scenery.img || "/images/slide_1.webp"}
-                                    alt="Hero Scenery"
-                                    fill
-                                    priority={index === 0}
-                                    className="object-cover object-center filter brightness-[0.92] contrast-[1.05]"
-                                />
-                                {/* Tambahan Overlay */}
-                                <div className="absolute inset-0 bg-black/40 mix-blend-multiply" />
-                            </div>
-                        ))
-                    )}
-
-                    {/* Top to Bottom Sun Flare & Gradient Blur Atmosphere */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-transparent to-purple-950/80 pointer-events-none" />
-
-                    {/* Soft Vignette Overlay */}
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/20 to-black/70 pointer-events-none" />
-                </motion.div>
+                {/* Layer 0: Dynamic Background Scenery with Smooth Parallax Zoom (Terisolasi dari re-render utama) */}
+                <HeroBackgroundScenery
+                    siteData={siteData}
+                    heroSceneries={heroSceneries}
+                    scale={heroBgScale}
+                    y={heroBgY}
+                />
 
                 {/* Seamless Bottom Gradient Transition to Next Section */}
                 <div className="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-purple-950 to-transparent z-10 pointer-events-none" />
@@ -426,7 +443,7 @@ export function DesktopParallaxLanding({
                             </linearGradient>
                         </defs>
                         
-                        <motion.path d="M-100,200 L300,200 L400,300 L1100,300" fill="none" stroke="url(#glowLine1)" strokeWidth="4" filter="blur(3px)"
+                        <motion.path d="M-100,200 L300,200 L400,300 L1100,300" fill="none" stroke="url(#glowLine1)" strokeWidth="4" className="blur-[2px] transform-gpu"
                             initial={{ pathLength: 0, opacity: 0 }}
                             animate={{ pathLength: 1, opacity: [0, 1, 0] }}
                             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
@@ -437,7 +454,7 @@ export function DesktopParallaxLanding({
                             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                         />
 
-                        <motion.path d="M1100,600 L700,600 L600,700 L-100,700" fill="none" stroke="url(#glowLine2)" strokeWidth="4" filter="blur(3px)"
+                        <motion.path d="M1100,600 L700,600 L600,700 L-100,700" fill="none" stroke="url(#glowLine2)" strokeWidth="4" className="blur-[2px] transform-gpu"
                             initial={{ pathLength: 0, opacity: 0 }}
                             animate={{ pathLength: 1, opacity: [0, 1, 0] }}
                             transition={{ duration: 5, repeat: Infinity, ease: "linear", delay: 1 }}
@@ -962,45 +979,39 @@ export function DesktopParallaxLanding({
                                     <span className="text-xs font-black uppercase text-cyan-400 tracking-wider">
                                         {language === 'id' ? 'PILIH DUSUN & WILAYAH' : 'SELECT HAMLET & REGION'}
                                     </span>
-                                    <span className="text-[10px] font-mono text-cyan-200 bg-cyan-500/10 border border-cyan-500/30 px-2 py-0.5 rounded-full">
-                                        LAT: -6.5892°
+                                    <span className="text-[10px] font-mono text-cyan-200 bg-cyan-500/10 border border-cyan-500/30 px-2.5 py-0.5 rounded-full">
+                                        LAT: {dusunList.find(d => d.id === selectedDusun)?.lat} • LNG: {dusunList.find(d => d.id === selectedDusun)?.lng}
                                     </span>
                                 </div>
 
                                 <div className="space-y-2.5">
-                                    <div className="p-3.5 rounded-2xl bg-cyan-950/40 border border-cyan-400 text-cyan-300 flex justify-between items-center cursor-pointer">
-                                        <div>
-                                            <h4 className="font-extrabold text-sm">{language === 'id' ? 'Dusun 1' : 'Hamlet 1'}</h4>
-                                            <p className="text-xs text-slate-400 font-light">{language === 'id' ? 'Mencakup RW 001, RW 002' : 'Includes RW 001, RW 002'}</p>
-                                        </div>
-                                        <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,1)]" />
-                                    </div>
-
-                                    <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-white/10 text-slate-300 hover:border-white/30 flex justify-between items-center cursor-pointer transition-colors">
-                                        <div>
-                                            <h4 className="font-extrabold text-sm">{language === 'id' ? 'Dusun 2' : 'Hamlet 2'}</h4>
-                                            <p className="text-xs text-slate-400 font-light">{language === 'id' ? 'Mencakup RW 003, RW 008' : 'Includes RW 003, RW 008'}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-white/10 text-slate-300 hover:border-white/30 flex justify-between items-center cursor-pointer transition-colors">
-                                        <div>
-                                            <h4 className="font-extrabold text-sm">{language === 'id' ? 'Dusun 3' : 'Hamlet 3'}</h4>
-                                            <p className="text-xs text-slate-400 font-light">{language === 'id' ? 'Mencakup RW 005, RW 006, RW 007' : 'Includes RW 005, RW 006, RW 007'}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="p-3.5 rounded-2xl bg-slate-950/40 border border-white/10 text-slate-300 hover:border-white/30 flex justify-between items-center cursor-pointer transition-colors">
-                                        <div>
-                                            <h4 className="font-extrabold text-sm">{language === 'id' ? 'Dusun 4' : 'Hamlet 4'}</h4>
-                                            <p className="text-xs text-slate-400 font-light">{language === 'id' ? 'Mencakup RW 004, RW 009' : 'Includes RW 004, RW 009'}</p>
-                                        </div>
-                                    </div>
+                                    {dusunList.map((dusun) => {
+                                        const isActive = selectedDusun === dusun.id;
+                                        return (
+                                            <div
+                                                key={dusun.id}
+                                                onClick={() => setSelectedDusun(dusun.id)}
+                                                className={`p-3.5 rounded-2xl transition-all cursor-pointer flex justify-between items-center ${
+                                                    isActive
+                                                        ? 'bg-cyan-950/60 border border-cyan-400 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.3)]'
+                                                        : 'bg-slate-950/40 border border-white/10 text-slate-300 hover:border-white/30 hover:bg-slate-900/60'
+                                                }`}
+                                            >
+                                                <div>
+                                                    <h4 className="font-extrabold text-sm">{dusun.name}</h4>
+                                                    <p className="text-xs text-slate-400 font-light">{dusun.desc}</p>
+                                                </div>
+                                                {isActive && (
+                                                    <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(6,182,212,1)]" />
+                                                )}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
 
                             <Link
-                                href="/dashboard/maps"
+                                href="/dashboard/map"
                                 className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs uppercase tracking-wider text-center flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(245,158,11,0.5)] transition-all"
                             >
                                 <span>{language === 'id' ? 'Buka WebGIS Layar Penuh' : 'Open Fullscreen WebGIS'}</span>
@@ -1050,7 +1061,7 @@ export function DesktopParallaxLanding({
                         <div className="p-8 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl hover:border-amber-400/50 transition-all text-center space-y-2 shadow-xl">
                             <Users className="mx-auto text-amber-400 mb-2" size={32} />
                             <span className="block text-4xl font-black text-white">
-                                <AnimatedCounter end={statsRes?.totalWarga || 8450} />
+                                <AnimatedCounter end={statsRes?.totalWarga || 405} />
                             </span>
                             <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider block">{language === 'id' ? 'Total Penduduk' : 'Total Population'}</span>
                         </div>
@@ -1058,7 +1069,7 @@ export function DesktopParallaxLanding({
                         <div className="p-8 rounded-3xl bg-slate-900/60 border border-white/10 backdrop-blur-xl hover:border-cyan-400/50 transition-all text-center space-y-2 shadow-xl">
                             <FileText className="mx-auto text-cyan-400 mb-2" size={32} />
                             <span className="block text-4xl font-black text-white">
-                                <AnimatedCounter end={statsRes?.totalKK || 2310} />
+                                <AnimatedCounter end={statsRes?.totalKK || 121} />
                             </span>
                             <span className="text-xs font-extrabold text-slate-400 uppercase tracking-wider block">{language === 'id' ? 'Kepala Keluarga (KK)' : 'Family Heads (KK)'}</span>
                         </div>

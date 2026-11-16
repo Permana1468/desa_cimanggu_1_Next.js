@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from 'react';
-import { Send, CheckCircle2, ShieldCheck, Sparkles, MessageSquare } from 'lucide-react';
+import { Send, CheckCircle2, ShieldCheck, Sparkles, MessageSquare, Loader2 } from 'lucide-react';
 import ScrollReveal from '../ScrollReveal';
+import { submitCitizenAspiration } from '@/actions/landing';
 
 export const LandingAspiration = () => {
     const [aspirationForm, setAspirationForm] = useState({
@@ -22,7 +23,10 @@ export const LandingAspiration = () => {
         e.preventDefault();
         try {
             setIsSubmittingAspiration(true);
-            await new Promise(resolve => setTimeout(resolve, 1200));
+            const res = await submitCitizenAspiration(aspirationForm);
+            if (!res.success) {
+                throw new Error(res.error);
+            }
             
             setSubmitSuccess(true);
             setAspirationForm({
@@ -33,8 +37,8 @@ export const LandingAspiration = () => {
             });
 
             setTimeout(() => setSubmitSuccess(false), 6000);
-        } catch (error) {
-            alert('❌ Gagal mengirim aspirasi. Silakan lengkapi formulir dan coba lagi.');
+        } catch (error: any) {
+            alert(`❌ Gagal mengirim aspirasi: ${error?.message || 'Silakan lengkapi formulir dan coba lagi.'}`);
         } finally {
             setIsSubmittingAspiration(false);
         }

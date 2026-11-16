@@ -499,3 +499,49 @@ export async function updateLandingUiConfig(config: LandingUiConfig) {
     throw error;
   }
 }
+
+export async function submitCitizenAspiration(data: {
+  nama_warga: string;
+  rt_rw?: string;
+  kategori: string;
+  isi_pesan: string;
+  reporterPhone?: string;
+}) {
+  try {
+    const tenantId = await resolveTenantId();
+    
+    // Parse RT dan RW dari input (contoh: "RT 02 / RW 05", "02/05", "01")
+    let rt = "01";
+    let rw = "01";
+    if (data.rt_rw) {
+      const parts = data.rt_rw.split(/[\/\-,]/);
+      if (parts.length >= 2) {
+        rt = parts[0].replace(/\D/g, "").padStart(2, "0") || "01";
+        rw = parts[1].replace(/\D/g, "").padStart(2, "0") || "01";
+      } else {
+        const num = data.rt_rw.replace(/\D/g, "").padStart(2, "0");
+        if (num) rt = num;
+      }
+    }
+
+    const complaint = await prisma.rtComplaint.create({
+      data: {
+        tenantId,
+        rt,
+        rw,
+        reporterName: data.nama_warga.trim(),
+        reporterPhone: data.reporterPhone?.trim() || null,
+        title: `Aspirasi Publik: ${data.kategori.trim() || "Umum"}`,
+        content: data.isi_pesan.trim(),
+        category: data.kategori.trim() || "Fasilitas Umum",
+        status: "PENDING",
+      }
+    });
+
+    revalidatePath("/dashboard");
+    return { success: true, id: complaint.id };
+  } catch (error: any) {
+    console.error("Error in submitCitizenAspiration:", error);
+    return { success: false, error: error.message || "Gagal menyimpan aspirasi warga" };
+  }
+}

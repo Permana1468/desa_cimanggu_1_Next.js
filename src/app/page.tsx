@@ -94,6 +94,8 @@ export default async function LandingPage() {
     const newsData = newsRes ? newsRes.map((item: any) => ({
         id: item.id,
         title: item.judul,
+        content: item.konten || "",
+        category: item.kategori || "Umum",
         date: new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }),
         image: item.gambar || "https://images.unsplash.com/photo-1593113544338-9cb52bce56bc?q=80&w=800&auto=format&fit=crop"
     })) : [];
@@ -114,7 +116,7 @@ export default async function LandingPage() {
     return (
         <LandingThemeProvider initialIsNightMode={initialIsNightMode} initialIsDualMode={initialIsDualMode}>
             <SmoothScroll>
-                <LandingModeHandler siteData={siteData}>
+                <LandingModeHandler siteData={siteData} orgData={orgData}>
                 {/* Desktop View: Fullscreen Modern Parallax Smooth Scroll Landing Page */}
                 <div className="hidden md:block">
                     <DesktopParallaxLanding 
@@ -328,7 +330,7 @@ export default async function LandingPage() {
                                             </div>
 
                                             <Link
-                                                href="/dashboard/maps"
+                                                href="/dashboard/map"
                                                 className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl text-center transition-all shadow-[0_0_20px_rgba(245,158,11,0.4)] flex items-center justify-center gap-2"
                                             >
                                                 <span>Buka WebGIS Layar Penuh</span>

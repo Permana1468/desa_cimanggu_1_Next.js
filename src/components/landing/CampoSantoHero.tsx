@@ -21,9 +21,10 @@ import { CampoSantoOrganisasi } from './CampoSantoOrganisasi';
 
 interface CampoSantoHeroProps {
     siteData?: any;
+    orgData?: any;
 }
 
-export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
+export function CampoSantoHero({ siteData, orgData }: CampoSantoHeroProps) {
     const { toggleDualMode, language } = useLandingTheme();
     const [activeCircle, setActiveCircle] = useState<number | null>(null);
     const [isTitleHovered, setIsTitleHovered] = useState(false);
@@ -277,7 +278,7 @@ export function CampoSantoHero({ siteData }: CampoSantoHeroProps) {
             {activeTab === 'informasi' ? (
                 <CampoSantoInformasi siteData={siteData} onBackToHero={() => setActiveTab('hero')} />
             ) : activeTab === 'organisasi' ? (
-                <CampoSantoOrganisasi siteData={siteData} onBackToHero={() => setActiveTab('hero')} />
+                <CampoSantoOrganisasi siteData={siteData} orgData={orgData} onBackToHero={() => setActiveTab('hero')} />
             ) : (
                 /* MAIN CAMPO SANTO HERO VIEW */
                 <>

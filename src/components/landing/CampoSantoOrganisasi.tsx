@@ -42,22 +42,28 @@ interface AparaturItem {
 
 interface CampoSantoOrganisasiProps {
     siteData?: any;
+    orgData?: any;
     onBackToHero?: () => void;
 }
 
-export function CampoSantoOrganisasi({ siteData, onBackToHero }: CampoSantoOrganisasiProps) {
+export function CampoSantoOrganisasi({ siteData, orgData, onBackToHero }: CampoSantoOrganisasiProps) {
     const [viewMode, setViewMode] = useState<'carousel' | 'detail'>('carousel');
     const [selectedOfficialIndex, setSelectedOfficialIndex] = useState<number>(0);
     const carouselRef = useRef<HTMLDivElement>(null);
+
+    const kadesName = orgData?.kades?.name || "HERNAWAN M. SODIK";
+    const kadesPhoto = orgData?.kades?.foto || "/images/KADES_baru.png";
+    const sekdesName = orgData?.sekdes?.name || "FAJAR TRI APRIANA";
+    const sekdesPhoto = orgData?.sekdes?.foto || "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1000&auto=format&fit=crop";
 
     // Official Profiles Data
     const aparaturList: AparaturItem[] = [
         {
             id: 1,
-            name: "H. SUKRI ADNAN",
+            name: kadesName,
             role: "KEPALA DESA CIMANGGU I",
             level: "PIMPINAN PEMERINTAH DESA",
-            photo: "https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=1000&auto=format&fit=crop",
+            photo: kadesPhoto,
             motto: "Mengabdi dengan ketulusan hati, menjunjung tinggi integritas, serta menghadirkan transparansi dan pelayanan digital terbaik untuk seluruh warga Desa Cimanggu I.",
             uniformType: "Seragam PDU Putih Resmi",
             tupoksi: [
@@ -81,10 +87,10 @@ export function CampoSantoOrganisasi({ siteData, onBackToHero }: CampoSantoOrgan
         },
         {
             id: 2,
-            name: "FAJAR TRI APRIANA",
+            name: sekdesName,
             role: "SEKRETARIS DESA",
             level: "PIMPINAN ADMINISTRASI DESA",
-            photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1000&auto=format&fit=crop",
+            photo: sekdesPhoto,
             motto: "Mewujudkan tertib administrasi yang akuntabel, efisien, dan modern berbasis teknologi geospasial demi kecepatan pelayanan warga.",
             uniformType: "Seragam Jas Royal Navy",
             tupoksi: [

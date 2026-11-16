@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Calendar, ChevronLeft, ChevronRight, Clock, ArrowUpRight, Newspaper } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Clock, ArrowUpRight, Newspaper, X, Tag } from 'lucide-react';
 import ScrollReveal from '../ScrollReveal';
 
 interface LandingNewsProps {
@@ -10,16 +10,25 @@ interface LandingNewsProps {
 
 export const LandingNews = ({ newsData }: LandingNewsProps) => {
     const [currentNewsIndex, setCurrentNewsIndex] = useState(0);
+    const [selectedNews, setSelectedNews] = useState<any | null>(null);
 
     const nextNews = () => {
-        setCurrentNewsIndex((prev) => (prev === newsData.length - 1 ? 0 : prev + 1));
+        if (!newsData.length) return;
+        setCurrentNewsIndex((prev) => (prev + 1) % newsData.length);
     };
 
     const prevNews = () => {
-        setCurrentNewsIndex((prev) => (prev === 0 ? newsData.length - 1 : prev - 1));
+        if (!newsData.length) return;
+        setCurrentNewsIndex((prev) => (prev - 1 + newsData.length) % newsData.length);
     };
 
     if (newsData.length === 0) return null;
+
+    const displayedCount = Math.min(3, newsData.length);
+    const displayedNews = [];
+    for (let i = 0; i < displayedCount; i++) {
+        displayedNews.push(newsData[(currentNewsIndex + i) % newsData.length]);
+    }
 
     return (
         <section id="berita" className="scroll-mt-32">
@@ -55,9 +64,9 @@ export const LandingNews = ({ newsData }: LandingNewsProps) => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {newsData.slice(currentNewsIndex, currentNewsIndex + 3).map((news, idx) => (
+                    {displayedNews.map((news, idx) => (
                         <div
-                            key={news.id}
+                            key={`${news.id}-${idx}`}
                             className="group bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl overflow-hidden hover:border-amber-400/50 hover:bg-white/15 transition-all duration-500 hover:-translate-y-2 shadow-2xl flex flex-col justify-between"
                         >
                             <div>
@@ -72,7 +81,7 @@ export const LandingNews = ({ newsData }: LandingNewsProps) => {
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                                     <div className="absolute top-4 left-4 bg-white/15 backdrop-blur-md border border-yellow-400/50 text-yellow-300 px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-1.5">
                                         <span className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping"></span>
-                                        Kabar Desa
+                                        {news.category || "Kabar Desa"}
                                     </div>
                                 </div>
 
@@ -94,18 +103,70 @@ export const LandingNews = ({ newsData }: LandingNewsProps) => {
                             </div>
 
                             <div className="px-8 pb-8">
-                                <a
-                                    href={`/berita/${news.id}`}
-                                    className="inline-flex items-center gap-2 text-xs font-black text-cyan-400 hover:text-cyan-300 uppercase tracking-wider group/btn"
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedNews(news)}
+                                    className="inline-flex items-center gap-2 text-xs font-black text-cyan-400 hover:text-cyan-300 uppercase tracking-wider group/btn cursor-pointer"
                                 >
                                     <span>Baca Selengkapnya</span>
                                     <ArrowUpRight size={16} className="group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-                                </a>
+                                </button>
                             </div>
                         </div>
                     ))}
                 </div>
             </ScrollReveal>
+
+            {/* Modal Detail Berita Real-Time */}
+            {selectedNews && (
+                <div 
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+                    onClick={() => setSelectedNews(null)}
+                >
+                    <div 
+                        className="relative w-full max-w-2xl bg-slate-900 border border-white/20 rounded-3xl overflow-hidden shadow-2xl max-h-[90vh] flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-950">
+                            <Image
+                                src={selectedNews.image}
+                                alt={selectedNews.title}
+                                fill
+                                className="object-cover"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-black/40"></div>
+                            <button
+                                onClick={() => setSelectedNews(null)}
+                                className="absolute top-4 right-4 w-9 h-9 rounded-full bg-black/60 hover:bg-black/90 text-white flex items-center justify-center transition-all border border-white/20"
+                            >
+                                <X size={18} />
+                            </button>
+                            <div className="absolute bottom-4 left-6 flex items-center gap-2">
+                                <span className="bg-amber-500/90 text-slate-950 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">
+                                    {selectedNews.category || "Informasi Resmi"}
+                                </span>
+                                <span className="text-xs text-slate-300 font-bold bg-black/50 px-3 py-1 rounded-full border border-white/10">
+                                    {selectedNews.date}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="p-6 sm:p-8 overflow-y-auto space-y-4 custom-scrollbar">
+                            <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
+                                {selectedNews.title}
+                            </h3>
+                            <div className="w-20 h-1 bg-amber-400 rounded-full" />
+                            <div className="text-sm text-slate-300 leading-relaxed font-light whitespace-pre-line space-y-3">
+                                {selectedNews.content ? (
+                                    <p>{selectedNews.content}</p>
+                                ) : (
+                                    <p>Informasi resmi terbaru dari Pemerintah Desa Cimanggu I. Kunjungi kantor desa atau hubungi layanan administrasi online untuk pertanyaan lebih lanjut seputar pengumuman ini.</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 };
