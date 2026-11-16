@@ -489,10 +489,10 @@ export function DesktopParallaxLanding({
                         initial={{ opacity: 0, x: -50 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 1, ease: "easeOut" }}
-                        className="hidden lg:flex absolute left-8 xl:left-16 top-[45%] -translate-y-1/2 z-40 pointer-events-auto text-left"
+                        className="hidden lg:flex absolute left-6 lg:left-8 xl:left-12 2xl:left-16 top-1/2 -translate-y-1/2 z-40 pointer-events-auto text-left"
                     >
                         <motion.div
-                            className="flex flex-col gap-5 w-[500px]"
+                            className="flex flex-col gap-4 xl:gap-5 w-full max-w-[320px] lg:max-w-[350px] xl:max-w-[420px] 2xl:max-w-[480px]"
                             animate={{ y: [0, -8, 0] }}
                             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                         >
@@ -502,20 +502,20 @@ export function DesktopParallaxLanding({
                                 transition={{ duration: 0.8, delay: 0.3 }}
                                 className="flex flex-col gap-1"
                             >
-                                <div className="flex items-center gap-4 mb-2">
+                                <div className="flex items-center gap-3 sm:gap-4 mb-1.5 sm:mb-2">
                                     <motion.span 
                                         initial={{ width: 0 }}
-                                        animate={{ width: 48 }}
+                                        animate={{ width: 44 }}
                                         transition={{ duration: 0.8, delay: 0.6 }}
-                                        className="h-[2px] bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"
+                                        className="h-[2px] bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)] shrink-0"
                                     ></motion.span>
-                                    <span className="text-xs font-bold text-amber-400 uppercase tracking-[0.3em] [text-shadow:0_2px_4px_rgba(0,0,0,0.8)]">Selamat Datang Di</span>
+                                    <span className="text-[11px] sm:text-xs font-bold text-amber-400 uppercase tracking-[0.25em] sm:tracking-[0.3em] [text-shadow:0_2px_4px_rgba(0,0,0,0.8)]">Selamat Datang Di</span>
                                 </div>
                                 <motion.h2 
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.8, delay: 0.5 }}
-                                    className="text-4xl xl:text-5xl font-black text-white leading-tight uppercase tracking-wide [text-shadow:0_4px_8px_rgba(0,0,0,0.8)] whitespace-nowrap"
+                                    className="text-2xl sm:text-3xl lg:text-3xl xl:text-4xl 2xl:text-5xl font-black text-white leading-[1.18] uppercase tracking-wide [text-shadow:0_4px_8px_rgba(0,0,0,0.8)] break-words"
                                 >
                                     {siteData?.hero_title || siteData?.title || "Desa Cimanggu I"}
                                 </motion.h2>
@@ -527,9 +527,9 @@ export function DesktopParallaxLanding({
                                 transition={{ duration: 0.5, delay: 0.8 }}
                                 className="flex items-center"
                             >
-                                <div className="inline-flex items-center px-4 py-2 bg-emerald-500/15 border border-emerald-400/30 rounded-full backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.4)] hover:bg-emerald-500/25 transition-colors cursor-default">
+                                <div className="inline-flex items-center px-3.5 py-1.5 sm:px-4 sm:py-2 bg-emerald-500/15 border border-emerald-400/30 rounded-full backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.4)] hover:bg-emerald-500/25 transition-colors cursor-default">
                                     <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2.5 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div>
-                                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-[0.2em]">Sistem Digitalisasi Desa</span>
+                                    <span className="text-[9px] sm:text-[10px] font-bold text-emerald-400 uppercase tracking-[0.2em]">Sistem Digitalisasi Desa</span>
                                 </div>
                             </motion.div>
 
@@ -537,7 +537,7 @@ export function DesktopParallaxLanding({
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.8, delay: 1 }}
-                                className="relative mt-2"
+                                className="relative mt-1 sm:mt-2"
                             >
                                 <motion.div 
                                     initial={{ height: 0 }}
@@ -545,7 +545,7 @@ export function DesktopParallaxLanding({
                                     transition={{ duration: 0.8, delay: 1.2 }}
                                     className="absolute left-0 top-1 bottom-1 w-[2px] bg-gradient-to-b from-emerald-400/80 to-transparent"
                                 ></motion.div>
-                                <p className="text-sm xl:text-base text-slate-100 leading-relaxed font-medium pl-6 text-justify [text-shadow:0_2px_4px_rgba(0,0,0,0.8)] pr-2">
+                                <p className="text-xs sm:text-sm xl:text-base text-slate-100/90 leading-relaxed font-medium pl-5 lg:pl-6 text-left [text-shadow:0_2px_4px_rgba(0,0,0,0.8)] pr-2">
                                     {siteData?.hero_subtitle || "Melangkah maju dengan tata kelola pemerintahan yang transparan dan pelayanan publik yang cepat. Kami mengintegrasikan potensi desa, pemberdayaan UMKM, dan kesejahteraan masyarakat secara terpadu."}
                                 </p>
                             </motion.div>
@@ -615,7 +615,7 @@ export function DesktopParallaxLanding({
                         className="relative flex flex-col items-center justify-center my-auto cursor-pointer group transform-gpu will-change-transform"
                     >
                         {/* Foreground Subject Image / Character with 3D Pop Out Effect */}
-                        <div className="relative w-72 h-72 xl:w-96 xl:h-96 mt-12 mb-4">
+                        <div className="relative w-64 h-64 lg:w-72 lg:h-72 xl:w-80 xl:h-80 2xl:w-96 2xl:h-96 mt-12 mb-4">
                             {/* Animated Glassmorphism Color Background Circle */}
                             <motion.div 
                                 animate={{ backgroundColor: ["rgba(245,158,11,0.4)", "rgba(59,130,246,0.4)", "rgba(139,92,246,0.4)", "rgba(236,72,153,0.4)", "rgba(16,185,129,0.4)", "rgba(245,158,11,0.4)"] }}
@@ -652,7 +652,7 @@ export function DesktopParallaxLanding({
                         <motion.div
                             animate={{ y: [0, -4, 0] }}
                             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                            className="relative z-40 -mt-[50px] sm:-mt-[70px] xl:-mt-[90px]"
+                            className="relative z-40 -mt-[45px] sm:-mt-[55px] lg:-mt-[60px] xl:-mt-[70px] 2xl:-mt-[90px]"
                         >
                             <Link
                                 href="/profil/sambutan"

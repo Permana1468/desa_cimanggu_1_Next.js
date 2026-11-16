@@ -187,7 +187,7 @@ export const LandingHero = ({ siteData, heroImages, uiConfig }: HeroProps) => {
                             <span className="w-5 h-[1.5px] bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"></span>
                         </div>
 
-                        <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight uppercase tracking-wide [text-shadow:0_4px_8px_rgba(0,0,0,0.8)] mb-2">
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-white leading-tight uppercase tracking-wide [text-shadow:0_4px_8px_rgba(0,0,0,0.8)] mb-2 break-words max-w-xl mx-auto">
                             {siteData?.hero_title || siteData?.title || "DESA CIMANGGU I"}
                         </h1>
 
