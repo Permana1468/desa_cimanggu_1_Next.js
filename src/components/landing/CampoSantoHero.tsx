@@ -132,13 +132,17 @@ export function CampoSantoHero({ siteData, orgData, uiConfig }: CampoSantoHeroPr
         
         // If CMS data has titles, use them, otherwise use default Info
         const galleryItem = Array.isArray(siteData?.gallery) ? siteData.gallery[idx] : null;
-        const displayTitle = galleryItem?.title ? galleryItem.title : defaultInfo.title;
-        const displaySub = galleryItem?.sub ? galleryItem.sub : defaultInfo.sub;
+        const displayTitle = (typeof galleryItem === 'object' && galleryItem !== null && typeof galleryItem.title === 'string' && galleryItem.title.trim() !== '')
+            ? galleryItem.title
+            : defaultInfo.title;
+        const displaySub = (typeof galleryItem === 'object' && galleryItem !== null && typeof galleryItem.sub === 'string' && galleryItem.sub.trim() !== '')
+            ? galleryItem.sub
+            : defaultInfo.sub;
 
         return {
             id: idx + 1,
-            title: displayTitle,
-            subtitle: displaySub,
+            title: typeof displayTitle === 'string' ? displayTitle : defaultInfo.title,
+            subtitle: typeof displaySub === 'string' ? displaySub : defaultInfo.sub,
             image: img,
             link: defaultInfo.link,
             colorGlow: color.glow,
@@ -452,7 +456,7 @@ export function CampoSantoHero({ siteData, orgData, uiConfig }: CampoSantoHeroPr
                                                     {item.title}
                                                 </Link>
                                                 <div className="text-[10px] sm:text-[11px] font-bold text-amber-200/80 tracking-wider uppercase drop-shadow">
-                                                    {item.subtitle}
+                                                    {typeof item.subtitle === 'string' ? item.subtitle : String(item.subtitle || '')}
                                                 </div>
                                             </div>
                                         </div>
