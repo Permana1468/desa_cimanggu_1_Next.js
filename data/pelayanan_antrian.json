@@ -1,0 +1,72 @@
+[
+  {
+    "id": "A001",
+    "nama": "Budi Santoso",
+    "nik": "3201012345670001",
+    "nomorHp": "081234567801",
+    "loketKode": "1",
+    "loketNama": "Loket 1: Persuratan & SKTM",
+    "service": "Pembuatan SKU",
+    "status": "processing",
+    "type": "Offline",
+    "time": "09:15 WIB",
+    "createdAt": "2026-11-15T11:55:40.045Z",
+    "updatedAt": "2026-11-15T12:30:40.045Z"
+  },
+  {
+    "id": "B008",
+    "nama": "Siti Aminah",
+    "nik": "3201012345670002",
+    "nomorHp": "081234567802",
+    "loketKode": "2",
+    "loketNama": "Loket 2: KTP & Kependudukan",
+    "service": "Mutasi Masuk & Pengurusan KTP",
+    "status": "waiting",
+    "type": "Online",
+    "time": "09:30 WIB",
+    "createdAt": "2026-11-15T12:10:40.045Z",
+    "updatedAt": "2026-11-15T12:10:40.045Z"
+  },
+  {
+    "id": "C003",
+    "nama": "Ahmad Dahlan",
+    "nik": "3201012345670003",
+    "nomorHp": "081234567803",
+    "loketKode": "3",
+    "loketNama": "Loket 3: Konsultasi & Bansos",
+    "service": "Konsultasi Bansos DTKS",
+    "status": "waiting",
+    "type": "Offline",
+    "time": "09:45 WIB",
+    "createdAt": "2026-11-15T12:25:40.045Z",
+    "updatedAt": "2026-11-15T12:25:40.045Z"
+  },
+  {
+    "id": "A002",
+    "nama": "Hendra Wijaya",
+    "nik": "3201012345670004",
+    "nomorHp": "081234567804",
+    "loketKode": "1",
+    "loketNama": "Loket 1: Persuratan & SKTM",
+    "service": "Surat Kematian & Akta",
+    "status": "waiting",
+    "type": "Offline",
+    "time": "10:00 WIB",
+    "createdAt": "2026-11-15T12:35:40.045Z",
+    "updatedAt": "2026-11-15T12:35:40.045Z"
+  },
+  {
+    "id": "B007",
+    "nama": "Rina Kusuma",
+    "nik": "3201012345670005",
+    "nomorHp": "081234567805",
+    "loketKode": "2",
+    "loketNama": "Loket 2: KTP & Kependudukan",
+    "service": "Keterangan Domisili",
+    "status": "completed",
+    "type": "Online",
+    "time": "09:00 WIB",
+    "createdAt": "2026-11-15T11:40:40.045Z",
+    "updatedAt": "2026-11-15T12:20:40.045Z"
+  }
+]

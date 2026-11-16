@@ -1,19 +1,20 @@
+
 "use client";
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { 
-    ShieldCheck, 
-    MapPin, 
-    Store, 
-    Users, 
-    Send, 
-    Sun, 
-    Clock, 
-    Calendar, 
-    Megaphone, 
-    Radio 
+import {
+    ShieldCheck,
+    MapPin,
+    Store,
+    Users,
+    Send,
+    Sun,
+    Clock,
+    Calendar,
+    Megaphone,
+    Radio
 } from 'lucide-react';
 import ScrollReveal from '../ScrollReveal';
 import { useLandingTheme } from './LandingThemeProvider';
@@ -123,20 +124,20 @@ export const LandingHero = ({ siteData, heroImages, uiConfig }: HeroProps) => {
 
             {/* HERO CONTENT */}
             <div className="relative z-30 w-full flex flex-col items-center justify-center gap-6 mt-4">
-                
+
                 {/* Mobile Kades Photo - 3D Pop Out Effect */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
                     className="relative w-44 h-44 sm:w-56 sm:h-56 mt-2"
                 >
-                    <motion.div 
+                    <motion.div
                         animate={{ backgroundColor: ["rgba(245,158,11,0.4)", "rgba(16,185,129,0.4)", "rgba(245,158,11,0.4)"] }}
                         transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                        className="absolute inset-0 rounded-full backdrop-blur-sm border-2 border-white/30 shadow-[0_0_30px_rgba(255,255,255,0.15)]" 
+                        className="absolute inset-0 rounded-full backdrop-blur-sm border-2 border-white/30 shadow-[0_0_30px_rgba(255,255,255,0.15)]"
                     />
-                    
+
                     <div className="absolute inset-0 rounded-full overflow-hidden z-10 pointer-events-none">
                         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[120%] h-[135%]">
                             <Image
@@ -185,7 +186,7 @@ export const LandingHero = ({ siteData, heroImages, uiConfig }: HeroProps) => {
                             <span className="text-[10px] font-bold text-amber-400 uppercase tracking-[0.25em] [text-shadow:0_2px_4px_rgba(0,0,0,0.8)]">Selamat Datang Di</span>
                             <span className="w-5 h-[1.5px] bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"></span>
                         </div>
-                        
+
                         <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight uppercase tracking-wide [text-shadow:0_4px_8px_rgba(0,0,0,0.8)] mb-2">
                             {siteData?.title || "DESA CIMANGGU I"}
                         </h1>
@@ -288,8 +289,8 @@ export const LandingHero = ({ siteData, heroImages, uiConfig }: HeroProps) => {
                                     <h4 className="text-xs font-bold text-white leading-tight">{siteData?.pengumuman_title || 'Pengumuman: Lomba Kebersihan Lingkungan'}</h4>
                                 </div>
                             </div>
-                            <Link 
-                                href={siteData?.pengumuman_link || "/informasi-publik"} 
+                            <Link
+                                href={siteData?.pengumuman_link || "/informasi-publik"}
                                 className="px-3 py-1.5 rounded-xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 font-extrabold text-[10px] uppercase tracking-wider shrink-0 hover:bg-cyan-500/30 transition-colors"
                             >
                                 Info
@@ -322,8 +323,8 @@ export const LandingHero = ({ siteData, heroImages, uiConfig }: HeroProps) => {
 
             {/* Sponsor Logos Marquee (Matched from Desktop) */}
             <div className="relative z-30 w-full mt-6 overflow-hidden pointer-events-auto py-2" style={{ maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}>
-                <motion.div 
-                    animate={{ x: ["0%", "-50%"] }} 
+                <motion.div
+                    animate={{ x: ["0%", "-50%"] }}
                     transition={{ ease: "linear", duration: 20, repeat: Infinity }}
                     className="flex items-center gap-6 w-max"
                 >

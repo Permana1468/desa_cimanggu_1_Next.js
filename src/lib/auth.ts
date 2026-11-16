@@ -193,7 +193,7 @@ export const authOptions: NextAuthOptions = {
       } catch (e) {}
       return baseUrl;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         const u = user as any;
         token.id = u.id;
@@ -203,6 +203,11 @@ export const authOptions: NextAuthOptions = {
         token.rt = u.rt;
         token.rw = u.rw;
       }
+      if (trigger === "update" && session) {
+        if (session.user?.name) token.name = session.user.name;
+      }
+      // Never store large base64 image in JWT cookies to prevent HTTP 431
+      delete (token as any).photo;
       return token;
     },
     async session({ session, token }) {
@@ -214,6 +219,19 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).rw = t.rw;
         (session.user as any).rt = t.rt;
         (session.user as any).isFirstLogin = t.isFirstLogin;
+
+        // Fetch fresh photo directly from database in server session (Safe from cookie limits)
+        if (t.id) {
+          try {
+            const dbUser = await prisma.user.findUnique({
+              where: { id: t.id },
+              select: { photo: true }
+            });
+            (session.user as any).photo = dbUser?.photo || null;
+          } catch {
+            (session.user as any).photo = null;
+          }
+        }
       }
       return session;
     },

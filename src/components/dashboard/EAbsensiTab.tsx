@@ -832,8 +832,9 @@ export function EAbsensiTab({ session }: { session?: any }) {
           </span>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+        {/* DESKTOP & TABLET VIEW: TERISOLASI (hidden md:block) */}
+        <div className="hidden md:block overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left text-xs min-w-[850px]">
             <thead className="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold uppercase tracking-wider">
               <tr>
                 <th className="px-6 py-4 text-center w-12">No</th>
@@ -905,6 +906,53 @@ export function EAbsensiTab({ session }: { session?: any }) {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* MOBILE / APP VIEW: TERISOLASI (block md:hidden) */}
+        <div className="block md:hidden space-y-3">
+          {filteredLogs.length === 0 ? (
+            <div className="py-12 text-center text-slate-400 text-xs font-bold">
+              Belum ada data scan absensi yang terekam.
+            </div>
+          ) : (
+            filteredLogs.map((log) => (
+              <div key={log.id} className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-2.5">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-extrabold text-sm text-slate-900 truncate">{log.nama}</p>
+                    <p className="text-[11px] text-slate-400 font-bold uppercase">{log.jabatan} • {log.kategori}</p>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold shrink-0 ${
+                    log.tipe === "MASUK" ? "bg-emerald-100 text-emerald-800" : "bg-blue-100 text-blue-800"
+                  }`}>
+                    {log.tipe}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-slate-800 text-xs bg-white px-2 py-0.5 rounded border border-slate-200">
+                      {log.waktuScan}
+                    </span>
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                      log.status === "Tepat Waktu"
+                        ? "bg-emerald-50 text-emerald-600 border border-emerald-200"
+                        : "bg-amber-50 text-amber-600 border border-amber-200"
+                    }`}>
+                      {log.status}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => handleDeleteSingleLog(log.id)}
+                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

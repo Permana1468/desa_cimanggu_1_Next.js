@@ -12,28 +12,12 @@ import { useSession } from "next-auth/react";
 import { ImageUpload } from "@/components/dashboard/ImageUpload";
 import QRCode from "qrcode";
 import { 
-  Users, 
-  Mail, 
-  Phone, 
-  ShieldCheck, 
-  Briefcase, 
-  UserPlus, 
   X, 
   Loader2, 
-  Save, 
-  ChevronDown,
-  Building,
-  FileText,
-  ExternalLink,
-  Trash2,
-  QrCode,
-  Printer,
-  Filter,
-  Search,
-  ScanLine,
-  CheckCircle2,
-  Pencil
+  Save
 } from "lucide-react";
+import { AparaturDesktopView } from "@/components/dashboard/aparatur/AparaturDesktopView";
+import { AparaturMobileView } from "@/components/dashboard/aparatur/AparaturMobileView";
 
 // List 8 Kategori Lembaga
 export const KATEGORI_LEMBAGA_LIST = [
@@ -815,216 +799,49 @@ export default function AparaturPage() {
   }
 
   return (
-    <div className="space-y-8 pb-24 animate-in fade-in duration-500">
-      {/* HEADER BANNER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
-              <Building size={12} /> STRUCTURE & APARATUR MANAGE
-            </span>
-          </div>
-          <h1 className="text-4xl font-black text-slate-800 tracking-tight">Aparatur & Kelembagaan Desa</h1>
-          <p className="text-slate-500 text-sm font-medium">Manajemen data perangkat desa, BPD, RT/RW, LPM, Posyandu, PKK, Karang Taruna, Puskesos & Barcode Absensi 2 Sisi.</p>
-        </div>
-
-        {isAdminMaster && (
-          <button 
-            onClick={() => { resetForm(); setShowAddModal(true); }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest shadow-xl shadow-blue-600/20 transition-all active:scale-95 flex items-center gap-2 group cursor-pointer"
-          >
-            <UserPlus size={18} className="group-hover:rotate-12 transition-transform" /> Tambah Aparatur Baru
-          </button>
-        )}
+    <div className="space-y-6">
+      {/* DESKTOP & TABLET VIEW: Terisolasi khusus md ke atas (Tablet & Laptop/PC) */}
+      <div className="hidden md:block">
+        <AparaturDesktopView
+          aparatur={aparatur}
+          filteredAparatur={filteredAparatur}
+          selectedKategori={selectedKategori}
+          setSelectedKategori={setSelectedKategori}
+          search={search}
+          setSearch={setSearch}
+          isAdminMaster={isAdminMaster}
+          onAddClick={() => { resetForm(); setShowAddModal(true); }}
+          onEditClick={handleOpenEdit}
+          onSkClick={(person) => {
+            setSelectedAparatur(person);
+            setSkData({ skNumber: person.skNumber || "", skUrl: person.skUrl || "" });
+            setShowSKModal(true);
+          }}
+          onDeleteClick={handleDelete}
+          onPrintCard={handlePrintCard}
+        />
       </div>
 
-      {/* DROPDOWN FILTER KATEGORI LEMBAGA (8 KATEGORI) & SEARCH BAR */}
-      <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* Dropdown Kategori Lembaga */}
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 shrink-0">
-              <Filter size={15} className="text-blue-600" /> Kategori Lembaga:
-            </span>
-            <select
-              value={selectedKategori}
-              onChange={(e) => setSelectedKategori(e.target.value)}
-              className="w-full md:w-80 px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:border-blue-500 bg-slate-50 shadow-xs cursor-pointer"
-            >
-              <option value="SEMUA">Semua Kategori (8 Lembaga)</option>
-              {KATEGORI_LEMBAGA_LIST.map((kat, idx) => (
-                <option key={idx} value={kat}>
-                  {idx + 1}. {kat}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Search Box */}
-          <div className="relative w-full md:w-72">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Cari Nama / Jabatan / Barcode..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs font-semibold focus:outline-none focus:border-blue-500 transition-colors"
-            />
-          </div>
-        </div>
-
-        {/* QUICK CATEGORY BADGES */}
-        <div className="flex items-center gap-2 overflow-x-auto pt-2 pb-1 custom-scrollbar">
-          <button
-            onClick={() => setSelectedKategori("SEMUA")}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-              selectedKategori === "SEMUA" 
-                ? "bg-blue-600 text-white shadow-md shadow-blue-600/20" 
-                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-            }`}
-          >
-            Semua ({aparatur.length})
-          </button>
-          {KATEGORI_LEMBAGA_LIST.map((kat, idx) => {
-            const count = aparatur.filter(a => (a.kategori || "Perangkat Desa").toLowerCase().includes(kat.toLowerCase())).length;
-            return (
-              <button
-                key={idx}
-                onClick={() => setSelectedKategori(kat)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
-                  selectedKategori === kat 
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-600/20" 
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                {kat} ({count})
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* MAIN TABLE DAFTAR APARATUR DESA */}
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200/60 overflow-hidden relative">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-2xl font-black text-slate-800 tracking-tight">Daftar Aparatur Desa</h2>
-            <p className="text-slate-500 font-medium text-xs mt-0.5">
-              Menampilkan {filteredAparatur.length} aparatur untuk kategori: <span className="font-bold text-blue-600">{selectedKategori}</span>
-            </p>
-          </div>
-          <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shadow-inner">
-            <Briefcase size={24} />
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-separate border-spacing-y-3">
-            <thead>
-              <tr className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
-                <th className="px-6 py-2">Aparatur & Jabatan</th>
-                <th className="px-6 py-2">Kategori Lembaga</th>
-                <th className="px-6 py-2">Barcode Absensi</th>
-                <th className="px-6 py-2">Nomor SK</th>
-                <th className="px-6 py-2 text-right">Aksi & Kartu</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAparatur.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-12 text-slate-400 font-bold text-xs">
-                    Tidak ada aparatur ditemukan untuk kategori &quot;{selectedKategori}&quot;.
-                  </td>
-                </tr>
-              ) : (
-                filteredAparatur.map((person) => {
-                  const barcodeCode = person.barcodeId || person.nik || `APR-DESA-${person.id.slice(0, 5)}`;
-                  const kat = person.kategori || "Perangkat Desa";
-
-                  return (
-                    <tr key={person.id} className="group hover:bg-slate-50/50 transition-all">
-                      <td className="bg-white border-y border-l border-slate-100 rounded-l-2xl px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-inner overflow-hidden relative bg-slate-100 shrink-0">
-                            {person.photo ? (
-                              <img src={person.photo} alt={person.name} className="w-full h-full object-cover" />
-                            ) : (
-                              person.name.charAt(0)
-                            )}
-                          </div>
-                          <div>
-                            <p className="text-sm font-black text-slate-800">{person.name}</p>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{person.position}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="bg-white border-y border-slate-100 px-6 py-4">
-                        <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-700 font-bold text-[11px]">
-                          {kat}
-                        </span>
-                      </td>
-                      <td className="bg-white border-y border-slate-100 px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-bold bg-slate-100 text-slate-800 px-2.5 py-1 rounded-md border border-slate-200">
-                            {barcodeCode}
-                          </span>
-                          <button
-                            onClick={() => handlePrintCard(person)}
-                            className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors cursor-pointer"
-                            title="Lihat / Cetak ID Card Absensi (2 Sisi)"
-                          >
-                            <QrCode size={16} />
-                          </button>
-                        </div>
-                      </td>
-                      <td className="bg-white border-y border-slate-100 px-6 py-4">
-                        <span className="text-xs font-mono text-slate-600 bg-slate-50 px-3 py-1 rounded-md border border-slate-100">
-                          {person.skNumber || "BELUM TERBIT"}
-                        </span>
-                      </td>
-                      <td className="bg-white border-y border-r border-slate-100 rounded-r-2xl px-6 py-4 text-right">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => handlePrintCard(person)}
-                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[11px] font-bold transition-all shadow-sm flex items-center gap-1 cursor-pointer"
-                          >
-                            <Printer size={13} />
-                            <span>ID Card (2 Sisi)</span>
-                          </button>
-                          {isAdminMaster && (
-                            <>
-                              <button 
-                                onClick={() => handleOpenEdit(person)}
-                                className="p-2 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-xl transition-all shadow-sm cursor-pointer"
-                                title="Edit Data Identitas Aparatur"
-                              >
-                                <Pencil size={16} />
-                              </button>
-                              <button 
-                                onClick={() => { setSelectedAparatur(person); setSkData({ skNumber: person.skNumber || "", skUrl: person.skUrl || "" }); setShowSKModal(true); }}
-                                className="p-2 bg-slate-100 text-slate-600 rounded-xl hover:bg-slate-900 hover:text-white transition-all shadow-sm cursor-pointer"
-                                title="Manajemen SK"
-                              >
-                                <FileText size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleDelete(person.id)}
-                                className="p-2 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-100 transition-all shadow-sm cursor-pointer"
-                                title="Hapus Aparatur"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* MOBILE / APP VIEW: Terisolasi khusus mobile/smartphone (di bawah 768px) */}
+      <div className="block md:hidden">
+        <AparaturMobileView
+          aparatur={aparatur}
+          filteredAparatur={filteredAparatur}
+          selectedKategori={selectedKategori}
+          setSelectedKategori={setSelectedKategori}
+          search={search}
+          setSearch={setSearch}
+          isAdminMaster={isAdminMaster}
+          onAddClick={() => { resetForm(); setShowAddModal(true); }}
+          onEditClick={handleOpenEdit}
+          onSkClick={(person) => {
+            setSelectedAparatur(person);
+            setSkData({ skNumber: person.skNumber || "", skUrl: person.skUrl || "" });
+            setShowSKModal(true);
+          }}
+          onDeleteClick={handleDelete}
+          onPrintCard={handlePrintCard}
+        />
       </div>
 
       {/* ADD APARATUR MODAL */}

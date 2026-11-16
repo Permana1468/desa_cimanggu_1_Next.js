@@ -6,6 +6,8 @@ import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import * as turf from '@turf/turf';
 
+import { cleanDigits, cleanName, getWilayahVariants, isWilayahMatch } from "@/lib/wilayahUtils";
+
 async function getRtSession() {
     const session = await getServerSession(authOptions);
     if (!session?.user) throw new Error("Unauthorized");
@@ -19,26 +21,13 @@ async function getRtSession() {
     return { session, tenantId, rt, rw, role };
 }
 
-function cleanDigits(val: string | undefined | null): string {
-    if (!val) return '0';
-    return val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0';
-}
-
-function cleanName(val: string | undefined | null): string {
-    if (!val) return "";
-    return val.toString().toLowerCase().replace(/[^a-z0-9]/g, '');
-}
-
 export async function buildWilayahFilterScope(role: string, userRt: string, userRw: string, tenantId: string) {
     const filterScope: any = { tenantId };
     let allowedRws: string[] = [];
     
-    const rtClean = cleanDigits(userRt || "");
-    const rwClean = cleanDigits(userRw || "");
-    
     if (role === "RT") {
-        filterScope.rt = { in: [userRt, rtClean, rtClean.padStart(2, '0'), rtClean.padStart(3, '0')] };
-        filterScope.rw = { in: [userRw, rwClean, rwClean.padStart(2, '0'), rwClean.padStart(3, '0')] };
+        filterScope.rt = { in: getWilayahVariants(userRt) };
+        filterScope.rw = { in: getWilayahVariants(userRw) };
         return { filterScope, allowedRws };
     }
     
@@ -48,28 +37,8 @@ export async function buildWilayahFilterScope(role: string, userRt: string, user
     const structure = (config?.settings as any) || { dusun: [] };
     
     if (role === "RW") {
-        const targetRwClean = cleanDigits(userRw || "");
-        const rtScopeList: string[] = [];
-        
-        structure.dusun?.forEach((d: any) => {
-            d.rw?.forEach((rw: any) => {
-                if (cleanDigits(rw.name) === targetRwClean) {
-                    rw.rt?.forEach((rt: any) => {
-                        rtScopeList.push(rt);
-                    });
-                }
-            });
-        });
-        
-        const matchedRts = rtScopeList.flatMap(rt => {
-            const clean = cleanDigits(rt);
-            return [clean, clean.padStart(2, '0'), clean.padStart(3, '0'), rt];
-        });
-        
-        filterScope.rw = { in: [userRw, targetRwClean, targetRwClean.padStart(2, '0'), targetRwClean.padStart(3, '0')] };
-        if (matchedRts.length > 0) {
-            filterScope.rt = { in: matchedRts };
-        }
+        filterScope.rw = { in: getWilayahVariants(userRw) };
+        return { filterScope, allowedRws };
     } else if (role === "KADUS") {
         const allowedRts: string[] = [];
         const kaduAllowedRws: string[] = [];
@@ -119,12 +88,9 @@ export async function buildWilayahFilterScope(role: string, userRt: string, user
 export async function buildReportFilterScope(role: string, userRt: string, userRw: string, tenantId: string) {
     const filterScope: any = { tenantId };
     
-    const rtClean = cleanDigits(userRt || "");
-    const rwClean = cleanDigits(userRw || "");
-    
     if (role === "RT") {
-        filterScope.rt = { in: [userRt, rtClean, rtClean.padStart(2, '0'), rtClean.padStart(3, '0')] };
-        filterScope.rw = { in: [userRw, rwClean, rwClean.padStart(2, '0'), rwClean.padStart(3, '0')] };
+        filterScope.rt = { in: getWilayahVariants(userRt) };
+        filterScope.rw = { in: getWilayahVariants(userRw) };
         return filterScope;
     }
     
@@ -134,28 +100,8 @@ export async function buildReportFilterScope(role: string, userRt: string, userR
     const structure = (config?.settings as any) || { dusun: [] };
     
     if (role === "RW") {
-        const targetRwClean = cleanDigits(userRw || "");
-        const rtScopeList: string[] = [];
-        
-        structure.dusun?.forEach((d: any) => {
-            d.rw?.forEach((rw: any) => {
-                if (cleanDigits(rw.name) === targetRwClean) {
-                    rw.rt?.forEach((rt: any) => {
-                        rtScopeList.push(rt);
-                    });
-                }
-            });
-        });
-        
-        const matchedRts = rtScopeList.flatMap(rt => {
-            const clean = cleanDigits(rt);
-            return [clean, clean.padStart(2, '0'), clean.padStart(3, '0'), rt];
-        });
-        
-        filterScope.rw = { in: [userRw, targetRwClean, targetRwClean.padStart(2, '0'), targetRwClean.padStart(3, '0')] };
-        if (matchedRts.length > 0) {
-            filterScope.rt = { in: matchedRts };
-        }
+        filterScope.rw = { in: getWilayahVariants(userRw) };
+        return filterScope;
     } else if (role === "KADUS") {
         const allowedRts: string[] = [];
         const kaduAllowedRws: string[] = [];
@@ -200,6 +146,8 @@ export async function getWilayahStrukturOptions() {
         const userRw = (session.user as any).rw || "";
         const userRt = (session.user as any).rt || "";
         
+        const tenantId = (session.user as any).tenantId;
+        
         const config = await prisma.systemSetting.findUnique({
             where: { id: "village_structure" }
         });
@@ -220,6 +168,10 @@ export async function getWilayahStrukturOptions() {
                     }
                 });
             });
+
+            if (userRt && !rtOptions.includes(userRt)) {
+                rtOptions.push(userRt);
+            }
             
             return {
                 dusunName: matchedDusunName,
@@ -240,6 +192,22 @@ export async function getWilayahStrukturOptions() {
                     }
                 });
             });
+
+            // Also supplement with distinct RT from DataKependudukan for this RW
+            if (tenantId) {
+                const dbRts = await prisma.dataKependudukan.findMany({
+                    where: {
+                        tenantId,
+                        rw: { in: getWilayahVariants(userRw) },
+                        rt: { not: "" }
+                    },
+                    select: { rt: true },
+                    distinct: ['rt']
+                });
+                dbRts.forEach(r => {
+                    if (r.rt && r.rt.trim()) rtOptions.push(r.rt.trim());
+                });
+            }
             
             return {
                 dusunName: matchedDusunName,
@@ -304,8 +272,11 @@ export async function getRtDashboardStats() {
             prisma.rtDeathReport.findMany({ where: reportFilterScope, select: { nik: true } }),
             prisma.rtMoveReport.findMany({ where: reportFilterScope, select: { nik: true } })
         ]);
-        const inactiveNiks = [...deathRecords.map(d => d.nik), ...moveRecords.map(m => m.nik)];
-        const activeScope = { ...filterScope };
+        const inactiveNiks = [...deathRecords.map(d => d.nik?.trim()).filter(Boolean), ...moveRecords.map(m => m.nik?.trim()).filter(Boolean)];
+        const activeScope = { 
+            ...filterScope,
+            statusKependudukan: { notIn: ["MENINGGAL", "PINDAH"] }
+        };
         if (inactiveNiks.length > 0) {
             activeScope.nik = { notIn: inactiveNiks };
         }
@@ -392,12 +363,13 @@ export async function getRtFinance() {
     }
 }
 
-export async function addRtFinanceTransaction(data: { amount: number, type: string, category: string, date: Date, description?: string }) {
-    const { tenantId, rt, rw } = await getRtSession();
+export async function addRtFinanceTransaction(data: { amount: number, type: string, category: string, date: Date, description?: string, rt?: string }) {
+    const { tenantId, rt: sessionRt, rw, role } = await getRtSession();
+    const targetRt = role === "RW" ? (data.rt || "") : sessionRt;
     try {
         const transaction = await prisma.rtFinance.create({
             data: {
-                rt,
+                rt: targetRt,
                 rw,
                 amount: data.amount,
                 type: data.type,
@@ -420,8 +392,7 @@ export async function deleteRtFinanceTransaction(id: string) {
         if (role === "RT" || role === "RW") {
             const target = await prisma.rtFinance.findUnique({ where: { id } });
             if (!target) throw new Error("Transaction not found");
-            if (role === "RT" && (target.rt !== rt || target.rw !== rw)) throw new Error("Unauthorized");
-            if (role === "RW" && target.rw !== rw) throw new Error("Unauthorized");
+            if (!isWilayahMatch(role, target.rt, target.rw, rt, rw)) throw new Error("Unauthorized");
         }
         await prisma.rtFinance.delete({ where: { id } });
         revalidatePath("/dashboard");
@@ -476,8 +447,7 @@ export async function deleteRtActivity(id: string) {
         if (role === "RT" || role === "RW") {
             const target = await prisma.rtActivity.findUnique({ where: { id } });
             if (!target) throw new Error("Activity not found");
-            if (role === "RT" && (target.rt !== rt || target.rw !== rw)) throw new Error("Unauthorized");
-            if (role === "RW" && target.rw !== rw) throw new Error("Unauthorized");
+            if (!isWilayahMatch(role, target.rt, target.rw, rt, rw)) throw new Error("Unauthorized");
         }
         await prisma.rtActivity.delete({ where: { id } });
         revalidatePath("/dashboard");
@@ -531,8 +501,7 @@ export async function deleteRtBirthReport(id: string) {
         if (role === "RT" || role === "RW") {
             const target = await prisma.rtBirthReport.findUnique({ where: { id } });
             if (!target) throw new Error("Report not found");
-            if (role === "RT" && (target.rt !== rt || target.rw !== rw)) throw new Error("Unauthorized");
-            if (role === "RW" && target.rw !== rw) throw new Error("Unauthorized");
+            if (!isWilayahMatch(role, target.rt, target.rw, rt, rw)) throw new Error("Unauthorized");
         }
         await prisma.rtBirthReport.delete({ where: { id } });
         revalidatePath("/dashboard");
@@ -569,10 +538,24 @@ export async function addRtDeathReport(data: { nik: string, namaLengkap: string,
                 tanggalMeninggal: new Date(data.tanggalMeninggal),
                 penyebab: data.penyebab,
                 keterangan: data.keterangan,
+                statusFisik: "MENUNGGU_BERKAS_FISIK",
                 tenantId
             }
         });
+
+        // Tandai data kependudukan utama menjadi MUTASI_PENDING (menunggu bukti fisik)
+        if (data.nik) {
+            await prisma.dataKependudukan.updateMany({
+                where: { tenantId, nik: data.nik },
+                data: {
+                    statusKependudukan: "MUTASI_PENDING",
+                    keteranganStatus: `Lapor Meninggal (${new Date(data.tanggalMeninggal).toLocaleDateString("id-ID")}) - Menunggu Penyerahan Berkas Fisik Desa`
+                }
+            });
+        }
+
         revalidatePath("/dashboard");
+        revalidatePath("/dashboard/warga");
         return { success: true, report };
     } catch (error: any) {
         return { success: false, error: error.message };
@@ -582,14 +565,26 @@ export async function addRtDeathReport(data: { nik: string, namaLengkap: string,
 export async function deleteRtDeathReport(id: string) {
     const { tenantId, rt, rw, role } = await getRtSession();
     try {
+        const target = await prisma.rtDeathReport.findUnique({ where: { id } });
+        if (!target) throw new Error("Report not found");
         if (role === "RT" || role === "RW") {
-            const target = await prisma.rtDeathReport.findUnique({ where: { id } });
-            if (!target) throw new Error("Report not found");
-            if (role === "RT" && (target.rt !== rt || target.rw !== rw)) throw new Error("Unauthorized");
-            if (role === "RW" && target.rw !== rw) throw new Error("Unauthorized");
+            if (!isWilayahMatch(role, target.rt, target.rw, rt, rw)) throw new Error("Unauthorized");
         }
         await prisma.rtDeathReport.delete({ where: { id } });
+
+        // Pulihkan status warga ke AKTIF jika mutasi dibatalkan
+        if (target.nik) {
+            await prisma.dataKependudukan.updateMany({
+                where: { tenantId, nik: target.nik, statusKependudukan: "MUTASI_PENDING" },
+                data: {
+                    statusKependudukan: "AKTIF",
+                    keteranganStatus: null
+                }
+            });
+        }
+
         revalidatePath("/dashboard");
+        revalidatePath("/dashboard/warga");
         return { success: true };
     } catch (error: any) {
         return { success: false, error: error.message };
@@ -623,10 +618,24 @@ export async function addRtMoveReport(data: { nik: string, namaLengkap: string, 
                 tanggalPindah: new Date(data.tanggalPindah),
                 alamatTujuan: data.alamatTujuan,
                 alasan: data.alasan,
+                statusFisik: "MENUNGGU_BERKAS_FISIK",
                 tenantId
             }
         });
+
+        // Tandai data kependudukan utama menjadi MUTASI_PENDING
+        if (data.nik) {
+            await prisma.dataKependudukan.updateMany({
+                where: { tenantId, nik: data.nik },
+                data: {
+                    statusKependudukan: "MUTASI_PENDING",
+                    keteranganStatus: `Lapor Pindah ke: ${data.alamatTujuan} - Menunggu Penyerahan Berkas Fisik Desa`
+                }
+            });
+        }
+
         revalidatePath("/dashboard");
+        revalidatePath("/dashboard/warga");
         return { success: true, report };
     } catch (error: any) {
         return { success: false, error: error.message };
@@ -636,14 +645,26 @@ export async function addRtMoveReport(data: { nik: string, namaLengkap: string, 
 export async function deleteRtMoveReport(id: string) {
     const { tenantId, rt, rw, role } = await getRtSession();
     try {
+        const target = await prisma.rtMoveReport.findUnique({ where: { id } });
+        if (!target) throw new Error("Report not found");
         if (role === "RT" || role === "RW") {
-            const target = await prisma.rtMoveReport.findUnique({ where: { id } });
-            if (!target) throw new Error("Report not found");
-            if (role === "RT" && (target.rt !== rt || target.rw !== rw)) throw new Error("Unauthorized");
-            if (role === "RW" && target.rw !== rw) throw new Error("Unauthorized");
+            if (!isWilayahMatch(role, target.rt, target.rw, rt, rw)) throw new Error("Unauthorized");
         }
         await prisma.rtMoveReport.delete({ where: { id } });
+
+        // Pulihkan status warga ke AKTIF jika mutasi dibatalkan
+        if (target.nik) {
+            await prisma.dataKependudukan.updateMany({
+                where: { tenantId, nik: target.nik, statusKependudukan: "MUTASI_PENDING" },
+                data: {
+                    statusKependudukan: "AKTIF",
+                    keteranganStatus: null
+                }
+            });
+        }
+
         revalidatePath("/dashboard");
+        revalidatePath("/dashboard/warga");
         return { success: true };
     } catch (error: any) {
         return { success: false, error: error.message };
@@ -694,8 +715,7 @@ export async function deleteRtIncomingReport(id: string) {
         if (role === "RT" || role === "RW") {
             const target = await prisma.rtIncomingReport.findUnique({ where: { id } });
             if (!target) throw new Error("Report not found");
-            if (role === "RT" && (target.rt !== rt || target.rw !== rw)) throw new Error("Unauthorized");
-            if (role === "RW" && target.rw !== rw) throw new Error("Unauthorized");
+            if (!isWilayahMatch(role, target.rt, target.rw, rt, rw)) throw new Error("Unauthorized");
         }
         await prisma.rtIncomingReport.delete({ where: { id } });
         revalidatePath("/dashboard");
@@ -747,8 +767,7 @@ export async function deleteRtAnnouncement(id: string) {
         if (role === "RT" || role === "RW") {
             const target = await prisma.rtAnnouncement.findUnique({ where: { id } });
             if (!target) throw new Error("Announcement not found");
-            if (role === "RT" && (target.rt !== rt || target.rw !== rw)) throw new Error("Unauthorized");
-            if (role === "RW" && target.rw !== rw) throw new Error("Unauthorized");
+            if (!isWilayahMatch(role, target.rt, target.rw, rt, rw)) throw new Error("Unauthorized");
         }
         await prisma.rtAnnouncement.delete({ where: { id } });
         revalidatePath("/dashboard");
@@ -802,8 +821,7 @@ export async function updateRtComplaintStatus(id: string, status: string, notes?
         if (role === "RT" || role === "RW") {
             const target = await prisma.rtComplaint.findUnique({ where: { id } });
             if (!target) throw new Error("Complaint not found");
-            if (role === "RT" && (target.rt !== rt || target.rw !== rw)) throw new Error("Unauthorized");
-            if (role === "RW" && target.rw !== rw) throw new Error("Unauthorized");
+            if (!isWilayahMatch(role, target.rt, target.rw, rt, rw)) throw new Error("Unauthorized");
         }
         const complaint = await prisma.rtComplaint.update({
             where: { id },
@@ -822,8 +840,7 @@ export async function deleteRtComplaint(id: string) {
         if (role === "RT" || role === "RW") {
             const target = await prisma.rtComplaint.findUnique({ where: { id } });
             if (!target) throw new Error("Complaint not found");
-            if (role === "RT" && (target.rt !== rt || target.rw !== rw)) throw new Error("Unauthorized");
-            if (role === "RW" && target.rw !== rw) throw new Error("Unauthorized");
+            if (!isWilayahMatch(role, target.rt, target.rw, rt, rw)) throw new Error("Unauthorized");
         }
         await prisma.rtComplaint.delete({ where: { id } });
         revalidatePath("/dashboard");
@@ -876,8 +893,7 @@ export async function deleteRtInventory(id: string) {
         if (role === "RT" || role === "RW") {
             const target = await prisma.rtInventory.findUnique({ where: { id } });
             if (!target) throw new Error("Inventory not found");
-            if (role === "RT" && (target.rt !== rt || target.rw !== rw)) throw new Error("Unauthorized");
-            if (role === "RW" && target.rw !== rw) throw new Error("Unauthorized");
+            if (!isWilayahMatch(role, target.rt, target.rw, rt, rw)) throw new Error("Unauthorized");
         }
         await prisma.rtInventory.delete({ where: { id } });
         revalidatePath("/dashboard");
@@ -950,8 +966,7 @@ export async function returnRtInventoryLoan(id: string) {
         });
         if (!target) throw new Error("Loan record not found");
         
-        if (role === "RT" && (target.inventory.rt !== rt || target.inventory.rw !== rw)) throw new Error("Unauthorized");
-        if (role === "RW" && target.inventory.rw !== rw) throw new Error("Unauthorized");
+        if (!isWilayahMatch(role, target.inventory.rt, target.inventory.rw, rt, rw)) throw new Error("Unauthorized");
 
         const updated = await prisma.rtInventoryLoan.update({
             where: { id },
@@ -1136,8 +1151,7 @@ export async function deleteSensusPoint(id: string) {
         if (role === "RT" || role === "RW") {
             const target = await prisma.sensusPoint.findUnique({ where: { id } });
             if (!target) throw new Error("Sensus point not found");
-            if (role === "RT" && (target.rt !== rt || target.rw !== rw)) throw new Error("Unauthorized");
-            if (role === "RW" && target.rw !== rw) throw new Error("Unauthorized");
+            if (!isWilayahMatch(role, target.rt, target.rw, rt, rw)) throw new Error("Unauthorized");
         }
         await prisma.sensusPoint.delete({ where: { id } });
         await updateRtBoundary(tenantId, rt, rw);
@@ -1166,14 +1180,20 @@ export async function getRtMapBoundary() {
 }
 
 export async function saveRtMapBoundary(coordinates: any) {
-    const { tenantId, rt, rw } = await getRtSession();
+    const { tenantId, rt, rw, role } = await getRtSession();
     try {
-        const name = rt;
-        const parentName = rw;
-        const type = "RT";
+        const isRw = role === "RW";
+        const type = isRw ? "RW" : "RT";
+        const name = isRw ? (cleanDigits(rw).padStart(3, '0')) : rt;
+        const parentName = isRw ? null : rw;
 
         const existing = await prisma.mapBoundary.findFirst({
-            where: { tenantId, type, name, parentName }
+            where: {
+                tenantId,
+                type,
+                name: isRw ? { in: getWilayahVariants(rw) } : name,
+                ...(isRw ? {} : { parentName })
+            }
         });
 
         let boundary;
@@ -1190,15 +1210,17 @@ export async function saveRtMapBoundary(coordinates: any) {
                     name,
                     parentName,
                     coordinates,
-                    color: "#f43f5e"
+                    color: isRw ? "#f59e0b" : "#f43f5e"
                 }
             });
         }
 
-        try {
-            await triggerRwPolygonAggregation(tenantId, parentName);
-        } catch (aggErr) {
-            console.error("Aggregation error ignored:", aggErr);
+        if (!isRw && parentName) {
+            try {
+                await triggerRwPolygonAggregation(tenantId, parentName);
+            } catch (aggErr) {
+                console.error("Aggregation error ignored:", aggErr);
+            }
         }
 
         revalidatePath("/dashboard");
@@ -1279,8 +1301,11 @@ export async function getRwDashboardStats() {
             prisma.rtDeathReport.findMany({ where: reportFilterScope, select: { nik: true } }),
             prisma.rtMoveReport.findMany({ where: reportFilterScope, select: { nik: true } })
         ]);
-        const inactiveNiks = [...deathRecords.map(d => d.nik), ...moveRecords.map(m => m.nik)];
-        const activeScope = { ...filterScope };
+        const inactiveNiks = [...deathRecords.map(d => d.nik?.trim()).filter(Boolean), ...moveRecords.map(m => m.nik?.trim()).filter(Boolean)];
+        const activeScope = { 
+            ...filterScope,
+            statusKependudukan: { notIn: ["MENINGGAL", "PINDAH"] }
+        };
         if (inactiveNiks.length > 0) {
             activeScope.nik = { notIn: inactiveNiks };
         }
@@ -1384,7 +1409,7 @@ export async function getRwMapBoundaries() {
             where: {
                 tenantId,
                 type: "RW",
-                name: rw
+                name: { in: getWilayahVariants(rw) }
             }
         });
 
@@ -1392,7 +1417,7 @@ export async function getRwMapBoundaries() {
             where: {
                 tenantId,
                 type: "RT",
-                parentName: rw
+                parentName: { in: getWilayahVariants(rw) }
             }
         });
 
@@ -1593,7 +1618,7 @@ export async function getRtDemographicReport(month: number, year: number) {
 
         return {
             success: true,
-            rtInfo: { rt, rw },
+            rtInfo: { rt, rw, role },
             ageDistribution,
             totals: {
                 penduduk: { L: totalWargaL, P: totalWargaP },

@@ -7,11 +7,8 @@ import { StatusSurat } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { buildWilayahFilterScope, buildReportFilterScope } from "./rt";
+import { cleanDigits, getWilayahVariants, isWilayahMatch } from "@/lib/wilayahUtils";
 import { invalidateLandingCache } from "./landing";
-
-function cleanDigits(val: string): string {
-    return val ? val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0' : '';
-}
 
 export async function getVillageDashboardStats() {
     try {
@@ -19,16 +16,17 @@ export async function getVillageDashboardStats() {
         if (!session?.user) throw new Error("Unauthorized");
         const tenantId = (session.user as { tenantId: string }).tenantId;
 
-        const [suratPending, laporanVerified, totalAparatur, totalProposals] = await Promise.all([
+        const [suratPending, laporanVerified, totalAparatur, totalProposals, unverifiedWarga] = await Promise.all([
             prisma.surat.count({ where: { tenantId, status: StatusSurat.TERTUNDA } }),
             prisma.surat.count({ where: { tenantId, status: StatusSurat.TERVERIFIKASI } }),
             prisma.user.count({ where: { tenantId, isActive: true } }),
-            prisma.financeProposal.count({ where: { tenantId, status: "PENDING" } })
+            prisma.financeProposal.count({ where: { tenantId, status: "PENDING" } }),
+            prisma.user.count({ where: { tenantId, role: "WARGA", isActive: false } })
         ]);
 
-        return { suratPending, laporanVerified, totalAparatur, totalProposals };
+        return { suratPending, laporanVerified, totalAparatur, totalProposals, unverifiedWarga };
     } catch (error) {
-    return { suratPending: 0, laporanVerified: 0, totalAparatur: 0, totalProposals: 0 };
+        return { suratPending: 0, laporanVerified: 0, totalAparatur: 0, totalProposals: 0, unverifiedWarga: 0 };
     }
 }
 
@@ -51,16 +49,13 @@ export async function getSuratList() {
                 return [];
             }
         } else if (role === "RT") {
-            const rtClean = cleanDigits(userRt || "");
-            const rwClean = cleanDigits(userRw || "");
             filterScope.warga = {
-                rt: { in: [userRt, rtClean, rtClean.padStart(3, '0')] },
-                rw: { in: [userRw, rwClean, rwClean.padStart(3, '0')] }
+                rt: { in: getWilayahVariants(userRt) },
+                rw: { in: getWilayahVariants(userRw) }
             };
         } else if (role === "RW") {
-            const rwClean = cleanDigits(userRw || "");
             filterScope.warga = {
-                rw: { in: [userRw, rwClean, rwClean.padStart(3, '0')] }
+                rw: { in: getWilayahVariants(userRw) }
             };
         }
 
@@ -68,7 +63,7 @@ export async function getSuratList() {
             where: filterScope,
             orderBy: { createdAt: 'desc' },
             include: { warga: true },
-            take: 20
+            take: 50
         });
     } catch (error) {
         return [];
@@ -89,14 +84,7 @@ export async function updateSuratStatus(id: string, status: StatusSurat, nomorSu
                 include: { warga: true }
             });
             if (!targetSurat) throw new Error("Surat tidak ditemukan");
-            const cleanTargetRt = cleanDigits(targetSurat.warga.rt || "");
-            const cleanTargetRw = cleanDigits(targetSurat.warga.rw || "");
-            const cleanUserRt = cleanDigits(userRt || "");
-            const cleanUserRw = cleanDigits(userRw || "");
-            if (role === "RT" && (cleanTargetRt !== cleanUserRt || cleanTargetRw !== cleanUserRw)) {
-                throw new Error("Unauthorized: data isolation violation");
-            }
-            if (role === "RW" && cleanTargetRw !== cleanUserRw) {
+            if (!isWilayahMatch(role, targetSurat.warga.rt, targetSurat.warga.rw, userRt, userRw)) {
                 throw new Error("Unauthorized: data isolation violation");
             }
         }
@@ -110,6 +98,38 @@ export async function updateSuratStatus(id: string, status: StatusSurat, nomorSu
         });
     } catch (error) {
         throw error;
+    }
+}
+
+export async function getSuratListWithFilters(status?: string, search?: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) return [];
+        const tenantId = (session.user as any).tenantId;
+
+        const where: any = { tenantId };
+        if (status && status !== "ALL") {
+            where.status = status as StatusSurat;
+        }
+        if (search) {
+            where.OR = [
+                { nomorSurat: { contains: search, mode: "insensitive" } },
+                { jenisSurat: { contains: search, mode: "insensitive" } },
+                { warga: { namaLengkap: { contains: search, mode: "insensitive" } } },
+                { warga: { nik: { contains: search, mode: "insensitive" } } },
+            ];
+        }
+
+        const data = await prisma.surat.findMany({
+            where,
+            orderBy: { createdAt: "desc" },
+            include: { warga: true, admin: { select: { fullName: true } } },
+            take: 50
+        });
+
+        return data;
+    } catch {
+        return [];
     }
 }
 
@@ -127,10 +147,8 @@ export async function getWargaList(query?: string, rtFilter?: string, rwFilter?:
 
         if (role === "RW") {
             if (rtFilter) {
-                const rtClean = cleanDigits(rtFilter);
-                const rtIn = [rtFilter, rtClean.padStart(3, '0'), rtClean];
-                filterScope.rt = { in: rtIn };
-                reportFilterScope.rt = { in: rtIn };
+                filterScope.rt = { in: getWilayahVariants(rtFilter) };
+                reportFilterScope.rt = { in: getWilayahVariants(rtFilter) };
             }
         } else if (role === "KADUS") {
             if (rwFilter) {
@@ -174,11 +192,20 @@ export async function getWargaList(query?: string, rtFilter?: string, rwFilter?:
 
         if (query && query.trim()) {
             const cleanQ = query.trim();
-            whereCondition.OR = [
+            const searchOr = [
                 { namaLengkap: { contains: cleanQ, mode: 'insensitive' } },
                 { nik: { contains: cleanQ } },
                 { noKK: { contains: cleanQ } }
             ];
+            if (whereCondition.OR) {
+                whereCondition.AND = [
+                    { OR: whereCondition.OR },
+                    { OR: searchOr }
+                ];
+                delete whereCondition.OR;
+            } else {
+                whereCondition.OR = searchOr;
+            }
         }
 
         return await prisma.dataKependudukan.findMany({
@@ -780,13 +807,19 @@ export async function addAparaturDesa(data: { name: string; nik?: string; role: 
         if (!session?.user) throw new Error("Unauthorized");
         const tenantId = (session.user as { tenantId: string }).tenantId;
 
-        return await prisma.aparaturDesa.create({
+        const created = await prisma.aparaturDesa.create({
             data: {
                 ...data,
                 tenantId,
                 isActive: true
             }
         });
+
+        await invalidateLandingCache();
+        revalidatePath("/");
+        revalidatePath("/organisasi/aparatur");
+        revalidatePath("/dashboard/aparatur");
+        return created;
     } catch (error) {
         throw error;
     }
@@ -797,13 +830,19 @@ export async function updateAparaturDesa(id: string, data: any) {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
 
-        return await prisma.aparaturDesa.update({
+        const updated = await prisma.aparaturDesa.update({
             where: { id },
             data: {
                 ...data,
                 updatedAt: new Date()
             }
         });
+
+        await invalidateLandingCache();
+        revalidatePath("/");
+        revalidatePath("/organisasi/aparatur");
+        revalidatePath("/dashboard/aparatur");
+        return updated;
     } catch (error) {
         throw error;
     }
@@ -814,9 +853,15 @@ export async function deleteAparaturDesa(id: string) {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
 
-        return await prisma.aparaturDesa.delete({
+        const deleted = await prisma.aparaturDesa.delete({
             where: { id }
         });
+
+        await invalidateLandingCache();
+        revalidatePath("/");
+        revalidatePath("/organisasi/aparatur");
+        revalidatePath("/dashboard/aparatur");
+        return deleted;
     } catch (error) {
         throw error;
     }

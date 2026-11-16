@@ -10,6 +10,8 @@ import { Suspense } from "react";
 import { cookies, headers } from "next/headers";
 import dynamic from "next/dynamic";
 import { checkPathMaintenance } from "@/lib/maintenanceService";
+import { MobileDashboardHeader } from "@/components/dashboard/MobileDashboardHeader";
+import { DesktopDashboardHeader } from "@/components/dashboard/DesktopDashboardHeader";
 import { MaintenanceNotice } from "@/components/common/MaintenanceNotice";
 
 const KaurPerencanaanThreeBackground = dynamic(
@@ -28,11 +30,12 @@ export default async function VillageAdminLayout({
     redirect("/login");
   }
   
-  const email = session?.user?.email || "";
+  const email = (session?.user?.email || "").toLowerCase();
+  const userName = (session?.user?.name || "").toLowerCase();
   const baseRole = (session?.user as any)?.role || "WARGA";
   
   let role = baseRole;
-  if (baseRole === "KAUR" && email.includes("perencanaan")) {
+  if (baseRole === "KAUR" && (email.includes("perencanaan") || userName.includes("perencanaan"))) {
     role = "KAUR_PERENCANAAN";
   }
   
@@ -46,18 +49,24 @@ export default async function VillageAdminLayout({
   const maintenance = isBuildTime ? { isMaintenance: false, notice: "", isGlobal: false } : await checkPathMaintenance(currentPath, baseRole);
 
   return (
-    <div className={`flex h-screen overflow-hidden ${isHackerTheme ? 'bg-slate-950 text-cyan-50' : 'bg-slate-50 text-slate-950 light-mode'}`}>
+    <div className={`flex flex-col h-screen overflow-hidden ${isHackerTheme ? 'bg-slate-950 text-cyan-50' : 'bg-white text-slate-950 light-mode'}`}>
       {isHackerTheme && <KaurPerencanaanThreeBackground />}
-      
-      {/* Village Sidebar */}
-      <Suspense fallback={<div className="hidden lg:block w-72 h-screen shrink-0 border-r border-slate-200 bg-white" />}>
-        <VillageSidebar session={session} isHackerTheme={isHackerTheme} />
-      </Suspense>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      {/* Full-Width Desktop Top Header (Aligned with Mockup Navbar) */}
+      <DesktopDashboardHeader session={session} />
+
+      {/* Mobile Header Bar (Unified for mobile/tablet screens) */}
+      <MobileDashboardHeader session={session} />
+
+      {/* Main Workspace Area: Curved Sidebar + Content */}
+      <div className="flex-1 flex min-w-0 overflow-hidden relative bg-white">
+        {/* Village Sidebar */}
+        <Suspense fallback={<div className="hidden lg:block w-72 h-full shrink-0 bg-[#1d64ec]" />}>
+          <VillageSidebar session={session} isHackerTheme={isHackerTheme} />
+        </Suspense>
+
         {/* Scrollable Page Content */}
-        <main className={`flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar ${isHackerTheme ? 'hacker-theme-override' : ''}`}>
+        <main className={`flex-1 overflow-y-auto p-3 sm:p-5 lg:p-7 pb-24 lg:pb-8 custom-scrollbar bg-white ${isHackerTheme ? 'hacker-theme-override' : ''}`}>
           <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
             {isHackerTheme && (
               <style dangerouslySetInnerHTML={{ __html: `

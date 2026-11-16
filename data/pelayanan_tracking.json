@@ -1,0 +1,246 @@
+[
+  {
+    "id": "TRK-CMG-202611-004",
+    "resi": "TRK-CMG-202611-004",
+    "nomorSurat": "470/004/Pel-Cmg/XI/2026",
+    "namaPemohon": "SARNAH",
+    "nik": "3201167010710001",
+    "namaDokumen": "Surat Keterangan Usaha (SKU)",
+    "statusUtama": "Sedang Diproses (Pengajuan TTD Manual Sekdes (a.n. Kades))",
+    "progressPercent": 65,
+    "lastUpdated": "Hari ini, 21:19 WIB",
+    "penandatangan": "SEKDES",
+    "catatanPetugas": "Surat telah dicetak dari sistem dan diregistrasikan ke Kaur TU. Sedang menunggu tanda tangan fisik oleh Sekdes (a.n. Kades) dan cap stempel basah.",
+    "steps": [
+      {
+        "stepIndex": 1,
+        "title": "Permohonan Masuk",
+        "description": "Pengajuan tercatat di loket",
+        "completedAt": "21:19 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 2,
+        "title": "Verifikasi Berkas Fisik",
+        "description": "Kelengkapan berkas fisik tervalidasi",
+        "completedAt": "21:19 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 3,
+        "title": "Paraf & Register TU",
+        "description": "Nomor terdaftar di Buku Register Kaur TU",
+        "completedAt": "21:19 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 4,
+        "title": "Tanda Tangan Manual & Cap Basah",
+        "description": "Sedang diajukan ke meja Sekdes (a.n. Kades)",
+        "completedAt": null,
+        "status": "current"
+      },
+      {
+        "stepIndex": 5,
+        "title": "Dokumen Fisik Siap Diambil",
+        "description": "Menunggu berkas siap di loket",
+        "completedAt": null,
+        "status": "pending"
+      }
+    ]
+  },
+  {
+    "id": "TRK-CMG-202611-003",
+    "resi": "TRK-CMG-202611-003",
+    "nomorSurat": "470/003/Pel-Cmg/XI/2026",
+    "namaPemohon": "Budi Santoso",
+    "nik": "3201012345670001",
+    "namaDokumen": "SURAT KETERANGAN KELUARGA MISKIN",
+    "statusUtama": "Sedang Diproses (Pengajuan TTD Manual Kades)",
+    "progressPercent": 65,
+    "lastUpdated": "Hari ini, 20:50 WIB",
+    "penandatangan": "KADES",
+    "catatanPetugas": "Surat telah dicetak dari sistem dan diregistrasikan ke Kaur TU. Sedang menunggu tanda tangan fisik oleh Kades dan cap stempel basah.",
+    "steps": [
+      {
+        "stepIndex": 1,
+        "title": "Permohonan Masuk",
+        "description": "Pengajuan tercatat di loket",
+        "completedAt": "20:50 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 2,
+        "title": "Verifikasi Berkas Fisik",
+        "description": "Kelengkapan berkas fisik tervalidasi",
+        "completedAt": "20:50 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 3,
+        "title": "Paraf & Register TU",
+        "description": "Nomor terdaftar di Buku Register Kaur TU",
+        "completedAt": "20:50 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 4,
+        "title": "Tanda Tangan Manual & Cap Basah",
+        "description": "Sedang diajukan ke meja Kades",
+        "completedAt": null,
+        "status": "current"
+      },
+      {
+        "stepIndex": 5,
+        "title": "Dokumen Fisik Siap Diambil",
+        "description": "Menunggu berkas siap di loket",
+        "completedAt": null,
+        "status": "pending"
+      }
+    ]
+  },
+  {
+    "id": "TRK-CMG-202611-002",
+    "resi": "TRK-CMG-202611-002",
+    "nomorSurat": "470/002/Pel-Cmg/XI/2026",
+    "namaPemohon": "Siti Aminah",
+    "nik": "3201012345670002",
+    "namaDokumen": "SURAT KETERANGAN KELUARGA MISKIN",
+    "statusUtama": "Dokumen Selesai Diterbitkan",
+    "progressPercent": 100,
+    "lastUpdated": "Hari ini, 19:46 WIB",
+    "steps": [
+      {
+        "stepIndex": 1,
+        "title": "Permohonan Diterima",
+        "description": "Pengajuan tercatat di loket",
+        "completedAt": "19:46 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 2,
+        "title": "Verifikasi Berkas Fisik",
+        "description": "Kelengkapan berkas fisik tervalidasi",
+        "completedAt": "19:46 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 3,
+        "title": "Paraf Kasi Pelayanan",
+        "description": "Disetujui oleh Kasi Pelayanan",
+        "completedAt": "19:46 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 4,
+        "title": "TTE Kepala Desa",
+        "description": "TTE terverifikasi BSrE",
+        "completedAt": "19:46 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 5,
+        "title": "Dokumen Siap Diterima",
+        "description": "Nomor resmi terbit & tersimpan di agenda",
+        "completedAt": "19:46 WIB",
+        "status": "completed"
+      }
+    ]
+  },
+  {
+    "id": "TRK-CMG-202611-001",
+    "resi": "TRK-CMG-202611-001",
+    "nomorSurat": "470/046/Pel-Cmg/XI/2026",
+    "namaPemohon": "Budi Santoso",
+    "nik": "3201012345670001",
+    "namaDokumen": "Surat Keterangan Usaha (SKU)",
+    "statusUtama": "Dokumen Selesai & Diterbitkan",
+    "progressPercent": 100,
+    "lastUpdated": "Hari ini, 09:45 WIB",
+    "steps": [
+      {
+        "stepIndex": 1,
+        "title": "Permohonan Diterima",
+        "description": "Warga mengajukan di Loket 1 Pelayanan",
+        "completedAt": "09:15 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 2,
+        "title": "Verifikasi Berkas & Fisik",
+        "description": "Kelengkapan berkas KTP & Pengantar RT terverifikasi",
+        "completedAt": "09:25 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 3,
+        "title": "Paraf Kasi Pelayanan",
+        "description": "Draft surat ditinjau dan disetujui",
+        "completedAt": "09:35 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 4,
+        "title": "Tanda Tangan Elektronik Kades",
+        "description": "Otorisasi TTE BSrE Kades berhasil",
+        "completedAt": "09:40 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 5,
+        "title": "Dokumen Siap Diambil / Diunduh",
+        "description": "Surat resmi telah dicetak dan diarsipkan",
+        "completedAt": "09:45 WIB",
+        "status": "completed"
+      }
+    ]
+  },
+  {
+    "id": "TRK-CMG-202611-002",
+    "resi": "TRK-CMG-202611-002",
+    "nomorSurat": "474/012/Pel-Cmg/XI/2026",
+    "namaPemohon": "Siti Aminah",
+    "nik": "3201012345670002",
+    "namaDokumen": "Surat Pengantar Pindah Domisili",
+    "statusUtama": "Menunggu Pengesahan Berkas Fisik RW",
+    "progressPercent": 40,
+    "lastUpdated": "Hari ini, 10:10 WIB",
+    "steps": [
+      {
+        "stepIndex": 1,
+        "title": "Permohonan Diterima",
+        "description": "Pengajuan online via Portal Warga",
+        "completedAt": "09:30 WIB",
+        "status": "completed"
+      },
+      {
+        "stepIndex": 2,
+        "title": "Verifikasi Berkas Fisik",
+        "description": "Wajib pembaharuan data fisik oleh RW/RT",
+        "completedAt": null,
+        "status": "current"
+      },
+      {
+        "stepIndex": 3,
+        "title": "Paraf Kasi Pelayanan",
+        "description": "Pemeriksaan validasi kependudukan",
+        "completedAt": null,
+        "status": "pending"
+      },
+      {
+        "stepIndex": 4,
+        "title": "TTE Kepala Desa",
+        "description": "Penandatanganan digital",
+        "completedAt": null,
+        "status": "pending"
+      },
+      {
+        "stepIndex": 5,
+        "title": "Selesai",
+        "description": "Arsip fisik & berkas digital diterbitkan",
+        "completedAt": null,
+        "status": "pending"
+      }
+    ]
+  }
+]

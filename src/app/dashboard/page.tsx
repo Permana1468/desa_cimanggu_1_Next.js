@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getVillageDashboardStats, getSuratList } from "@/actions/village";
 import { getDashboardRealtimeStats } from "@/actions/dashboard";
+import { getVillageProfile } from "@/actions/landing";
 import { redirect } from "next/navigation";
 import dynamic from "next/dynamic";
 
@@ -38,25 +39,26 @@ export default async function VillageDashboardPage() {
     redirect("/gis-dashboard");
   }
 
-  const email = session?.user?.email || "";
+  const email = (session?.user?.email || "").toLowerCase();
+  const userName = (session?.user?.name || "").toLowerCase();
   const baseRole = (session?.user as any)?.role || "WARGA";
 
-  // Dynamic mapping for KAUR & KASI sub-roles based on email
+  // Dynamic mapping for KAUR & KASI sub-roles based on email or name
   let role = baseRole;
   if (baseRole === "KAUR") {
-    if (email.includes("perencanaan")) {
+    if (email.includes("perencanaan") || userName.includes("perencanaan")) {
       role = "KAUR_PERENCANAAN";
-    } else if (email.includes("keuangan")) {
+    } else if (email.includes("keuangan") || userName.includes("keuangan")) {
       role = "KAUR_KEUANGAN";
-    } else if (email.includes("tu") || email.includes("umum")) {
+    } else if (email.includes("tu") || email.includes("umum") || userName.includes("tata usaha") || userName.includes("tu")) {
       role = "KAUR_TU";
     }
   } else if (baseRole === "KASI") {
-    if (email.includes("pemerintahan")) {
+    if (email.includes("pemerintahan") || userName.includes("pemerintahan")) {
       role = "KASI_PEMERINTAHAN";
-    } else if (email.includes("pelayanan")) {
+    } else if (email.includes("pelayanan") || userName.includes("pelayanan")) {
       role = "KASI_PELAYANAN";
-    } else if (email.includes("kesejahteraan")) {
+    } else if (email.includes("kesejahteraan") || email.includes("kesra") || userName.includes("kesejahteraan") || userName.includes("kesra")) {
       role = "KASI_KESEJAHTERAAN";
     }
   }
@@ -66,10 +68,11 @@ export default async function VillageDashboardPage() {
   const needsSurat = isExecutive || isWarga;
 
   // Fetch only what this role needs, executing in parallel to eliminate waterfall latency
-  const [stats, latestSurat, realtimeStats] = await Promise.all([
+  const [stats, latestSurat, realtimeStats, villageProfile] = await Promise.all([
     getVillageDashboardStats(),
     needsSurat ? getSuratList() : Promise.resolve([] as any[]),
-    isExecutive ? getDashboardRealtimeStats() : Promise.resolve(null)
+    isExecutive ? getDashboardRealtimeStats() : Promise.resolve(null),
+    isExecutive ? getVillageProfile() : Promise.resolve(null)
   ]);
 
   // 1. EXECUTIVE ROLES (Pimpinan & Manajemen Umum)
@@ -77,7 +80,7 @@ export default async function VillageDashboardPage() {
     if (email.includes("operator")) {
       return <OperatorDashboard session={session} stats={stats} />;
     }
-    return <ExecutiveDashboard session={session} stats={stats} latestSurat={latestSurat} realtimeStats={realtimeStats} />;
+    return <ExecutiveDashboard session={session} stats={stats} latestSurat={latestSurat} realtimeStats={realtimeStats} villageProfile={villageProfile} />;
   }
 
   // 2. PELAYANAN & TATA USAHA (Administrasi Pemerintahan & Petugas)

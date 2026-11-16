@@ -137,143 +137,254 @@ export function BansosClient({ session }: { session: any }) {
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Memuat data...</p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                    <th className="p-4 rounded-l-xl">Identitas Warga</th>
-                                    <th className="p-4">Desil (1-10)</th>
-                                    <th className="p-4">Jenis Bantuan</th>
-                                    <th className="p-4">Status</th>
-                                    <th className="p-4 text-right rounded-r-xl">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100 text-sm">
-                                {filteredList.map((warga) => {
-                                    const isEditing = editModeId === warga.id;
-                                    const bd = warga.bansosData;
-                                    
-                                    return (
-                                        <tr key={warga.id} className="hover:bg-slate-50/50 transition-colors">
-                                            <td className="p-4">
-                                                <div className="font-bold text-slate-800">{warga.namaLengkap}</div>
-                                                <div className="text-[10px] text-slate-400 font-bold tracking-wider uppercase mt-1">NIK: <HoverMask value={warga.nik} /> | {formatWilayah(warga.rt, warga.rw, warga.dusun)}</div>
-                                            </td>
-                                            
-                                            <td className="p-4">
+                    <>
+                        {/* DESKTOP & TABLET VIEW: TERISOLASI (hidden md:block) */}
+                        <div className="hidden md:block overflow-x-auto custom-scrollbar">
+                            <table className="w-full text-left border-collapse min-w-[750px]">
+                                <thead>
+                                    <tr className="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <th className="p-4 rounded-l-xl">Identitas Warga</th>
+                                        <th className="p-4">Desil (1-10)</th>
+                                        <th className="p-4">Jenis Bantuan</th>
+                                        <th className="p-4">Status</th>
+                                        <th className="p-4 text-right rounded-r-xl">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 text-sm">
+                                    {filteredList.map((warga) => {
+                                        const isEditing = editModeId === warga.id;
+                                        const bd = warga.bansosData;
+                                        
+                                        return (
+                                            <tr key={warga.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="p-4">
+                                                    <div className="font-bold text-slate-800">{warga.namaLengkap}</div>
+                                                    <div className="text-[10px] text-slate-400 font-bold tracking-wider uppercase mt-1">NIK: <HoverMask value={warga.nik} /> | {formatWilayah(warga.rt, warga.rw, warga.dusun)}</div>
+                                                </td>
+                                                
+                                                <td className="p-4">
+                                                    {isEditing ? (
+                                                        <input 
+                                                            type="number" 
+                                                            min="1" max="10"
+                                                            value={editForm.desil}
+                                                            onChange={e => setEditForm({...editForm, desil: e.target.value})}
+                                                            className="w-16 border border-slate-300 rounded px-2 py-1 text-xs font-bold text-center"
+                                                        />
+                                                    ) : (
+                                                        <span className={`px-3 py-1 rounded text-xs font-black ${
+                                                            bd?.desil ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-400'
+                                                        }`}>
+                                                            {bd?.desil ? `Desil ${bd.desil}` : '-'}
+                                                        </span>
+                                                    )}
+                                                </td>
+
+                                                <td className="p-4">
+                                                    {isEditing ? (
+                                                        <div className="flex gap-2 flex-wrap max-w-[200px]">
+                                                            {["PKH", "BPNT", "BLT-DD", "KIP", "KIS"].map(j => (
+                                                                <button
+                                                                    key={j}
+                                                                    onClick={() => toggleBantuan(j)}
+                                                                    className={`px-2 py-1 rounded text-[10px] font-bold transition-all border ${
+                                                                        editForm.jenisBantuan?.includes(j) 
+                                                                        ? 'bg-teal-50 border-teal-200 text-teal-700' 
+                                                                        : 'bg-white border-slate-200 text-slate-400'
+                                                                    }`}
+                                                                >
+                                                                    {j}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex gap-1.5 flex-wrap">
+                                                            {bd?.jenisBantuan && bd.jenisBantuan.length > 0 ? bd.jenisBantuan.map((j: string) => (
+                                                                <span key={j} className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded text-[10px] font-black uppercase">
+                                                                    {j}
+                                                                </span>
+                                                            )) : <span className="text-xs text-slate-400 font-semibold">-</span>}
+                                                        </div>
+                                                    )}
+                                                </td>
+
+                                                <td className="p-4">
+                                                    {isEditing ? (
+                                                        <select 
+                                                            value={editForm.status}
+                                                            onChange={e => setEditForm({...editForm, status: e.target.value})}
+                                                            className="border border-slate-300 rounded px-2 py-1 text-xs font-bold"
+                                                        >
+                                                            <option value="AKTIF">AKTIF</option>
+                                                            <option value="NON-AKTIF">NON-AKTIF</option>
+                                                            <option value="USULAN_RT">USULAN RT</option>
+                                                        </select>
+                                                    ) : (
+                                                        <span className={`text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider ${
+                                                            bd?.status === "AKTIF" ? "bg-indigo-50 text-indigo-600" :
+                                                            bd?.status === "USULAN_RT" ? "bg-amber-50 text-amber-600" :
+                                                            "bg-rose-50 text-rose-600"
+                                                        }`}>
+                                                            {bd?.status || "-"}
+                                                        </span>
+                                                    )}
+                                                </td>
+
+                                                <td className="p-4 text-right">
+                                                    {isEditing ? (
+                                                        <div className="flex justify-end gap-2">
+                                                            <button 
+                                                                onClick={() => setEditModeId(null)}
+                                                                className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                                                            >
+                                                                <X size={16} />
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleSave(warga.id)}
+                                                                disabled={actionLoading}
+                                                                className="p-2 text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors disabled:opacity-50 cursor-pointer"
+                                                            >
+                                                                <Check size={16} />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <button 
+                                                            onClick={() => handleEdit(warga)}
+                                                            className="text-[10px] font-bold text-teal-600 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ml-auto cursor-pointer"
+                                                        >
+                                                            <Edit size={12} /> Edit
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* MOBILE / APP VIEW: TERISOLASI (block md:hidden) */}
+                        <div className="block md:hidden space-y-3">
+                            {filteredList.map((warga) => {
+                                const isEditing = editModeId === warga.id;
+                                const bd = warga.bansosData;
+
+                                return (
+                                    <div key={warga.id} className="bg-slate-50/70 rounded-2xl p-4 border border-slate-200/80 space-y-3">
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <p className="font-extrabold text-sm text-slate-900 truncate">{warga.namaLengkap}</p>
+                                                <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
+                                                    NIK: <HoverMask value={warga.nik} />
+                                                </p>
+                                                <p className="text-[11px] text-slate-500 font-medium">
+                                                    {formatWilayah(warga.rt, warga.rw, warga.dusun)}
+                                                </p>
+                                            </div>
+
+                                            <span className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold shrink-0 ${
+                                                bd?.status === "AKTIF" ? "bg-indigo-100 text-indigo-700" :
+                                                bd?.status === "USULAN_RT" ? "bg-amber-100 text-amber-700" :
+                                                "bg-rose-100 text-rose-700"
+                                            }`}>
+                                                {bd?.status || "-"}
+                                            </span>
+                                        </div>
+
+                                        {/* Desil & Bantuan Row */}
+                                        <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/60">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-[10px] font-bold text-slate-400 uppercase">Desil:</span>
                                                 {isEditing ? (
                                                     <input 
                                                         type="number" 
                                                         min="1" max="10"
                                                         value={editForm.desil}
                                                         onChange={e => setEditForm({...editForm, desil: e.target.value})}
-                                                        className="w-16 border border-slate-300 rounded px-2 py-1 text-xs font-bold text-center"
+                                                        className="w-14 border border-slate-300 rounded px-1.5 py-1 text-xs font-bold text-center bg-white"
                                                     />
                                                 ) : (
-                                                    <span className={`px-3 py-1 rounded text-xs font-black ${
-                                                        bd?.desil ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-400'
+                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold ${
+                                                        bd?.desil ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-600'
                                                     }`}>
                                                         {bd?.desil ? `Desil ${bd.desil}` : '-'}
                                                     </span>
                                                 )}
-                                            </td>
+                                            </div>
 
-                                            <td className="p-4">
-                                                {isEditing ? (
-                                                    <div className="flex gap-2 flex-wrap max-w-[200px]">
-                                                        {["PKH", "BPNT", "BLT-DD", "KIP", "KIS"].map(j => (
-                                                            <button
-                                                                key={j}
-                                                                onClick={() => toggleBantuan(j)}
-                                                                className={`px-2 py-1 rounded text-[10px] font-bold transition-all border ${
-                                                                    editForm.jenisBantuan?.includes(j) 
-                                                                    ? 'bg-teal-50 border-teal-200 text-teal-700' 
-                                                                    : 'bg-white border-slate-200 text-slate-400'
-                                                                }`}
-                                                            >
-                                                                {j}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex gap-1.5 flex-wrap">
-                                                        {bd?.jenisBantuan && bd.jenisBantuan.length > 0 ? bd.jenisBantuan.map((j: string) => (
-                                                            <span key={j} className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded text-[10px] font-black uppercase">
-                                                                {j}
-                                                            </span>
-                                                        )) : <span className="text-xs text-slate-400 font-semibold">-</span>}
-                                                    </div>
-                                                )}
-                                            </td>
-
-                                            <td className="p-4">
-                                                {isEditing ? (
-                                                    <select 
-                                                        value={editForm.status}
-                                                        onChange={e => setEditForm({...editForm, status: e.target.value})}
-                                                        className="border border-slate-300 rounded px-2 py-1 text-xs font-bold"
-                                                    >
-                                                        <option value="AKTIF">AKTIF</option>
-                                                        <option value="NON-AKTIF">NON-AKTIF</option>
-                                                        <option value="USULAN_RT">USULAN RT</option>
-                                                    </select>
-                                                ) : (
-                                                    <span className={`text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider ${
-                                                        bd?.status === "AKTIF" ? "bg-indigo-50 text-indigo-600" :
-                                                        bd?.status === "USULAN_RT" ? "bg-amber-50 text-amber-600" :
-                                                        "bg-rose-50 text-rose-600"
-                                                    }`}>
-                                                        {bd?.status || "-"}
-                                                    </span>
-                                                )}
-                                            </td>
-
-                                            <td className="p-4 text-right">
-                                                {isEditing ? (
-                                                    <div className="flex justify-end gap-2">
-                                                        <button 
-                                                            onClick={() => setEditModeId(null)}
-                                                            className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors"
-                                                        >
-                                                            <X size={16} />
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => handleSave(warga.id)}
-                                                            disabled={actionLoading}
-                                                            className="p-2 text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors disabled:opacity-50"
-                                                        >
-                                                            <Check size={16} />
-                                                        </button>
-                                                    </div>
-                                                ) : (
+                                            {/* Action Button */}
+                                            {isEditing ? (
+                                                <div className="flex items-center gap-1.5">
                                                     <button 
-                                                        onClick={() => handleEdit(warga)}
-                                                        className="text-[10px] font-bold text-teal-600 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ml-auto"
+                                                        onClick={() => setEditModeId(null)}
+                                                        className="p-1.5 text-slate-400 hover:bg-slate-200 rounded-lg"
                                                     >
-                                                        <Edit size={12} /> Edit
+                                                        <X size={15} />
                                                     </button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
+                                                    <button 
+                                                        onClick={() => handleSave(warga.id)}
+                                                        disabled={actionLoading}
+                                                        className="px-3 py-1.5 text-white bg-teal-600 hover:bg-teal-700 rounded-lg text-xs font-bold flex items-center gap-1"
+                                                    >
+                                                        <Check size={14} /> Simpan
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => handleEdit(warga)}
+                                                    className="px-3 py-1.5 text-xs font-bold text-teal-700 bg-teal-100/80 hover:bg-teal-200 rounded-xl flex items-center gap-1"
+                                                >
+                                                    <Edit size={12} /> Edit Bansos
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Bantuan Chips */}
+                                        <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                                            {isEditing ? (
+                                                <div className="flex gap-1.5 flex-wrap w-full">
+                                                    {["PKH", "BPNT", "BLT-DD", "KIP", "KIS"].map(j => (
+                                                        <button
+                                                            key={j}
+                                                            onClick={() => toggleBantuan(j)}
+                                                            className={`px-2 py-1 rounded text-[10px] font-bold border ${
+                                                                editForm.jenisBantuan?.includes(j) 
+                                                                ? 'bg-teal-600 text-white border-teal-600' 
+                                                                : 'bg-white border-slate-200 text-slate-600'
+                                                            }`}
+                                                        >
+                                                            {j}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                bd?.jenisBantuan && bd.jenisBantuan.length > 0 ? bd.jenisBantuan.map((j: string) => (
+                                                    <span key={j} className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase">
+                                                        {j}
+                                                    </span>
+                                                )) : <span className="text-[11px] text-slate-400 font-medium italic">Tidak ada bantuan terdaftar</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
                         {filteredList.length === 0 && (
-                            <div className="text-center py-10 text-slate-400 font-semibold">
-                                Tidak ada data warga.
+                            <div className="text-center py-12 text-slate-400 font-bold text-xs">
+                                Tidak ada data warga ditemukan.
                             </div>
                         )}
-                    </div>
+                    </>
                 )}
             </div>
         </div>
     );
 }
 
-function StatCard({ title, value, color = "teal" }: { title: string, value: number, color?: string }) {
+function StatCard({ title, value, color = "blue" }: { title: string, value: number, color?: string }) {
     const colors: Record<string, string> = {
-        teal: "bg-teal-50 text-teal-600 border-teal-100",
+        blue: "bg-blue-50 text-[#1d64ec] border-blue-100",
         emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
         indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
         rose: "bg-rose-50 text-rose-600 border-rose-100"

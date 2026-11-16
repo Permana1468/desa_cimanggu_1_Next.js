@@ -281,6 +281,10 @@ model DataKependudukan {
   rw      String
   dusun   String
 
+  // Status Kependudukan & Sinkronisasi Fisik
+  statusKependudukan String?  @default("AKTIF") // AKTIF, MUTASI_PENDING, MENINGGAL, PINDAH_KELUAR
+  keteranganStatus   String?
+
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id])
 
@@ -777,6 +781,13 @@ model RtBirthReport {
   namaIbu      String?
   keterangan   String?
 
+  // Verifikasi Berkas Fisik
+  statusFisik         String?   @default("MENUNGGU_BERKAS_FISIK") // MENUNGGU_BERKAS_FISIK, SELESAI_FISIK
+  tanggalSelesaiFisik DateTime?
+  verifikatorNama     String?
+  lokasiArsipFisik    String?
+  catatanVerifikasi   String?
+
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -795,6 +806,13 @@ model RtDeathReport {
   tanggalMeninggal DateTime
   penyebab         String?
   keterangan       String?
+
+  // Verifikasi Berkas Fisik
+  statusFisik         String?   @default("MENUNGGU_BERKAS_FISIK") // MENUNGGU_BERKAS_FISIK, SELESAI_FISIK
+  tanggalSelesaiFisik DateTime?
+  verifikatorNama     String?
+  lokasiArsipFisik    String?
+  catatanVerifikasi   String?
 
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -815,6 +833,13 @@ model RtMoveReport {
   alamatTujuan  String
   alasan        String?
 
+  // Verifikasi Berkas Fisik
+  statusFisik         String?   @default("MENUNGGU_BERKAS_FISIK") // MENUNGGU_BERKAS_FISIK, SELESAI_FISIK
+  tanggalSelesaiFisik DateTime?
+  verifikatorNama     String?
+  lokasiArsipFisik    String?
+  catatanVerifikasi   String?
+
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
@@ -834,6 +859,13 @@ model RtIncomingReport {
   tanggalDatang DateTime
   alamatAsal    String
   keterangan    String?
+
+  // Verifikasi Berkas Fisik
+  statusFisik         String?   @default("MENUNGGU_BERKAS_FISIK") // MENUNGGU_BERKAS_FISIK, SELESAI_FISIK
+  tanggalSelesaiFisik DateTime?
+  verifikatorNama     String?
+  lokasiArsipFisik    String?
+  catatanVerifikasi   String?
 
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)

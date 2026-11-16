@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { getWilayahVariants } from "@/lib/wilayahUtils";
 
 async function verifyRwAccess() {
     const session = await getServerSession(authOptions);
@@ -32,7 +33,7 @@ export async function getRwSecurityLogs(rwParam?: string) {
     if (!tenantId || !rw) return [];
 
     return await prisma.rwSecurityLog.findMany({
-        where: { tenantId, rw },
+        where: { tenantId, rw: { in: getWilayahVariants(rw) } },
         orderBy: { date: "desc" }
     });
 }
@@ -87,7 +88,7 @@ export async function getRwPatrolSchedules(rwParam?: string) {
     if (!tenantId || !rw) return [];
 
     return await prisma.rwPatrolSchedule.findMany({
-        where: { tenantId, rw },
+        where: { tenantId, rw: { in: getWilayahVariants(rw) } },
         orderBy: { date: "desc" }
     });
 }
@@ -105,6 +106,23 @@ export async function addRwPatrolSchedule(data: { rt: string, date: Date, person
 
     revalidatePath("/dashboard");
     return { success: true, schedule };
+}
+
+export async function updateRwPatrolSchedule(id: string, data: { rt: string, date: Date, personnel: string, notes?: string }) {
+    const { tenantId } = await verifyRwAccess();
+
+    await prisma.rwPatrolSchedule.updateMany({
+        where: { id, tenantId },
+        data: {
+            rt: data.rt,
+            date: data.date,
+            personnel: data.personnel,
+            notes: data.notes
+        }
+    });
+
+    revalidatePath("/dashboard");
+    return { success: true };
 }
 
 export async function deleteRwPatrolSchedule(id: string) {
@@ -130,7 +148,7 @@ export async function getRwHealthData(rwParam?: string) {
     if (!tenantId || !rw) return [];
 
     return await prisma.rwHealthData.findMany({
-        where: { tenantId, rw },
+        where: { tenantId, rw: { in: getWilayahVariants(rw) } },
         orderBy: [{ year: "desc" }, { month: "desc" }]
     });
 }
@@ -164,6 +182,24 @@ export async function addRwHealthData(data: {
     return { success: true, healthData };
 }
 
+export async function updateRwHealthData(id: string, data: {
+    month: number, year: number, posyanduName?: string,
+    balitaTotal: number, balitaStunting: number,
+    ibuHamil: number, lansia: number, imunisasiPercentage: number, notes?: string
+}) {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) throw new Error("Unauthorized");
+    const tenantId = (session.user as any).tenantId;
+
+    await prisma.rwHealthData.updateMany({
+        where: { id, tenantId },
+        data
+    });
+
+    revalidatePath("/dashboard");
+    return { success: true };
+}
+
 export async function deleteRwHealthData(id: string) {
     const session = await getServerSession(authOptions);
     if (!session?.user) throw new Error("Unauthorized");
@@ -175,6 +211,61 @@ export async function deleteRwHealthData(id: string) {
 
     revalidatePath("/dashboard");
     return { success: true };
+}
+
+/**
+ * Real-time demographic calculation directly from DataKependudukan for this RW.
+ * Provides the RW Chairman with actual live figures for Balita (0-5 y.o.), Lansia (60+ y.o.), and total population.
+ */
+export async function getRwHealthRealtimeSummary(rwParam?: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as any).tenantId;
+        const rw = rwParam || (session.user as any).rw;
+
+        if (!tenantId || !rw) return null;
+
+        const residents = await prisma.dataKependudukan.findMany({
+            where: {
+                tenantId,
+                rw: { in: getWilayahVariants(rw) },
+                statusKependudukan: { notIn: ["MENINGGAL", "PINDAH"] }
+            },
+            select: {
+                tanggalLahir: true,
+                jenisKelamin: true,
+                noKK: true
+            }
+        });
+
+        const today = new Date();
+        let totalBalita = 0;
+        let totalLansia = 0;
+        const uniqueKK = new Set<string>();
+
+        residents.forEach(r => {
+            if (r.noKK) uniqueKK.add(r.noKK);
+            if (r.tanggalLahir) {
+                const birth = new Date(r.tanggalLahir);
+                const ageYears = today.getFullYear() - birth.getFullYear() - (today < new Date(today.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0);
+                if (ageYears >= 0 && ageYears <= 5) {
+                    totalBalita++;
+                } else if (ageYears >= 60) {
+                    totalLansia++;
+                }
+            }
+        });
+
+        return {
+            totalWarga: residents.length,
+            totalKK: uniqueKK.size,
+            totalBalita,
+            totalLansia
+        };
+    } catch {
+        return null;
+    }
 }
 
 // =======================
@@ -189,8 +280,12 @@ export async function getRwInstitutions(rwParam?: string) {
     if (!tenantId || !rw) return [];
 
     return await prisma.rwInstitution.findMany({
-        where: { tenantId, rw },
-        include: { members: true },
+        where: { tenantId, rw: { in: getWilayahVariants(rw) } },
+        include: { 
+            members: {
+                orderBy: { position: "asc" }
+            } 
+        },
         orderBy: { name: "asc" }
     });
 }
@@ -210,6 +305,37 @@ export async function addRwInstitution(data: { name: string, description?: strin
     return { success: true, institution };
 }
 
+export async function updateRwInstitution(id: string, data: { name: string, description?: string }) {
+    const { tenantId } = await verifyRwAccess();
+
+    await prisma.rwInstitution.updateMany({
+        where: { id, tenantId },
+        data: {
+            name: data.name,
+            description: data.description
+        }
+    });
+
+    revalidatePath("/dashboard");
+    return { success: true };
+}
+
+export async function deleteRwInstitution(id: string) {
+    const { tenantId } = await verifyRwAccess();
+    
+    // Explicitly delete members first to ensure no constraint violations
+    await prisma.rwInstitutionMember.deleteMany({
+        where: { rwInstitutionId: id, tenantId }
+    });
+    
+    await prisma.rwInstitution.deleteMany({
+        where: { id, tenantId }
+    });
+
+    revalidatePath("/dashboard");
+    return { success: true };
+}
+
 export async function addRwInstitutionMember(institutionId: string, data: { name: string, position: string, phoneNumber?: string }) {
     const { tenantId } = await verifyRwAccess();
 
@@ -225,21 +351,26 @@ export async function addRwInstitutionMember(institutionId: string, data: { name
     return { success: true, member };
 }
 
-export async function removeRwInstitutionMember(id: string) {
+export async function updateRwInstitutionMember(id: string, data: { name: string, position: string, phoneNumber?: string }) {
     const { tenantId } = await verifyRwAccess();
-    
-    await prisma.rwInstitutionMember.deleteMany({
-        where: { id, tenantId }
+
+    await prisma.rwInstitutionMember.updateMany({
+        where: { id, tenantId },
+        data: {
+            name: data.name,
+            position: data.position,
+            phoneNumber: data.phoneNumber
+        }
     });
 
     revalidatePath("/dashboard");
     return { success: true };
 }
 
-export async function deleteRwInstitution(id: string) {
+export async function removeRwInstitutionMember(id: string) {
     const { tenantId } = await verifyRwAccess();
     
-    await prisma.rwInstitution.deleteMany({
+    await prisma.rwInstitutionMember.deleteMany({
         where: { id, tenantId }
     });
 

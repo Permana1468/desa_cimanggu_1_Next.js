@@ -316,6 +316,51 @@ export function UndanganMuslingRw({
             </div>
           )}
         </div>
+
+        {!isRt && (
+          <div className="flex items-center gap-2 pt-3 border-t border-slate-100 overflow-x-auto scrollbar-none">
+            <button
+              onClick={() => setRwSubTab("rekapan")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                rwSubTab === "rekapan"
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              <FileText size={14} /> 1. Rekapan Usulan RT
+            </button>
+            <button
+              onClick={() => setRwSubTab("undangan")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                rwSubTab === "undangan"
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              <Mail size={14} /> 2. Undangan Musling RW
+            </button>
+            <button
+              onClick={() => setRwSubTab("daftar-hadir")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                rwSubTab === "daftar-hadir"
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              <Users size={14} /> 3. Daftar Hadir Musling
+            </button>
+            <button
+              onClick={() => setRwSubTab("draft-usulan")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                rwSubTab === "draft-usulan"
+                  ? "bg-emerald-600 text-white shadow-sm"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+            >
+              <Lightbulb size={14} /> 4. Draft Usulan RW (Berita Acara)
+            </button>
+          </div>
+        )}
       </div>
 
       {rwSubTab === "rekapan" && !isRt ? (

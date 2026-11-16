@@ -1,6 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import { SuratInboxTab } from "@/components/dashboard/surat/SuratInboxTab";
+import { SuratTrackingTab } from "@/components/dashboard/surat/SuratTrackingTab";
+import { BukuAgendaTuTab } from "@/components/dashboard/surat/BukuAgendaTuTab";
 import { 
     getLetterTemplates, 
     createLetterTemplate, 
@@ -33,9 +37,11 @@ import {
     Check,
     ListFilter,
     Printer,
-    UserCheck,
     AlertCircle,
-    UserPlus
+    UserPlus,
+    Inbox,
+    Clock,
+    BookOpen
 } from "lucide-react";
 
 const SKKM_MASTER_SCHEMA = [
@@ -57,7 +63,18 @@ const SKKM_MASTER_SCHEMA = [
     { label: "16. Penandatangan (DIKUNCI)", name: "nama_penandatangan", type: "text", default: "FAJAR TRI APRIANA", readonly: true, required: true }
 ];
 
-export default function TemplateRepositoryPage() {
+function TemplateRepositoryContent() {
+    const searchParams = useSearchParams();
+    const tabParam = searchParams ? searchParams.get("tab") : null;
+    const [activeTab, setActiveTab] = useState<"agenda" | "inbox" | "tracking" | "templates">("agenda");
+
+    useEffect(() => {
+        if (tabParam === "tracking") setActiveTab("tracking");
+        else if (tabParam === "templates") setActiveTab("templates");
+        else if (tabParam === "inbox") setActiveTab("inbox");
+        else if (tabParam === "agenda") setActiveTab("agenda");
+    }, [tabParam]);
+
     const [templates, setTemplates] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     
@@ -352,26 +369,83 @@ export default function TemplateRepositoryPage() {
     );
 
     return (
-        <div className="space-y-8 pb-20 animate-in fade-in duration-700">
+        <div className="space-y-6 pb-20 animate-in fade-in duration-700">
+            {/* Header Title */}
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-black text-slate-800">Pengelolaan Master Surat & Form</h1>
-                    <p className="text-slate-500 text-sm mt-1">Buat, rancang form dinamis, dan uji coba pencetakan dokumen resmi desa.</p>
+                    <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">Pusat Persuratan & Layanan Desa</h1>
+                    <p className="text-slate-500 text-xs sm:text-sm mt-1">Kelola antrean permohonan warga, pelacakan proses layanan, penerbitan surat resmi, dan master template dokumen desa.</p>
                 </div>
-                <button 
-                    onClick={() => {
-                        setFormData({ id: "", name: "", code: "", fileUrl: "", variables: "", instruction: "" });
-                        setFormFields([]);
-                        setFileName("");
-                        setFileBase64("");
-                        setShowCreateModal(true);
-                    }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-2xl text-sm font-bold transition-all flex items-center gap-2 shadow-lg shadow-blue-600/20"
+                {activeTab === "templates" && (
+                    <button 
+                        onClick={() => {
+                            setFormData({ id: "", name: "", code: "", fileUrl: "", variables: "", instruction: "" });
+                            setFormFields([]);
+                            setFileName("");
+                            setFileBase64("");
+                            setShowCreateModal(true);
+                        }}
+                        className="bg-[#1d64ec] hover:bg-[#1554c9] text-white px-5 py-3 rounded-full text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg shadow-blue-600/20 active:scale-95 cursor-pointer shrink-0"
+                    >
+                        <Plus size={16} /> Buat Template Baru
+                    </button>
+                )}
+            </div>
+
+            {/* Pill Navigation Tabs */}
+            <div className="flex flex-wrap gap-2 p-1.5 bg-[#f4f7fc] border border-slate-200/60 rounded-full w-fit">
+                <button
+                    onClick={() => setActiveTab("agenda")}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                        activeTab === "agenda"
+                            ? "bg-[#1d64ec] text-white shadow-md shadow-blue-600/20 font-black"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 font-semibold"
+                    }`}
                 >
-                    <Plus size={18} /> Buat Form / Template Baru
+                    <BookOpen size={16} />
+                    <span>Buku Agenda & Register TU</span>
+                </button>
+                <button
+                    onClick={() => setActiveTab("tracking")}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                        activeTab === "tracking"
+                            ? "bg-[#1d64ec] text-white shadow-md shadow-blue-600/20 font-black"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 font-semibold"
+                    }`}
+                >
+                    <Clock size={16} />
+                    <span>Lacak Progres Layanan</span>
+                </button>
+                <button
+                    onClick={() => setActiveTab("inbox")}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                        activeTab === "inbox"
+                            ? "bg-[#1d64ec] text-white shadow-md shadow-blue-600/20 font-black"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 font-semibold"
+                    }`}
+                >
+                    <Inbox size={16} />
+                    <span>Antrean Masuk</span>
+                </button>
+                <button
+                    onClick={() => setActiveTab("templates")}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                        activeTab === "templates"
+                            ? "bg-[#1d64ec] text-white shadow-md shadow-blue-600/20 font-black"
+                            : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 font-semibold"
+                    }`}
+                >
+                    <FileText size={16} />
+                    <span>Master Template Arsip</span>
                 </button>
             </div>
 
+            {/* Tab Views */}
+            {activeTab === "agenda" && <BukuAgendaTuTab />}
+            {activeTab === "inbox" && <SuratInboxTab />}
+            {activeTab === "tracking" && <SuratTrackingTab />}
+            {activeTab === "templates" && (
+              <>
             <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 flex items-start gap-4">
                 <div className="bg-amber-100 p-2.5 rounded-xl text-amber-600 mt-0.5 shrink-0">
                     <Info size={20} />
@@ -526,6 +600,8 @@ export default function TemplateRepositoryPage() {
                     </div>
                 </div>
             </div>
+            </>
+            )}
 
             {showPreviewModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -1103,5 +1179,13 @@ function StatRow({ label, value }: { label: string; value: string }) {
             <span className="text-xs font-bold text-slate-400">{label}</span>
             <span className="text-xs font-black text-slate-800">{value}</span>
         </div>
+    );
+}
+
+export default function TemplateRepositoryPage() {
+    return (
+        <Suspense fallback={<div className="p-12 text-center text-slate-400 font-bold animate-pulse">Memuat Pusat Persuratan & Layanan...</div>}>
+            <TemplateRepositoryContent />
+        </Suspense>
     );
 }

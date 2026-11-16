@@ -470,7 +470,7 @@ html.lenis, html.lenis body {
   }
 
   /* 2. Hide all direct children of body EXCEPT active print portals */
-  body > *:not(#siskeudes-official-print-document):not(.siskeudes-print-portal-mount):not([id*="print-mount-root"]):not([id*="print-portal"]) {
+  body > *:not(#siskeudes-official-print-document):not(.siskeudes-print-portal-mount):not([id*="print-mount-root"]):not([id*="print-portal"]):not(#official-letter-print-portal):not(.official-letter-print-portal):not([id*="print-label"]):not([id*="asset-label"]):not([id*="kib-document"]):not([id*="lembar-disposisi"]):not([id*="buku-agenda"]):not([id*="buku-ekspedisi"]):not([id*="buku-tamu"]):not([id*="spt-document"]) {
     display: none !important;
   }
 
@@ -483,7 +483,18 @@ html.lenis, html.lenis body {
   /* 4. Display print portal mounts cleanly in-flow */
   #siskeudes-official-print-document,
   .siskeudes-print-portal-mount,
-  [id*="print-mount-root"] {
+  [id*="print-mount-root"],
+  [id*="print-portal"],
+  #official-letter-print-portal,
+  .official-letter-print-portal,
+  [id*="print-label"],
+  [id*="asset-label"],
+  [id*="kib-document"],
+  [id*="lembar-disposisi"],
+  [id*="buku-agenda"],
+  [id*="buku-ekspedisi"],
+  [id*="buku-tamu"],
+  [id*="spt-document"] {
     display: block !important;
     visibility: visible !important;
     position: relative !important;
@@ -503,7 +514,17 @@ html.lenis, html.lenis body {
   #siskeudes-official-print-document *,
   .siskeudes-print-portal-mount *,
   [id*="print-mount-root"] *,
-  [id*="print-portal"] * {
+  [id*="print-portal"] *,
+  #official-letter-print-portal *,
+  .official-letter-print-portal *,
+  [id*="print-label"] *,
+  [id*="asset-label"] *,
+  [id*="kib-document"] *,
+  [id*="lembar-disposisi"] *,
+  [id*="buku-agenda"] *,
+  [id*="buku-ekspedisi"] *,
+  [id*="buku-tamu"] *,
+  [id*="spt-document"] * {
     visibility: visible !important;
   }
 

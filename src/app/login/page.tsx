@@ -1,19 +1,20 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { 
   Lock, Eye, EyeOff, Loader2, 
   Fingerprint, Phone, Instagram, Facebook, 
-  Youtube, UserPlus, LogIn, ShieldCheck, Sparkles, User, KeyRound, X,
+  Youtube, ShieldCheck, Sparkles, User, KeyRound, X,
   Receipt, Wallet, FileText, Users
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { registerWarga } from "@/actions/auth";
 import { LandingThemeProvider } from "@/components/landing/LandingThemeProvider";
 import { startAuthentication } from "@simplewebauthn/browser";
+import { SecurityCaptcha } from "@/components/auth/SecurityCaptcha";
 
 const RocketIllustration = () => (
     <svg width="80" height="120" viewBox="0 0 100 150" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -77,6 +78,8 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [isMobileSheetOpen, setIsMobileSheetOpen] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
+    const [captchaInput, setCaptchaInput] = useState("");
+    const [captchaRefreshTrigger, setCaptchaRefreshTrigger] = useState(0);
     
     // Register specific state
     const [regNik, setRegNik] = useState("");
@@ -122,7 +125,7 @@ export default function LoginPage() {
             if (reason === "expired") {
                 setError("Sesi Anda telah berakhir demi keamanan. Silakan masuk kembali.");
             } else if (reason === "inactive") {
-                setError("Sesi Anda telah berakhir karena tidak ada aktivitas. Silakan masuk kembali.");
+                setError("Sesi Anda telah otomatis keluar karena tidak ada aktivitas demi mencegah kebocoran data. Silakan masukkan kredensial dan Captcha kembali.");
             }
         }
     }, []);
@@ -144,22 +147,37 @@ export default function LoginPage() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        setError(""); setSuccess(""); setLoading(true);
+        setError(""); setSuccess("");
+
+        const currentStoredCaptcha = typeof window !== "undefined" ? sessionStorage.getItem("current_captcha_code") : null;
+        if (!captchaInput.trim() || (currentStoredCaptcha && captchaInput.trim().toUpperCase() !== currentStoredCaptcha.toUpperCase())) {
+            setError("Kode Captcha salah atau tidak sesuai. Silakan ketik kode verifikasi yang tertera.");
+            setCaptchaInput("");
+            setCaptchaRefreshTrigger(prev => prev + 1);
+            return;
+        }
+
+        setLoading(true);
         try {
             const res = await signIn("credentials", { identifier, password, redirect: false });
             if (res?.error) {
                 setError(res.error === "CredentialsSignin" ? "Email/NIK atau kata sandi salah" : res.error);
+                setCaptchaInput("");
+                setCaptchaRefreshTrigger(prev => prev + 1);
             } else if (res?.ok) {
                 setSuccess("Masuk berhasil! Mengalihkan ke dashboard...");
                 sessionStorage.setItem("tab_session_active", "true");
+                sessionStorage.removeItem("current_captcha_code");
                 if (identifier === "petagis@cimanggu1.desa.id") {
                     window.location.href = "/gis-dashboard";
                 } else {
                     window.location.href = "/dashboard";
                 }
             }
-        } catch (err) {
+        } catch {
             setError("Terjadi kesalahan sistem");
+            setCaptchaInput("");
+            setCaptchaRefreshTrigger(prev => prev + 1);
         } finally {
             setLoading(false);
         }
@@ -303,6 +321,7 @@ export default function LoginPage() {
                                         <form onSubmit={handleLogin} className="space-y-4">
                                             <div className="relative"><Fingerprint className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" size={18} /><input type="text" value={identifier} onChange={(e) => setIdentifier(e.target.value)} placeholder="Email atau NIK" className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-2xl py-3.5 pl-12 pr-4 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required /></div>
                                             <div className="relative"><Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-400" size={18} /><input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-2xl py-3.5 pl-12 pr-12 text-xs text-slate-900 placeholder-slate-400 outline-none transition-all font-semibold" required /><button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button></div>
+                                            <SecurityCaptcha key={`mobile-captcha-${captchaRefreshTrigger}`} value={captchaInput} onChange={setCaptchaInput} />
                                             <button type="submit" disabled={loading} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 transition-all flex items-center justify-center gap-2">{loading ? <Loader2 className="animate-spin" size={18} /> : <><KeyRound size={18} /><span>MASUK KE SISTEM</span></>}</button>
                                         </form>
                                     </motion.div>
@@ -531,6 +550,15 @@ export default function LoginPage() {
                                             </label>
                                             <a href="#" className="text-cyan-400 hover:text-cyan-300 transition-colors">Lupa kata sandi?</a>
                                         </div>
+
+                                        {/* Security Captcha verification */}
+                                        <SecurityCaptcha
+                                            key={`desktop-captcha-${captchaRefreshTrigger}`}
+                                            value={captchaInput}
+                                            onChange={setCaptchaInput}
+                                            isDarkTheme={true}
+                                        />
+
                                         <div className="flex items-center gap-3">
                                             <button type="button" onClick={async () => {
                                                 setLoading(true); setError("");

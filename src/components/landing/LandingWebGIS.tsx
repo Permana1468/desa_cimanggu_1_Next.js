@@ -1,13 +1,45 @@
 "use client";
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { getBoundaries } from '@/actions/gis';
 import "leaflet/dist/leaflet.css";
 
+let cachedBoundaries: any[] | null = null;
+
 export default function LandingWebGIS({ containerId = "landing-webgis-map" }: { containerId?: string }) {
+    const wrapperRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<any>(null);
     const mapContainerId = containerId;
     const LRef = useRef<any>(null);
     const layersGroupRef = useRef<any>(null);
+    const [isNearViewport, setIsNearViewport] = useState(false);
+    const [isMapLoaded, setIsMapLoaded] = useState(false);
+
+    // 1. Intersection Observer: Hanya load Leaflet dan tile satelit saat user scroll mendekati section peta
+    useEffect(() => {
+        const target = wrapperRef.current;
+        if (!target) return;
+
+        // Jika container disembunyikan oleh CSS (misal tampilan mobile di desktop atau sebaliknya), jangan inisialisasi
+        if (target.offsetParent === null) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsNearViewport(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: "350px 0px" } // Pre-load 350px sebelum masuk layar agar mulus
+        );
+
+        observer.observe(target);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, []);
 
     const drawBoundaries = (boundaries: any[], L: any, map: any, group: any) => {
         if (!L || !map || !group) return;
@@ -57,12 +89,17 @@ export default function LandingWebGIS({ containerId = "landing-webgis-map" }: { 
     };
 
     useEffect(() => {
+        if (!isNearViewport) return;
+
         let isMounted = true;
         import("leaflet").then((L) => {
             if (!isMounted) return;
             LRef.current = L;
 
             if (!mapRef.current) {
+                const containerEl = document.getElementById(mapContainerId);
+                if (!containerEl) return;
+
                 const map = L.map(mapContainerId, {
                     zoomControl: false,
                     attributionControl: false,
@@ -77,15 +114,21 @@ export default function LandingWebGIS({ containerId = "landing-webgis-map" }: { 
 
                 layersGroupRef.current = L.featureGroup().addTo(map);
                 mapRef.current = map;
+                setIsMapLoaded(true);
             }
 
-            // Fetch Boundaries for standard Tenant ID
-            const tenantId = "f93e947c-1a9b-47a3-913b-2ea2a4290732";
-            getBoundaries(tenantId).then((res) => {
-                if (res.success && res.data) {
-                    drawBoundaries(res.data, L, mapRef.current, layersGroupRef.current);
-                }
-            });
+            if (cachedBoundaries) {
+                drawBoundaries(cachedBoundaries, L, mapRef.current, layersGroupRef.current);
+            } else {
+                // Fetch Boundaries for standard Tenant ID
+                const tenantId = "f93e947c-1a9b-47a3-913b-2ea2a4290732";
+                getBoundaries(tenantId).then((res) => {
+                    if (res.success && res.data) {
+                        cachedBoundaries = res.data;
+                        drawBoundaries(res.data, L, mapRef.current, layersGroupRef.current);
+                    }
+                });
+            }
         });
 
         return () => {
@@ -95,11 +138,19 @@ export default function LandingWebGIS({ containerId = "landing-webgis-map" }: { 
                 mapRef.current = null;
             }
         };
-    }, [containerId]);
-
-
+    }, [isNearViewport, mapContainerId]);
 
     return (
-        <div id={mapContainerId} className="absolute inset-0 z-0 w-full h-full mix-blend-screen opacity-80 transition-opacity duration-1000" />
+        <div ref={wrapperRef} className="absolute inset-0 z-0 w-full h-full">
+            <div 
+                id={mapContainerId} 
+                className={`absolute inset-0 z-0 w-full h-full mix-blend-screen opacity-80 transition-opacity duration-700 ${isMapLoaded ? 'opacity-80' : 'opacity-0'}`} 
+            />
+            {!isMapLoaded && (
+                <div className="absolute inset-0 bg-[#020617] flex items-center justify-center pointer-events-none">
+                    <div className="w-8 h-8 rounded-full border-2 border-cyan-400 border-t-transparent animate-spin opacity-40" />
+                </div>
+            )}
+        </div>
     );
 }

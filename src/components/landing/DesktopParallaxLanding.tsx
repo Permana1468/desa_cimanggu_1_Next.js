@@ -128,11 +128,11 @@ export function DesktopParallaxLanding({
         offset: ["start start", "end end"]
     });
 
-    // Smooth Spring for Fluid Physics
+    // Smooth Spring for Fluid Physics (Dioptimasi agar hemat CPU/GPU)
     const smoothProgress = useSpring(scrollYProgress, {
-        stiffness: 100,
-        damping: 30,
-        restDelta: 0.001
+        stiffness: 90,
+        damping: 25,
+        restDelta: 0.01
     });
 
     // Parallax Transforms for Multi-Layer Depth
@@ -359,7 +359,7 @@ export function DesktopParallaxLanding({
                 {/* Layer 0: Dynamic Background Scenery with Smooth Parallax Zoom */}
                 <motion.div
                     style={{ scale: heroBgScale, y: heroBgY }}
-                    className="absolute inset-0 w-full h-full z-0 pointer-events-none"
+                    className="absolute inset-0 w-full h-full z-0 pointer-events-none transform-gpu will-change-transform"
                 >
                     {siteData?.hero_video ? (
                         <div className="absolute inset-0 opacity-100 z-10">
@@ -599,7 +599,7 @@ export function DesktopParallaxLanding({
                     {/* Foreground Featured Subject Container with Scroll Parallax */}
                     <motion.div
                         style={{ y: heroSubjectY, scale: heroSubjectScale }}
-                        className="relative flex flex-col items-center justify-center my-auto cursor-pointer group"
+                        className="relative flex flex-col items-center justify-center my-auto cursor-pointer group transform-gpu will-change-transform"
                     >
                         {/* Foreground Subject Image / Character with 3D Pop Out Effect */}
                         <div className="relative w-72 h-72 xl:w-96 xl:h-96 mt-12 mb-4">

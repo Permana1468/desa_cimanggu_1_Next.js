@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { getWilayahVariants } from "@/lib/wilayahUtils";
 
 function cleanDigits(val: string): string {
     return val ? val.toString().replace(/\D/g, '').replace(/^0+/, '') || '0' : '';
@@ -30,13 +31,10 @@ export async function getBansosList() {
         
         // RT/RW can only see their own residents' bansos
         if (role === "RT") {
-            const rtClean = cleanDigits(rt || "");
-            const rwClean = cleanDigits(rw || "");
-            filterScope.rt = { in: [rt, rtClean, rtClean.padStart(3, '0')] };
-            filterScope.rw = { in: [rw, rwClean, rwClean.padStart(3, '0')] };
+            filterScope.rt = { in: getWilayahVariants(rt) };
+            filterScope.rw = { in: getWilayahVariants(rw) };
         } else if (role === "RW") {
-            const rwClean = cleanDigits(rw || "");
-            filterScope.rw = { in: [rw, rwClean, rwClean.padStart(3, '0')] };
+            filterScope.rw = { in: getWilayahVariants(rw) };
         }
 
         const wargaList = await prisma.dataKependudukan.findMany({
@@ -98,13 +96,10 @@ export async function getBansosStats() {
         
         const filterScope: any = { tenantId };
         if (role === "RT") {
-            const rtClean = cleanDigits(rt || "");
-            const rwClean = cleanDigits(rw || "");
-            filterScope.rt = { in: [rt, rtClean, rtClean.padStart(3, '0')] };
-            filterScope.rw = { in: [rw, rwClean, rwClean.padStart(3, '0')] };
+            filterScope.rt = { in: getWilayahVariants(rt) };
+            filterScope.rw = { in: getWilayahVariants(rw) };
         } else if (role === "RW") {
-            const rwClean = cleanDigits(rw || "");
-            filterScope.rw = { in: [rw, rwClean, rwClean.padStart(3, '0')] };
+            filterScope.rw = { in: getWilayahVariants(rw) };
         }
 
         const totalWarga = await prisma.dataKependudukan.count({ where: filterScope });

@@ -18,19 +18,21 @@ export async function getUserSettings() {
     return user;
 }
 
-export async function updateProfile(data: { phoneNumber: string, photo: string | null }) {
+export async function updateProfile(data: { phoneNumber?: string, photo?: string | null }) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user) throw new Error("Unauthorized");
 
+        const updatePayload: any = {};
+        if (data.phoneNumber !== undefined) updatePayload.phoneNumber = data.phoneNumber;
+        if (data.photo !== undefined) updatePayload.photo = data.photo;
+
         const updatedUser = await prisma.user.update({
             where: { id: (session.user as any).id },
-            data: {
-                phoneNumber: data.phoneNumber,
-                photo: data.photo
-            }
+            data: updatePayload
         });
 
+        revalidatePath("/dashboard");
         revalidatePath("/dashboard/settings");
         return { success: true, user: updatedUser };
     } catch (error: any) {

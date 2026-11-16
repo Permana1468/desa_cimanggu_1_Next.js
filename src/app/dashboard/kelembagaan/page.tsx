@@ -235,8 +235,9 @@ export default function KelembagaanPage() {
             </div>
 
             <div className="bg-white rounded-[2.5rem] p-6 shadow-sm border border-slate-200/60 overflow-hidden">
-                <div className="overflow-x-auto custom-scrollbar">
-                    <table className="w-full text-left border-collapse">
+                {/* DESKTOP & TABLET VIEW: TERISOLASI (hidden md:block) */}
+                <div className="hidden md:block overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left border-collapse min-w-[700px]">
                         <thead>
                             <tr className="border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50/50">
                                 <th className="p-4 rounded-tl-xl">Lembaga</th>
@@ -274,13 +275,13 @@ export default function KelembagaanPage() {
                                         <div className="flex items-center justify-center gap-2">
                                             <button 
                                                 onClick={() => handleShowMembers(item)}
-                                                className="px-3 py-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                                                className="px-3 py-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-colors cursor-pointer"
                                             >
                                                 <Target size={12} /> Pengurus
                                             </button>
                                             <button 
                                                 onClick={() => handleShowPrograms(item)}
-                                                className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-colors"
+                                                className="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-colors cursor-pointer"
                                             >
                                                 <Shield size={12} /> Program
                                             </button>
@@ -290,14 +291,14 @@ export default function KelembagaanPage() {
                                         <div className="flex items-center justify-center gap-2">
                                             <button 
                                                 onClick={() => handleEditLembagaClick(item)}
-                                                className="p-2 bg-slate-50 text-slate-500 hover:bg-slate-200 hover:text-slate-800 rounded-lg transition-colors"
+                                                className="p-2 bg-slate-50 text-slate-500 hover:bg-slate-200 hover:text-slate-800 rounded-lg transition-colors cursor-pointer"
                                                 title="Edit Lembaga"
                                             >
                                                 <Pencil size={16} />
                                             </button>
                                             <button 
                                                 onClick={() => handleDeleteLembagaClick(item.id)}
-                                                className="p-2 bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition-colors"
+                                                className="p-2 bg-red-50 text-red-500 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
                                                 title="Hapus Lembaga"
                                             >
                                                 <Trash2 size={16} />
@@ -317,6 +318,78 @@ export default function KelembagaanPage() {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* MOBILE / APP VIEW: TERISOLASI (block md:hidden) */}
+                <div className="block md:hidden space-y-3">
+                    {lembagas.length > 0 ? lembagas.map((item) => (
+                        <div key={item.id} className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-3">
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-200/60 shadow-xs">
+                                        <Building2 size={20} />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <h3 className="text-sm font-extrabold text-slate-900 leading-snug truncate">
+                                            {item.name}
+                                        </h3>
+                                        <p className="text-[10px] font-bold text-amber-600 uppercase tracking-wider truncate">
+                                            {item.fullName}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="px-2 py-0.5 bg-white border border-slate-200 text-slate-600 rounded-md text-[10px] font-bold shrink-0 flex items-center gap-1">
+                                    <Users size={11} /> {item.memberCount}
+                                </div>
+                            </div>
+
+                            {item.description && (
+                                <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                                    {item.description}
+                                </p>
+                            )}
+
+                            {/* Mobile Action Buttons */}
+                            <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-1.5 flex-1">
+                                    <button 
+                                        onClick={() => handleShowMembers(item)}
+                                        className="flex-1 py-2 px-2.5 bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-xl text-xs font-bold flex items-center justify-center gap-1 cursor-pointer"
+                                    >
+                                        <Target size={13} /> Pengurus
+                                    </button>
+                                    <button 
+                                        onClick={() => handleShowPrograms(item)}
+                                        className="flex-1 py-2 px-2.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-xs font-bold flex items-center justify-center gap-1 cursor-pointer"
+                                    >
+                                        <Shield size={13} /> Program
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center gap-1">
+                                    <button 
+                                        onClick={() => handleEditLembagaClick(item)}
+                                        className="p-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-xs"
+                                        title="Edit"
+                                    >
+                                        <Pencil size={14} />
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDeleteLembagaClick(item.id)}
+                                        className="p-2 bg-white border border-rose-200 text-rose-600 rounded-xl text-xs"
+                                        title="Hapus"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )) : (
+                        <div className="py-12 text-center text-slate-400 text-xs font-bold">
+                            Belum ada lembaga terdaftar.
+                        </div>
+                    )}
                 </div>
             </div>
 

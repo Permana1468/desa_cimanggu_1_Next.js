@@ -9,7 +9,7 @@ import {
 import Link from "next/link";
 
 export function KeuanganDashboard({ session, stats }: { session: any, stats: any }) {
-  const roleName = session?.user?.role?.replace(/_/g, ' ') || "Perencanaan & Keuangan";
+  const displayRole = "Kaur Keuangan & Pengelolaan APBDes";
 
   return (
     <div className="space-y-6">
@@ -23,8 +23,8 @@ export function KeuanganDashboard({ session, stats }: { session: any, stats: any
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-[10px] font-bold uppercase tracking-widest">
                     <Wallet size={14} /> Keuangan Desa
                 </div>
-                <h1 className="text-4xl md:text-5xl font-black tracking-tight">
-                    {roleName}
+                <h1 className="text-3xl md:text-4xl font-black tracking-tight">
+                    {displayRole}
                 </h1>
                 <p className="text-amber-100 max-w-xl leading-relaxed">
                     Halo, <span className="text-white font-bold">{session?.user?.name}</span>. Pantau APBDes, serapan anggaran, dan progres RAB hari ini.

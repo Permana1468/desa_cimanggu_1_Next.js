@@ -11,6 +11,7 @@ import {
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { getKadusDashboardSummary } from "@/actions/kadus";
 import { formatDusun } from "@/lib/formatters";
+import { PhysicalMutationAlertBanner } from "@/components/dashboard/mutasi/PhysicalMutationAlertBanner";
 
 export function KadusDashboard({ session, stats: initialStats }: { session: any, stats: any }) {
   const dusun = (session?.user as any)?.rw || "Dusun"; 
@@ -52,6 +53,13 @@ export function KadusDashboard({ session, stats: initialStats }: { session: any,
           <p className="text-sm text-slate-500 mt-1">Sistem Informasi Manajemen Wilayah {formatDusun(dusun)} Terintegrasi</p>
         </div>
       </div>
+
+      {/* Peringatan Wajib Pembaruan Berkas Fisik Dusun */}
+      <PhysicalMutationAlertBanner 
+        role="KADUS" 
+        userRw={dusun} 
+        onMutationUpdated={fetchData} 
+      />
 
       {/* QUICK ACTIONS FOR MOBILE/DESKTOP */}
       <div>

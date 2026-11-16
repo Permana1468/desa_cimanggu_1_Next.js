@@ -23,6 +23,7 @@ import {
     FileSpreadsheet,
     FileText,
     AlertCircle,
+    AlertTriangle,
     Info,
     Fingerprint, 
     Home as HomeIcon, 
@@ -37,6 +38,7 @@ import {
     Activity as ActivityIcon
 } from "lucide-react";
 import { WARGA_FIELDS, DEFAULT_WARGA_FORM, isWargaDataIncomplete } from "@/lib/wargaSchema";
+import { PhysicalMutationAlertBanner } from "@/components/dashboard/mutasi/PhysicalMutationAlertBanner";
 
 function HoverMask({ value }: { value: string }) {
     const [visible, setVisible] = useState(false);
@@ -85,6 +87,7 @@ export default function WargaManagementPage() {
         ...DEFAULT_WARGA_FORM
     });
     const [filterIncomplete, setFilterIncomplete] = useState(false);
+    const [filterStatusKependudukan, setFilterStatusKependudukan] = useState("ALL");
     const [sortBy, setSortBy] = useState("default");
 
     // Pagination State
@@ -94,10 +97,19 @@ export default function WargaManagementPage() {
     // Reset to page 1 whenever search, filter, or sorting changes
     useEffect(() => {
         setCurrentPage(1);
-    }, [query, filters, filterIncomplete, sortBy]);
+    }, [query, filters, filterIncomplete, filterStatusKependudukan, sortBy]);
 
     const displayedWarga = useMemo(() => {
-        const filtered = warga.filter(w => !filterIncomplete || isWargaDataIncomplete(w));
+        let filtered = warga.filter(w => !filterIncomplete || isWargaDataIncomplete(w));
+
+        if (filterStatusKependudukan !== "ALL") {
+            filtered = filtered.filter(w => {
+                if (filterStatusKependudukan === "AKTIF") {
+                    return !w.statusKependudukan || w.statusKependudukan === "AKTIF";
+                }
+                return w.statusKependudukan === filterStatusKependudukan;
+            });
+        }
 
         const PENDIDIKAN_ORDER: Record<string, number> = {
             "TIDAK_SEKOLAH": 0,
@@ -144,7 +156,7 @@ export default function WargaManagementPage() {
             }
             return a.namaLengkap.localeCompare(b.namaLengkap);
         });
-    }, [warga, filterIncomplete, sortBy]);
+    }, [warga, filterIncomplete, filterStatusKependudukan, sortBy]);
 
     const totalPages = Math.max(1, Math.ceil(displayedWarga.length / pageSize));
     const paginatedWarga = useMemo(() => {
@@ -309,7 +321,7 @@ export default function WargaManagementPage() {
                     <button 
                         onClick={handleExportExcel}
                         disabled={exporting}
-                        className="bg-white border border-slate-200 text-slate-700 px-5 py-3 rounded-2xl text-xs font-black flex items-center gap-2 hover:bg-slate-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
+                        className="bg-white border border-slate-200 text-slate-700 px-5 py-3 rounded-full text-xs font-black flex items-center gap-2 hover:bg-slate-50 transition-all active:scale-95 disabled:opacity-50 shadow-sm"
                     >
                         {exporting ? <Loader2 size={16} className="animate-spin" /> : <FileSpreadsheet size={16} className="text-emerald-600" />} 
                         Export Excel
@@ -322,12 +334,18 @@ export default function WargaManagementPage() {
                             });
                             setShowModal(true);
                         }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl text-xs font-black flex items-center gap-2 shadow-xl shadow-blue-500/20 transition-all active:scale-95"
+                        className="bg-[#1d64ec] hover:bg-[#1554c9] text-white px-6 py-3 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-xl shadow-blue-600/20 transition-all active:scale-95"
                     >
-                        <UserPlus size={18} /> Tambah Warga
+                        <UserPlus size={18} /> + Tambah Warga
                     </button>
                 </div>
             </div>
+
+            {/* Peringatan Wajib Pembaruan Berkas Fisik Kependudukan */}
+            <PhysicalMutationAlertBanner 
+                role="ADMIN_DESA" 
+                onMutationUpdated={handleSearch} 
+            />
 
             {/* STATS SUMMARY */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -415,6 +433,17 @@ export default function WargaManagementPage() {
                             <option value="umur-asc">Urutkan: Umur (Muda ke Tua)</option>
                             <option value="pendidikan">Urutkan: Pendidikan</option>
                         </select>
+                        <select 
+                            value={filterStatusKependudukan}
+                            onChange={e => setFilterStatusKependudukan(e.target.value)}
+                            className="bg-slate-50 border-none rounded-2xl px-4 py-2 text-[10px] font-black uppercase focus:ring-0 text-slate-700"
+                        >
+                            <option value="ALL">Semua Status</option>
+                            <option value="AKTIF">Status: Aktif</option>
+                            <option value="MUTASI_PENDING">Status: ⚠️ Pending Fisik</option>
+                            <option value="MENINGGAL">Status: Meninggal</option>
+                            <option value="PINDAH_KELUAR">Status: Pindah Keluar</option>
+                        </select>
                         <button 
                             type="button"
                             onClick={() => setFilterIncomplete(prev => !prev)}
@@ -435,7 +464,8 @@ export default function WargaManagementPage() {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto -mx-8 px-8">
+                {/* DESKTOP & TABLET VIEW: TERISOLASI (hidden md:block) */}
+                <div className="hidden md:block overflow-x-auto -mx-8 px-8 custom-scrollbar">
                     <table className="w-full text-left border-collapse min-w-[1000px]">
                         <thead>
                             <tr className="text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100 bg-slate-50/30">
@@ -482,7 +512,24 @@ export default function WargaManagementPage() {
                                                 {item.namaLengkap.charAt(0)}
                                             </div>
                                             <div className="min-w-0">
-                                                <div className="font-black text-slate-800 text-sm truncate leading-tight">{item.namaLengkap}</div>
+                                                <div className="flex items-center gap-2">
+                                                    <div className="font-black text-slate-800 text-sm truncate leading-tight">{item.namaLengkap}</div>
+                                                    {item.statusKependudukan === "MUTASI_PENDING" && (
+                                                        <span className="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-md text-[9px] font-black uppercase tracking-tight flex items-center gap-1" title={item.keteranganStatus || "Menunggu verifikasi berkas fisik desa"}>
+                                                            <AlertTriangle size={10} className="text-amber-600" /> Pending Fisik
+                                                        </span>
+                                                    )}
+                                                    {item.statusKependudukan === "MENINGGAL" && (
+                                                        <span className="px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200 rounded-md text-[9px] font-black uppercase tracking-tight">
+                                                            Meninggal
+                                                        </span>
+                                                    )}
+                                                    {item.statusKependudukan === "PINDAH_KELUAR" && (
+                                                        <span className="px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200 rounded-md text-[9px] font-black uppercase tracking-tight">
+                                                            Pindah
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <div className="text-[10px] text-slate-400 font-bold tracking-wider mt-0.5 uppercase">
                                                     NIK: <HoverMask value={item.nik} />
                                                 </div>
@@ -531,21 +578,21 @@ export default function WargaManagementPage() {
                                                     setSelectedWarga(item);
                                                     setShowPrintModal(true);
                                                 }}
-                                                className="p-2 bg-slate-50 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"
+                                                className="p-2 bg-slate-50 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
                                                 title="Cetak Persuratan"
                                             >
                                                 <Printer size={15} />
                                             </button>
                                             <button 
                                                 onClick={() => handleEdit(item)} 
-                                                className="p-2 bg-slate-50 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                                className="p-2 bg-slate-50 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer"
                                                 title="Edit"
                                             >
                                                 <Edit2 size={15} />
                                             </button>
                                             <button 
                                                 onClick={() => handleDelete(item.id)} 
-                                                className="p-2 bg-slate-50 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                                                className="p-2 bg-slate-50 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
                                                 title="Hapus"
                                             >
                                                 <Trash2 size={15} />
@@ -570,6 +617,97 @@ export default function WargaManagementPage() {
                             )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* MOBILE / APP VIEW: TERISOLASI (block md:hidden) */}
+                <div className="block md:hidden space-y-3">
+                    {loading ? (
+                        Array(4).fill(0).map((_, i) => (
+                            <div key={i} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 animate-pulse space-y-3">
+                                <div className="h-4 w-32 bg-slate-200 rounded" />
+                                <div className="h-3 w-48 bg-slate-200 rounded" />
+                            </div>
+                        ))
+                    ) : paginatedWarga.length > 0 ? (
+                        paginatedWarga.map((item) => (
+                            <div key={item.id} className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 space-y-3">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-10 h-10 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-blue-600 font-extrabold text-sm shrink-0 shadow-xs">
+                                            {item.namaLengkap.charAt(0)}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-extrabold text-sm text-slate-900 leading-snug truncate">
+                                                {item.namaLengkap}
+                                            </p>
+                                            <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
+                                                NIK: <HoverMask value={item.nik} />
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <span className={`inline-block text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider shrink-0 ${
+                                        item.jenisKelamin === "LAKI_LAKI" 
+                                            ? "bg-blue-50 text-blue-600 border border-blue-100" 
+                                            : "bg-pink-50 text-pink-600 border border-pink-100"
+                                    }`}>
+                                        {item.jenisKelamin === "LAKI_LAKI" ? "Laki-Laki" : "Perempuan"}
+                                    </span>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/60 text-[11px]">
+                                    <div className="p-2 rounded-xl bg-white border border-slate-200/60">
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase block">Wilayah</span>
+                                        <span className="font-semibold text-slate-700 truncate block">
+                                            {formatWilayah(item.rt, item.rw, item.dusun)}
+                                        </span>
+                                    </div>
+                                    <div className="p-2 rounded-xl bg-white border border-slate-200/60">
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase block">Status Data</span>
+                                        {isWargaDataIncomplete(item) ? (
+                                            <span className="text-[10px] font-bold text-rose-600 flex items-center gap-1">
+                                                <AlertCircle size={10} /> Belum Lengkap
+                                            </span>
+                                        ) : (
+                                            <span className="text-[10px] font-bold text-emerald-600">
+                                                Lengkap
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="pt-1 flex items-center justify-end gap-2">
+                                    <button 
+                                        onClick={() => {
+                                            setSelectedWarga(item);
+                                            setShowPrintModal(true);
+                                        }}
+                                        className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5"
+                                    >
+                                        <Printer size={13} />
+                                        <span>Cetak Surat</span>
+                                    </button>
+                                    <button 
+                                        onClick={() => handleEdit(item)} 
+                                        className="p-2 bg-white border border-slate-200 text-slate-600 hover:text-blue-600 rounded-xl text-xs font-bold"
+                                    >
+                                        <Edit2 size={14} />
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDelete(item.id)} 
+                                        className="p-2 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="p-8 text-center text-slate-400 text-xs font-bold">
+                            Tidak ada data warga ditemukan.
+                        </div>
+                    )}
                 </div>
 
                 {/* PAGINATION FOOTER */}
