@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { 
     ShieldCheck, 
     QrCode, 
@@ -367,9 +368,19 @@ export function CampoSantoHero({ siteData, orgData, uiConfig }: CampoSantoHeroPr
                                 </h1>
                             </div>
 
-                            {/* RUNNING MARQUEE SUBTITLE (SEAMLESS INFINITE LOOP) */}
-                            <div className="w-full overflow-hidden bg-transparent border-0 py-1 max-w-2xl mx-auto">
-                                <div className={`whitespace-nowrap animate-marquee flex items-center gap-8 text-xs sm:text-sm font-black uppercase tracking-[0.3em] transition-colors duration-700 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] ${currentMarqueeColor}`}>
+                            {/* RUNNING MARQUEE SUBTITLE (SEAMLESS INFINITE LOOP POWERED BY FRAMER-MOTION) */}
+                            <div 
+                                className="w-full overflow-hidden bg-transparent border-0 py-1 max-w-2xl mx-auto pointer-events-auto"
+                                style={{ 
+                                    maskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)', 
+                                    WebkitMaskImage: 'linear-gradient(to right, transparent, black 10%, black 90%, transparent)' 
+                                }}
+                            >
+                                <motion.div 
+                                    animate={{ x: ["0%", "-50%"] }}
+                                    transition={{ ease: "linear", duration: 25, repeat: Infinity }}
+                                    className={`whitespace-nowrap flex items-center gap-8 text-xs sm:text-sm font-black uppercase tracking-[0.3em] transition-colors duration-700 drop-shadow-[0_2px_8px_rgba(0,0,0,0.95)] w-max ${currentMarqueeColor}`}
+                                >
                                     {/* Set 1 */}
                                     <span>{language === 'id' ? 'KECAMATAN CIBUNGBULANG' : 'CIBUNGBULANG DISTRICT'}</span>
                                     <span>•</span>
@@ -388,7 +399,7 @@ export function CampoSantoHero({ siteData, orgData, uiConfig }: CampoSantoHeroPr
                                     <span>•</span>
                                     <span>{language === 'id' ? 'SISTEM DIGITALISASI DESA' : 'DIGITAL VILLAGE SYSTEM'}</span>
                                     <span>•</span>
-                                </div>
+                                </motion.div>
                             </div>
 
                             {/* PARAGRAPH DESCRIPTION */}
@@ -535,41 +546,6 @@ export function CampoSantoHero({ siteData, orgData, uiConfig }: CampoSantoHeroPr
                     </div>
                 </>
             )}
-
-            {/* CSS ANIMATIONS */}
-            <style jsx global>{`
-                @keyframes marquee {
-                    0% { transform: translateX(0%); }
-                    100% { transform: translateX(-50%); }
-                }
-                .animate-marquee {
-                    display: inline-flex;
-                    animation: marquee 22s linear infinite;
-                }
-                .animate-marquee:hover {
-                    animation-play-state: paused;
-                }
-
-                @keyframes waveBounce {
-                    0%, 100% { transform: translateY(0) scale(1.05); }
-                    25% { transform: translateY(-6px) scale(1.06); }
-                    50% { transform: translateY(3px) scale(1.05); }
-                    75% { transform: translateY(-4px) scale(1.06); }
-                }
-                .animate-wave-bounce {
-                    animation: waveBounce 1.2s ease-in-out infinite;
-                }
-
-                @keyframes gradientShift {
-                    0% { background-position: 0% 50%; }
-                    50% { background-position: 100% 50%; }
-                    100% { background-position: 0% 50%; }
-                }
-                .animate-gradient-shift {
-                    background-size: 200% 200%;
-                    animation: gradientShift 6s ease infinite;
-                }
-            `}</style>
         </div>
     );
 }
