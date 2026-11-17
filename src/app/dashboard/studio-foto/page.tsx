@@ -10,3 +10,4 @@ export default function DashboardStudioFotoPage() {
     <KaurStudioFotoTab onBack={() => router.push("/dashboard")} />
   );
 }
+

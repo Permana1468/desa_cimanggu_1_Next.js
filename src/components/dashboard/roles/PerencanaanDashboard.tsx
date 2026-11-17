@@ -42,6 +42,7 @@ const CyberPlanRkkdTab = dynamic(() => import("../perencanaan/CyberPlanRkkdTab")
 const CyberPlanMusrenbangTab = dynamic(() => import("../perencanaan/CyberPlanMusrenbangTab").then(m => m.CyberPlanMusrenbangTab), { ssr: false, loading: PlanTabLoader });
 const ApbdesInfografisBoard = dynamic(() => import("../perencanaan/ApbdesInfografisBoard").then(m => m.ApbdesInfografisBoard), { ssr: false, loading: PlanTabLoader });
 const KaurStudioFotoTab = dynamic(() => import("./kaur-perencanaan/KaurStudioFotoTab").then(m => m.KaurStudioFotoTab), { ssr: false, loading: PlanTabLoader });
+const CyberPlanProgressTab = dynamic(() => import("../perencanaan/CyberPlanProgressTab").then(m => m.CyberPlanProgressTab), { ssr: false, loading: PlanTabLoader });
 
 export function PerencanaanDashboard({ session, stats, isHackerTheme }: { session: any, stats: any, isHackerTheme?: boolean }) {
   const roleName = session?.user?.role?.replace(/_/g, ' ') || "KAUR PERENCANAAN";
@@ -97,15 +98,18 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
   };
 
   useEffect(() => {
+    // Only run telemetry interval if on main overview tab to optimize rendering performance
+    if (tabParam && tabParam !== "overview" && tabParam !== "main") return;
+
     const interval = setInterval(() => {
       setServerLoad(prev => Math.max(10, Math.min(95, prev + (Math.random() * 10 - 5))));
       if (Math.random() > 0.8) {
         setDbSync(prev => prev >= 100 ? 98 : 100);
       }
       setSerapan(prev => prev < 100 ? prev + (Math.random() * 0.05) : prev);
-    }, 3000);
+    }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [tabParam]);
 
   const musrenbangTabs = ["undangan-musrenbang", "musling-rw", "musling-kadus", "finance", "musrenbang"];
   if (tabParam && musrenbangTabs.includes(tabParam)) {
@@ -171,6 +175,19 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
       setActiveTab("main");
       router.push("/dashboard?tab=overview");
     }} />;
+  }
+
+  if (tabParam === "scurve" || tabParam === "progress" || activeTab === "scurve" || activeTab === "progress") {
+    return (
+      <CyberPlanProgressTab 
+        defaultMode={tabParam === "scurve" ? "scurve" : "progress"}
+        isHackerTheme={isHackerTheme}
+        onBack={() => {
+          setActiveTab("main");
+          router.push("/dashboard?tab=overview");
+        }} 
+      />
+    );
   }
 
   if (tabParam === "studio-foto" || activeTab === "studio-foto" || tabParam === "instan-studio") {

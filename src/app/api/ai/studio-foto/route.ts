@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { spawn } from "child_process";
+import path from "path";
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
 
-// Helper to resolve Gemini API Key
-async function resolveGeminiApiKey(explicitKey?: string | null, headerKey?: string | null): Promise<string> {
-  // 1. Explicit key in body or header
-  if (explicitKey && explicitKey.trim()) return explicitKey.trim();
-  if (headerKey && headerKey.trim()) return headerKey.trim();
-
-  // 2. Server Environment Variables
-  const envKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-  if (envKey && envKey.trim()) return envKey.trim();
-
-  // 3. Database SystemSetting (global_config -> aiIntegration)
+// Helper to resolve Gemini API Key strictly from Admin Master / Server
+async function getMasterGeminiApiKey(): Promise<string> {
+  // 1. Database SystemSetting (global_config -> aiIntegration) set by Master Admin
   try {
     const configRecord = await prisma.systemSetting.findUnique({
       where: { id: "global_config" },
@@ -28,22 +22,78 @@ async function resolveGeminiApiKey(explicitKey?: string | null, headerKey?: stri
     console.warn("[STUDIO_FOTO_AI] Unable to query systemSetting:", err);
   }
 
+  // 2. Fallback to Server Environment Variables
+  const envKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  if (envKey && envKey.trim()) return envKey.trim();
+
   return "";
 }
 
-// GET: Check status and key availability
-export async function GET(req: NextRequest) {
+// Execute Python AI Engine
+function runPythonRealisticGenerator(payload: any): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const scriptPath = path.join(process.cwd(), "services", "ai_studio", "realistic_generator.py");
+    const pyProcess = spawn("python3", [scriptPath], {
+      env: { ...process.env },
+    });
+
+    let stdoutData = "";
+    let stderrData = "";
+
+    pyProcess.stdout.on("data", (data) => {
+      stdoutData += data.toString();
+    });
+
+    pyProcess.stderr.on("data", (data) => {
+      stderrData += data.toString();
+    });
+
+    pyProcess.on("close", (code) => {
+      if (code !== 0 && !stdoutData) {
+        return reject(new Error(stderrData || `Python AI engine exited with code ${code}`));
+      }
+
+      try {
+        const jsonResult = JSON.parse(stdoutData.trim());
+        resolve(jsonResult);
+      } catch (err: any) {
+        reject(new Error(`Failed to parse Python output: ${stdoutData.slice(0, 200)}`));
+      }
+    });
+
+    pyProcess.on("error", (err) => {
+      reject(err);
+    });
+
+    // Write input payload to stdin
+    pyProcess.stdin.write(JSON.stringify(payload));
+    pyProcess.stdin.end();
+  });
+}
+
+// GET: Check status and verify Admin Master key integration
+export async function GET() {
   try {
-    const serverKey = await resolveGeminiApiKey();
+    const masterKey = await getMasterGeminiApiKey();
     return NextResponse.json({
       status: "online",
-      engine: "Google Gemini AI Engine",
-      hasServerKey: Boolean(serverKey),
-      supportedModels: [
-        "gemini-2.5-flash-image",
-        "gemini-2.5-flash-image-preview",
-        "gemini-2.5-flash",
-        "gemini-flash-latest",
+      engine: "Python 3.12 AI Engine & Google Gemini Multimodal",
+      hasMasterKey: Boolean(masterKey),
+      keySource: masterKey ? "Admin Master (Terkonfigurasi)" : "Belum Diatur di Admin Master",
+      supportedModes: [
+        "product",
+        "fashion",
+        "prewedding",
+        "model",
+        "photographer_passport",
+        "photographer_umrah",
+        "photographer_baby",
+        "architecture_interior",
+        "architecture_exterior",
+        "sketch_to_photo",
+        "art_caricature",
+        "edit_restore",
+        "banner",
       ],
     });
   } catch (error: any) {
@@ -54,114 +104,78 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST: Proxy generation request to Google Gemini API
+// POST: Execute Realistic AI generation via Python engine
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { model = "gemini-2.5-flash-image", payload, apiKey: clientKey } = body;
-    const headerKey = req.headers.get("x-gemini-key");
+    const { 
+      mode = "general", 
+      prompt = "", 
+      customInstruction = "", 
+      aspectRatio = "1:1", 
+      imageBase64 = "", 
+      mimeType = "image/jpeg" 
+    } = body;
 
-    const apiKey = await resolveGeminiApiKey(clientKey, headerKey);
+    // Strict security: API Key is retrieved ONLY from Admin Master / server configuration
+    const apiKey = await getMasterGeminiApiKey();
 
     if (!apiKey) {
       return NextResponse.json(
         {
-          error: "Kunci API Gemini belum diatur. Silakan masukkan Google Gemini API Key di tombol Pengaturan Kunci API (pojok kanan atas).",
-          needApiKey: true,
+          success: false,
+          error: "Kunci API Gemini belum diatur di Admin Master. Silakan hubungi Admin Master untuk mengaktifkan AI di menu 'Kecerdasan Buatan'.",
+          needAdminSetup: true,
         },
-        { status: 401 }
+        { status: 403 }
       );
     }
 
-    if (!payload) {
+    if (!prompt && !imageBase64) {
       return NextResponse.json(
-        { error: "Payload generasi tidak valid atau kosong." },
+        { success: false, error: "Deskripsi (prompt) atau gambar input wajib diisi." },
         { status: 400 }
       );
     }
 
-    // Smart model candidate mapping
-    let modelCandidates: string[] = [];
+    // Call Python Realistic Generator Engine
+    try {
+      const pythonResult = await runPythonRealisticGenerator({
+        apiKey,
+        mode,
+        prompt,
+        customInstruction,
+        aspectRatio,
+        imageBase64,
+        mimeType,
+      });
 
-    if (model.includes("image")) {
-      // Prioritize available Google image models
-      modelCandidates = [
-        "gemini-2.5-flash-image",
-        model,
-        "gemini-2.5-flash-image-preview",
-        "imagen-3.0-generate-002",
-      ];
-    } else {
-      // Text / concept generation models
-      modelCandidates = [
-        model,
-        "gemini-2.5-flash",
-        "gemini-flash-latest",
-        "gemini-2.0-flash",
-      ];
-    }
-
-    const uniqueCandidates = Array.from(new Set(modelCandidates));
-    let lastError: any = null;
-    let geminiRes: Response | null = null;
-    let geminiData: any = null;
-
-    for (const candModel of uniqueCandidates) {
-      try {
-        const targetUrl = `https://generativelanguage.googleapis.com/v1beta/models/${candModel}:generateContent?key=${apiKey}`;
-        
-        geminiRes = await fetch(targetUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
-
-        geminiData = await geminiRes.json();
-
-        if (geminiRes.ok) {
-          return NextResponse.json(geminiData);
-        }
-
-        // If 404 (model not found), continue to fallback model
-        if (geminiRes.status === 404) {
-          lastError = geminiData;
-          continue;
-        }
-
-        // If other error (e.g. 400 bad key, 429 quota), stop and return friendly error
-        let friendlyMessage = geminiData.error?.message || "Gagal memproses dengan AI.";
-        if (geminiRes.status === 400 && friendlyMessage.toLowerCase().includes("api key not valid")) {
-          friendlyMessage = "API Key Gemini tidak valid. Pastikan Anda menyalin kunci dari Google AI Studio dengan benar.";
-        } else if (geminiRes.status === 429) {
-          friendlyMessage = "Batas kuota Gemini API tercapai (Rate Limit). Silakan coba lagi beberapa saat lagi atau gunakan API Key lain.";
-        }
-
+      if (pythonResult.success) {
+        return NextResponse.json(pythonResult);
+      } else {
         return NextResponse.json(
           {
-            error: friendlyMessage,
-            status: geminiRes.status,
-            raw: geminiData,
+            success: false,
+            error: pythonResult.error || "Gagal menghasilkan gambar realistis.",
           },
-          { status: geminiRes.status }
+          { status: 422 }
         );
-      } catch (err: any) {
-        lastError = err;
       }
+    } catch (pyErr: any) {
+      console.error("[PYTHON_AI_ENGINE_ERROR]", pyErr);
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Kesalahan pada Python AI Engine: ${pyErr.message || "Proses eksekusi gagal."}`,
+        },
+        { status: 500 }
+      );
     }
-
-    return NextResponse.json(
-      {
-        error: lastError?.error?.message || lastError?.message || "Gagal menghubungi layanan Google Gemini.",
-        status: 502,
-      },
-      { status: 502 }
-    );
   } catch (error: any) {
     console.error("[STUDIO_FOTO_AI_ERROR]", error);
     return NextResponse.json(
       {
+        success: false,
         error: error?.message || "Terjadi kesalahan internal server saat memproses permintaan AI.",
       },
       { status: 500 }
