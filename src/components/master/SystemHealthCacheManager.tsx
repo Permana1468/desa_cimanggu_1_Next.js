@@ -75,7 +75,7 @@ export function SystemHealthCacheManager({ initialData }: SystemHealthCacheManag
   const cachePercent = Math.min(100, Math.round((cacheMb / 500) * 100));
 
   return (
-    <div className="bg-slate-900/95 backdrop-blur-xl rounded-[2.5rem] p-6 md:p-8 text-white border border-slate-800 shadow-2xl relative overflow-hidden group">
+    <div className="bg-slate-900/95 backdrop-blur-xl rounded-3xl p-6 sm:p-7 md:p-8 text-white border border-slate-800 shadow-xl relative overflow-hidden group">
       {/* Ambient background glow */}
       <div className={`absolute top-0 right-0 w-80 h-80 rounded-full blur-[100px] pointer-events-none transition-all ${
         isCritical 

@@ -874,7 +874,7 @@ export default function GisManagementClient({
       <div className="flex-1 flex flex-col gap-6">
         
         {/* Map Container */}
-        <div className="relative bg-white p-4 rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 overflow-hidden">
+        <div className="relative bg-white p-3 sm:p-4 rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
           
           {/* Fullscreen Button */}
           <button 
@@ -894,12 +894,12 @@ export default function GisManagementClient({
 
           <div 
             id={mapContainerId} 
-            className={`w-full rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-inner z-10 ${isFullscreen ? 'h-[80vh]' : 'h-[600px]'}`}
+            className={`w-full rounded-2xl overflow-hidden border border-slate-100 shadow-inner z-10 ${isFullscreen ? 'h-[80vh]' : 'h-[600px]'}`}
           />
         </div>
 
         {/* Boundary Lists */}
-        <div className={`bg-white p-8 rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 space-y-6 ${isFullscreen ? 'hidden' : ''}`}>
+        <div className={`bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-6 ${isFullscreen ? 'hidden' : ''}`}>
           <div>
             <h3 className="text-xl font-black text-slate-900 tracking-tight">Daftar Batas Wilayah Terdaftar</h3>
             <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mt-1">Total {boundaries.length} poligon aktif</p>

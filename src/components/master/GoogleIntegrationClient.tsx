@@ -184,31 +184,32 @@ export function GoogleIntegrationClient({ initialSettings, redirectUri = "" }: G
     };
 
     return (
-        <div className="space-y-16 pb-20 animate-in fade-in duration-700">
-            {/* HERO INTEGRATION HEADER */}
-            <div className="relative p-12 md:p-20 rounded-[3rem] md:rounded-[4rem] bg-slate-950 text-white overflow-hidden shadow-2xl shadow-slate-900/40">
-                <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-blue-600/10 via-purple-600/5 to-transparent pointer-events-none" />
-                <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
+        <div className="space-y-6 sm:space-y-8 pb-12 animate-in fade-in duration-500">
+            {/* 1. HERO INTEGRATION HEADER (MATCHING ADMIN DESA EXECUTIVE STYLE) */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-[#0a1122] to-slate-950 rounded-2xl sm:rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-slate-800">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-blue-600/15 rounded-full blur-[90px] pointer-events-none -mr-20 -mt-20" />
+                <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-indigo-600/10 rounded-full blur-[80px] pointer-events-none -mb-20" />
                 
-                <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-12">
-                    <div className="space-y-6 max-w-2xl">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">
-                            <Cloud size={12} className="animate-pulse" /> Google Workspace Node
+                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div className="space-y-2 max-w-2xl">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-400/25 text-blue-400 text-[10px] font-black uppercase tracking-wider">
+                            <Cloud size={12} className="text-blue-400" /> Google Workspace Node
                         </div>
-                        <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-none">
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white">
                             Workspace <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">Integration</span>
                         </h1>
-                        <p className="text-slate-400 font-medium text-sm md:text-lg leading-relaxed">
+                        <p className="text-slate-400 font-medium text-xs sm:text-sm leading-relaxed">
                             Hubungkan sistem Desa Cimanggu I dengan Google API untuk mendukung otomatisasi pembuatan Spreadsheet, dokumen Word (.docx), dan penyimpanan berkas di Google Drive secara real-time.
                         </p>
                     </div>
 
                     {isConnected && (
-                        <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex flex-wrap items-center gap-3 shrink-0">
                             <button 
+                                type="button"
                                 onClick={handleDisconnect}
                                 disabled={saving || testing}
-                                className="px-10 py-5 bg-rose-950/40 hover:bg-rose-900/40 border border-rose-500/30 text-rose-300 rounded-[2rem] text-sm font-black transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                                className="px-4.5 py-2.5 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-500/30 text-rose-300 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
                             >
                                 Putuskan Koneksi
                             </button>
@@ -218,14 +219,12 @@ export function GoogleIntegrationClient({ initialSettings, redirectUri = "" }: G
             </div>
 
             {/* INTEGRATION STATUS & TESTING PANELS */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 
                 {/* CONFIGURATION OPTIONS PANEL */}
-                <div className="lg:col-span-2 space-y-10">
-                    <div className="bg-white rounded-[3rem] p-10 md:p-14 shadow-xl shadow-slate-200/50 border border-slate-100 relative group overflow-hidden">
-                        <div className="absolute -top-20 -right-20 w-64 h-64 bg-blue-50 rounded-full group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
-                        
-                        <div className="relative z-10 space-y-10">
+                <div className="lg:col-span-2 space-y-6">
+                    <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80 relative group overflow-hidden">
+                        <div className="relative z-10 space-y-6">
                             <div className="flex items-center justify-between flex-wrap gap-6 border-b border-slate-100 pb-8">
                                 <div className="flex items-center gap-4">
                                     <div className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-600/20">

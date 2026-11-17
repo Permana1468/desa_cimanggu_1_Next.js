@@ -37,12 +37,12 @@ async function UserManagementContent() {
 
 function UserManagementSkeleton() {
     return (
-        <div className="space-y-8 animate-pulse p-6">
+        <div className="space-y-6 animate-pulse">
             <div className="flex justify-between items-center">
-                <div className="h-10 w-48 bg-slate-200 rounded-full" />
-                <div className="h-10 w-32 bg-slate-200 rounded-full" />
+                <div className="h-10 w-48 bg-slate-200 rounded-xl" />
+                <div className="h-10 w-32 bg-slate-200 rounded-xl" />
             </div>
-            <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl h-96" />
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm h-96" />
         </div>
     );
 }

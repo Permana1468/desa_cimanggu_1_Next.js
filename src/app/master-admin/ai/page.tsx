@@ -14,9 +14,9 @@ export default async function AiIntegrationPage() {
     const initialSettings = await getAiIntegration();
 
     return (
-        <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Header Section */}
-            <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 border border-slate-800 shadow-2xl p-8 md:p-12">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-[#0a1122] to-slate-950 border border-slate-800 shadow-xl shadow-slate-950/20 p-6 sm:p-8">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-[100px]" />
                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-[100px]" />
                 

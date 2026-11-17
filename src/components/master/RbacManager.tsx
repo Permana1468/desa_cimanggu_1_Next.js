@@ -27,47 +27,47 @@ export const RbacManager = ({ initialPermissions }: RbacManagerProps) => {
     const roles = Array.from(new Set(permissions.map(p => p.role)));
 
     return (
-        <div className="space-y-12 animate-in fade-in duration-700">
-            <div className="bg-white rounded-[3.5rem] p-10 md:p-14 shadow-2xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-50 rounded-full -mr-48 -mt-48 opacity-50" />
+        <div className="space-y-8 animate-in fade-in duration-700">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 md:p-10 shadow-sm border border-slate-200/80 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-50/50 rounded-full -mr-48 -mt-48 pointer-events-none" />
                 
                 <div className="relative z-10">
-                    <div className="flex items-center gap-5 mb-12">
-                        <div className="w-16 h-16 bg-indigo-600 text-white rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-600/30">
-                            <Key size={32} />
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-md shadow-indigo-600/20">
+                            <Key size={24} />
                         </div>
                         <div>
-                            <h3 className="text-3xl font-black text-slate-800 tracking-tight">Identity & Access Policy</h3>
-                            <p className="text-xs font-black text-indigo-600 uppercase tracking-[0.3em] mt-1">RBAC Matrix Management Engine</p>
+                            <h3 className="text-2xl font-black text-slate-800 tracking-tight">Identity & Access Policy</h3>
+                            <p className="text-xs font-black text-indigo-600 uppercase tracking-widest mt-0.5">RBAC Matrix Management Engine</p>
                         </div>
                     </div>
 
-                    <div className="space-y-16">
+                    <div className="space-y-10">
                         {roles.map(role => (
-                            <div key={role} className="space-y-8">
+                            <div key={role} className="space-y-6">
                                 <div className="flex items-center gap-4">
-                                    <div className="h-[2px] flex-1 bg-slate-100" />
-                                    <div className="flex items-center gap-3 px-8 py-3 bg-slate-900 text-white rounded-[2rem] shadow-xl shadow-slate-900/10">
-                                        <ShieldCheck size={18} className="text-amber-400" />
-                                        <span className="text-[11px] font-black uppercase tracking-[0.2em]">{role.replace('_', ' ')}</span>
+                                    <div className="h-[1px] flex-1 bg-slate-200/70" />
+                                    <div className="flex items-center gap-2.5 px-5 py-2 bg-slate-900 text-white rounded-xl shadow-xs">
+                                        <ShieldCheck size={16} className="text-amber-400" />
+                                        <span className="text-[10px] font-black uppercase tracking-wider">{role.replace('_', ' ')}</span>
                                     </div>
-                                    <div className="h-[2px] flex-1 bg-slate-100" />
+                                    <div className="h-[1px] flex-1 bg-slate-200/70" />
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
                                     {permissions.filter(p => p.role === role).map(perm => (
-                                        <div key={perm.id} className="p-8 bg-white rounded-[2.5rem] border-2 border-slate-50 hover:border-indigo-200 hover:shadow-2xl hover:shadow-indigo-500/5 transition-all duration-500 group">
-                                            <div className="flex items-center justify-between mb-8">
+                                        <div key={perm.id} className="p-6 bg-slate-50/60 rounded-2xl border border-slate-200/70 hover:border-indigo-300 hover:bg-white hover:shadow-md transition-all group">
+                                            <div className="flex items-center justify-between mb-6">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                                                        <Server size={18} />
+                                                    <div className="w-9 h-9 bg-white text-indigo-600 rounded-xl flex items-center justify-center border border-slate-200/70 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-2xs">
+                                                        <Server size={16} />
                                                     </div>
-                                                    <h4 className="text-base font-black text-slate-800 uppercase tracking-tight">{perm.module}</h4>
+                                                    <h4 className="text-sm font-bold text-slate-800 uppercase tracking-tight">{perm.module}</h4>
                                                 </div>
                                                 <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-3">
+                                            <div className="grid grid-cols-2 gap-2.5">
                                                 <PermissionTile 
                                                     label="View" 
                                                     active={perm.canView} 
@@ -107,24 +107,24 @@ export const RbacManager = ({ initialPermissions }: RbacManagerProps) => {
             </div>
 
             {/* INFO PANEL */}
-            <div className="flex flex-col md:flex-row gap-8">
-                <div className="flex-1 bg-amber-50 p-10 rounded-[3rem] border border-amber-100 flex items-start gap-6">
-                    <div className="w-14 h-14 bg-white text-amber-500 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
-                        <Lock size={28} />
+            <div className="flex flex-col md:flex-row gap-4 sm:gap-6">
+                <div className="flex-1 bg-amber-50/80 p-6 sm:p-7 rounded-2xl border border-amber-200/80 flex items-start gap-4">
+                    <div className="w-12 h-12 bg-white text-amber-500 rounded-xl flex items-center justify-center shadow-xs shrink-0 border border-amber-100">
+                        <Lock size={22} />
                     </div>
-                    <div className="space-y-2">
-                        <h4 className="text-lg font-black text-slate-800 tracking-tight leading-none">Security Enforcement</h4>
+                    <div className="space-y-1">
+                        <h4 className="text-base font-black text-slate-800 tracking-tight leading-none">Security Enforcement</h4>
                         <p className="text-xs text-slate-500 font-medium leading-relaxed">
                             Setiap perubahan pada matriks izin ini akan langsung diterapkan secara global di seluruh tenant tanpa perlu melakukan restart server atau deploy ulang.
                         </p>
                     </div>
                 </div>
-                <div className="flex-1 bg-blue-50 p-10 rounded-[3rem] border border-blue-100 flex items-start gap-6">
-                    <div className="w-14 h-14 bg-white text-blue-500 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
-                        <Globe size={28} />
+                <div className="flex-1 bg-blue-50/80 p-6 sm:p-7 rounded-2xl border border-blue-200/80 flex items-start gap-4">
+                    <div className="w-12 h-12 bg-white text-blue-500 rounded-xl flex items-center justify-center shadow-xs shrink-0 border border-blue-100">
+                        <Globe size={22} />
                     </div>
-                    <div className="space-y-2">
-                        <h4 className="text-lg font-black text-slate-800 tracking-tight leading-none">Multi-Tenant Sync</h4>
+                    <div className="space-y-1">
+                        <h4 className="text-base font-black text-slate-800 tracking-tight leading-none">Multi-Tenant Sync</h4>
                         <p className="text-xs text-slate-500 font-medium leading-relaxed">
                             Kebijakan hak akses ini berlaku untuk semua desa (tenants) yang terhubung di bawah naungan Master Admin Cimanggu I.
                         </p>

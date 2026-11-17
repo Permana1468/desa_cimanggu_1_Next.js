@@ -8,6 +8,7 @@ import {
     CheckCircle2, Loader2, Info, ArrowRight, Layers
 } from "lucide-react";
 import { updateVillageStructure } from "@/actions/master";
+import toast from "react-hot-toast";
 
 interface RT {
     name: string;
@@ -34,16 +35,17 @@ interface WilayahManagementClientProps {
 export function WilayahManagementClient({ initialStructure }: WilayahManagementClientProps) {
     const [structure, setStructure] = useState<VillageStructure>(initialStructure);
     const [isSaving, setIsSaving] = useState(false);
-    const [activeDusun, setActiveDusun] = useState<number | null>(initialStructure.dusun.length > 0 ? 0 : null);
+    const [activeDusun, setActiveDusun] = useState<number | null>(initialStructure?.dusun?.length > 0 ? 0 : null);
     const [activeRW, setActiveRW] = useState<number | null>(null);
 
     const handleSave = async () => {
         setIsSaving(true);
+        const toastId = toast.loading("Menyimpan struktur wilayah...");
         try {
             await updateVillageStructure(structure);
-            alert("Struktur wilayah Cimanggu I berhasil disinkronkan!");
+            toast.success("Struktur wilayah Cimanggu I berhasil disinkronkan!", { id: toastId });
         } catch (error) {
-            alert("Gagal menyimpan struktur wilayah.");
+            toast.error("Gagal menyimpan struktur wilayah.", { id: toastId });
         } finally {
             setIsSaving(false);
         }
@@ -55,21 +57,26 @@ export function WilayahManagementClient({ initialStructure }: WilayahManagementC
         newStructure.dusun.push(newDusun);
         setStructure(newStructure);
         if (activeDusun === null) setActiveDusun(newStructure.dusun.length - 1);
+        toast.success("Dusun baru ditambahkan");
     };
 
     const addRW = (dusunIndex: number) => {
         if (!structure.dusun[dusunIndex]) return;
         const newStructure = structuredClone(structure);
-        const newRW: RW = { name: `RW 0${newStructure.dusun[dusunIndex].rw.length + 1}`, rt: [] };
+        const rwCount = newStructure.dusun[dusunIndex].rw.length + 1;
+        const formattedRW = rwCount < 10 ? `RW 00${rwCount}` : `RW 0${rwCount}`;
+        const newRW: RW = { name: formattedRW, rt: [] };
         newStructure.dusun[dusunIndex].rw.push(newRW);
         setStructure(newStructure);
+        toast.success(`${formattedRW} ditambahkan`);
     };
 
     const addRT = (dusunIndex: number, rwIndex: number) => {
         if (!structure.dusun[dusunIndex] || !structure.dusun[dusunIndex].rw[rwIndex]) return;
         const newStructure = structuredClone(structure);
-        const newRT = `RT 0${newStructure.dusun[dusunIndex].rw[rwIndex].rt.length + 1}`;
-        newStructure.dusun[dusunIndex].rw[rwIndex].rt.push(newRT);
+        const rtCount = newStructure.dusun[dusunIndex].rw[rwIndex].rt.length + 1;
+        const formattedRT = rtCount < 10 ? `RT 00${rtCount}` : `RT 0${rtCount}`;
+        newStructure.dusun[dusunIndex].rw[rwIndex].rt.push(formattedRT);
         setStructure(newStructure);
     };
 
@@ -78,13 +85,15 @@ export function WilayahManagementClient({ initialStructure }: WilayahManagementC
         const newStructure = structuredClone(structure);
         newStructure.dusun = newStructure.dusun.filter((_, i) => i !== index);
         setStructure(newStructure);
-        if (activeDusun === index) setActiveDusun(null);
+        if (activeDusun === index) setActiveDusun(newStructure.dusun.length > 0 ? 0 : null);
+        toast.success("Dusun berhasil dihapus");
     };
 
     const removeRW = (dusunIndex: number, rwIndex: number) => {
         const newStructure = structuredClone(structure);
         newStructure.dusun[dusunIndex].rw = newStructure.dusun[dusunIndex].rw.filter((_, i) => i !== rwIndex);
         setStructure(newStructure);
+        toast.success("RW berhasil dihapus");
     };
 
     const removeRT = (dusunIndex: number, rwIndex: number, rtIndex: number) => {
@@ -102,170 +111,220 @@ export function WilayahManagementClient({ initialStructure }: WilayahManagementC
     };
 
     return (
-        <div className="space-y-12 pb-20 animate-in fade-in duration-700">
-            {/* HERO HEADER */}
-            <div className="relative p-12 md:p-20 rounded-[3.5rem] md:rounded-[4.5rem] bg-slate-950 text-white overflow-hidden shadow-2xl shadow-slate-900/40">
-                <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-blue-600/10 via-indigo-600/5 to-transparent pointer-events-none" />
-                <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px] pointer-events-none" />
+        <div className="space-y-6 sm:space-y-8 pb-12 animate-in fade-in duration-500">
+            {/* 1. HERO COMMAND HEADER (ALIGNED WITH ADMIN DESA EXECUTIVE STYLE) */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-[#0a1122] to-slate-950 rounded-2xl sm:rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-slate-800">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-blue-600/15 rounded-full blur-[90px] pointer-events-none -mr-20 -mt-20" />
+                <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-indigo-600/10 rounded-full blur-[80px] pointer-events-none -mb-20" />
                 
-                <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-12">
-                    <div className="space-y-6 max-w-2xl">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">
-                            <Map size={12} className="animate-pulse" /> Village Territory Orchestrator
+                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div className="space-y-2 max-w-2xl">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-400/25 text-blue-400 text-[10px] font-black uppercase tracking-wider">
+                            <Map size={12} className="text-blue-400" />
+                            Village Territory Orchestrator
                         </div>
-                        <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-none">
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white">
                             Wilayah & <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">Administrasi</span>
                         </h1>
-                        <p className="text-slate-400 font-medium text-sm md:text-lg leading-relaxed">
+                        <p className="text-slate-400 font-medium text-xs sm:text-sm leading-relaxed">
                             Pusat kendali struktur wilayah Cimanggu I. Kelola Dusun, RW, dan RT secara terpusat untuk sinkronisasi data kependudukan yang presisi.
                         </p>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex flex-wrap items-center gap-3 shrink-0">
                         <button 
+                            type="button"
                             onClick={addDusun}
-                            className="px-10 py-6 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 text-white rounded-[2.5rem] text-sm font-black transition-all flex items-center justify-center gap-3 active:scale-95"
+                            className="px-4.5 py-2.5 bg-white/10 hover:bg-white/15 text-white rounded-xl text-xs font-bold border border-white/15 transition-all flex items-center gap-2 active:scale-95 shadow-sm"
                         >
-                            <Plus size={20} /> Tambah Dusun
+                            <Plus size={16} /> Tambah Dusun
                         </button>
                         <button 
+                            type="button"
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="px-12 py-6 bg-blue-600 hover:bg-blue-500 text-white rounded-[2.5rem] text-sm font-black shadow-2xl shadow-blue-600/30 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black shadow-lg shadow-blue-600/30 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
                         >
-                            {isSaving ? <Loader2 className="animate-spin" size={20} /> : <CheckCircle2 size={20} />} 
-                            Simpan Struktur
+                            {isSaving ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle2 size={16} />} 
+                            <span>Simpan Struktur</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                {/* 1. DUSUN LIST (Side Navigation) */}
-                <div className="lg:col-span-3 space-y-6">
-                    <div className="flex items-center justify-between px-4 mb-2">
-                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Daftar Dusun</h3>
-                        <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">{structure.dusun.length} Unit</span>
+            {/* 2. DUSUN LIST & RW/RT WORKSPACE */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* 2A. DUSUN LIST (Left Navigation Panel) */}
+                <div className="lg:col-span-4 xl:col-span-3 space-y-3">
+                    <div className="flex items-center justify-between px-2">
+                        <h3 className="text-[11px] font-black text-slate-500 uppercase tracking-wider">Daftar Dusun</h3>
+                        <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100">
+                            {structure?.dusun?.length || 0} Unit
+                        </span>
                     </div>
-                    <div className="space-y-3">
-                        {structure.dusun.map((dusun, idx) => (
+
+                    <div className="space-y-2">
+                        {structure?.dusun?.map((dusun, idx) => (
                             <div
                                 key={idx}
                                 onClick={() => { setActiveDusun(idx); setActiveRW(null); }}
-                                className={`w-full p-6 rounded-[2rem] flex items-center justify-between transition-all group cursor-pointer ${
+                                className={`w-full p-4 rounded-2xl flex items-center justify-between transition-all group cursor-pointer border ${
                                     activeDusun === idx 
-                                    ? 'bg-slate-900 text-white shadow-xl shadow-slate-900/20' 
-                                    : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-100 shadow-sm'
+                                    ? 'bg-slate-900 text-white shadow-md border-slate-800' 
+                                    : 'bg-white text-slate-700 hover:bg-slate-50/80 border-slate-200/80 shadow-2xs'
                                 }`}
                             >
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
-                                        activeDusun === idx ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500'
+                                <div className="flex items-center gap-3 min-w-0 flex-1 mr-2">
+                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all ${
+                                        activeDusun === idx ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600'
                                     }`}>
-                                        <Home size={18} />
+                                        <Home size={16} />
                                     </div>
-                                    <div className="text-left">
+                                    <div className="min-w-0 flex-1 text-left">
                                         <input 
                                             value={dusun.name}
                                             onClick={(e) => e.stopPropagation()}
                                             onChange={(e) => updateName('dusun', e.target.value, idx)}
-                                            className={`bg-transparent border-none p-0 focus:ring-0 text-sm font-black w-full ${activeDusun === idx ? 'text-white' : 'text-slate-900'}`}
+                                            className={`bg-transparent border-none p-0 focus:ring-0 text-sm font-black w-full outline-none truncate ${
+                                                activeDusun === idx ? 'text-white' : 'text-slate-900'
+                                            }`}
                                         />
-                                        <p className={`text-[9px] font-black uppercase tracking-widest mt-0.5 ${activeDusun === idx ? 'text-blue-300' : 'text-slate-400'}`}>
+                                        <p className={`text-[10px] font-bold uppercase tracking-wider mt-0.5 ${
+                                            activeDusun === idx ? 'text-blue-300' : 'text-slate-400'
+                                        }`}>
                                             {dusun.rw?.length || 0} RW Terdaftar
                                         </p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button 
+                                        type="button"
                                         onClick={(e) => { e.stopPropagation(); removeDusun(idx); }}
-                                        className="p-2 hover:text-red-500 transition-colors"
+                                        title="Hapus Dusun"
+                                        className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                     >
                                         <Trash2 size={14} />
                                     </button>
                                 </div>
                             </div>
                         ))}
+
+                        {(!structure?.dusun || structure.dusun.length === 0) && (
+                            <div className="p-6 text-center bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400 text-xs">
+                                Belum ada dusun. Klik &quot;Tambah Dusun&quot; untuk membuat.
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* 2. RW & RT MANAGEMENT (Main View) */}
-                <div className="lg:col-span-9 space-y-8">
-                    {activeDusun !== null ? (
-                        <div className="bg-white rounded-[3.5rem] p-10 md:p-14 shadow-xl shadow-slate-200/40 border border-slate-100 animate-in slide-in-from-right duration-500">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
+                {/* 2B. RW & RT MANAGEMENT (Main Interactive Workspace) */}
+                <div className="lg:col-span-8 xl:col-span-9 space-y-6">
+                    {activeDusun !== null && structure?.dusun?.[activeDusun] ? (
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80 space-y-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
                                 <div>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <div className="px-3 py-1 bg-blue-600 text-white rounded-full text-[9px] font-black uppercase tracking-widest">Active Focus</div>
-                                        <h2 className="text-3xl font-black text-slate-900 tracking-tight">{structure.dusun[activeDusun]?.name || "Dusun Baru"}</h2>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-full text-[9px] font-black uppercase tracking-wider">
+                                            Active Focus
+                                        </span>
+                                        <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                                            {structure.dusun[activeDusun]?.name || "Dusun Baru"}
+                                        </h2>
                                     </div>
-                                    <p className="text-sm text-slate-400 font-medium italic">Kelola struktur RW dan RT di bawah naungan {structure.dusun[activeDusun]?.name || "Dusun"}.</p>
+                                    <p className="text-xs text-slate-400 font-medium">
+                                        Kelola pembagian RW dan RT di bawah naungan {structure.dusun[activeDusun]?.name || "Dusun"}.
+                                    </p>
                                 </div>
+
                                 <button 
+                                    type="button"
                                     onClick={() => addRW(activeDusun)}
-                                    className="px-8 py-4 bg-slate-950 text-white rounded-[1.5rem] text-xs font-black shadow-xl shadow-slate-900/20 hover:bg-blue-600 transition-all flex items-center justify-center gap-3 active:scale-95"
+                                    className="px-4.5 py-2.5 bg-slate-900 hover:bg-blue-600 text-white rounded-xl text-xs font-bold shadow-sm transition-all flex items-center justify-center gap-2 active:scale-95 shrink-0"
                                 >
-                                    <Layers size={16} /> Tambah RW Baru
+                                    <Layers size={15} /> Tambah RW Baru
                                 </button>
                             </div>
 
                             {(!structure.dusun[activeDusun]?.rw || structure.dusun[activeDusun]?.rw.length === 0) ? (
-                                <div className="p-20 text-center bg-slate-50 rounded-[3rem] border-4 border-dashed border-slate-100">
-                                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 text-slate-200 shadow-sm">
-                                        <Layers size={40} />
+                                <div className="py-14 px-6 text-center bg-slate-50/70 rounded-2xl border-2 border-dashed border-slate-200">
+                                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mx-auto mb-3 text-slate-300 shadow-xs">
+                                        <Layers size={28} />
                                     </div>
-                                    <p className="text-lg font-black text-slate-800">Belum ada RW di Dusun ini</p>
-                                    <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Klik tombol di atas untuk mulai memetakan wilayah.</p>
+                                    <p className="text-base font-black text-slate-800">Belum ada RW di Dusun ini</p>
+                                    <p className="text-xs text-slate-400 font-medium mt-1">
+                                        Klik tombol &quot;Tambah RW Baru&quot; di atas untuk mulai memetakan wilayah.
+                                    </p>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     {structure.dusun[activeDusun]?.rw.map((rw, rIdx) => (
-                                        <div key={rIdx} className="bg-slate-50/50 rounded-[3rem] p-8 border border-slate-100 hover:border-blue-200 transition-all group">
-                                            <div className="flex items-center justify-between mb-8">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-all">
-                                                        <Layout size={24} />
+                                        <div key={rIdx} className="bg-slate-50/70 rounded-2xl p-5 border border-slate-200/70 hover:border-blue-300 transition-all space-y-4 group">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-2xs group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                                        <Layout size={18} />
                                                     </div>
-                                                    <input 
-                                                        value={rw.name}
-                                                        onChange={(e) => updateName('rw', e.target.value, activeDusun, rIdx)}
-                                                        className="bg-transparent border-none p-0 focus:ring-0 text-xl font-black text-slate-900 w-24"
-                                                    />
+                                                    <div>
+                                                        <input 
+                                                            value={rw.name}
+                                                            onChange={(e) => updateName('rw', e.target.value, activeDusun, rIdx)}
+                                                            className="bg-transparent border-none p-0 focus:ring-0 text-base font-black text-slate-900 outline-none w-28"
+                                                        />
+                                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                                                            {rw.rt?.length || 0} RT
+                                                        </p>
+                                                    </div>
                                                 </div>
+
                                                 <button 
+                                                    type="button"
                                                     onClick={() => removeRW(activeDusun, rIdx)}
-                                                    className="p-3 text-slate-300 hover:text-red-500 transition-colors"
+                                                    title="Hapus RW"
+                                                    className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                                 >
-                                                    <Trash2 size={18} />
+                                                    <Trash2 size={16} />
                                                 </button>
                                             </div>
 
-                                            <div className="space-y-4">
-                                                <div className="flex items-center justify-between px-2">
-                                                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Daftar RT ({rw.rt?.length || 0})</h4>
+                                            <div className="space-y-2 pt-2 border-t border-slate-200/60">
+                                                <div className="flex items-center justify-between text-[11px]">
+                                                    <span className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">
+                                                        Daftar RT ({rw.rt?.length || 0})
+                                                    </span>
                                                     <button 
+                                                        type="button"
                                                         onClick={() => addRT(activeDusun, rIdx)}
-                                                        className="text-[10px] font-black text-blue-600 hover:underline flex items-center gap-1"
+                                                        className="font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 hover:underline"
                                                     >
-                                                        <Plus size={12} /> Add RT
+                                                        <Plus size={12} /> Tambah RT
                                                     </button>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-3">
+
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                                     {(rw.rt || []).map((rt, rtIdx) => (
-                                                        <div key={rtIdx} className="flex items-center gap-2 bg-white p-3 rounded-2xl border border-slate-100 group/rt shadow-sm">
+                                                        <div key={rtIdx} className="flex items-center justify-between gap-1.5 bg-white px-3 py-1.5 rounded-xl border border-slate-200/80 shadow-2xs group/rt">
                                                             <input 
                                                                 value={rt}
                                                                 onChange={(e) => updateName('rt', e.target.value, activeDusun, rIdx, rtIdx)}
-                                                                className="bg-transparent border-none p-0 focus:ring-0 text-xs font-bold text-slate-600 w-full"
+                                                                className="bg-transparent border-none p-0 focus:ring-0 text-xs font-bold text-slate-700 outline-none w-full"
                                                             />
                                                             <button 
+                                                                type="button"
                                                                 onClick={() => removeRT(activeDusun, rIdx, rtIdx)}
-                                                                className="opacity-0 group-hover/rt:opacity-100 text-slate-300 hover:text-red-500 transition-all"
+                                                                title="Hapus RT"
+                                                                className="opacity-0 group-hover/rt:opacity-100 text-slate-400 hover:text-red-500 transition-opacity"
                                                             >
                                                                 <X size={12} />
                                                             </button>
                                                         </div>
                                                     ))}
+
+                                                    {(rw.rt || []).length === 0 && (
+                                                        <div className="col-span-full py-2 text-center text-[11px] text-slate-400 italic">
+                                                            Belum ada RT. Klik &quot;Tambah RT&quot;.
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -274,52 +333,45 @@ export function WilayahManagementClient({ initialStructure }: WilayahManagementC
                             )}
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center h-full p-20 bg-white rounded-[3.5rem] border border-slate-100 text-center">
-                             <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-8 text-slate-200">
-                                 <ArrowRight size={48} className="animate-bounce-x" />
-                             </div>
-                             <h2 className="text-2xl font-black text-slate-800 tracking-tight">Pilih Dusun Terlebih Dahulu</h2>
-                             <p className="text-sm text-slate-400 font-medium max-w-xs mt-2 uppercase tracking-widest">Silakan pilih dusun di sebelah kiri untuk mengelola struktur RW/RT.</p>
+                        <div className="flex flex-col items-center justify-center py-20 px-6 bg-white rounded-3xl border border-slate-200/80 text-center">
+                            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 text-slate-300">
+                                <ArrowRight size={32} />
+                            </div>
+                            <h2 className="text-xl font-black text-slate-800 tracking-tight">Pilih Dusun Terlebih Dahulu</h2>
+                            <p className="text-xs text-slate-400 font-medium max-w-xs mt-1">
+                                Silakan klik salah satu dusun pada panel sebelah kiri untuk mengatur struktur RW dan RT.
+                            </p>
                         </div>
                     )}
 
-                    {/* TIPS & INFO */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="bg-amber-50 p-8 rounded-[2.5rem] border border-amber-100 flex items-start gap-6">
-                            <div className="w-12 h-12 bg-white text-amber-500 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
-                                <Info size={24} />
+                    {/* 3. SYNC NOTICE & BEST PRACTICE INFO CARDS */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-amber-50/70 p-5 rounded-2xl border border-amber-200/60 flex items-start gap-3.5">
+                            <div className="w-9 h-9 bg-amber-500 text-white rounded-xl flex items-center justify-center shadow-xs shrink-0 mt-0.5">
+                                <Info size={18} />
                             </div>
-                            <div className="space-y-1">
-                                <h4 className="text-sm font-black text-slate-800 uppercase tracking-tight">Sync Notice</h4>
-                                <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                                    Setiap perubahan wilayah di sini akan otomatis muncul sebagai pilihan &quot;Dusun/RW/RT&quot; saat pendaftaran warga baru.
+                            <div className="space-y-0.5">
+                                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Sinkronisasi Instan</h4>
+                                <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                                    Setiap pembaruan Dusun/RW/RT akan langsung muncul di formulir pendaftaran warga baru, buku tamu, dan layanan administrasi desa.
                                 </p>
                             </div>
                         </div>
-                        <div className="bg-emerald-50 p-8 rounded-[2.5rem] border border-emerald-100 flex items-start gap-6">
-                            <div className="w-12 h-12 bg-white text-emerald-500 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
-                                <CheckCircle2 size={24} />
+
+                        <div className="bg-emerald-50/70 p-5 rounded-2xl border border-emerald-200/60 flex items-start gap-3.5">
+                            <div className="w-9 h-9 bg-emerald-500 text-white rounded-xl flex items-center justify-center shadow-xs shrink-0 mt-0.5">
+                                <CheckCircle2 size={18} />
                             </div>
-                            <div className="space-y-1">
-                                <h4 className="text-sm font-black text-slate-800 uppercase tracking-tight">Data Accuracy</h4>
-                                <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                                    Memastikan tidak ada kesalahan ketik wilayah dalam database kependudukan Cimanggu I.
+                            <div className="space-y-0.5">
+                                <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider">Akurasi Basis Data</h4>
+                                <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                                    Mencegah perbedaan format penamaan wilayah dan memastikan seluruh data spasial sinkron di seluruh database Desa Cimanggu I.
                                 </p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <style jsx global>{`
-                @keyframes bounce-x {
-                    0%, 100% { transform: translateX(0); }
-                    50% { transform: translateX(10px); }
-                }
-                .animate-bounce-x {
-                    animation: bounce-x 1s infinite;
-                }
-            `}</style>
         </div>
     );
 }

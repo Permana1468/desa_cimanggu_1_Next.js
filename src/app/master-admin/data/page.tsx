@@ -75,12 +75,12 @@ async function GlobalDataContent() {
 
 function StatCard({ label, value, icon: Icon, gradient }: { label: string; value: string; icon: any; gradient: string }) {
     return (
-        <div className="bg-white group p-6 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center gap-5 transition-all hover:scale-[1.02] hover:shadow-2xl active:scale-95">
-            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center bg-gradient-to-br ${gradient} text-white shadow-lg shadow-current/20 group-hover:rotate-6 transition-transform`}>
-                <Icon size={24} />
+        <div className="bg-white group p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-4 transition-all hover:shadow-md cursor-default">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center bg-gradient-to-br ${gradient} text-white shadow-xs`}>
+                <Icon size={22} />
             </div>
             <div>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-0.5">{label}</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{label}</p>
                 <p className="text-2xl font-black text-slate-900 tabular-nums">{value}</p>
             </div>
         </div>
@@ -89,12 +89,12 @@ function StatCard({ label, value, icon: Icon, gradient }: { label: string; value
 
 function GlobalDataSkeleton() {
     return (
-        <div className="space-y-10">
+        <div className="space-y-6 sm:space-y-8 animate-pulse">
             {/* Stats Cards Skeleton */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
                 {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center gap-5 animate-pulse">
-                        <div className="w-14 h-14 rounded-2xl bg-slate-200" />
+                    <div key={i} className="bg-white p-5 rounded-2xl border border-slate-200/70 shadow-sm flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-slate-200" />
                         <div className="space-y-2 flex-1">
                             <div className="h-2 w-20 bg-slate-200 rounded" />
                             <div className="h-6 w-16 bg-slate-200 rounded" />
@@ -104,7 +104,7 @@ function GlobalDataSkeleton() {
             </div>
 
             {/* Table Skeleton */}
-            <div className="bg-white rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/30 overflow-hidden animate-pulse">
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
                 <div className="p-8 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                     <div className="h-10 w-48 bg-slate-200 rounded-full" />
                     <div className="flex gap-4">

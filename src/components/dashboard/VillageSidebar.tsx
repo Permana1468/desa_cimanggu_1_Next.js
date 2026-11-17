@@ -2176,7 +2176,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
       </aside>
 
       {/* MOBILE BOTTOM NAVIGATION DOCK (CURVED DESIGN WITH DYNAMIC MODALS - FULL WIDTH) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 w-full h-[75px] select-none print:hidden no-print">
+      <div id="mobile-bottom-dock-navigation" className="lg:hidden fixed bottom-0 left-0 right-0 z-50 w-full h-[75px] select-none print:hidden no-print mobile-bottom-dock">
           {/* SVG Background with Notch */}
           <div className="absolute inset-0 z-0 pointer-events-none">
               <svg className="w-full h-full text-white/95 dark:text-slate-900/95 backdrop-blur-xl fill-current filter drop-shadow-[0_-15px_30px_rgba(0,0,0,0.12)]" viewBox="0 0 400 80" preserveAspectRatio="none">

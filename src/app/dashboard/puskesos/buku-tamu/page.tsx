@@ -205,53 +205,117 @@ export default function BukuTamuPage() {
 
   return (
     <>
-      {/* CSS Isolasi Cetak (F4 Landscape & A4 Landscape) */}
+      {/* CSS Isolasi Cetak (Otomatis Adaptif Multi-Format: F4 / Folio Utama & A4) */}
       <style dangerouslySetInnerHTML={{
         __html: `
           @media print {
-            @page {
-              /* Otomatis adaptif ke semua ukuran kertas pilihan printer (F4, A4, Letter, Folio) */
-              size: auto;
-              margin: 8mm 10mm 10mm 10mm;
+            /* 1. Sembunyikan secara mutlak seluruh elemen navigasi, dock mobile, floating chat, header, dan sidebar */
+            header,
+            aside,
+            nav,
+            footer,
+            #mobile-bottom-dock-navigation,
+            .mobile-bottom-dock,
+            .no-print,
+            .print\\:hidden,
+            [class*="fixed bottom-0"],
+            [class*="fixed"],
+            [class*="sticky"] {
+              display: none !important;
+              visibility: hidden !important;
+              opacity: 0 !important;
+              height: 0 !important;
+              width: 0 !important;
+              overflow: hidden !important;
+              position: absolute !important;
+              pointer-events: none !important;
+              box-shadow: none !important;
             }
+
+            /* 2. Reset html & body agar bersih dari scrollbar, margin kotor, dan bayangan */
+            html, body {
+              background: #ffffff !important;
+              color: #000000 !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              height: auto !important;
+              overflow: visible !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+
+            @page {
+              /* Otomatis adaptif ke semua ukuran kertas pilihan printer (F4 / Folio 215x330mm / 215x345mm & A4) */
+              size: auto;
+              margin: 6mm 8mm 6mm 8mm;
+            }
+
+            /* 3. Target area cetak terisolasi buku tamu */
             #print-area-buku-tamu {
               display: block !important;
               visibility: visible !important;
-              position: relative !important;
+              position: static !important;
               width: 100% !important;
               max-width: 100% !important;
               box-sizing: border-box !important;
               margin: 0 !important;
               padding: 0 !important;
-              background: white !important;
-              color: black !important;
+              background: #ffffff !important;
+              color: #000000 !important;
+              border: none !important;
+              box-shadow: none !important;
             }
+
             #print-area-buku-tamu * {
               visibility: visible !important;
+              box-shadow: none !important;
+              text-shadow: none !important;
             }
+
+            /* 4. Tabel Buku Tamu Resmi: border rapi, font tajam, sel proporsional */
             #print-area-buku-tamu table {
               width: 100% !important;
               max-width: 100% !important;
               table-layout: fixed !important;
               border-collapse: collapse !important;
               page-break-inside: auto !important;
-              font-size: 10px !important;
-              border: 1px solid #475569 !important;
+              font-size: 8.5pt !important;
+              border: 1px solid #1e293b !important;
             }
-            #print-area-buku-tamu th,
-            #print-area-buku-tamu td {
-              border: 1px solid #475569 !important;
-              word-break: break-word !important;
-              overflow-wrap: break-word !important;
-              padding: 3px 4px !important;
-              line-height: 1.2 !important;
-            }
-            #print-area-buku-tamu tr {
-              page-break-inside: avoid !important;
-              page-break-after: auto !important;
-            }
+
             #print-area-buku-tamu thead {
               display: table-header-group !important;
+            }
+
+            #print-area-buku-tamu th {
+              background-color: #f1f5f9 !important;
+              color: #0f172a !important;
+              font-weight: 800 !important;
+              border: 1px solid #1e293b !important;
+              padding: 3.5px 3px !important;
+              text-align: center !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+
+            #print-area-buku-tamu td {
+              border: 1px solid #1e293b !important;
+              word-break: break-word !important;
+              overflow-wrap: break-word !important;
+              padding: 2.5px 3.5px !important;
+              line-height: 1.15 !important;
+              font-size: 8pt !important;
+              vertical-align: middle !important;
+            }
+
+            #print-area-buku-tamu tr {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
+
+            #print-area-buku-tamu .kop-surat {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
             }
           }
         `

@@ -28,7 +28,7 @@ export const VisualStats = ({ growthData, demographicData }: VisualStatsProps) =
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* GROWTH CHART - Modern Clean Glassmorphic Card */}
-            <div className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 md:p-10 shadow-xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden group">
+            <div className="lg:col-span-2 bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none group-hover:bg-blue-500/10 transition-all" />
                 
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 relative z-10 border-b border-slate-100 pb-5">
@@ -102,7 +102,7 @@ export const VisualStats = ({ growthData, demographicData }: VisualStatsProps) =
             </div>
 
             {/* DEMOGRAPHIC DONUT - Refined Modern Harmony Card */}
-            <div className="bg-white rounded-[2.5rem] p-8 md:p-10 shadow-xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden group flex flex-col justify-between">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80 relative overflow-hidden group flex flex-col justify-between">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none group-hover:bg-indigo-500/10 transition-all" />
                 
                 <div className="relative z-10">

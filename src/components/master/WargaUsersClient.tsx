@@ -157,64 +157,65 @@ export default function WargaUsersClient({ initialUsers, tenants = [] }: { initi
     };
 
     return (
-        <div className="space-y-10 pb-20 px-4 md:px-0 animate-in fade-in duration-700">
-            {/* EPIC HEADER */}
-            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8">
-                <div className="space-y-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-widest">
-                        <Key size={12} /> Access Control System
+        <div className="space-y-6 sm:space-y-8 pb-12 animate-in fade-in duration-500">
+            {/* 1. CLEAN TITLE & ACTION BAR */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-wider mb-2 border border-blue-500/20">
+                        <Key size={12} /> Data Kependudukan Digital
                     </div>
-                    <h1 className="text-3xl font-black text-slate-800 tracking-tight flex items-center gap-4">
-                        Manajemen Data Warga
-                        <span className="px-3 py-1 bg-teal-100 text-teal-700 text-xs font-bold rounded-full border border-teal-200">
+                    <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                        Manajemen Akun Warga
+                        <span className="px-2.5 py-0.5 bg-teal-50 text-teal-700 text-xs font-bold rounded-full border border-teal-200">
                             {users.filter(u => u.role === 'WARGA').length} Warga
                         </span>
                     </h1>
-                    <p className="text-sm font-medium text-slate-500 mt-2">
-                        Kelola data warga, otoritas akses, dan konfigurasi keamanan akun.
+                    <p className="text-slate-500 font-medium text-xs sm:text-sm mt-1 max-w-xl">
+                        Kelola akun pengguna warga, verifikasi status, dan pengaturan keamanan akses mobile.
                     </p>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-4 w-full xl:w-auto">
-                    <div className="relative group flex-1 xl:w-96">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={20} />
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto shrink-0">
+                    <div className="relative w-full sm:w-72">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                         <input 
                             type="text" 
-                            placeholder="Cari nama atau email..."
+                            placeholder="Cari nama atau NIK/email..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-14 pr-6 py-5 bg-white border border-slate-100 rounded-[2rem] text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all shadow-xl shadow-slate-200/40"
+                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all shadow-2xs"
                         />
                     </div>
                     <button 
+                        type="button"
                         onClick={() => handleOpenModal()}
-                        className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-10 py-5 rounded-[2rem] text-sm font-black shadow-2xl shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.02] transition-all active:scale-95 flex items-center justify-center gap-3 shrink-0 uppercase tracking-widest border border-blue-400/20"
+                        className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-blue-600/25 transition-all active:scale-95 flex items-center justify-center gap-2 shrink-0"
                     >
-                        <Plus size={20} /> Tambah Admin
+                        <Plus size={16} /> Tambah Warga
                     </button>
                 </div>
             </div>
 
-            {/* CONTENT AREA */}
-            <div className="bg-white rounded-[3rem] md:rounded-[4rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+            {/* 2. TABLE CARD CONTAINER */}
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
                 {/* Desktop View */}
                 <div className="hidden lg:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50/50 border-b border-slate-100">
-                                <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Administrator</th>
-                                <th className="px-6 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Otorisasi / Peran</th>
-                                <th className="px-6 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Wilayah Kerja</th>
-                                <th className="px-6 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
-                                <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Opsi</th>
+                            <tr className="bg-slate-50 border-b border-slate-100">
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nama Warga / NIK</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Peran Akun</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Wilayah RT / RW</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Status Akun</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Opsi</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50">
+                        <tbody className="divide-y divide-slate-100">
                             {filteredUsers.map((user) => (
-                                <tr key={user.id} className="group hover:bg-blue-50/30 transition-all duration-300">
-                                    <td className="px-10 py-8">
-                                        <div className="flex items-center gap-5">
-                                            <div className={`relative w-14 h-14 rounded-2xl overflow-hidden shrink-0 group-hover:scale-110 transition-transform duration-500 ${user.role === 'ADMIN_MASTER' ? 'animate-ring-master' : 'animate-ring-desa'}`}>
+                                <tr key={user.id} className="group hover:bg-slate-50/80 transition-colors">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3.5">
+                                            <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-slate-200/70 shadow-2xs">
                                                 <Image 
                                                     src={user.photo || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop&ixlib=rb-4.0.3`} 
                                                     alt="Avatar" 
@@ -222,85 +223,66 @@ export default function WargaUsersClient({ initialUsers, tenants = [] }: { initi
                                                     className="object-cover" 
                                                     unoptimized={!!user.photo}
                                                 />
-                                                <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-transparent transition-colors" />
                                             </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-none mb-1">{user.fullName}</span>
-                                                <span className="text-xs text-slate-400 font-bold" style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>{user.email || user.nik}</span>
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate">{user.fullName}</span>
+                                                <span className="text-[11px] text-slate-400 font-mono truncate">{user.email || user.nik}</span>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-8">
-                                        <div className="flex flex-col gap-2">
-                                            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl border text-[9px] font-black tracking-[0.1em] uppercase shadow-sm w-fit ${
-                                                user.role === 'ADMIN_MASTER' 
-                                                ? 'bg-amber-950 text-amber-400 border-amber-900' 
-                                                : 'bg-blue-50 text-blue-600 border-blue-100'
-                                            }`}>
-                                                <ShieldCheck size={14} /> {user.role.replace('_', ' ')}
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-col gap-1">
+                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border text-[10px] font-bold uppercase w-fit bg-slate-100 text-slate-700 border-slate-200">
+                                                <ShieldCheck size={13} /> {user.role.replace(/_/g, ' ')}
                                             </div>
                                             {(user.rt || user.rw) && (
-                                                <span className="inline-flex items-center w-fit px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest bg-teal-50 text-teal-700 border border-teal-100 mt-1">
+                                                <span className="inline-flex items-center w-fit px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-teal-50 text-teal-700 border border-teal-100">
                                                     <MapPin size={10} className="mr-1" />
                                                     {user.role === 'RT' ? `RT ${user.rt} / RW ${user.rw}` : `RW ${user.rw}`}
                                                 </span>
                                             )}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-8">
-                                        <div className="flex items-center gap-2 text-sm font-black text-slate-600">
-                                            <MapPin size={16} className="text-slate-300" /> {user.tenant?.name || "Global Control"}
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                                            <MapPin size={14} className="text-slate-400" /> {user.tenant?.name || "Desa Cimanggu I"}
                                         </div>
                                     </td>
-                                    <td className="px-6 py-8">
-                                        <div className="flex items-center gap-2.5">
-                                            <div className={`w-3 h-3 rounded-full ${user.isActive ? 'bg-emerald-500 animate-pulse-indicator' : 'bg-slate-300'}`} />
-                                            <span className={`text-[10px] font-black uppercase tracking-widest ${user.isActive ? 'text-emerald-600' : 'text-slate-400'}`}>
-                                                {user.isActive ? 'System Online' : 'Suspended'}
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-2 h-2 rounded-full ${user.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+                                            <span className={`text-[10px] font-black uppercase tracking-wider ${user.isActive ? 'text-emerald-600' : 'text-slate-400'}`}>
+                                                {user.isActive ? 'Aktif' : 'Ditangguhkan'}
                                             </span>
                                         </div>
                                     </td>
-                                    <td className="px-10 py-8 text-right">
-                                        <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 transition-all duration-300">
-                                            {/* SECURITY HARDENING OPTIONS (MASTER ONLY CONTROL) */}
-                                            <div className="flex items-center bg-slate-100 p-1 rounded-2xl border border-slate-200">
-                                                <button 
-                                                    onClick={() => handleToggleSecurity(user.id, '2FA')}
-                                                    title={user.isTwoFactorEnabled ? "Disable 2FA" : "Enable 2FA"}
-                                                    className={`w-10 h-10 flex items-center justify-center rounded-xl transition-all ${user.isTwoFactorEnabled ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:bg-white hover:text-blue-600'}`}
-                                                >
-                                                    <Smartphone size={16} />
-                                                </button>
-                                                <button 
-                                                    onClick={() => handleToggleSecurity(user.id, 'Biometric')}
-                                                    title="Request Face-ID Registration"
-                                                    className="w-10 h-10 flex items-center justify-center text-slate-400 hover:bg-white hover:text-indigo-600 rounded-xl transition-all"
-                                                >
-                                                    <Fingerprint size={16} />
-                                                </button>
-                                            </div>
-
-                                            {/* STATUS TOGGLE */}
+                                    <td className="px-6 py-4 text-right">
+                                        <div className="flex items-center justify-end gap-1.5">
                                             <button 
+                                                type="button"
                                                 onClick={() => handleToggleStatus(user.id, user.isActive)}
-                                                title={user.isActive ? "Tangguhkan (Maintenance)" : "Aktifkan Akun"}
-                                                className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all shadow-xl shadow-slate-200/50 ${user.isActive ? 'bg-white text-slate-400 border border-slate-100 hover:text-rose-500' : 'bg-rose-500 text-white hover:bg-rose-600 border-transparent'}`}
+                                                title={user.isActive ? "Tangguhkan Akun" : "Aktifkan Akun"}
+                                                className={`p-2 rounded-xl transition-all ${user.isActive ? 'bg-slate-100 text-slate-500 hover:text-rose-600 hover:bg-rose-50' : 'bg-rose-500 text-white hover:bg-rose-600'}`}
                                             >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18.36 6.64A9 9 0 0 1 20.77 15"></path><path d="M6.16 6.16a9 9 0 1 0 12.68 12.68"></path><path d="M12 2v10"></path><path d="m2 2 20 20"></path></svg>
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18.36 6.64A9 9 0 0 1 20.77 15"></path><path d="M6.16 6.16a9 9 0 1 0 12.68 12.68"></path><path d="M12 2v10"></path><path d="m2 2 20 20"></path></svg>
                                             </button>
 
                                             <button 
+                                                type="button"
                                                 onClick={() => handleOpenModal(user)}
-                                                className="w-12 h-12 flex items-center justify-center bg-white text-slate-400 hover:text-blue-600 border border-slate-100 rounded-2xl transition-all shadow-xl shadow-slate-200/50"
+                                                title="Edit Data"
+                                                className="p-2 bg-slate-100 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                                             >
-                                                <Edit2 size={18} />
+                                                <Edit2 size={14} />
                                             </button>
                                             <button 
+                                                type="button"
                                                 disabled={isDeleting === user.id}
                                                 onClick={() => handleDelete(user.id)}
-                                                className="w-12 h-12 flex items-center justify-center bg-white text-slate-400 hover:text-red-500 border border-slate-100 rounded-2xl transition-all shadow-xl shadow-slate-200/50 disabled:opacity-50"
+                                                title="Hapus Akun"
+                                                className="p-2 bg-slate-100 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all disabled:opacity-50"
                                             >
-                                                {isDeleting === user.id ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                                                {isDeleting === user.id ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
                                             </button>
                                         </div>
                                     </td>
@@ -355,31 +337,29 @@ export default function WargaUsersClient({ initialUsers, tenants = [] }: { initi
                 </div>
             </div>
 
-            {/* MODAL - Premium Glassmorphism */}
+            {/* MODAL - Clean Admin Desa Style */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 animate-in fade-in duration-300">
-                    <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-md" onClick={() => !isSubmitting && setIsModalOpen(false)} />
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => !isSubmitting && setIsModalOpen(false)} />
                     
-                    <div className="bg-white rounded-t-[3.5rem] sm:rounded-[4rem] shadow-2xl w-full max-w-2xl relative overflow-hidden flex flex-col h-[90vh] sm:h-auto animate-in slide-in-from-bottom duration-500">
-                        <div className="bg-slate-950 p-10 md:p-12 text-white relative shrink-0">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] -mr-32 -mt-32" />
-                            <div className="relative z-10 flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-3xl md:text-4xl font-black tracking-tighter leading-none">{editingUser ? "Edit Profile" : "New Account"}</h2>
-                                    <p className="text-blue-400 text-[10px] font-black mt-3 uppercase tracking-[0.3em]">Access Authorization Terminal</p>
-                                </div>
-                                <button 
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="w-14 h-14 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl transition-all"
-                                >
-                                    <X size={28} />
-                                </button>
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl relative overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 border border-slate-100">
+                        <div className="bg-slate-900 px-6 py-5 text-white flex items-center justify-between shrink-0">
+                            <div>
+                                <h2 className="text-lg sm:text-xl font-black text-white">{editingUser ? "Edit Akun Warga" : "Tambah Warga Baru"}</h2>
+                                <p className="text-blue-400 text-[10px] font-bold uppercase tracking-wider mt-0.5">Otorisasi Akun Warga Digital</p>
                             </div>
+                            <button 
+                                type="button"
+                                onClick={() => setIsModalOpen(false)}
+                                className="w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-xl transition-all text-slate-300 hover:text-white"
+                            >
+                                <X size={18} />
+                            </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-10 overflow-y-auto custom-scrollbar bg-slate-50/30">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
-                                <FormGroup label="Identitas Lengkap" icon={UserCircle}>
+                        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <FormGroup label="Nama Lengkap" icon={UserCircle}>
                                     <input 
                                         required
                                         value={formData.fullName}

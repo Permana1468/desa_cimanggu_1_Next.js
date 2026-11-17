@@ -157,61 +157,62 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
     };
 
     return (
-        <div className="space-y-10 pb-20 px-4 md:px-0 animate-in fade-in duration-700">
-            {/* EPIC HEADER */}
-            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-8">
-                <div className="space-y-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-widest">
+        <div className="space-y-6 sm:space-y-8 pb-12 animate-in fade-in duration-500">
+            {/* 1. CLEAN EXECUTIVE TITLE & ACTION BAR */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-600 text-[10px] font-black uppercase tracking-wider mb-2 border border-blue-500/20">
                         <Key size={12} /> Access Control System
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tighter leading-none">
-                        Manage <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">Administrators</span>
+                    <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                        Manajemen Pengguna <span className="text-blue-600">Administrator</span>
                     </h1>
-                    <p className="text-slate-500 font-medium text-sm md:text-base max-w-xl leading-relaxed">
-                        Otorisasi akses, manajemen peran, dan kontrol keamanan terpusat untuk seluruh administrator sistem desa digital.
+                    <p className="text-slate-500 font-medium text-xs sm:text-sm mt-1 max-w-xl">
+                        Otorisasi akses, manajemen peran, dan kontrol keamanan akun untuk seluruh administrator sistem desa digital.
                     </p>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-4 w-full xl:w-auto">
-                    <div className="relative group flex-1 xl:w-96">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={20} />
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto shrink-0">
+                    <div className="relative w-full sm:w-72">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                         <input 
                             type="text" 
                             placeholder="Cari nama atau email..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-14 pr-6 py-5 bg-white border border-slate-100 rounded-[2rem] text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all shadow-xl shadow-slate-200/40"
+                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-700 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/15 transition-all shadow-2xs"
                         />
                     </div>
                     <button 
+                        type="button"
                         onClick={() => handleOpenModal()}
-                        className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-10 py-5 rounded-[2rem] text-sm font-black shadow-2xl shadow-blue-600/30 hover:shadow-blue-600/50 hover:scale-[1.02] transition-all active:scale-95 flex items-center justify-center gap-3 shrink-0 uppercase tracking-widest border border-blue-400/20"
+                        className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-blue-600/25 transition-all active:scale-95 flex items-center justify-center gap-2 shrink-0"
                     >
-                        <Plus size={20} /> Tambah Admin
+                        <Plus size={16} /> Tambah Admin
                     </button>
                 </div>
             </div>
 
-            {/* CONTENT AREA */}
-            <div className="bg-white rounded-[3rem] md:rounded-[4rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+            {/* 2. TABLE CARD CONTAINER */}
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
                 {/* Desktop View */}
                 <div className="hidden lg:block overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50/50 border-b border-slate-100">
-                                <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Administrator</th>
-                                <th className="px-6 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Otorisasi / Peran</th>
-                                <th className="px-6 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Wilayah Kerja</th>
-                                <th className="px-6 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
-                                <th className="px-10 py-8 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Opsi</th>
+                            <tr className="bg-slate-50 border-b border-slate-100">
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Administrator</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Otorisasi / Peran</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Wilayah Kerja</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-4 text-[11px] font-bold text-slate-500 uppercase tracking-wider text-right">Opsi</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-50">
+                        <tbody className="divide-y divide-slate-100">
                             {filteredUsers.map((user) => (
-                                <tr key={user.id} className="group hover:bg-blue-50/30 transition-all duration-300">
-                                    <td className="px-10 py-8">
-                                        <div className="flex items-center gap-5">
-                                            <div className={`relative w-14 h-14 rounded-2xl overflow-hidden shrink-0 group-hover:scale-110 transition-transform duration-500 ${user.role === 'ADMIN_MASTER' ? 'animate-ring-master' : 'animate-ring-desa'}`}>
+                                <tr key={user.id} className="group hover:bg-slate-50/80 transition-colors">
+                                    <td className="px-6 py-4">
+                                        <div className="flex items-center gap-3.5">
+                                            <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-slate-200/70 shadow-2xs">
                                                 <Image 
                                                     src={user.photo || `https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150&auto=format&fit=crop&ixlib=rb-4.0.3`} 
                                                     alt="Avatar" 
@@ -219,25 +220,24 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                                                     className="object-cover" 
                                                     unoptimized={!!user.photo}
                                                 />
-                                                <div className="absolute inset-0 bg-slate-900/10 group-hover:bg-transparent transition-colors" />
                                             </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-base font-black text-slate-900 group-hover:text-blue-600 transition-colors leading-none mb-1">{user.fullName}</span>
-                                                <span className="text-xs text-slate-400 font-bold" style={{ fontFamily: 'var(--font-jetbrains-mono)' }}>{user.email || user.nik}</span>
+                                            <div className="flex flex-col min-w-0">
+                                                <span className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors truncate">{user.fullName}</span>
+                                                <span className="text-[11px] text-slate-400 font-mono truncate">{user.email || user.nik}</span>
                                             </div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-8">
-                                        <div className="flex flex-col gap-2">
-                                            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl border text-[9px] font-black tracking-[0.1em] uppercase shadow-sm w-fit ${
+                                    <td className="px-6 py-4">
+                                        <div className="flex flex-col gap-1">
+                                            <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border text-[10px] font-bold uppercase w-fit ${
                                                 user.role === 'ADMIN_MASTER' 
-                                                ? 'bg-amber-950 text-amber-400 border-amber-900' 
-                                                : 'bg-blue-50 text-blue-600 border-blue-100'
+                                                ? 'bg-amber-50 text-amber-800 border-amber-200' 
+                                                : 'bg-blue-50 text-blue-700 border-blue-200'
                                             }`}>
-                                                <ShieldCheck size={14} /> {user.role.replace('_', ' ')}
+                                                <ShieldCheck size={13} /> {user.role.replace(/_/g, ' ')}
                                             </div>
                                             {(user.rt || user.rw) && (
-                                                <span className="inline-flex items-center w-fit px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest bg-teal-50 text-teal-700 border border-teal-100 mt-1">
+                                                <span className="inline-flex items-center w-fit px-2 py-0.5 rounded-md text-[9px] font-bold uppercase bg-teal-50 text-teal-700 border border-teal-100">
                                                     <MapPin size={10} className="mr-1" />
                                                     {user.role === 'RT' ? `RT ${user.rt} / RW ${user.rw}` : `RW ${user.rw}`}
                                                 </span>
@@ -352,31 +352,29 @@ export default function UserManagementClient({ initialUsers, tenants }: UserMana
                 </div>
             </div>
 
-            {/* MODAL - Premium Glassmorphism */}
+            {/* MODAL - Clean Admin Desa Style */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 animate-in fade-in duration-300">
-                    <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-md" onClick={() => !isSubmitting && setIsModalOpen(false)} />
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => !isSubmitting && setIsModalOpen(false)} />
                     
-                    <div className="bg-white rounded-t-[3.5rem] sm:rounded-[4rem] shadow-2xl w-full max-w-2xl relative overflow-hidden flex flex-col h-[90vh] sm:h-auto animate-in slide-in-from-bottom duration-500">
-                        <div className="bg-slate-950 p-10 md:p-12 text-white relative shrink-0">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] -mr-32 -mt-32" />
-                            <div className="relative z-10 flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-3xl md:text-4xl font-black tracking-tighter leading-none">{editingUser ? "Edit Profile" : "New Account"}</h2>
-                                    <p className="text-blue-400 text-[10px] font-black mt-3 uppercase tracking-[0.3em]">Access Authorization Terminal</p>
-                                </div>
-                                <button 
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="w-14 h-14 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl transition-all"
-                                >
-                                    <X size={28} />
-                                </button>
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl relative overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 border border-slate-100">
+                        <div className="bg-slate-900 px-6 py-5 text-white flex items-center justify-between shrink-0">
+                            <div>
+                                <h2 className="text-lg sm:text-xl font-black text-white">{editingUser ? "Edit Data Administrator" : "Tambah Administrator Baru"}</h2>
+                                <p className="text-blue-400 text-[10px] font-bold uppercase tracking-wider mt-0.5">Otorisasi Hak Akses Sistem</p>
                             </div>
+                            <button 
+                                type="button"
+                                onClick={() => setIsModalOpen(false)}
+                                className="w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-xl transition-all text-slate-300 hover:text-white"
+                            >
+                                <X size={18} />
+                            </button>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-10 overflow-y-auto custom-scrollbar bg-slate-50/30">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
-                                <FormGroup label="Identitas Lengkap" icon={UserCircle}>
+                        <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto custom-scrollbar">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <FormGroup label="Nama Lengkap" icon={UserCircle}>
                                     <input 
                                         required
                                         value={formData.fullName}

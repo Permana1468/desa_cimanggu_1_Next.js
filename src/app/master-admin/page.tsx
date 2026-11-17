@@ -70,7 +70,7 @@ export default async function MasterDashboardPage({
   return (
     <div className="space-y-6 sm:space-y-8 pb-6">
       {/* ── HERO COMMAND CENTER ────────────────────────────── */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-[#0a1122] to-slate-950 rounded-2xl sm:rounded-3xl lg:rounded-[2.5rem] p-5 sm:p-7 md:p-9 text-white shadow-xl shadow-slate-950/20 border border-slate-800/80">
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-[#0a1122] to-slate-950 rounded-2xl sm:rounded-3xl p-5 sm:p-7 md:p-9 text-white shadow-xl shadow-slate-950/20 border border-slate-800/80">
           {/* Ambient Lighting & Cybernetic Accents */}
           <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-blue-600/15 rounded-full blur-[100px] pointer-events-none -mr-32 -mt-32" />
           <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-indigo-600/10 rounded-full blur-[90px] pointer-events-none -mb-32" />

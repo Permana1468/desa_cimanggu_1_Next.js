@@ -48,24 +48,24 @@ async function StatsContent({
     }
 
     return (
-        <div className="space-y-10 pb-16 px-4 md:px-0 animate-in fade-in duration-700">
-            {/* EPIC HEADER */}
-            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 rounded-[2.5rem] p-8 md:p-10 text-white shadow-xl shadow-slate-950/20 border border-slate-800 relative overflow-hidden">
+        <div className="space-y-6 sm:space-y-8 pb-12 animate-in fade-in duration-700">
+            {/* COMMAND HEADER SYSTEM INTELLIGENCE */}
+            <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 bg-gradient-to-br from-slate-950 via-[#0a1122] to-slate-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-slate-950/20 border border-slate-800 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none -mr-32 -mt-32" />
                 <div className="space-y-3 relative z-10">
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/25 text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em]">
-                        <Activity size={14} /> Real-time Analytics & System Vitality
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/25 text-emerald-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                        <Activity size={13} /> Real-time Analytics & System Vitality
                     </div>
-                    <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-none">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight">
                         System <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-400">Intelligence</span>
                     </h1>
-                    <p className="text-slate-400 font-medium text-sm md:text-base max-w-2xl leading-relaxed">
+                    <p className="text-slate-400 font-medium text-xs sm:text-sm max-w-2xl leading-relaxed">
                         Visualisasi mendalam mengenai kesehatan infrastruktur server, beban memori cache, pertumbuhan kependudukan, dan integritas ekosistem desa secara global.
                     </p>
                 </div>
                 
-                <div className="flex items-center gap-4 bg-slate-800/80 p-2.5 rounded-2xl border border-slate-700/60 relative z-10 self-start xl:self-end">
-                    <div className="px-4 py-2">
+                <div className="flex items-center gap-4 bg-slate-900/90 p-2.5 rounded-2xl border border-slate-800 relative z-10 self-start xl:self-end">
+                    <div className="px-3.5 py-1.5">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Status Sinkronisasi</p>
                         <p className="text-xs font-bold text-white flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Terhubung Live
@@ -76,7 +76,7 @@ async function StatsContent({
             </div>
 
             {/* HIGH-END KPI CARDS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                 <PremiumStatCard icon={Users} label="Total Authorized Users" value={stats.totalUsers} trend="+12% Aktif" color="blue" />
                 <PremiumStatCard icon={Layout} label="Active Desa Nodes" value={stats.totalTenants} trend="Stabil (Cimanggu I)" color="amber" />
                 <PremiumStatCard icon={Database} label="Global Population" value={stats.totalWarga} trend="Sensus Riil" color="emerald" />
@@ -93,15 +93,15 @@ async function StatsContent({
             />
 
             {/* INFRASTRUCTURE SECTION */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-1 bg-slate-900/95 rounded-[2.5rem] p-8 md:p-10 text-white shadow-xl border border-slate-800 relative overflow-hidden group">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+                <div className="lg:col-span-1 bg-slate-950/95 rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-slate-800 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-[80px] -mr-32 -mt-32 pointer-events-none" />
                     
-                    <h3 className="text-lg font-black mb-6 flex items-center gap-2.5 relative z-10">
-                        <Server size={20} className="text-blue-400" /> Infrastructure Node Status
+                    <h3 className="text-base sm:text-lg font-black mb-6 flex items-center gap-2.5 relative z-10">
+                        <Server size={18} className="text-blue-400" /> Infrastructure Node Status
                     </h3>
                     
-                    <div className="space-y-6 relative z-10">
+                    <div className="space-y-5 relative z-10">
                         <HealthMetric 
                             label="Alokasi Heap Node.js" 
                             value={`${systemHealth?.memory?.heapUsedMb || 0} MB / ${systemHealth?.memory?.heapTotalMb || 0} MB`} 
@@ -133,25 +133,25 @@ async function StatsContent({
                     </div>
                 </div>
 
-                <div className="lg:col-span-2 bg-white rounded-[2.5rem] p-8 md:p-10 shadow-xl shadow-slate-200/50 border border-slate-100 group">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4 border-b border-slate-100 pb-5">
+                <div className="lg:col-span-2 bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-200/80 group">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-3 border-b border-slate-100 pb-5">
                         <div>
-                            <h3 className="text-xl font-black text-slate-900 tracking-tight">Active Node Services</h3>
-                            <p className="text-xs text-slate-400 font-semibold mt-1">Layanan mikro yang berjalan pada ekosistem desa</p>
+                            <h3 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight">Active Node Services</h3>
+                            <p className="text-xs text-slate-400 font-semibold mt-0.5">Layanan mikro yang berjalan pada ekosistem desa</p>
                         </div>
                         <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-100 self-start md:self-auto">
                             Semua Layanan Berjalan Normal
                         </span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                         {[
                             { name: "C++ Geodesic & Census Core", sub: "Spatial & Demographic Engine", status: "Active (Microseconds)", tag: "C++ Native" },
                             { name: "Python Posyandu AI Engine", sub: "WHO Anthropometry & Stunting", status: "Active (MGRS Z-Score)", tag: "Python AI" },
                             { name: "C++ AHSP RAB Construction", sub: "Permen PUPR & Material Logistik", status: "Active (O(N) Core)", tag: "C++ Native" },
                             { name: "Python MCDM Musrenbang", sub: "TOPSIS Priority Decision Core", status: "Active (Normalized)", tag: "Python AI" },
                         ].map((srv, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-slate-100/60 transition-all">
+                            <div key={idx} className="flex items-center justify-between p-4 rounded-2xl bg-slate-50/80 border border-slate-100 hover:bg-slate-100/70 transition-all">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-blue-600 shadow-xs">
                                         <Zap size={18} />
@@ -180,15 +180,15 @@ async function StatsContent({
 
 function StatsSkeleton() {
     return (
-        <div className="space-y-8 animate-pulse p-6">
-            <div className="h-32 bg-slate-200 rounded-[2.5rem]" />
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="space-y-6 sm:space-y-8 animate-pulse">
+            <div className="h-36 bg-slate-200 rounded-3xl" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                 {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="bg-slate-100 rounded-[2rem] h-36 border border-slate-200" />
+                    <div key={i} className="bg-slate-100 rounded-2xl h-36 border border-slate-200/70" />
                 ))}
             </div>
-            <div className="bg-slate-100 rounded-[2.5rem] h-48" />
-            <div className="bg-slate-100 rounded-[2.5rem] h-80" />
+            <div className="bg-slate-100 rounded-3xl h-56 border border-slate-200/70" />
+            <div className="bg-slate-100 rounded-3xl h-80 border border-slate-200/70" />
         </div>
     );
 }
@@ -202,16 +202,16 @@ function PremiumStatCard({ icon: Icon, label, value, trend, color }: any) {
     };
 
     return (
-        <div className="bg-white rounded-[2rem] p-6 shadow-xl shadow-slate-200/40 border border-slate-100 group hover:-translate-y-1 transition-all cursor-default flex flex-col justify-between">
+        <div className="bg-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200/80 group hover:shadow-md hover:border-slate-300 transition-all cursor-default flex flex-col justify-between">
             <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 ${colors[color]} rounded-2xl flex items-center justify-center shadow-md`}>
-                    <Icon size={22} />
+                <div className={`w-11 h-11 ${colors[color]} rounded-xl flex items-center justify-center shadow-xs`}>
+                    <Icon size={20} />
                 </div>
-                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">{trend}</span>
+                <span className="text-[10px] font-bold text-slate-500 bg-slate-100/90 px-2.5 py-1 rounded-full border border-slate-200/60">{trend}</span>
             </div>
             <div>
                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">{label}</span>
-                <p className="text-3xl font-black text-slate-900 tabular-nums">{(value || 0).toLocaleString('id-ID')}</p>
+                <p className="text-2xl sm:text-3xl font-black text-slate-900 tabular-nums">{(value || 0).toLocaleString('id-ID')}</p>
             </div>
         </div>
     );

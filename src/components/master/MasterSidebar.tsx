@@ -26,27 +26,55 @@ import {
   Brain,
   Store,
   MessageCircle,
-  Wrench
+  Wrench,
+  Activity,
+  HardDrive
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const menuItems = [
-  { name: "Overview", icon: LayoutDashboard, href: "/master-admin" },
-  { name: "User Management", icon: Users, href: "/master-admin/pengguna-sistem" },
-  { name: "Manajemen Warga", icon: Users, href: "/master-admin/warga-users" },
-  { name: "Verifikasi UMKM", icon: Store, href: "/master-admin/umkm" },
-  { name: "Pemetaan GIS", icon: MapIcon, href: "/master-admin/gis" },
-  { name: "Audit Logs", icon: History, href: "/master-admin/logs" },
-  { name: "Data Kependudukan", icon: Database, href: "/master-admin/data" },
-  { name: "Wilayah & Lembaga", icon: Building2, href: "/master-admin/wilayah" },
-  { name: "Statistik", icon: PieChart, href: "/master-admin/stats" },
-  { name: "Arsip Template", icon: FileText, href: "/master-admin/templates" },
-  { name: "Integrasi Cloud", icon: Cloud, href: "/master-admin/integrasi" },
-  { name: "Integrasi WhatsApp", icon: MessageCircle, href: "/master-admin/whatsapp" },
-  { name: "Kecerdasan Buatan", icon: Brain, href: "/master-admin/ai" },
-  { name: "Mode Pemeliharaan", icon: Wrench, href: "/master-admin/maintenance" },
-  { name: "Konfigurasi", icon: Settings, href: "/master-admin/config" },
+// Categorized Master Navigation Groups (Mirrors Admin Desa's Structured Experience)
+const masterMenuGroups = [
+  {
+    category: "Pusat Kendali",
+    items: [
+      { name: "Overview", icon: LayoutDashboard, href: "/master-admin" },
+      { name: "Statistik", icon: PieChart, href: "/master-admin/stats" },
+      { name: "Pemetaan GIS", icon: MapIcon, href: "/master-admin/gis" },
+    ],
+  },
+  {
+    category: "Pengguna & UMKM",
+    items: [
+      { name: "User Management", icon: Users, href: "/master-admin/pengguna-sistem" },
+      { name: "Manajemen Warga", icon: Users, href: "/master-admin/warga-users" },
+      { name: "Verifikasi UMKM", icon: Store, href: "/master-admin/umkm" },
+    ],
+  },
+  {
+    category: "Wilayah & Data",
+    items: [
+      { name: "Wilayah & Lembaga", icon: Building2, href: "/master-admin/wilayah" },
+      { name: "Data Kependudukan", icon: Database, href: "/master-admin/data" },
+      { name: "Arsip Template", icon: FileText, href: "/master-admin/templates" },
+    ],
+  },
+  {
+    category: "Integrasi & AI",
+    items: [
+      { name: "Integrasi Cloud", icon: Cloud, href: "/master-admin/integrasi" },
+      { name: "Integrasi WhatsApp", icon: MessageCircle, href: "/master-admin/whatsapp" },
+      { name: "Kecerdasan Buatan", icon: Brain, href: "/master-admin/ai" },
+    ],
+  },
+  {
+    category: "Sistem & Keamanan",
+    items: [
+      { name: "Audit Logs", icon: History, href: "/master-admin/logs" },
+      { name: "Mode Pemeliharaan", icon: Wrench, href: "/master-admin/maintenance" },
+      { name: "Konfigurasi", icon: Settings, href: "/master-admin/config" },
+    ],
+  },
 ];
 
 export const MasterSidebar = ({ 
@@ -80,159 +108,136 @@ export const MasterSidebar = ({
       </AnimatePresence>
 
       <aside 
-        className={`bg-[#0f172a] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col z-[70] shrink-0 shadow-[10px_0_40px_rgba(0,0,0,0.5)]
-          fixed inset-y-0 left-0 h-full w-[85vw] max-w-[320px] sm:w-80 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-          lg:relative lg:translate-x-0 lg:h-full ${isCollapsed && !isOpen ? 'lg:w-28' : 'lg:w-80'}`}
+        className={`bg-[#0f172a] transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] flex flex-col z-[70] shrink-0 border-r border-slate-800/80 shadow-2xl
+          fixed inset-y-0 left-0 h-full w-[85vw] max-w-[300px] sm:w-72 ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+          lg:relative lg:translate-x-0 lg:h-full ${isCollapsed && !isOpen ? 'lg:w-24' : 'lg:w-72'}`}
       >
-        {/* LOGO AREA */}
-        <div className={`h-20 lg:h-24 px-6 lg:px-8 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} border-b border-white/5 lg:border-none`}>
-          <div className="flex items-center gap-3.5 overflow-hidden">
-            <motion.div 
-              whileHover={{ rotate: 12, scale: 1.1 }}
-              className="w-11 h-11 lg:w-14 lg:h-14 shrink-0 flex items-center justify-center relative"
-            >
-              <div className="relative w-full h-full">
-                <Image src="/images/logo-bogor.png" alt="Logo Kabupaten Bogor" fill className="object-contain" priority />
-              </div>
-            </motion.div>
-            {(!isCollapsed || isOpen) && (
-              <motion.div 
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex flex-col"
-              >
-                <span className="text-lg lg:text-xl font-black text-white tracking-tighter leading-none">MASTER</span>
-                <span className="text-[9px] lg:text-[10px] font-black text-blue-400 tracking-[0.3em] mt-1">DASHBOARD</span>
-              </motion.div>
-            )}
+        {/* MOBILE SIDEBAR HEADER */}
+        <div className="h-16 px-5 flex items-center justify-between border-b border-white/5 lg:hidden">
+          <div className="flex items-center gap-3">
+            <div className="relative w-8 h-8 shrink-0">
+              <Image src="/images/logo-bogor.png" alt="Logo" fill className="object-contain" priority />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-black text-white leading-none">MASTER ADMIN</span>
+              <span className="text-[9px] font-bold text-blue-400 tracking-wider mt-0.5">Kabupaten Bogor</span>
+            </div>
           </div>
-          
           <button 
             onClick={() => setIsOpen(false)}
             aria-label="Tutup Menu"
-            className="lg:hidden p-2.5 rounded-xl bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-2 rounded-xl bg-white/5 text-slate-400 hover:text-white transition-colors"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        {/* TENANT SWITCHER AREA */}
+        {/* TENANT SWITCHER (FOR COMPACT / MOBILE / EXPANDED) */}
         {(!isCollapsed || isOpen) && (
-          <div className="px-5 lg:px-6 my-3 lg:mb-4 flex items-center gap-2">
-            <div className="flex-1 p-1 rounded-2xl bg-white/5 border border-white/5 shadow-inner">
-               <TenantSwitcher tenants={tenants} />
+          <div className="px-4 pt-4 pb-2">
+            <div className="p-1 rounded-2xl bg-white/5 border border-white/5 shadow-inner">
+              <TenantSwitcher tenants={tenants} />
             </div>
-            <button title="Peta Spasial" className="w-11 h-11 lg:w-12 lg:h-12 shrink-0 flex items-center justify-center rounded-2xl bg-white/5 text-blue-400 hover:bg-blue-500 hover:text-white transition-all border border-white/5 shadow-sm overflow-hidden group relative">
-                <MapIcon size={18} className="group-hover:scale-110 transition-transform" />
-            </button>
           </div>
         )}
 
-        {/* NAVIGATION AREA (MAGIC CURVE CONTAINER) */}
-        <nav className="flex-1 mt-2 lg:mt-6 space-y-1 relative px-3 lg:pl-6 lg:pr-0 overflow-y-auto custom-scrollbar overflow-x-hidden">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <div key={item.name} className="relative group">
-                <Link
-                  href={item.href}
-                  prefetch={false}
-                  onClick={() => setIsOpen(false)}
-                  className={`flex items-center gap-4 lg:gap-5 px-4 lg:px-6 py-3.5 lg:py-4.5 transition-all duration-300 relative z-20 ${
-                    isActive 
-                      ? "lg:magic-curve-active bg-blue-600 text-white lg:bg-slate-50 lg:text-slate-900 rounded-2xl lg:rounded-l-[2rem] lg:rounded-r-none font-black shadow-lg shadow-blue-600/25 lg:shadow-none" 
-                      : "text-slate-400 hover:text-white font-bold hover:bg-white/5 rounded-2xl lg:rounded-l-[2rem] lg:rounded-r-none"
-                  } ${isCollapsed && !isOpen ? 'justify-center pr-10' : ''}`}
-                >
-                  <div className={`transition-all duration-500 ${isActive ? 'scale-110 text-white lg:text-blue-600 drop-shadow-[0_0_8px_rgba(59,130,246,0.6)]' : 'group-hover:scale-110 group-hover:text-blue-400'}`}>
-                    <item.icon size={isCollapsed && !isOpen ? 26 : 20} strokeWidth={1.75} />
+        {/* CATEGORIZED NAVIGATION (MATCHING ADMIN DESA SIDEBAR STRUCTURE) */}
+        <nav className="flex-1 px-3 py-3 space-y-4 overflow-y-auto custom-scrollbar overflow-x-hidden select-none">
+          {masterMenuGroups.map((group, groupIdx) => (
+            <div key={group.category} className="space-y-1">
+              {/* Category Section Header */}
+              <div className={`pb-1 px-3 ${groupIdx > 0 ? "pt-2" : "pt-0"}`}>
+                {isCollapsed && !isOpen ? (
+                  groupIdx > 0 ? <div className="h-[1px] w-full my-1.5 bg-white/10" /> : null
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-extrabold uppercase tracking-widest text-slate-500">
+                      {group.category}
+                    </span>
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-white/10 text-slate-400">
+                      {group.items.length}
+                    </span>
                   </div>
-                  {(!isCollapsed || isOpen) && (
-                    <span className="text-xs lg:text-sm tracking-tight whitespace-nowrap">{item.name}</span>
-                  )}
-                  {isActive && !isCollapsed && (
-                    <motion.div layoutId="active-pill" className="w-1.5 h-1.5 bg-white lg:bg-blue-600 rounded-full ml-auto shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
-                  )}
-                </Link>
+                )}
               </div>
-            );
-          })}
+
+              {/* Menu Items */}
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const isActive = item.href === "/master-admin" 
+                    ? pathname === "/master-admin"
+                    : pathname === item.href || pathname.startsWith(item.href + "/");
+
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      prefetch={false}
+                      onClick={() => setIsOpen(false)}
+                      title={isCollapsed ? item.name : undefined}
+                      className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition-all duration-200 group text-xs sm:text-sm ${
+                        isActive
+                          ? "bg-blue-600 text-white font-black shadow-lg shadow-blue-600/30"
+                          : "text-slate-400 hover:text-white hover:bg-white/10 font-bold"
+                      } ${isCollapsed && !isOpen ? 'justify-center px-2' : ''}`}
+                    >
+                      <item.icon 
+                        size={18} 
+                        className={`shrink-0 transition-transform ${isActive ? 'scale-110 text-white' : 'group-hover:scale-110 group-hover:text-blue-400'}`} 
+                      />
+                      {(!isCollapsed || isOpen) && (
+                        <span className="truncate tracking-tight">{item.name}</span>
+                      )}
+                      {isActive && (!isCollapsed || isOpen) && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-white ml-auto shadow-xs" />
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        {/* FOOTER USER AREA */}
-        <div className="p-6 mt-auto">
-          {!isCollapsed || isOpen ? (
-            <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between p-3 rounded-[1.5rem] bg-white/5 border border-white/5 shadow-2xl backdrop-blur-sm"
-            >
-                <div className="flex items-center gap-3 overflow-hidden">
-                    <div className="w-10 h-10 shrink-0 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-black shadow-lg">
-                        {session?.user?.name?.charAt(0) || 'M'}
-                    </div>
-                    <div className="flex flex-col min-w-0 pr-2">
-                        <span className="text-[11px] font-bold text-white truncate tracking-tight">{session?.user?.name || "Admin"}</span>
-                        <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest truncate">Master Admin</span>
-                    </div>
+        {/* BOTTOM HARMONIZED STATUS WIDGET (MATCHING ADMIN DESA ERGONOMICS) */}
+        <div className="p-3 border-t border-white/5 space-y-2 mt-auto">
+          {(!isCollapsed || isOpen) ? (
+            <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-white space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <Activity size={12} className="text-emerald-400" /> STATUS MASTER
+                </span>
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                </span>
+              </div>
+              
+              <div className="space-y-1 text-[11px] text-slate-300">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Infrastruktur:</span>
+                  <span className="font-bold text-emerald-400">C++ & Python Aktif</span>
                 </div>
-                
-                <div className="flex items-center gap-1 shrink-0">
-                    <button 
-                        onClick={onOpenNotif}
-                        title="Notifikasi"
-                        className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition-all relative group"
-                    >
-                        <Bell size={16} className="group-hover:rotate-12 transition-transform" />
-                        <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.6)]" />
-                    </button>
-                    <button 
-                        onClick={() => signOut()}
-                        title="Keluar Sistem"
-                        className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all group"
-                    >
-                        <LogOut size={16} className="group-hover:-translate-x-0.5 transition-transform" />
-                    </button>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-400">Node Engine:</span>
+                  <span className="font-mono text-[10px] text-blue-300">v2.0 (Turbopack)</span>
                 </div>
-            </motion.div>
+              </div>
+            </div>
           ) : (
-            <div className="flex flex-col items-center gap-4">
-                <button 
-                    onClick={() => setIsCollapsed(false)}
-                    className="w-12 h-12 rounded-2xl bg-white/5 text-slate-400 hover:text-white flex items-center justify-center transition-all border border-white/5"
-                >
-                    <Layers size={22} />
-                </button>
-                <button 
-                    onClick={() => signOut()}
-                    className="w-12 h-12 flex items-center justify-center rounded-2xl bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white transition-all shadow-lg"
-                >
-                    <LogOut size={22} />
-                </button>
+            <div className="flex justify-center py-1">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" title="System Online" />
             </div>
           )}
 
-          {/* COLLAPSE TOGGLE */}
-          <div className="hidden lg:flex mt-6 justify-center">
-              <button 
-                  onClick={() => setIsCollapsed(!isCollapsed)}
-                  className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 text-[9px] font-black text-slate-500 hover:text-white hover:bg-white/10 transition-all border border-white/5"
-              >
-                  {isCollapsed ? <ChevronRight size={14} /> : <><ChevronLeft size={14} /> MINIMIZE</>}
-              </button>
-          </div>
-          
-          <div className="mt-8 flex flex-col items-center justify-center gap-3">
-             {(!isCollapsed || isOpen) && (
-               <div className="flex items-center gap-3 px-3 py-1.5 rounded-full bg-emerald-500/5 border border-emerald-500/10 mb-1">
-                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                 <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest">System Health: 98.9%</span>
-               </div>
-             )}
-             <div className="flex items-center gap-2 opacity-20">
-                <Cpu size={10} className="text-white" />
-                <span className="text-[7px] font-black text-white tracking-[0.3em]">ENGINE v2.0</span>
-             </div>
+          {/* COLLAPSE / EXPAND TOGGLE BUTTON */}
+          <div className="hidden lg:flex justify-center pt-1">
+            <button 
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-white/5 text-[10px] font-black text-slate-400 hover:text-white hover:bg-white/10 transition-all border border-white/5"
+            >
+              {isCollapsed ? <ChevronRight size={14} /> : <><ChevronLeft size={14} /> <span>MINIMIZE</span></>}
+            </button>
           </div>
         </div>
       </aside>

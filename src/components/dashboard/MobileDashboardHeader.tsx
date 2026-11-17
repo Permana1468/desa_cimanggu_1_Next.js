@@ -21,7 +21,7 @@ export function MobileDashboardHeader({ session: initialSession }: { session: an
 
   return (
     <>
-      <header className="lg:hidden shrink-0 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+      <header className="lg:hidden shrink-0 h-16 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 flex items-center justify-between sticky top-0 z-30 shadow-xs print:hidden no-print">
         {/* Left: Logo & Village Identity */}
         <div className="flex items-center gap-2.5">
           <div className="relative w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 p-1 flex items-center justify-center shrink-0">

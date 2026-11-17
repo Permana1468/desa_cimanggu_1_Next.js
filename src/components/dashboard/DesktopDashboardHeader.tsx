@@ -122,7 +122,7 @@ export function DesktopDashboardHeader({ session }: DesktopDashboardHeaderProps)
 
   return (
     <>
-      <header className="hidden lg:flex items-center justify-between px-6 py-3.5 bg-white border-b border-slate-100/90 z-40 shrink-0 select-none">
+      <header className="hidden lg:flex items-center justify-between px-6 py-3.5 bg-white border-b border-slate-100/90 z-40 shrink-0 select-none print:hidden no-print">
         {/* 1. Left Brand / Logo (Dynamic Role Matching) */}
         <div className="flex items-center gap-3.5 w-64 xl:w-72 shrink-0">
           <div className="relative w-9 h-9 shrink-0">

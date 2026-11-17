@@ -129,65 +129,67 @@ export function TemplateManagementClient({ initialTemplates }: TemplateManagemen
     );
 
     return (
-        <div className="space-y-16 pb-20 animate-in fade-in duration-700">
-            {/* HERO PANEL */}
-            <div className="relative p-12 md:p-20 rounded-[3rem] md:rounded-[4rem] bg-slate-950 text-white overflow-hidden shadow-2xl shadow-slate-900/40">
-                <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-blue-600/10 via-purple-600/5 to-transparent pointer-events-none" />
-                <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
+        <div className="space-y-6 sm:space-y-8 pb-12 animate-in fade-in duration-500">
+            {/* 1. HERO COMMAND HEADER (MATCHING ADMIN DESA EXECUTIVE STYLE) */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-[#0a1122] to-slate-950 rounded-2xl sm:rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-slate-800">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-blue-600/15 rounded-full blur-[90px] pointer-events-none -mr-20 -mt-20" />
+                <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-indigo-600/10 rounded-full blur-[80px] pointer-events-none -mb-20" />
                 
-                <div className="relative z-10 flex flex-col xl:flex-row xl:items-center justify-between gap-12">
-                    <div className="space-y-6 max-w-2xl">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase tracking-widest border border-blue-500/20">
+                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                    <div className="space-y-2 max-w-2xl">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/15 border border-blue-400/25 text-blue-400 text-[10px] font-black uppercase tracking-wider">
                             <Layers size={12} /> Arsip & Perpustakaan Desa
                         </div>
-                        <h1 className="text-4xl md:text-7xl font-black tracking-tighter leading-none">
+                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white">
                             Template <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400">Dokumen Resmi</span>
                         </h1>
-                        <p className="text-slate-400 font-medium text-sm md:text-lg leading-relaxed">
+                        <p className="text-slate-400 font-medium text-xs sm:text-sm leading-relaxed">
                             Kelola lembar kerja RAB resmi (Spreadsheets) dan kerangka dokumen administrasi (Google Docs) agar dapat langsung disinkronisasikan oleh Kaur Perencanaan, LPM, RT, RW, dan jajaran perangkat desa.
                         </p>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex flex-wrap items-center gap-3 shrink-0">
                         <button 
+                            type="button"
                             onClick={() => setShowAddModal(true)}
-                            className="px-10 py-5 bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 text-white rounded-[2rem] text-sm font-black transition-all flex items-center justify-center gap-3 active:scale-95"
+                            className="px-4.5 py-2.5 bg-white/10 hover:bg-white/15 text-white rounded-xl text-xs font-bold border border-white/15 transition-all flex items-center gap-2 active:scale-95 shadow-sm"
                         >
-                            <Plus size={18} className="text-blue-400" /> Daftarkan Template
+                            <Plus size={16} className="text-blue-400" /> Daftarkan Template
                         </button>
                         <button 
+                            type="button"
                             onClick={handleSaveAll}
                             disabled={saving}
-                            className="px-12 py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-[2rem] text-sm font-black shadow-2xl shadow-blue-600/30 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
+                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-black shadow-lg shadow-blue-600/30 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
                         >
-                            {saving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />} 
-                            Simpan Perubahan
+                            {saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />} 
+                            <span>Simpan Perubahan</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* SEARCH & FILTERS */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-                <div className="relative w-full md:w-96 group">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={18} />
+            {/* 2. SEARCH & FILTERS BAR */}
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+                <div className="relative w-full sm:w-80 group">
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-600 transition-colors" size={16} />
                     <input 
                         type="text" 
                         placeholder="Cari template resmi..." 
                         value={searchQuery}
                         onChange={e => setSearchQuery(e.target.value)}
-                        className="w-full bg-slate-50 border-none rounded-xl py-3 px-12 text-xs font-bold text-slate-950 focus:ring-2 focus:ring-blue-600/20"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-xs font-bold text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
                     />
                 </div>
-                <div className="text-slate-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                    <CheckCircle2 size={14} className="text-emerald-500" /> {filteredTemplates.length} Template Terdaftar
+                <div className="text-slate-500 text-xs font-bold flex items-center gap-2">
+                    <CheckCircle2 size={15} className="text-emerald-500" /> {filteredTemplates.length} Template Terdaftar
                 </div>
             </div>
 
-            {/* TEMPLATES GRID */}
+            {/* 3. TEMPLATES GRID */}
             {filteredTemplates.length === 0 ? (
-                <div className="bg-white rounded-[3rem] p-20 text-center border border-dashed border-slate-200">
-                    <HelpCircle className="mx-auto text-slate-300 mb-6" size={48} />
+                <div className="bg-white rounded-3xl p-14 text-center border border-dashed border-slate-200">
+                    <HelpCircle className="mx-auto text-slate-300 mb-3" size={40} />
                     <h3 className="text-lg font-black text-slate-800">Belum ada template resmi</h3>
                     <p className="text-slate-500 text-xs font-semibold mt-2 max-w-sm mx-auto">
                         Klik tombol &quot;Daftarkan Template&quot; untuk menambahkan format spreadsheet atau dokumen baru ke dalam perpustakaan arsip desa.

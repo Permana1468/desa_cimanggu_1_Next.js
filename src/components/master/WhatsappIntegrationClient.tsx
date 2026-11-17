@@ -56,7 +56,7 @@ export default function WhatsappIntegrationClient() {
       </div>
 
       {activeTab === "fonnte" && (
-        <div className="bg-white p-8 rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-8">
           
           <div className="space-y-6">
             <div className="flex items-center gap-4">
@@ -137,7 +137,7 @@ export default function WhatsappIntegrationClient() {
       )}
 
       {activeTab === "webjs" && (
-        <div className="bg-white p-8 rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 text-center space-y-6">
+        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm text-center space-y-6">
           <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 mx-auto">
             <AlertTriangle size={32} />
           </div>
