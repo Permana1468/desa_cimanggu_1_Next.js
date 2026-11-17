@@ -44,7 +44,8 @@ export function PuskesosUhcTab({ session }: any) {
       <style>{`
         @media print {
           @page {
-            size: 330.2mm 215.9mm landscape; /* F4 Landscape agar tabel luas & terbaca */
+            /* Otomatis adaptif ke semua ukuran kertas pilihan printer (F4 utama, A4, Letter, Folio) */
+            size: auto;
             margin: 10mm;
           }
           .print-area {
@@ -52,6 +53,7 @@ export function PuskesosUhcTab({ session }: any) {
             visibility: visible !important;
             width: 100% !important;
             max-width: 100% !important;
+            box-sizing: border-box !important;
             margin: 0 auto !important;
             padding: 0 !important;
             border: none !important;

@@ -27,8 +27,9 @@ export function ModalCetakRujukan({ rujukan, onClose, onStatusUpdated }: ModalCe
       <style>{`
         @media print {
           @page {
-            size: 215.9mm 330.2mm portrait; /* Standar Surat Resmi F4 Portrait */
-            margin: 12mm;
+            /* Otomatis adaptif ke semua ukuran kertas pilihan printer (F4 utama, A4, Letter, Folio) */
+            size: auto;
+            margin: 12mm 15mm 15mm 15mm;
           }
           /* Netralkan overlay modal agar tidak menutupi atau memotong cetak */
           .fixed, [class*="bg-slate-900"], [class*="backdrop-blur"] {
@@ -52,6 +53,7 @@ export function ModalCetakRujukan({ rujukan, onClose, onStatusUpdated }: ModalCe
             visibility: visible !important;
             width: 100% !important;
             max-width: 100% !important;
+            box-sizing: border-box !important;
             margin: 0 auto !important;
             padding: 0 !important;
             background: #ffffff !important;

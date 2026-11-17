@@ -523,12 +523,14 @@ html.lenis,
     display: none !important;
   }
 
-  /* 3. Hide all screen navigation, sidebars, headers, and explicit non-print elements */
+  /* 3. Hide all screen navigation, sidebars, headers, mobile bottom dock, and explicit non-print elements */
   header,
   aside,
   nav,
+  footer,
   .village-sidebar,
   .dashboard-header,
+  [class*="fixed bottom-0"],
   .no-print,
   .no-print *,
   .print\:hidden {

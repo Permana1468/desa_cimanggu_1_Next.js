@@ -59,18 +59,20 @@ export function PuskesosLaporanTab({ session }: { session: any }) {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* PRINT STYLES FOR OFFICIAL LPJ PUSKESOS (F4 PORTRAIT) */}
+      {/* PRINT STYLES FOR OFFICIAL LPJ PUSKESOS */}
       <style>{`
         @media print {
           @page {
-            size: 215.9mm 330.2mm portrait; /* Standar F4 Portrait Resmi */
-            margin: 10mm;
+            /* Otomatis adaptif ke semua ukuran kertas pilihan printer (F4 utama, A4, Letter, Folio) */
+            size: auto;
+            margin: 10mm 12mm 12mm 12mm;
           }
           .print-area {
             display: block !important;
             visibility: visible !important;
             width: 100% !important;
             max-width: 100% !important;
+            box-sizing: border-box !important;
             margin: 0 auto !important;
             padding: 0 !important;
             border: none !important;

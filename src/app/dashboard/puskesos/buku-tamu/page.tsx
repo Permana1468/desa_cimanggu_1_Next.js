@@ -210,14 +210,17 @@ export default function BukuTamuPage() {
         __html: `
           @media print {
             @page {
-              size: 330.2mm 215.9mm landscape; /* F4 Landscape */
-              margin: 10mm;
+              /* Otomatis adaptif ke semua ukuran kertas pilihan printer (F4, A4, Letter, Folio) */
+              size: auto;
+              margin: 8mm 10mm 10mm 10mm;
             }
             #print-area-buku-tamu {
               display: block !important;
               visibility: visible !important;
               position: relative !important;
               width: 100% !important;
+              max-width: 100% !important;
+              box-sizing: border-box !important;
               margin: 0 !important;
               padding: 0 !important;
               background: white !important;
@@ -226,16 +229,26 @@ export default function BukuTamuPage() {
             #print-area-buku-tamu * {
               visibility: visible !important;
             }
-            table {
+            #print-area-buku-tamu table {
               width: 100% !important;
+              max-width: 100% !important;
+              table-layout: fixed !important;
               border-collapse: collapse !important;
               page-break-inside: auto !important;
+              font-size: 11px !important;
             }
-            tr {
+            #print-area-buku-tamu th,
+            #print-area-buku-tamu td {
+              border: 1px solid black !important;
+              word-break: break-word !important;
+              overflow-wrap: break-word !important;
+              padding: 4px 6px !important;
+            }
+            #print-area-buku-tamu tr {
               page-break-inside: avoid !important;
               page-break-after: auto !important;
             }
-            thead {
+            #print-area-buku-tamu thead {
               display: table-header-group !important;
             }
           }
