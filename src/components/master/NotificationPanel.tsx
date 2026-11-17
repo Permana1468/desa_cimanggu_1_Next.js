@@ -1,58 +1,28 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Bell, ShieldAlert, CheckCircle2, Info, Activity } from "lucide-react";
+import { X, Bell, CheckCircle2, ShieldAlert, Sparkles, ExternalLink } from "lucide-react";
 import { formatRelativeTime } from "@/lib/utils";
+import { useNotifications, getNotificationIcon, NotificationItem } from "@/hooks/useNotifications";
+import { useRouter } from "next/navigation";
 
 interface NotificationPanelProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const mockNotifications = [
-  {
-    id: "1",
-    type: "security",
-    title: "Login Baru Terdeteksi",
-    description: "Seseorang baru saja login dengan akun Admin dari IP 114.122.x.x.",
-    time: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-    icon: ShieldAlert,
-    color: "text-rose-500",
-    bg: "bg-rose-500/10",
-  },
-  {
-    id: "2",
-    type: "system",
-    title: "Backup Database Selesai",
-    description: "Proses backup otomatis harian telah berhasil diselesaikan.",
-    time: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-    icon: CheckCircle2,
-    color: "text-emerald-500",
-    bg: "bg-emerald-500/10",
-  },
-  {
-    id: "3",
-    type: "activity",
-    title: "Sinkronisasi Node Berhasil",
-    description: "Node cluster 003 telah kembali online dan disinkronkan.",
-    time: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    icon: Activity,
-    color: "text-blue-500",
-    bg: "bg-blue-500/10",
-  },
-  {
-    id: "4",
-    type: "info",
-    title: "Pembaruan Kebijakan Privasi",
-    description: "Sistem telah diperbarui ke versi kebijakan privasi v2.1.",
-    time: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    icon: Info,
-    color: "text-indigo-500",
-    bg: "bg-indigo-500/10",
-  }
-];
-
 export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
+  const router = useRouter();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+
+  const handleItemClick = (notif: NotificationItem) => {
+    markAsRead(notif.id);
+    if (notif.actionUrl) {
+      onClose();
+      router.push(notif.actionUrl);
+    }
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -77,13 +47,18 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
             {/* Header */}
             <div className="p-6 border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-500 relative">
                   <Bell size={20} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[10px] font-black flex items-center justify-center animate-pulse">
+                      {unreadCount}
+                    </span>
+                  )}
                 </div>
                 <div>
                   <h2 className="text-xl font-black text-white tracking-tight">Notifikasi Sistem</h2>
                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
-                    Log Aktivitas & Peringatan
+                    Live Feed Pemerintahan Desa
                   </p>
                 </div>
               </div>
@@ -96,46 +71,68 @@ export function NotificationPanel({ isOpen, onClose }: NotificationPanelProps) {
             </div>
 
             {/* Content List */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
-              {mockNotifications.map((notif) => (
-                <motion.div 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  key={notif.id} 
-                  className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors group cursor-pointer"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className={`w-10 h-10 shrink-0 rounded-xl ${notif.bg} ${notif.color} flex items-center justify-center`}>
-                      <notif.icon size={18} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <h4 className="text-sm font-black text-white truncate">{notif.title}</h4>
-                        <span className="text-[10px] font-bold text-slate-500 whitespace-nowrap">
-                          {formatRelativeTime(new Date(notif.time))}
-                        </span>
-                      </div>
-                      <p className="text-xs font-medium text-slate-400 mt-1 leading-relaxed">
-                        {notif.description}
-                      </p>
-                    </div>
+            <div className="flex-1 overflow-y-auto p-6 space-y-3 custom-scrollbar">
+              {notifications.length === 0 ? (
+                <div className="pt-16 pb-8 text-center">
+                  <div className="inline-block p-4 rounded-full bg-white/5 border border-white/5 mb-3">
+                    <CheckCircle2 size={28} className="text-emerald-500" />
                   </div>
-                </motion.div>
-              ))}
-
-              <div className="pt-8 pb-4 text-center">
-                <div className="inline-block p-4 rounded-full bg-white/5 border border-white/5 mb-3">
-                  <CheckCircle2 size={24} className="text-slate-500" />
+                  <h4 className="text-sm font-black text-slate-300">Semua Terpantau Aman</h4>
+                  <p className="text-xs text-slate-500 mt-1">Belum ada notifikasi baru yang membutuhkan perhatian.</p>
                 </div>
-                <h4 className="text-sm font-black text-slate-300">Anda sudah melihat semuanya!</h4>
-                <p className="text-xs text-slate-500 mt-1">Tidak ada notifikasi baru lainnya.</p>
-              </div>
+              ) : (
+                notifications.map((notif) => {
+                  const Icon = getNotificationIcon(notif.type);
+                  return (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      key={notif.id} 
+                      onClick={() => handleItemClick(notif)}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer group ${
+                        notif.read 
+                          ? "bg-white/[0.02] border-white/5 opacity-70 hover:opacity-100" 
+                          : "bg-white/[0.07] border-white/10 hover:border-blue-500/40"
+                      }`}
+                    >
+                      <div className="flex items-start gap-3.5">
+                        <div className="w-10 h-10 shrink-0 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center">
+                          <Icon size={18} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <h4 className="text-sm font-bold text-white truncate group-hover:text-blue-400 transition-colors">
+                              {notif.title}
+                            </h4>
+                            <span className="text-[10px] font-medium text-slate-500 whitespace-nowrap">
+                              {formatRelativeTime(new Date(notif.time))}
+                            </span>
+                          </div>
+                          <p className="text-xs font-normal text-slate-400 mt-1 leading-relaxed">
+                            {notif.description}
+                          </p>
+                          {notif.actionUrl && (
+                            <div className="mt-2 flex items-center gap-1 text-[11px] font-semibold text-blue-400 group-hover:underline">
+                              <span>Lihat Detail</span>
+                              <ExternalLink size={12} />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })
+              )}
             </div>
             
             {/* Footer Action */}
-            <div className="p-6 border-t border-slate-800 bg-slate-900/50 backdrop-blur-md">
-              <button className="w-full py-4 rounded-xl text-sm font-black text-slate-400 uppercase tracking-widest hover:bg-white/5 hover:text-white transition-all border border-transparent hover:border-white/10">
-                Tandai Semua Dibaca
+            <div className="p-4 border-t border-slate-800 bg-slate-900/50 backdrop-blur-md">
+              <button 
+                onClick={markAllAsRead}
+                disabled={unreadCount === 0}
+                className="w-full py-3 rounded-xl text-xs font-bold text-slate-400 uppercase tracking-wider hover:bg-white/5 hover:text-white transition-all border border-transparent hover:border-white/10 disabled:opacity-50"
+              >
+                Tandai Semua Sudah Dibaca
               </button>
             </div>
           </motion.div>

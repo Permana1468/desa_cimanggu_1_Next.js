@@ -207,4 +207,18 @@ export async function importHargaSatuanSmart(tenantId: string) {
   }
 }
 
+/**
+ * High-Performance Native C++ AHSP Construction & RAB Calculator
+ */
+export async function calculateAhspProjectRABAction(input: import("@/lib/ahspBridge").AhspProjectInput) {
+  try {
+    const { executeCppAhspEngine } = await import("@/lib/ahspBridge");
+    const result = await executeCppAhspEngine(input);
+    return { success: true, data: result };
+  } catch (error: any) {
+    console.error("Error calculating C++ AHSP RAB:", error);
+    return { success: false, error: error.message };
+  }
+}
+
 

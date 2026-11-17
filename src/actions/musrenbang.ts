@@ -42,3 +42,49 @@ export async function submitMusrenbang(data: {
 
     return { success: true };
 }
+
+/**
+ * AI MCDM TOPSIS Musrenbang Prioritizer Engine
+ */
+export async function rankMusrenbangProposalsAction(customProposals?: import("@/lib/musrenbangBridge").MusrenbangProposalInput[]) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) {
+            throw new Error("Unauthorized");
+        }
+        const tenantId = (session.user as any).tenantId;
+
+        let inputList = customProposals;
+        if (!inputList || inputList.length === 0) {
+            // Ambil dari DB financeProposal
+            const dbProposals = await prisma.financeProposal.findMany({
+                where: { tenantId, category: "PEMBANGUNAN" },
+                orderBy: { createdAt: "desc" },
+                take: 50,
+            });
+
+            inputList = dbProposals.map((p) => ({
+                id: p.id,
+                kegiatanPrioritas: p.title,
+                lokasiRw: p.lokasiRw || "001",
+                lokasiRt: p.lokasiRt || "001",
+                lokasiDetail: p.lokasiDetail || "-",
+                volume: p.volume || "-",
+                satuan: p.satuan || "-",
+                anggaran: Number(p.amount) || 10000000,
+                penerimaManfaat: 250, // default estimasi warga per RT/RW
+                urgensiBencana: 7.0,
+                keselarasanRpjm: 8.0,
+                kerentananWilayah: 7.0,
+            }));
+        }
+
+        const { executePythonMusrenbangEngine } = await import("@/lib/musrenbangBridge");
+        const result = await executePythonMusrenbangEngine(inputList);
+        return { success: true, data: result };
+    } catch (error: any) {
+        console.error("Error in rankMusrenbangProposalsAction:", error);
+        return { success: false, error: error.message };
+    }
+}
+

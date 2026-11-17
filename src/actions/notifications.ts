@@ -489,7 +489,32 @@ export async function getLiveNotifications(): Promise<LiveNotification[]> {
     // ==========================================
     // 4. KEUANGAN / BENDAHARA (Anggaran & Kas Desa)
     // ==========================================
-    if (role === "KAUR_KEUANGAN") {
+    if (role === "KAUR_KEUANGAN" || ["ADMIN_DESA", "KADES", "SEKDES"].includes(role)) {
+      try {
+        const pendingProposals = await prisma.financeProposal.findMany({
+          where: { tenantId, status: "PENDING" },
+          take: 4,
+          orderBy: { createdAt: "desc" }
+        });
+
+        for (const p of pendingProposals) {
+          const nominalStr = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(p.amount);
+          notifications.push({
+            id: `keu-proposal-${p.id}`,
+            type: "info",
+            title: `Pengajuan Belanja: ${p.title}`,
+            description: `Usulan dana ${nominalStr} (${p.category}) menunggu verifikasi pencairan bendahara/sekdes.`,
+            time: new Date(p.createdAt).toISOString(),
+            read: false,
+            actionUrl: "/dashboard/finance",
+            badgeColor: "text-emerald-600 bg-emerald-50 border-emerald-200",
+            priority: "high"
+          });
+        }
+      } catch (err) {
+        console.warn("Notification error finance proposal:", err);
+      }
+
       try {
         const pendingBansos = await prisma.kesraDtks.findMany({
           where: { tenantId, isFlagged: true },
@@ -516,7 +541,144 @@ export async function getLiveNotifications(): Promise<LiveNotification[]> {
     }
 
     // ==========================================
-    // 5. PELAYANAN & PEMERINTAHAN UMUM / EKSEKUTIF
+    // 5. PERENCANAAN, PEMBANGUNAN & LPM (Musrenbang, AHSP & Proyek Fisik)
+    // ==========================================
+    if (["KAUR_PERENCANAAN", "KASI_KESEJAHTERAAN", "LPM", "BPD"].includes(role)) {
+      try {
+        const musrenbangProposals = await prisma.financeProposal.findMany({
+          where: { tenantId, category: "PEMBANGUNAN", status: "PENDING" },
+          take: 5,
+          orderBy: { createdAt: "desc" }
+        });
+
+        for (const m of musrenbangProposals) {
+          notifications.push({
+            id: `plan-musrenbang-${m.id}`,
+            type: "info",
+            title: `Usulan Musrenbang RW ${m.lokasiRw || "-"}: ${m.title}`,
+            description: `Volume ${m.volume || "-"} ${m.satuan || ""} (${m.lokasiDetail || "Lokasi fisik"}) butuh evaluasi AHSP & perangkingan TOPSIS.`,
+            time: new Date(m.createdAt).toISOString(),
+            read: false,
+            actionUrl: "/kelembagaan/musrenbang",
+            badgeColor: "text-blue-600 bg-blue-50 border-blue-200",
+            priority: "high"
+          });
+        }
+      } catch (err) {
+        console.warn("Notification error perencanaan musrenbang:", err);
+      }
+
+      try {
+        const activeProjects = await prisma.infrastrukturProject.findMany({
+          where: { tenantId, status: "BERJALAN" },
+          take: 3,
+          orderBy: { updatedAt: "desc" }
+        });
+
+        for (const proj of activeProjects) {
+          notifications.push({
+            id: `plan-project-${proj.id}`,
+            type: "info",
+            title: `Pembangunan Aktif: ${proj.name}`,
+            description: `Progres fisik proyek di ${proj.location || "Desa Cimanggu I"}. Siapkan dokumen BAST & rekapitulasi pekerja.`,
+            time: new Date(proj.updatedAt).toISOString(),
+            read: false,
+            actionUrl: "/dashboard/laporan/bast-pekerjaan",
+            badgeColor: "text-indigo-600 bg-indigo-50 border-indigo-200",
+            priority: "medium"
+          });
+        }
+      } catch (err) {
+        console.warn("Notification error infrastruktur project:", err);
+      }
+    }
+
+    // ==========================================
+    // 6. PEMERINTAHAN WILAYAH & KADUS (Mutasi Penduduk, Sensus & Batas Wilayah)
+    // ==========================================
+    if (["KASI_PEMERINTAHAN", "KADUS", "ADMIN_DESA", "SEKDES"].includes(role)) {
+      try {
+        const recentBirths = await prisma.rtBirthReport.findMany({
+          where: { tenantId },
+          take: 3,
+          orderBy: { createdAt: "desc" }
+        });
+
+        for (const birth of recentBirths) {
+          notifications.push({
+            id: `gov-birth-${birth.id}`,
+            type: "info",
+            title: `Laporan Kelahiran: ${birth.babyName}`,
+            description: `Bayi dari ${birth.fatherName}/${birth.motherName} tercatat di RT ${birth.rt || "-"}/RW ${birth.rw || "-"}. Butuh pembaruan KK.`,
+            time: new Date(birth.createdAt).toISOString(),
+            read: false,
+            actionUrl: "/dashboard/warga",
+            badgeColor: "text-teal-600 bg-teal-50 border-teal-200",
+            priority: "medium"
+          });
+        }
+      } catch (err) {
+        console.warn("Notification error birth reports:", err);
+      }
+
+      try {
+        const recentDeaths = await prisma.rtDeathReport.findMany({
+          where: { tenantId },
+          take: 3,
+          orderBy: { createdAt: "desc" }
+        });
+
+        for (const death of recentDeaths) {
+          notifications.push({
+            id: `gov-death-${death.id}`,
+            type: "info",
+            title: `Laporan Kematian: ${death.deceasedName}`,
+            description: `Wafat pada ${new Date(death.deathDate).toLocaleDateString("id-ID")} (RT ${death.rt || "-"}/RW ${death.rw || "-"}). Teruskan untuk surat kematian.`,
+            time: new Date(death.createdAt).toISOString(),
+            read: false,
+            actionUrl: "/dashboard/warga",
+            badgeColor: "text-slate-700 bg-slate-100 border-slate-300",
+            priority: "high"
+          });
+        }
+      } catch (err) {
+        console.warn("Notification error death reports:", err);
+      }
+    }
+
+    // ==========================================
+    // 7. BUMDES & UMKM WARGA DESA
+    // ==========================================
+    if (["BUMDES", "OPERATOR_DESA", "ADMIN_DESA"].includes(role)) {
+      try {
+        const pendingOrders = await prisma.umkmOrder.findMany({
+          where: { status: "PENDING" },
+          take: 3,
+          orderBy: { createdAt: "desc" },
+          include: { items: true }
+        });
+
+        for (const ord of pendingOrders) {
+          const totalStr = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(ord.totalAmount);
+          notifications.push({
+            id: `umkm-order-${ord.id}`,
+            type: "info",
+            title: `Pesanan UMKM Masuk: ${ord.customerName}`,
+            description: `Total ${totalStr} (${ord.items?.length || 1} produk). Menunggu konfirmasi pengiriman.`,
+            time: new Date(ord.createdAt).toISOString(),
+            read: false,
+            actionUrl: "/umkm/seller",
+            badgeColor: "text-emerald-600 bg-emerald-50 border-emerald-200",
+            priority: "medium"
+          });
+        }
+      } catch (err) {
+        console.warn("Notification error UMKM orders:", err);
+      }
+    }
+
+    // ==========================================
+    // 8. PELAYANAN & PEMERINTAHAN UMUM / EKSEKUTIF
     // ==========================================
     if (["ADMIN_DESA", "KADES", "SEKDES", "ADMIN_MASTER", "KASI_PELAYANAN", "KAUR_TU", "OPERATOR_DESA", "PERANGKAT_DESA"].includes(role)) {
       try {
