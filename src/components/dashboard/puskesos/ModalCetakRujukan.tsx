@@ -26,19 +26,43 @@ export function ModalCetakRujukan({ rujukan, onClose, onStatusUpdated }: ModalCe
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 overflow-y-auto">
       <style>{`
         @media print {
-          body * { visibility: hidden !important; }
-          .print-rujukan-area, .print-rujukan-area * { visibility: visible !important; }
-          .print-rujukan-area { 
-            position: absolute !important; 
-            left: 0 !important; 
-            top: 0 !important; 
-            width: 100% !important; 
-            margin: 0 !important;
-            padding: 30px !important;
-            background: white !important;
-            box-shadow: none !important;
+          @page {
+            size: 215.9mm 330.2mm portrait; /* Standar Surat Resmi F4 Portrait */
+            margin: 12mm;
           }
-          .no-print { display: none !important; }
+          /* Netralkan overlay modal agar tidak menutupi atau memotong cetak */
+          .fixed, [class*="bg-slate-900"], [class*="backdrop-blur"] {
+            position: static !important;
+            background: transparent !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            overflow: visible !important;
+            box-shadow: none !important;
+            border: none !important;
+          }
+          .max-h-\\[90vh\\], .overflow-y-auto, .rounded-3xl, .shadow-2xl {
+            max-height: none !important;
+            overflow: visible !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            border: none !important;
+          }
+          .print-rujukan-area {
+            display: block !important;
+            visibility: visible !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+          }
+          .print-rujukan-area * {
+            visibility: visible !important;
+          }
+          .no-print {
+            display: none !important;
+          }
         }
       `}</style>
 

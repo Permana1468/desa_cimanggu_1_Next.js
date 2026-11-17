@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, HeartPulse, Plus, X, Loader2 } from "lucide-react";
+import { Search, HeartPulse, Plus, X, Loader2, Printer } from "lucide-react";
 import { getKesraUsulanUhcList, addKesraUsulanUhc, getKesraKependudukanList } from "@/actions/kesra";
 import { ModalUsulanUhc } from "@/components/dashboard/kesra/KesraUsulanUhcTab";
 
@@ -30,7 +30,9 @@ export function PuskesosUhcTab({ session }: any) {
   }, []);
 
 
-  // Removed handlePrintTable
+  const handlePrint = () => {
+    window.print();
+  };
 
   const filteredData = data.filter(d =>
     d.namaPasien.toLowerCase().includes(search.toLowerCase()) ||
@@ -41,20 +43,60 @@ export function PuskesosUhcTab({ session }: any) {
     <div className="space-y-6">
       <style>{`
         @media print {
-          body * { visibility: hidden; }
-          .print-area, .print-area * { visibility: visible; }
-          .print-area { position: absolute; left: 0; top: 0; width: 100%; }
-          .no-print { display: none !important; }
+          @page {
+            size: 330.2mm 215.9mm landscape; /* F4 Landscape agar tabel luas & terbaca */
+            margin: 10mm;
+          }
+          .print-area {
+            display: block !important;
+            visibility: visible !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: #ffffff !important;
+          }
+          .print-area * {
+            visibility: visible !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            page-break-inside: auto !important;
+          }
+          tr {
+            page-break-inside: avoid !important;
+            page-break-after: auto !important;
+          }
+          thead {
+            display: table-header-group !important;
+          }
+          td, th {
+            border: 1px solid #94a3b8 !important;
+          }
         }
       `}</style>
 
-      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 no-print">
         <div>
           <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <HeartPulse className="w-6 h-6 text-emerald-500" />
             Monitoring & Arsip UHC
           </h2>
           <p className="text-slate-500 text-sm mt-1">Lacak hasil pengajuan Usulan UHC warga.</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all shadow-xs"
+          >
+            <Printer size={15} /> Cetak Rekapitulasi UHC
+          </button>
         </div>
       </div>
 
@@ -72,8 +114,8 @@ export function PuskesosUhcTab({ session }: any) {
         ))}
       </div>
 
-      <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <div className="flex justify-between items-center mb-5">
+      <div className="print-area bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div className="flex justify-between items-center mb-5 no-print">
           <div className="relative w-64">
             <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input

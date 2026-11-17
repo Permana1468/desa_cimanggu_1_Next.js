@@ -497,7 +497,7 @@ html.lenis,
   animation: gradient-x 8s ease infinite;
 }
 
-/* ── OFFICIAL SISKEUDES PRINT STYLES (F4 PORTRAIT 215.9mm x 330mm MULTI-PAGE PORTAL) ── */
+/* ── OFFICIAL SISKEUDES & DASHBOARD PRINT STYLES (F4 PORTRAIT 215.9mm x 330mm MULTI-PAGE) ── */
 @media print {
   /* 1. Reset root HTML & Body */
   html, body {
@@ -509,20 +509,53 @@ html.lenis,
     position: static !important;
     margin: 0 !important;
     padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  /* 2. Hide all direct children of body EXCEPT active print portals */
-  body > *:not(#siskeudes-official-print-document):not(.siskeudes-print-portal-mount):not([id*="print-mount-root"]):not([id*="print-portal"]):not(#official-letter-print-portal):not(.official-letter-print-portal):not([id*="print-label"]):not([id*="asset-label"]):not([id*="kib-document"]):not([id*="lembar-disposisi"]):not([id*="buku-agenda"]):not([id*="buku-ekspedisi"]):not([id*="buku-tamu"]):not([id*="spt-document"]) {
+  /* 2. Hide all direct children of body ONLY when an external isolated portal is active on body */
+  body:has(#siskeudes-official-print-document) > *:not(#siskeudes-official-print-document),
+  body:has(.siskeudes-print-portal-mount) > *:not(.siskeudes-print-portal-mount),
+  body:has([id*="print-mount-root"]) > *:not([id*="print-mount-root"]),
+  body:has(#official-letter-print-portal) > *:not(#official-letter-print-portal),
+  body:has(.official-letter-print-portal) > *:not(.official-letter-print-portal),
+  body:has([id*="kib-document-print-portal"]) > *:not([id*="kib-document-print-portal"]) {
     display: none !important;
   }
 
-  /* 3. Also hide any non-printable elements inside print document */
+  /* 3. Hide all screen navigation, sidebars, headers, and explicit non-print elements */
+  header,
+  aside,
+  nav,
+  .village-sidebar,
+  .dashboard-header,
   .no-print,
-  .no-print * {
+  .no-print *,
+  .print\:hidden {
     display: none !important;
   }
 
-  /* 4. Display print portal mounts cleanly in-flow */
+  /* 4. Ensure Next.js dashboard wrappers don't trap or clip multi-page documents */
+  body > div,
+  body > div > div,
+  main,
+  .h-screen,
+  .overflow-hidden,
+  .overflow-y-auto,
+  .overflow-x-auto {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+  }
+
+  /* 5. Display print portal mounts & in-page print documents cleanly in-flow */
   #siskeudes-official-print-document,
   .siskeudes-print-portal-mount,
   [id*="print-mount-root"],
@@ -536,11 +569,17 @@ html.lenis,
   [id*="buku-agenda"],
   [id*="buku-ekspedisi"],
   [id*="buku-tamu"],
-  [id*="spt-document"] {
+  [id*="spt-document"],
+  .print-area,
+  .print-rujukan-area,
+  #print-area-buku-tamu,
+  [id*="print-area"],
+  [class*="print-area"] {
     display: block !important;
     visibility: visible !important;
     position: relative !important;
     width: 100% !important;
+    max-width: 100% !important;
     margin: 0 auto !important;
     padding: 0 !important;
     background: #ffffff !important;
@@ -566,7 +605,12 @@ html.lenis,
   [id*="buku-agenda"] *,
   [id*="buku-ekspedisi"] *,
   [id*="buku-tamu"] *,
-  [id*="spt-document"] * {
+  [id*="spt-document"] *,
+  .print-area *,
+  .print-rujukan-area *,
+  #print-area-buku-tamu *,
+  [id*="print-area"] *,
+  [class*="print-area"] * {
     visibility: visible !important;
   }
 

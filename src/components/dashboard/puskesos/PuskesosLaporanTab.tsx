@@ -59,13 +59,42 @@ export function PuskesosLaporanTab({ session }: { session: any }) {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* PRINT STYLES */}
+      {/* PRINT STYLES FOR OFFICIAL LPJ PUSKESOS (F4 PORTRAIT) */}
       <style>{`
         @media print {
-          body * { visibility: hidden; }
-          .print-area, .print-area * { visibility: visible; }
-          .print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
-          .no-print { display: none !important; }
+          @page {
+            size: 215.9mm 330.2mm portrait; /* Standar F4 Portrait Resmi */
+            margin: 10mm;
+          }
+          .print-area {
+            display: block !important;
+            visibility: visible !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: #ffffff !important;
+          }
+          .print-area * {
+            visibility: visible !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            page-break-inside: auto !important;
+          }
+          tr {
+            page-break-inside: avoid !important;
+            page-break-after: auto !important;
+          }
+          thead {
+            display: table-header-group !important;
+          }
         }
       `}</style>
 

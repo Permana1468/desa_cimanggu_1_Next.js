@@ -209,25 +209,34 @@ export default function BukuTamuPage() {
       <style dangerouslySetInnerHTML={{
         __html: `
           @media print {
-            body * {
-              visibility: hidden !important;
-            }
-            #print-area-buku-tamu, #print-area-buku-tamu * {
-              visibility: visible !important;
+            @page {
+              size: 330.2mm 215.9mm landscape; /* F4 Landscape */
+              margin: 10mm;
             }
             #print-area-buku-tamu {
-              position: absolute !important;
-              left: 0 !important;
-              top: 0 !important;
+              display: block !important;
+              visibility: visible !important;
+              position: relative !important;
               width: 100% !important;
               margin: 0 !important;
               padding: 0 !important;
               background: white !important;
               color: black !important;
             }
-            @page {
-              size: 330.2mm 215.9mm landscape; /* F4 Landscape */
-              margin: 10mm;
+            #print-area-buku-tamu * {
+              visibility: visible !important;
+            }
+            table {
+              width: 100% !important;
+              border-collapse: collapse !important;
+              page-break-inside: auto !important;
+            }
+            tr {
+              page-break-inside: avoid !important;
+              page-break-after: auto !important;
+            }
+            thead {
+              display: table-header-group !important;
             }
           }
         `
