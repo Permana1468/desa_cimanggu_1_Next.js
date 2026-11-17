@@ -746,9 +746,13 @@ export default function BukuTamuPage() {
                     <span className="text-slate-800">{item.noHp || "-"}</span>
                   </td>
                   <td className="py-0.5 px-1 border border-slate-600 text-center">
-                    <div className="w-14 h-5 mx-auto flex items-center justify-center overflow-hidden">
-                      <img src={item.tandaTangan} alt="TTD" className="max-h-full max-w-full object-contain border-none outline-none" />
-                    </div>
+                    {item.tandaTangan ? (
+                      <div className="w-14 h-5 mx-auto flex items-center justify-center overflow-hidden">
+                        <img src={item.tandaTangan} alt="TTD" className="max-h-full max-w-full object-contain border-none outline-none" />
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-slate-400 italic">-</span>
+                    )}
                   </td>
                 </tr>
               ))

@@ -579,8 +579,8 @@ export async function getLiveNotifications(): Promise<LiveNotification[]> {
           notifications.push({
             id: `plan-project-${proj.id}`,
             type: "info",
-            title: `Pembangunan Aktif: ${proj.name}`,
-            description: `Progres fisik proyek di ${proj.location || "Desa Cimanggu I"}. Siapkan dokumen BAST & rekapitulasi pekerja.`,
+            title: `Pembangunan Aktif: ${proj.namaProyek}`,
+            description: `Progres fisik proyek di ${proj.lokasi || "Desa Cimanggu I"}. Siapkan dokumen BAST & rekapitulasi pekerja.`,
             time: new Date(proj.updatedAt).toISOString(),
             read: false,
             actionUrl: "/dashboard/laporan/bast-pekerjaan",
@@ -608,8 +608,8 @@ export async function getLiveNotifications(): Promise<LiveNotification[]> {
           notifications.push({
             id: `gov-birth-${birth.id}`,
             type: "info",
-            title: `Laporan Kelahiran: ${birth.babyName}`,
-            description: `Bayi dari ${birth.fatherName}/${birth.motherName} tercatat di RT ${birth.rt || "-"}/RW ${birth.rw || "-"}. Butuh pembaruan KK.`,
+            title: `Laporan Kelahiran: ${birth.namaBayi}`,
+            description: `Bayi dari ${birth.namaAyah || "-"}/${birth.namaIbu || "-"} tercatat di RT ${birth.rt || "-"}/RW ${birth.rw || "-"}. Butuh pembaruan KK.`,
             time: new Date(birth.createdAt).toISOString(),
             read: false,
             actionUrl: "/dashboard/warga",
@@ -632,8 +632,8 @@ export async function getLiveNotifications(): Promise<LiveNotification[]> {
           notifications.push({
             id: `gov-death-${death.id}`,
             type: "info",
-            title: `Laporan Kematian: ${death.deceasedName}`,
-            description: `Wafat pada ${new Date(death.deathDate).toLocaleDateString("id-ID")} (RT ${death.rt || "-"}/RW ${death.rw || "-"}). Teruskan untuk surat kematian.`,
+            title: `Laporan Kematian: ${death.namaLengkap}`,
+            description: `Wafat pada ${new Date(death.tanggalMeninggal).toLocaleDateString("id-ID")} (RT ${death.rt || "-"}/RW ${death.rw || "-"}). Teruskan untuk surat kematian.`,
             time: new Date(death.createdAt).toISOString(),
             read: false,
             actionUrl: "/dashboard/warga",
@@ -655,7 +655,7 @@ export async function getLiveNotifications(): Promise<LiveNotification[]> {
           where: { status: "PENDING" },
           take: 3,
           orderBy: { createdAt: "desc" },
-          include: { items: true }
+          include: { items: true, buyer: { select: { fullName: true } } }
         });
 
         for (const ord of pendingOrders) {
@@ -663,7 +663,7 @@ export async function getLiveNotifications(): Promise<LiveNotification[]> {
           notifications.push({
             id: `umkm-order-${ord.id}`,
             type: "info",
-            title: `Pesanan UMKM Masuk: ${ord.customerName}`,
+            title: `Pesanan UMKM Masuk: ${ord.buyer?.fullName || "Pembeli"}`,
             description: `Total ${totalStr} (${ord.items?.length || 1} produk). Menunggu konfirmasi pengiriman.`,
             time: new Date(ord.createdAt).toISOString(),
             read: false,

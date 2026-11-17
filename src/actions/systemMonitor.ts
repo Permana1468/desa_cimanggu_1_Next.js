@@ -224,7 +224,7 @@ export async function purgeSystemCacheAction(): Promise<{
             cleanedPaths: targets,
           },
           userId: (session.user as any).id,
-          tenantId: (session.user as any).tenantId,
+          tenantId: (session.user as any).tenantId || "default",
         },
       });
     } catch {

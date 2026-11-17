@@ -519,7 +519,10 @@ html.lenis,
   body:has([id*="print-mount-root"]) > *:not([id*="print-mount-root"]),
   body:has(#official-letter-print-portal) > *:not(#official-letter-print-portal),
   body:has(.official-letter-print-portal) > *:not(.official-letter-print-portal),
-  body:has([id*="kib-document-print-portal"]) > *:not([id*="kib-document-print-portal"]) {
+  body:has([id*="kib-document-print-portal"]) > *:not([id*="kib-document-print-portal"]),
+  body:has(#print-area-buku-tamu) > *:not(:has(#print-area-buku-tamu)),
+  body:has([id*="print-area"]) > *:not(:has([id*="print-area"])),
+  body:has([class*="print-area"]) > *:not(:has([class*="print-area"])) {
     display: none !important;
   }
 
@@ -531,6 +534,7 @@ html.lenis,
   .village-sidebar,
   .dashboard-header,
   [class*="fixed bottom-0"],
+  [class*="bottom-0"],
   .no-print,
   .no-print *,
   .print\:hidden {
