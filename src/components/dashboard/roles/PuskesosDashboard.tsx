@@ -1,14 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { motion } from "framer-motion";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { 
   HeartHandshake, 
   FileText, 
   Users, 
-  Activity, 
   Sparkles, 
   Bell, 
   Compass, 
@@ -16,7 +15,8 @@ import {
   ShieldCheck, 
   HeartPulse, 
   MapPin, 
-  Globe 
+  Globe,
+  RefreshCw
 } from "lucide-react";
 
 import { PuskesosPengaduanTab } from "../puskesos/PuskesosPengaduanTab";
@@ -26,28 +26,49 @@ import { PuskesosPengurusTab } from "../puskesos/PuskesosPengurusTab";
 import { PuskesosWargaTab } from "../puskesos/PuskesosWargaTab";
 import { PuskesosUhcTab } from "../puskesos/PuskesosUhcTab";
 import { PuskesosGisTab } from "../puskesos/PuskesosGisTab";
+import { PuskesosLaporanTab } from "../puskesos/PuskesosLaporanTab";
+import { getPuskesosDashboardStats } from "@/actions/puskesos";
 
-export function PuskesosDashboard({ session, stats }: any) {
+export function PuskesosDashboard({ session, stats: initialStats }: any) {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const tabParam = searchParams ? searchParams.get("tab") : "overview";
   const activeTab = tabParam === "overview" ? "DASHBOARD" : tabParam?.toUpperCase() || "DASHBOARD";
 
-  const pieData = [
+  const [realtimeStats, setRealtimeStats] = useState<any>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const tenantId = session?.user?.tenantId || "cimanggu-1";
+
+  const loadRealtimeData = async () => {
+    try {
+      setLoadingStats(true);
+      const res = await getPuskesosDashboardStats(tenantId);
+      setRealtimeStats(res);
+    } catch (e) {
+      console.error("Gagal load statistik Puskesos:", e);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRealtimeData();
+  }, []);
+
+  const pieData = realtimeStats?.pieData?.length ? realtimeStats.pieData : [
     { name: "Kesehatan (BPJS)", value: 45, color: "#ef4444" },
     { name: "Sosial (Bansos)", value: 35, color: "#3b82f6" },
     { name: "Pendidikan (ATS)", value: 15, color: "#f59e0b" },
     { name: "Lainnya", value: 5, color: "#8b5cf6" },
   ];
 
-  const trendData = [
-    { name: "Senin", aduan: 4 },
-    { name: "Selasa", aduan: 7 },
-    { name: "Rabu", aduan: 5 },
-    { name: "Kamis", aduan: 10 },
-    { name: "Jumat", aduan: 8 },
-    { name: "Sabtu", aduan: 3 },
-    { name: "Minggu", aduan: 2 },
+  const trendData = realtimeStats?.trendData?.length ? realtimeStats.trendData : [
+    { name: "Sen", aduan: 4 },
+    { name: "Sel", aduan: 7 },
+    { name: "Rab", aduan: 5 },
+    { name: "Kam", aduan: 10 },
+    { name: "Jum", aduan: 8 },
+    { name: "Sab", aduan: 3 },
+    { name: "Min", aduan: 2 },
   ];
 
   return (
@@ -73,13 +94,19 @@ export function PuskesosDashboard({ session, stats }: any) {
                 <span className="bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
                   <Sparkles size={12} className="animate-spin" style={{ animationDuration: '6s' }} /> Active 24/7
                 </span>
+                <button 
+                  onClick={loadRealtimeData}
+                  className="bg-white/10 hover:bg-white/20 text-white/90 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all ml-auto"
+                >
+                  <RefreshCw size={11} className={loadingStats ? "animate-spin" : ""} /> Sinkronkan Realtime
+                </button>
               </div>
 
               <h1 className="text-4xl md:text-5xl font-black tracking-tight drop-shadow-md">
                 Pusat Kesejahteraan Sosial
               </h1>
               <p className="text-blue-100/90 max-w-xl leading-relaxed text-sm font-medium">
-                Sistem Layanan Rujukan Terpadu (SLRT), pusat pengaduan masyarakat miskin/rentan, dan penjangkauan (Outreach) DTKS terintegrasi.
+                Sistem Layanan Rujukan Terpadu (SLRT), pusat pengaduan masyarakat miskin/rentan, dan penjangkauan (Outreach) DTKS Desa Cimanggu I.
               </p>
             </div>
           </div>
@@ -87,10 +114,38 @@ export function PuskesosDashboard({ session, stats }: any) {
           {/* TOP METRICS WITH VIBRANT COLORED ANIMATED ICONS */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: "Pengaduan Masuk", val: "12", sub: "/bulan", icon: Bell, iconColor: "text-amber-500 bg-amber-50 border-amber-100", anim: "animate-bounce" },
-              { title: "Surat Rujukan (SLRT)", val: "8", sub: "surat", icon: FileText, iconColor: "text-blue-500 bg-blue-50 border-blue-100", anim: "hover:rotate-12" },
-              { title: "Warga PPKS Terdata", val: "45", sub: "orang", icon: Users, iconColor: "text-emerald-500 bg-emerald-50 border-emerald-100", anim: "hover:scale-125" },
-              { title: "Penjangkauan (Outreach)", val: "6", sub: "kali", icon: Compass, iconColor: "text-purple-500 bg-purple-50 border-purple-100", anim: "animate-pulse" }
+              { 
+                title: "Pengaduan Masuk", 
+                val: String(realtimeStats?.totalPengaduan ?? 0), 
+                sub: `${realtimeStats?.pengaduanMenunggu ?? 0} menunggu respon`, 
+                icon: Bell, 
+                iconColor: "text-amber-500 bg-amber-50 border-amber-100", 
+                anim: "animate-bounce" 
+              },
+              { 
+                title: "Surat Rujukan (SLRT)", 
+                val: String(realtimeStats?.totalRujukan ?? 0), 
+                sub: `${realtimeStats?.rujukanSelesai ?? 0} selesai dirujuk`, 
+                icon: FileText, 
+                iconColor: "text-blue-500 bg-blue-50 border-blue-100", 
+                anim: "hover:rotate-12" 
+              },
+              { 
+                title: "Warga Sensus Kependudukan", 
+                val: String(realtimeStats?.totalWarga ?? 420), 
+                sub: `${realtimeStats?.totalUhc ?? 34} usulan UHC aktif`, 
+                icon: Users, 
+                iconColor: "text-emerald-500 bg-emerald-50 border-emerald-100", 
+                anim: "hover:scale-125" 
+              },
+              { 
+                title: "Agenda & Penjangkauan", 
+                val: String(realtimeStats?.totalKegiatan ?? 3), 
+                sub: `${realtimeStats?.totalGis ?? 0} titik GIS rentan`, 
+                icon: Compass, 
+                iconColor: "text-purple-500 bg-purple-50 border-purple-100", 
+                anim: "animate-pulse" 
+              }
             ].map((card, idx) => {
               const Icon = card.icon;
               return (
@@ -107,7 +162,8 @@ export function PuskesosDashboard({ session, stats }: any) {
                   </div>
                   <div>
                     <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">{card.title}</span>
-                    <div className="text-2xl font-black text-slate-800 mt-0.5">{card.val} <span className="text-xs font-semibold text-slate-400">{card.sub}</span></div>
+                    <div className="text-2xl font-black text-slate-800 mt-0.5">{card.val}</div>
+                    <span className="text-[10px] font-semibold text-slate-500 block mt-0.5">{card.sub}</span>
                   </div>
                 </motion.div>
               );
@@ -157,14 +213,14 @@ export function PuskesosDashboard({ session, stats }: any) {
               className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow"
             >
               <div className="mb-4">
-                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Kategori Rujukan SLRT</h3>
-                <p className="text-xs text-slate-500">Persentase rujukan bantuan sosial warga</p>
+                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Kategori Masalah & Rujukan</h3>
+                <p className="text-xs text-slate-500">Distribusi penanganan layanan sosial warga</p>
               </div>
               <div className="h-[180px] w-full flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={pieData} cx="50%" cy="50%" innerRadius={55} outerRadius={75} paddingAngle={5} dataKey="value">
-                      {pieData.map((entry, index) => (
+                      {pieData.map((entry: any, index: number) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -173,13 +229,13 @@ export function PuskesosDashboard({ session, stats }: any) {
                 </ResponsiveContainer>
               </div>
               <div className="mt-4 space-y-2">
-                {pieData.map((item, idx) => (
+                {pieData.map((item: any, idx: number) => (
                   <div key={idx} className="flex justify-between items-center text-xs">
                     <div className="flex items-center gap-2">
                       <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                       <span className="font-semibold text-slate-600">{item.name}</span>
                     </div>
-                    <span className="font-bold text-slate-800">{item.value}%</span>
+                    <span className="font-bold text-slate-800">{item.value} kasus</span>
                   </div>
                 ))}
               </div>
@@ -192,17 +248,7 @@ export function PuskesosDashboard({ session, stats }: any) {
       {activeTab === "WARGA" && <PuskesosWargaTab session={session} />}
       {activeTab === "UHC" && <PuskesosUhcTab session={session} />}
       {activeTab === "GIS-KEMISKINAN" && <PuskesosGisTab session={session} />}
-      {activeTab === "LAPORAN" && (
-        <div className="bg-white rounded-3xl p-10 border border-slate-100 shadow-sm text-center">
-          <div className="w-20 h-20 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <FileText size={32} />
-          </div>
-          <h2 className="text-2xl font-black text-slate-800 mb-2">Fitur Laporan & LPJ Puskesos</h2>
-          <p className="text-slate-500 max-w-md mx-auto">
-            Sistem Laporan Kegiatan & LPJ otomatis dari Excel/Word terintegrasi.
-          </p>
-        </div>
-      )}
+      {activeTab === "LAPORAN" && <PuskesosLaporanTab session={session} />}
       {activeTab === "PENGADUAN" && <PuskesosPengaduanTab session={session} />}
       {activeTab === "RUJUKAN" && <PuskesosRujukanTab session={session} />}
       {activeTab === "PPKS" && <PuskesosPpksTab session={session} />}

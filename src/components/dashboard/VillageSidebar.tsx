@@ -2111,9 +2111,9 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
         </nav>
 
 
-        {/* STORAGE DETAILS / STATUS SISTEM WIDGET (Harmonized for Desktop) */}
+        {/* STORAGE DETAILS / STATUS SISTEM WIDGET (Harmonized for Desktop - Top rounded, bottom straight per request) */}
         {(!isCollapsed || isOpen) && (
-          <div className="px-4 py-3 mx-3 my-2 rounded-2xl bg-white/10 border border-white/15 text-white">
+          <div className="px-4 py-3 mx-3 mt-2 mb-0 rounded-t-2xl rounded-b-none bg-white/10 border-t border-x border-b-0 border-white/15 text-white">
             {role === "POSYANDU" ? (
               <div>
                 <div className="flex items-center justify-between mb-2">
