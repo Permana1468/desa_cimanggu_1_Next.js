@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Search, Loader2, BookOpen, Plus, FileText, Download } from "lucide-react";
 import { getPosyanduRegisters, addPosyanduRegister, deletePosyanduRegister } from "@/actions/posyandu-baru";
 import { getPosyanduUnit } from "@/lib/posyandu";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 const FORMATS = [
   { id: 1, name: "Format 1", desc: "Register Bayi dan Balita" },
@@ -24,6 +25,15 @@ export function PosyanduRegisterTab({ session, selectedPosyandu }: any) {
 
   useEffect(() => {
     fetchData(activeFormat);
+
+    const handleRefresh = () => fetchData(activeFormat);
+    window.addEventListener("refresh-notifications", handleRefresh);
+    const interval = setInterval(handleRefresh, 15000);
+
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      clearInterval(interval);
+    };
   }, [activeFormat, selectedPosyandu]);
 
   async function fetchData(formatNumber: number) {
@@ -42,6 +52,7 @@ export function PosyanduRegisterTab({ session, selectedPosyandu }: any) {
       setLoading(true);
       await deletePosyanduRegister(id);
       await fetchData(activeFormat);
+      triggerNotificationRefresh();
     }
   };
 
@@ -179,6 +190,7 @@ function ModalTambahRegister({ formatId, formatName, onClose, onRefresh, selecte
     });
     setLoading(false);
     onRefresh();
+    triggerNotificationRefresh();
     onClose();
   };
 

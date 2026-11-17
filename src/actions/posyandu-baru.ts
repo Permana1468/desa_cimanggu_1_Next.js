@@ -33,11 +33,14 @@ export async function getPosyanduRegisters(formatNumber: number, posyanduFilter?
     const { tenantId, resolvedUnit } = await verifyPosyanduAccess(posyanduFilter);
     const whereClause: any = { tenantId, formatNumber };
 
-    if (resolvedUnit) {
+    if (resolvedUnit && posyanduFilter !== "ALL") {
         whereClause.OR = [
             { posyanduName: { contains: resolvedUnit.name, mode: "insensitive" } },
             { posyanduName: { contains: resolvedUnit.id, mode: "insensitive" } },
-            { posyanduName: { equals: "Posyandu Utama" } }
+            { posyanduName: { contains: resolvedUnit.unitCode, mode: "insensitive" } },
+            { posyanduName: { contains: resolvedUnit.name.replace("Posyandu ", ""), mode: "insensitive" } },
+            { posyanduName: { equals: "Posyandu Utama" } },
+            { posyanduName: { equals: "Posyandu Induk" } }
         ];
     }
 
@@ -73,10 +76,12 @@ export async function getPosyanduInventaris(posyanduFilter?: string) {
     const { tenantId, resolvedUnit } = await verifyPosyanduAccess(posyanduFilter);
     const whereClause: any = { tenantId };
 
-    if (resolvedUnit) {
+    if (resolvedUnit && posyanduFilter !== "ALL") {
         whereClause.OR = [
             { posyanduName: { contains: resolvedUnit.name, mode: "insensitive" } },
             { posyanduName: { contains: resolvedUnit.id, mode: "insensitive" } },
+            { posyanduName: { contains: resolvedUnit.unitCode, mode: "insensitive" } },
+            { posyanduName: { contains: resolvedUnit.name.replace("Posyandu ", ""), mode: "insensitive" } },
             { posyanduName: { equals: "Posyandu Induk" } }
         ];
     }
@@ -137,10 +142,12 @@ export async function getPosyanduAbsensi(posyanduFilter?: string) {
     const { tenantId, resolvedUnit } = await verifyPosyanduAccess(posyanduFilter);
     const whereClause: any = { tenantId };
 
-    if (resolvedUnit) {
+    if (resolvedUnit && posyanduFilter !== "ALL") {
         whereClause.OR = [
             { posyanduName: { contains: resolvedUnit.name, mode: "insensitive" } },
             { posyanduName: { contains: resolvedUnit.id, mode: "insensitive" } },
+            { posyanduName: { contains: resolvedUnit.unitCode, mode: "insensitive" } },
+            { posyanduName: { contains: resolvedUnit.name.replace("Posyandu ", ""), mode: "insensitive" } },
             { posyanduName: { equals: "Posyandu Induk" } }
         ];
     }
@@ -184,10 +191,12 @@ export async function getPosyanduAnggarans(posyanduFilter?: string) {
     const { tenantId, resolvedUnit } = await verifyPosyanduAccess(posyanduFilter);
     const whereClause: any = { tenantId };
 
-    if (resolvedUnit) {
+    if (resolvedUnit && posyanduFilter !== "ALL") {
         whereClause.OR = [
             { posyanduName: { contains: resolvedUnit.name, mode: "insensitive" } },
             { posyanduName: { contains: resolvedUnit.id, mode: "insensitive" } },
+            { posyanduName: { contains: resolvedUnit.unitCode, mode: "insensitive" } },
+            { posyanduName: { contains: resolvedUnit.name.replace("Posyandu ", ""), mode: "insensitive" } },
             { posyanduName: { equals: "Posyandu Induk" } }
         ];
     }

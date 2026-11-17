@@ -154,7 +154,7 @@ export const LandingNavbar = ({ siteData }: LandingNavbarProps) => {
                         <div className="flex flex-col justify-center">
                             <div className="flex items-center gap-1.5 sm:gap-2">
                                 <span className="text-white font-black text-xs sm:text-[15px] md:text-[17px] tracking-wide leading-none uppercase whitespace-nowrap drop-shadow">
-                                    {siteData?.title || "DESA CIMANGGU I"}
+                                    {(siteData?.title || "DESA CIMANGGU I").replace(/^pemerintah(an)?\s+/i, "")}
                                 </span>
                                 <span className="flex h-2 w-2 relative shrink-0">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>

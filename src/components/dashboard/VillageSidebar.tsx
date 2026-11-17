@@ -80,6 +80,7 @@ const SidebarThreeBackground = dynamic(
 );
 import { GlobalNotificationPanel } from "./GlobalNotificationPanel";
 import { getVillageDashboardStats } from "@/actions/village";
+import { detectUserPosyanduUnit } from "@/lib/posyandu";
 
 const adminDesaMenuGroups = [
   {
@@ -367,8 +368,8 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
           ${isHackerTheme 
             ? 'bg-transparent border-cyan-500/30 text-cyan-50 shadow-[0_0_30px_rgba(6,182,212,0.1)] border-r' 
             : role === 'POSYANDU' 
-            ? 'bg-gradient-to-b from-[#065f46] via-[#047857] to-[#0f766e] text-white shadow-2xl lg:rounded-tr-[3.5rem] lg:rounded-br-[2.5rem]' 
-            : 'bg-[#1d64ec] text-white shadow-2xl lg:rounded-tr-[3.5rem] lg:rounded-br-[2.5rem]'
+            ? 'bg-gradient-to-b from-[#065f46] via-[#047857] to-[#0f766e] text-white shadow-2xl lg:rounded-tr-[3.5rem]' 
+            : 'bg-[#1d64ec] text-white shadow-2xl lg:rounded-tr-[3.5rem]'
           }
         `}
       >
@@ -672,16 +673,16 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                 </AnimatePresence>
               </div>
 
-              {/* Group 5: Manajemen Sistem */}
+              {/* Group 5: Pengaturan & Profil */}
               <div>
                 <button
                   onClick={() => (!isCollapsed || isOpen) && toggleGroup("sistem")}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all group cursor-pointer text-white/80 hover:bg-white/10 hover:text-white font-medium ${isCollapsed && !isOpen ? "justify-center" : ""}`}
                 >
-                  <SlidersHorizontal size={20} className="shrink-0" />
+                  <Settings size={20} className="shrink-0" />
                   {(!isCollapsed || isOpen) && (
                     <>
-                      <span className="text-sm flex-1 text-left">Manajemen Sistem</span>
+                      <span className="text-sm flex-1 text-left">Pengaturan & Profil</span>
                       <ChevronDown
                         size={14}
                         className={`transition-transform duration-200 ${openGroup === "sistem" ? "rotate-180" : ""}`}
@@ -700,20 +701,20 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                     >
                       <div className="mt-1 ml-3 pl-3 border-l-2 border-white/20 space-y-1">
                         <Link
-                          href="/dashboard/settings?tab=user"
+                          href="/dashboard/settings?tab=profile"
                           onClick={() => setIsOpen(false)}
                           className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all text-sm text-white/70 hover:bg-white/10 hover:text-white font-medium"
                         >
-                          <UserCog size={16} />
-                          <span>Manajemen User</span>
+                          <UserCircle size={16} />
+                          <span>Profil Akun Kader</span>
                         </Link>
                         <Link
-                          href="/dashboard/settings"
+                          href="/dashboard/settings?tab=facesecurity"
                           onClick={() => setIsOpen(false)}
                           className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all text-sm text-white/70 hover:bg-white/10 hover:text-white font-medium"
                         >
-                          <Settings size={16} />
-                          <span>Pengaturan Sistem</span>
+                          <ShieldCheck size={16} />
+                          <span>Keamanan & Biometrik</span>
                         </Link>
                       </div>
                     </motion.div>
@@ -2113,29 +2114,63 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
         {/* STORAGE DETAILS / STATUS SISTEM WIDGET (Harmonized for Desktop) */}
         {(!isCollapsed || isOpen) && (
           <div className="px-4 py-3 mx-3 my-2 rounded-2xl bg-white/10 border border-white/15 text-white">
-            <span className="text-[10px] font-black uppercase tracking-wider text-white/70 block mb-2.5">
-              STATUS SISTEM DESA
-            </span>
-            {/* Server / Cloud Storage Bar */}
-            <div className="space-y-1 mb-2.5">
-              <div className="flex items-center justify-between text-[11px] font-medium text-white/90">
-                <span className="flex items-center gap-1.5"><Cloud size={13} className="text-white/80" /> Arsip Surat</span>
-                <span className="text-[10px] text-white/70 font-mono">24.5 MB / 1 GB</span>
+            {role === "POSYANDU" ? (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-emerald-200">
+                    STATUS DAPUR POSYANDU
+                  </span>
+                  <span className="flex h-2 w-2 relative shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
+                  </span>
+                </div>
+                <div className="space-y-1.5 text-xs text-white/90">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-white/70">Unit Aktif:</span>
+                    <span className="text-[11px] font-bold text-emerald-300 truncate max-w-[120px]">
+                      {detectUserPosyanduUnit(session?.user)?.name || "Posyandu Mawar"}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] text-white/70">Cakupan:</span>
+                    <span className="text-[10px] font-bold text-white/90">
+                      {detectUserPosyanduUnit(session?.user)?.rtDescription?.split("(")[0]?.trim() || "Semua RW"}
+                    </span>
+                  </div>
+                  <div className="pt-1.5 border-t border-white/10 flex items-center justify-between text-[10px] text-emerald-200/90 font-medium">
+                    <span>Sistem Realtime</span>
+                    <span className="font-bold text-emerald-300">Sinkron Aktif</span>
+                  </div>
+                </div>
               </div>
-              <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden">
-                <div className="h-full bg-white rounded-full w-[25%]" />
-              </div>
-            </div>
-            {/* Database Capacity Bar */}
-            <div className="space-y-1 mb-2">
-              <div className="flex items-center justify-between text-[11px] font-medium text-white/90">
-                <span className="flex items-center gap-1.5"><Database size={13} className="text-white/80" /> Basis Data Warga</span>
-                <span className="text-[10px] text-white/70 font-mono">1.2k / 10k</span>
-              </div>
-              <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden">
-                <div className="h-full bg-white rounded-full w-[12%]" />
-              </div>
-            </div>
+            ) : (
+              <>
+                <span className="text-[10px] font-black uppercase tracking-wider text-white/70 block mb-2.5">
+                  STATUS SISTEM DESA
+                </span>
+                {/* Server / Cloud Storage Bar */}
+                <div className="space-y-1 mb-2.5">
+                  <div className="flex items-center justify-between text-[11px] font-medium text-white/90">
+                    <span className="flex items-center gap-1.5"><Cloud size={13} className="text-white/80" /> Arsip Surat</span>
+                    <span className="text-[10px] text-white/70 font-mono">24.5 MB / 1 GB</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-white rounded-full w-[25%]" />
+                  </div>
+                </div>
+                {/* Database Capacity Bar */}
+                <div className="space-y-1 mb-2">
+                  <div className="flex items-center justify-between text-[11px] font-medium text-white/90">
+                    <span className="flex items-center gap-1.5"><Database size={13} className="text-white/80" /> Basis Data Warga</span>
+                    <span className="text-[10px] text-white/70 font-mono">1.2k / 10k</span>
+                  </div>
+                  <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden">
+                    <div className="h-full bg-white rounded-full w-[12%]" />
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
       </aside>

@@ -196,7 +196,7 @@ export function CampoSantoHero({ siteData, orgData, uiConfig }: CampoSantoHeroPr
                     </div>
                     {/* Pure Animated Gradient Text */}
                     <span className="font-black text-xs sm:text-sm tracking-widest uppercase bg-gradient-to-r from-yellow-300 via-amber-400 via-yellow-200 to-amber-300 bg-clip-text text-transparent animate-gradient-shift drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
-                        {siteData?.title || "DESA CIMANGGU I"}
+                        {(siteData?.title || "DESA CIMANGGU I").replace(/^pemerintah(an)?\s+/i, "")}
                     </span>
                 </button>
 

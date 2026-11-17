@@ -31,6 +31,15 @@ export function PosyanduLayananLansiaTab({ session, selectedPosyandu }: { sessio
 
   useEffect(() => {
     fetchData();
+
+    const handleRefresh = () => fetchData();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    const interval = setInterval(handleRefresh, 15000);
+
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      clearInterval(interval);
+    };
   }, [selectedPosyandu]);
 
   const handleTambah = async (record: any) => {

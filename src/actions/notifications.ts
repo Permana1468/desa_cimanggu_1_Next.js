@@ -215,6 +215,57 @@ export async function getLiveNotifications(): Promise<LiveNotification[]> {
       } catch (err) {
         console.warn("Notification error inventory query:", err);
       }
+
+      // F. Transaksi Anggaran & PMT Terbaru
+      try {
+        const recentAnggarans = await prisma.posyanduAnggaran.findMany({
+          where: { tenantId },
+          take: 3,
+          orderBy: { createdAt: "desc" }
+        });
+
+        for (const a of recentAnggarans) {
+          const nominalStr = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(a.jumlah);
+          notifications.push({
+            id: `anggaran-${a.id}`,
+            type: "posyandu",
+            title: `Dana ${a.jenisDana}: ${a.tipe === "PEMASUKAN" ? "Penerimaan" : "Penyaluran"}`,
+            description: `${nominalStr} (${a.posyanduName}) - ${a.keterangan || "Pencatatan dana posyandu"}.`,
+            time: new Date(a.createdAt).toISOString(),
+            read: false,
+            actionUrl: "/dashboard?tab=pmt",
+            badgeColor: a.tipe === "PEMASUKAN" ? "text-emerald-600 bg-emerald-50 border-emerald-200" : "text-amber-600 bg-amber-50 border-amber-200",
+            priority: "low"
+          });
+        }
+      } catch (err) {
+        console.warn("Notification error anggaran query:", err);
+      }
+
+      // G. Catatan Absensi Petugas & Kader Posyandu
+      try {
+        const recentAbsensi = await prisma.posyanduAbsensi.findMany({
+          where: { tenantId },
+          take: 3,
+          orderBy: { createdAt: "desc" }
+        });
+
+        for (const abs of recentAbsensi) {
+          notifications.push({
+            id: `absensi-${abs.id}`,
+            type: "posyandu",
+            title: `Kehadiran: ${abs.namaKader}`,
+            description: `Status: ${abs.status} (${abs.peran.replace(/_/g, " ")}) di ${abs.posyanduName}.`,
+            time: new Date(abs.createdAt).toISOString(),
+            read: false,
+            actionUrl: "/dashboard?tab=posyandu-jadwal",
+            badgeColor: abs.status === "HADIR" ? "text-emerald-600 bg-emerald-50 border-emerald-200" : "text-rose-600 bg-rose-50 border-rose-200",
+            priority: "low"
+          });
+        }
+      } catch (err) {
+        console.warn("Notification error absensi query:", err);
+      }
     }
 
     // 2. Administrasi Desa / Layanan Publik (Untuk role selain Posyandu murni)

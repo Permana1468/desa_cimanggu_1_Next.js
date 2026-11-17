@@ -97,8 +97,8 @@ export function useNotifications() {
     window.addEventListener("refresh-notifications", handleRefresh);
     window.addEventListener("focus", handleFocus);
 
-    // Realtime polling every 25 seconds
-    const interval = setInterval(fetchLive, 25000);
+    // Realtime polling every 12 seconds for immediate notification updates
+    const interval = setInterval(fetchLive, 12000);
 
     return () => {
       window.removeEventListener("refresh-notifications", handleRefresh);

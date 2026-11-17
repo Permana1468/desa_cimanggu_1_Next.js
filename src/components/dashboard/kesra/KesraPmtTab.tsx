@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Search, Loader2, Wallet, Plus, TrendingDown, TrendingUp, DollarSign } from "lucide-react";
 import { getPosyanduAnggarans, addPosyanduAnggaran, deletePosyanduAnggaran } from "@/actions/posyandu-baru";
 import { getPosyanduUnit } from "@/lib/posyandu";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 const JENIS_DANA = ["OPERASIONAL", "PMT", "INSENTIF_KADER", "LAINNYA"];
 const TIPE = ["PEMASUKAN", "PENGELUARAN"];
@@ -16,6 +17,15 @@ export function KesraPmtTab({ session, selectedPosyandu }: any) {
 
   useEffect(() => {
     fetchData();
+
+    const handleRefresh = () => fetchData();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    const interval = setInterval(handleRefresh, 15000);
+
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      clearInterval(interval);
+    };
   }, [selectedPosyandu]);
 
   async function fetchData() {
@@ -34,6 +44,7 @@ export function KesraPmtTab({ session, selectedPosyandu }: any) {
       setLoading(true);
       await deletePosyanduAnggaran(id);
       await fetchData();
+      triggerNotificationRefresh();
     }
   };
 
@@ -198,6 +209,7 @@ function ModalFormAnggaran({ onClose, onRefresh, selectedPosyandu }: any) {
     
     setLoading(false);
     onRefresh();
+    triggerNotificationRefresh();
     onClose();
   };
 

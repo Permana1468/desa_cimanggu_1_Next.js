@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { getRWsForPosyandu, getPosyanduUnit, detectUserPosyanduUnit, normalizeRwList } from "@/lib/posyandu";
+import { executePythonStuntingEngine, BalitaAnalysisInput, BalitaAnalysisResult } from "@/lib/pythonBridge";
 
 async function verifyPosyanduAccess(posyanduFilter?: string) {
     const session = await getServerSession(authOptions);
@@ -88,7 +89,8 @@ export async function getPosyanduBalita(posyanduFilter?: string) {
 
     return await prisma.posyanduBalita.findMany({
         where: whereClause,
-        orderBy: { namaLengkap: "asc" }
+        orderBy: { namaLengkap: "asc" },
+        take: 500
     });
 }
 
@@ -158,7 +160,8 @@ export async function getBalitaDetail(balitaId: string) {
         where: { id: balitaId, tenantId },
         include: {
             records: {
-                orderBy: { tanggal: 'desc' }
+                orderBy: { tanggal: 'desc' },
+                take: 36
             }
         }
     });
@@ -185,10 +188,39 @@ export async function getBalitaDetail(balitaId: string) {
         });
     }
 
+    // Hitung analisis antropometri AI Python (WHO Z-score, Laju Pertumbuhan & Proyeksi 60 hari)
+    const validRecords = (balita.records || []).filter(r => (r.beratBadan && r.beratBadan > 0) || (r.tinggiBadan && r.tinggiBadan > 0));
+    const latestRec = validRecords[0] || balita.records[0] || null;
+
+    let aiAnalysis: BalitaAnalysisResult | null = null;
+    try {
+        aiAnalysis = await executePythonStuntingEngine({
+            namaLengkap: balita.namaLengkap,
+            tanggalLahir: balita.tanggalLahir.toISOString(),
+            jenisKelamin: balita.jenisKelamin || citizenData?.jenisKelamin || "L",
+            beratBadan: latestRec?.beratBadan || 0,
+            tinggiBadan: latestRec?.tinggiBadan || 0,
+            lingkarKepala: latestRec?.lingkarKepala || undefined,
+            historyRecords: (balita.records || []).map(r => ({
+                tanggal: r.tanggal.toISOString(),
+                beratBadan: r.beratBadan || undefined,
+                tinggiBadan: r.tinggiBadan || undefined,
+            }))
+        });
+    } catch (e) {
+        console.warn("AI Stunting Engine execution fallback:", e);
+    }
+
     return {
         ...balita,
-        citizenData
+        citizenData,
+        aiAnalysis
     };
+}
+
+export async function analyzeBalitaGrowthAI(input: BalitaAnalysisInput): Promise<BalitaAnalysisResult> {
+    await verifyPosyanduAccess();
+    return await executePythonStuntingEngine(input);
 }
 
 // =======================
@@ -205,7 +237,8 @@ export async function getPosyanduIbuHamil(posyanduFilter?: string) {
 
     return await prisma.posyanduIbuHamil.findMany({
         where: whereClause,
-        orderBy: { namaLengkap: "asc" }
+        orderBy: { namaLengkap: "asc" },
+        take: 500
     });
 }
 
@@ -276,7 +309,8 @@ export async function getIbuHamilDetail(ibuHamilId: string) {
         where: { id: ibuHamilId, tenantId },
         include: {
             records: {
-                orderBy: { tanggal: 'desc' }
+                orderBy: { tanggal: 'desc' },
+                take: 36
             }
         }
     });
@@ -322,7 +356,8 @@ export async function getPosyanduLansia(posyanduFilter?: string) {
 
     return await prisma.posyanduLansia.findMany({
         where: whereClause,
-        orderBy: { namaLengkap: "asc" }
+        orderBy: { namaLengkap: "asc" },
+        take: 500
     });
 }
 
@@ -380,7 +415,8 @@ export async function getLansiaDetail(lansiaId: string) {
         where: { id: lansiaId, tenantId },
         include: {
             records: {
-                orderBy: { tanggal: 'desc' }
+                orderBy: { tanggal: 'desc' },
+                take: 36
             }
         }
     });
@@ -713,7 +749,8 @@ export async function getPosyanduRecords(kategori: "BALITA" | "IBU_HAMIL" | "LAN
             ibuHamil: true,
             lansia: true
         },
-        orderBy: { tanggal: "desc" }
+        orderBy: { tanggal: "desc" },
+        take: 200
     });
 }
 
@@ -841,7 +878,8 @@ export async function getPosyanduKehadirans(posyanduFilter?: string) {
 
     return await prisma.posyanduKehadiran.findMany({
         where: { tenantId },
-        orderBy: { tanggal: "desc" }
+        orderBy: { tanggal: "desc" },
+        take: 200
     });
 }
 

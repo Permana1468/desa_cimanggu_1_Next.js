@@ -18,6 +18,15 @@ export function PosyanduInventarisTab({ session, selectedPosyandu }: any) {
 
   useEffect(() => {
     fetchData();
+
+    const handleRefresh = () => fetchData();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    const interval = setInterval(handleRefresh, 15000);
+
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      clearInterval(interval);
+    };
   }, [selectedPosyandu]);
 
   async function fetchData() {

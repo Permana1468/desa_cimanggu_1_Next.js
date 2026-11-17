@@ -27,6 +27,15 @@ export function PosyanduAnalisisTab({ session, selectedPosyandu }: { session?: a
 
   useEffect(() => {
     fetchStats();
+
+    const handleRefresh = () => fetchStats();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    const interval = setInterval(handleRefresh, 15000);
+
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      clearInterval(interval);
+    };
   }, [selectedPosyandu]);
 
   if (loading) {

@@ -7,6 +7,10 @@ import Image from "next/image";
 import KodeRekeningSettingsTab from "./KodeRekeningSettingsTab";
 
 export default function SettingsClient({ user }: { user: any }) {
+    const role = user?.role;
+    const isAdmin = role === "ADMIN_DESA" || role === "ADMIN_MASTER" || role === "KADES";
+    const isKeuangan = role === "KAUR_KEUANGAN" || isAdmin;
+
     const [activeSection, setActiveSection] = useState<"profil" | "kependudukan" | "keamanan" | "integrasi-cloud" | "kode-rekening">("profil");
 
     // Profile State
@@ -170,18 +174,22 @@ export default function SettingsClient({ user }: { user: any }) {
                 >
                     <Lock size={18} /> Keamanan & Password
                 </button>
-                <button 
-                    onClick={() => setActiveSection("integrasi-cloud")}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeSection === "integrasi-cloud" ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
-                >
-                    <Cloud size={18} /> Integrasi Cloud
-                </button>
-                <button 
-                    onClick={() => setActiveSection("kode-rekening")}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeSection === "kode-rekening" ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
-                >
-                    <BookOpen size={18} /> Kode Rekening
-                </button>
+                {isAdmin && (
+                    <button 
+                        onClick={() => setActiveSection("integrasi-cloud")}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeSection === "integrasi-cloud" ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
+                    >
+                        <Cloud size={18} /> Integrasi Cloud
+                    </button>
+                )}
+                {(isAdmin || isKeuangan) && (
+                    <button 
+                        onClick={() => setActiveSection("kode-rekening")}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeSection === "kode-rekening" ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 hover:bg-slate-50 border border-slate-200'}`}
+                    >
+                        <BookOpen size={18} /> Kode Rekening
+                    </button>
+                )}
             </div>
 
             <div className="md:col-span-3">
@@ -383,7 +391,7 @@ export default function SettingsClient({ user }: { user: any }) {
                     </div>
                 )}
 
-                {activeSection === "integrasi-cloud" && (
+                {activeSection === "integrasi-cloud" && isAdmin && (
                     <div className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-200/60 shadow-sm animate-in fade-in zoom-in-95 duration-300">
                         <div className="flex items-center gap-4 mb-6">
                             <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
@@ -480,7 +488,7 @@ export default function SettingsClient({ user }: { user: any }) {
                         </form>
                     </div>
                 )}
-                {activeSection === "kode-rekening" && <KodeRekeningSettingsTab />}
+                {activeSection === "kode-rekening" && (isAdmin || isKeuangan) && <KodeRekeningSettingsTab />}
             </div>
         </div>
     );

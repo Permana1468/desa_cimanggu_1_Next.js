@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Search, Loader2, CalendarClock, Plus, CheckCircle2, UserX } from "lucide-react";
 import { getPosyanduAbsensi, addPosyanduAbsensi, deletePosyanduAbsensi } from "@/actions/posyandu-baru";
 import { getPosyanduUnit } from "@/lib/posyandu";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 const PERAN = ["KADER_POSYANDU", "BIDAN", "PETUGAS_PUSKESMAS", "LAINNYA"];
 const STATUS = ["HADIR", "IZIN", "SAKIT", "ALPA"];
@@ -16,6 +17,15 @@ export function PosyanduJadwalAbsensiTab({ session, selectedPosyandu }: any) {
 
   useEffect(() => {
     fetchData();
+
+    const handleRefresh = () => fetchData();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    const interval = setInterval(handleRefresh, 15000);
+
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      clearInterval(interval);
+    };
   }, [selectedPosyandu]);
 
   async function fetchData() {
@@ -34,6 +44,7 @@ export function PosyanduJadwalAbsensiTab({ session, selectedPosyandu }: any) {
       setLoading(true);
       await deletePosyanduAbsensi(id);
       await fetchData();
+      triggerNotificationRefresh();
     }
   };
 
@@ -175,6 +186,7 @@ function ModalFormAbsensi({ onClose, onRefresh, selectedPosyandu }: any) {
     
     setLoading(false);
     onRefresh();
+    triggerNotificationRefresh();
     onClose();
   };
 

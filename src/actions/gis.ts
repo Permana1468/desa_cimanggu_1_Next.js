@@ -3,6 +3,23 @@
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import * as turf from '@turf/turf';
+import { executeCppGeoEngine, GeoSpatialResult } from "@/lib/cppBridge";
+
+/**
+ * High-performance Geodesic Calculation powered by Native C++ Engine
+ * (Computes exact WGS84 ellipsoidal area, perimeter, and centroid)
+ */
+export async function calculateBoundaryMetricsCpp(coordinates: any): Promise<GeoSpatialResult> {
+  let parsedCoords = coordinates;
+  if (typeof coordinates === "string") {
+    try {
+      parsedCoords = JSON.parse(coordinates);
+    } catch {
+      parsedCoords = [];
+    }
+  }
+  return await executeCppGeoEngine(parsedCoords);
+}
 
 export async function getGisDashboardStats(tenantId: string) {
   try {

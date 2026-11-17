@@ -277,7 +277,7 @@ export function DesktopParallaxLanding({
                     <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                             <span className="text-white font-black text-base xl:text-lg tracking-tight uppercase drop-shadow-[0_2px_10px_rgba(0,0,0,0.8)]">
-                                {siteData?.title || "DESA CIMANGGU I"}
+                                {(siteData?.title || "DESA CIMANGGU I").replace(/^pemerintah(an)?\s+/i, "")}
                             </span>
                             <span className="flex h-2 w-2 relative shrink-0">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>

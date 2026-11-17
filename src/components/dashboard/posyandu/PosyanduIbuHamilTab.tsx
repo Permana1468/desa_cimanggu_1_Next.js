@@ -143,6 +143,15 @@ export function PosyanduIbuHamilTab({ session, selectedPosyandu }: { session?: a
 
   useEffect(() => {
     fetchData();
+
+    const handleRefresh = () => fetchData();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    const interval = setInterval(handleRefresh, 15000);
+
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      clearInterval(interval);
+    };
   }, [selectedPosyandu]);
 
   const handleToggleRisiko = async (id: string, currentStatus: boolean) => {

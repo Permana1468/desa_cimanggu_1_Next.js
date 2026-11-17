@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import {
   Plus, Search, Baby, Trash2, CheckCircle2, Eye, QrCode, Printer,
   X, Calendar, User, MapPin, Activity, ShieldAlert, Sparkles, Clock,
-  FileText, HeartPulse, ChevronRight, Stethoscope, Award, Phone
+  FileText, HeartPulse, ChevronRight, Stethoscope, Award, Phone,
+  Cpu, TrendingUp, AlertCircle
 } from "lucide-react";
 import {
   getPosyanduBalita, addPosyanduBalita, updatePosyanduBalitaStatus,
@@ -151,6 +152,15 @@ export function PosyanduBalitaTab({ session, selectedPosyandu }: { session?: any
 
   useEffect(() => {
     fetchData();
+
+    const handleRefresh = () => fetchData();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    const interval = setInterval(handleRefresh, 15000);
+
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      clearInterval(interval);
+    };
   }, [selectedPosyandu]);
 
   const handleToggleStunting = async (id: string, currentStatus: boolean) => {
@@ -357,7 +367,7 @@ export function PosyanduBalitaTab({ session, selectedPosyandu }: { session?: any
 function ModalDetailBalita({ balitaId, onClose, onOpenCetakKartu }: { balitaId: string; onClose: () => void; onOpenCetakKartu: (balita: any) => void }) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"profil" | "penimbangan" | "imunisasi">("profil");
+  const [activeTab, setActiveTab] = useState<"profil" | "penimbangan" | "imunisasi" | "ai">("profil");
 
   useEffect(() => {
     async function loadDetail() {
@@ -474,6 +484,16 @@ function ModalDetailBalita({ balitaId, onClose, onOpenCetakKartu }: { balitaId: 
           >
             <Stethoscope size={14} /> Imunisasi & Vitamin
           </button>
+          <button
+            onClick={() => setActiveTab("ai")}
+            className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all cursor-pointer border-b-2 whitespace-nowrap flex items-center gap-1.5 ${
+              activeTab === "ai"
+                ? "bg-white text-emerald-600 border-emerald-500 shadow-xs"
+                : "text-slate-500 hover:text-slate-700 border-transparent"
+            }`}
+          >
+            <Sparkles size={14} className="text-amber-500 animate-pulse" /> 🧠 Analisis AI Python
+          </button>
         </div>
 
         {/* Tab Body Contents */}
@@ -506,6 +526,34 @@ function ModalDetailBalita({ balitaId, onClose, onOpenCetakKartu }: { balitaId: 
                     <p className="text-lg font-black text-slate-800">{latestRecord?.lingkarKepala ? `${latestRecord.lingkarKepala} cm` : "-"}</p>
                   </div>
                 </div>
+
+                {/* AI Insight Quick Preview */}
+                {data.aiAnalysis && (
+                  <div className="p-3.5 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white rounded-2xl flex items-center justify-between gap-3 shadow-md border border-emerald-500/30">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 shrink-0">
+                        <Sparkles size={17} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-[10px] font-mono text-emerald-300 font-bold uppercase">AI WHO Engine</span>
+                          <span className="px-1.5 py-0.2 rounded text-[9px] font-extrabold bg-white/20 text-white">
+                            Z-Score: {data.aiAnalysis.antropometri?.zScoreHAZ?.toFixed?.(2) ?? data.aiAnalysis.antropometri?.zScoreHAZ} SD
+                          </span>
+                        </div>
+                        <p className="text-xs font-semibold text-white truncate mt-0.5">
+                          Proyeksi: <span className={data.aiAnalysis.isStunted ? "text-red-300 font-black" : "text-emerald-300 font-black"}>{data.aiAnalysis.proyeksiRisiko60Hari}</span> • {data.aiAnalysis.growthTrend}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setActiveTab("ai")}
+                      className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black shrink-0 transition-all cursor-pointer shadow-sm active:scale-95 flex items-center gap-1"
+                    >
+                      Buka AI <ChevronRight size={13} />
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Data Informasi Balita */}
@@ -631,6 +679,118 @@ function ModalDetailBalita({ balitaId, onClose, onOpenCetakKartu }: { balitaId: 
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {activeTab === "ai" && (
+            <div className="space-y-4">
+              {data.aiAnalysis ? (
+                <>
+                  {/* Engine Badge */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 p-3.5 bg-slate-900 text-white rounded-2xl border border-slate-800 shadow-md">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-400 shrink-0">
+                        <Cpu size={18} />
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 font-mono uppercase tracking-wider block">MESIN KOMPUTASI CERDAS</span>
+                        <h5 className="text-xs font-black text-white">{data.aiAnalysis.engine}</h5>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                      {data.aiAnalysis.executionMode === "PYTHON_NATIVE" ? "⚡ Python 3 Native" : "🛡️ TypeScript Safe Fallback"}
+                    </span>
+                  </div>
+
+                  {/* Z-Scores Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-4 bg-gradient-to-br from-teal-50 to-emerald-50/70 rounded-2xl border border-teal-200/70 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-extrabold uppercase text-teal-800">Tinggi Badan / Usia (TB/U)</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                          data.aiAnalysis.isStunted ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"
+                        }`}>
+                          {data.aiAnalysis.statusStunting}
+                        </span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-black text-slate-800">
+                          {data.aiAnalysis.antropometri?.zScoreHAZ >= 0 ? `+${data.aiAnalysis.antropometri?.zScoreHAZ}` : data.aiAnalysis.antropometri?.zScoreHAZ}
+                        </span>
+                        <span className="text-xs text-slate-500 font-bold">SD (WHO Z-Score)</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600">
+                        TB Terukur: <strong>{data.aiAnalysis.antropometri?.tinggiBadan} cm</strong> (Median WHO: {data.aiAnalysis.antropometri?.medianIdealTB} cm)
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-gradient-to-br from-indigo-50 to-blue-50/70 rounded-2xl border border-indigo-200/70 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-extrabold uppercase text-indigo-800">Berat Badan / Usia (BB/U)</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-blue-100 text-blue-700">
+                          {data.aiAnalysis.statusBeratBadan}
+                        </span>
+                      </div>
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-3xl font-black text-slate-800">
+                          {data.aiAnalysis.antropometri?.zScoreWAZ >= 0 ? `+${data.aiAnalysis.antropometri?.zScoreWAZ}` : data.aiAnalysis.antropometri?.zScoreWAZ}
+                        </span>
+                        <span className="text-xs text-slate-500 font-bold">SD (WHO Z-Score)</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600">
+                        BB Terukur: <strong>{data.aiAnalysis.antropometri?.beratBadan} kg</strong> (Median WHO: {data.aiAnalysis.antropometri?.medianIdealBB} kg)
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Growth Trajectory & 60-Day Risk */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                      <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">TRAJEKTORI PERTUMBUHAN</span>
+                      <p className="text-sm font-black text-slate-800 flex items-center gap-1.5">
+                        <TrendingUp size={16} className="text-teal-600" /> {data.aiAnalysis.growthTrend}
+                      </p>
+                    </div>
+                    <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 space-y-1">
+                      <span className="text-[10px] text-slate-400 font-extrabold uppercase tracking-wider block">PROYEKSI RISIKO 60 HARI</span>
+                      <p className={`text-sm font-black flex items-center gap-1.5 ${
+                        data.aiAnalysis.proyeksiRisiko60Hari === "SANGAT_TINGGI" || data.aiAnalysis.proyeksiRisiko60Hari === "TINGGI"
+                          ? "text-red-600"
+                          : data.aiAnalysis.proyeksiRisiko60Hari === "SEDANG"
+                          ? "text-amber-600"
+                          : "text-emerald-600"
+                      }`}>
+                        <ShieldAlert size={16} /> RISIKO {data.aiAnalysis.proyeksiRisiko60Hari}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Localized PMT Nutritional Recommendations */}
+                  <div className="p-4 bg-amber-50/70 rounded-2xl border border-amber-200/90 space-y-2">
+                    <h5 className="text-xs font-extrabold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                      <Sparkles size={14} className="text-amber-600" /> Rekomendasi Menu PMT & Intervensi Lokal Desa Cimanggu I
+                    </h5>
+                    <ul className="space-y-1.5 text-xs text-slate-700">
+                      {data.aiAnalysis.rekomendasiPMT?.map((rec: string, idx: number) => (
+                        <li key={idx} className="flex items-start gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                          <span>{rec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Narrative Conclusion */}
+                  <div className="p-4 bg-teal-50/60 rounded-2xl border border-teal-100 text-xs text-teal-900 leading-relaxed">
+                    <span className="font-extrabold block mb-1 uppercase tracking-wider text-teal-800">Kesimpulan Diagnostik:</span>
+                    {data.aiAnalysis.kesimpulan}
+                  </div>
+                </>
+              ) : (
+                <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                  <p className="text-xs text-slate-500">Data pengukuran belum mencukupi untuk menjalankan analisis AI.</p>
+                </div>
+              )}
             </div>
           )}
 

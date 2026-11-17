@@ -86,7 +86,31 @@ function PosyanduDashboardContent({ session }: any) {
   };
 
   useEffect(() => {
-    if (activeTab === "overview") fetchStats();
+    if (activeTab === "overview") {
+      fetchStats();
+
+      // Realtime polling and cross-tab update listener
+      const interval = setInterval(() => {
+        getPosyanduDashboardStats(selectedPosyandu).then(data => {
+          if (data) setStats(data);
+        }).catch(err => console.error("Silent stats refresh error:", err));
+      }, 12000);
+
+      const handleRefresh = () => {
+        getPosyanduDashboardStats(selectedPosyandu).then(data => {
+          if (data) setStats(data);
+        }).catch(err => console.error("Event stats refresh error:", err));
+      };
+
+      window.addEventListener("refresh-notifications", handleRefresh);
+      window.addEventListener("focus", handleRefresh);
+
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener("refresh-notifications", handleRefresh);
+        window.removeEventListener("focus", handleRefresh);
+      };
+    }
   }, [activeTab, selectedPosyandu]);
 
   const handleExport = async () => {

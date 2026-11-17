@@ -186,7 +186,7 @@ model User {
   sensusVerified SensusPoint[] @relation("SensusVerifier")
 
   // WebAuthn
-  currentChallenge String? // Temporary challenge for WebAuthn Registration/Auth
+  currentChallenge    String? // Temporary challenge for WebAuthn Registration/Auth
   webauthnCredentials WebAuthnCredential[]
 
   @@index([tenantId, role])
@@ -196,18 +196,18 @@ model User {
 }
 
 model WebAuthnCredential {
-  id              String   @id @default(uuid())
-  userId          String
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  credentialID    String   @unique
-  credentialPublicKey Bytes
-  counter         BigInt
+  id                   String   @id @default(uuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialID         String   @unique
+  credentialPublicKey  Bytes
+  counter              BigInt
   credentialDeviceType String
-  credentialBackedUp Boolean
-  transports      String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
+  credentialBackedUp   Boolean
+  transports           String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
   @@index([userId])
 }
 
@@ -282,7 +282,7 @@ model DataKependudukan {
   dusun   String
 
   // Status Kependudukan & Sinkronisasi Fisik
-  statusKependudukan String?  @default("AKTIF") // AKTIF, MUTASI_PENDING, MENINGGAL, PINDAH_KELUAR
+  statusKependudukan String? @default("AKTIF") // AKTIF, MUTASI_PENDING, MENINGGAL, PINDAH_KELUAR
   keteranganStatus   String?
 
   tenantId String
@@ -432,29 +432,29 @@ model VillageProfile {
   about_text  String? @db.Text
   about_image String?
 
-  visi         String?  @db.Text
-  misi         Json? // Array of strings
-  sejarah      String?  @db.Text
+  visi           String? @db.Text
+  misi           Json? // Array of strings
+  sejarah        String? @db.Text
   sambutan_kades String? @db.Text
   kontak_telepon String?
   kontak_email   String?
   kontak_alamat  String? @db.Text
-  luasWilayah  String?
-  batasUtara   String?
-  batasSelatan String?
-  batasTimur   String?
-  batasBarat   String?
-  gallery      Json? // Array of URLs
-  galeri       Json? // Array of string URLs
-  
+  luasWilayah    String?
+  batasUtara     String?
+  batasSelatan   String?
+  batasTimur     String?
+  batasBarat     String?
+  gallery        Json? // Array of URLs
+  galeri         Json? // Array of string URLs
+
   // Right Info Widgets
   agenda_title     String?
   agenda_date      String?
   pengumuman_title String?
   pengumuman_link  String?
   local_events     Json?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model BumdesFinancial {
@@ -1213,6 +1213,7 @@ model PosyanduRecord {
   @@index([balitaId])
   @@index([ibuHamilId])
   @@index([lansiaId])
+  @@index([tenantId, tanggal])
 }
 
 model PosyanduJadwal {
