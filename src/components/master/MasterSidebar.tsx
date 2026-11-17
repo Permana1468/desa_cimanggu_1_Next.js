@@ -28,7 +28,8 @@ import {
   MessageCircle,
   Wrench,
   Activity,
-  HardDrive
+  HardDrive,
+  Plus
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -132,9 +133,22 @@ export const MasterSidebar = ({
           </button>
         </div>
 
+        {/* ACTION PILL BUTTON (MIRRORS ADMIN DESA '+ BUAT SURAT BARU' ACTION BUTTON) */}
+        {(!isCollapsed || isOpen) && (
+          <div className="px-4 pt-3 pb-1">
+            <Link
+              href="/master-admin/pengguna-sistem"
+              className="w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-blue-600 rounded-full font-black text-xs uppercase tracking-wider shadow-md hover:shadow-lg flex items-center justify-center gap-2 transition-all active:scale-95"
+            >
+              <Plus size={16} className="stroke-[3]" />
+              <span>KELOLA PENGGUNA</span>
+            </Link>
+          </div>
+        )}
+
         {/* TENANT SWITCHER (FOR COMPACT / MOBILE / EXPANDED) */}
         {(!isCollapsed || isOpen) && (
-          <div className="px-4 pt-4 pb-2">
+          <div className="px-4 pt-2 pb-2">
             <div className="p-1 rounded-2xl bg-white/5 border border-white/5 shadow-inner">
               <TenantSwitcher tenants={tenants} />
             </div>
@@ -213,7 +227,7 @@ export const MasterSidebar = ({
                 </span>
               </div>
               
-              <div className="space-y-1 text-[11px] text-slate-300">
+              <div className="space-y-1.5 pt-1 text-[11px] text-slate-300">
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Infrastruktur:</span>
                   <span className="font-bold text-emerald-400">C++ & Python Aktif</span>
@@ -221,6 +235,28 @@ export const MasterSidebar = ({
                 <div className="flex items-center justify-between">
                   <span className="text-slate-400">Node Engine:</span>
                   <span className="font-mono text-[10px] text-blue-300">v2.0 (Turbopack)</span>
+                </div>
+              </div>
+
+              {/* Real-time status progress indicators (Exact match to Village Admin Status Bar) */}
+              <div className="space-y-2 pt-2 border-t border-white/10 text-[10px]">
+                <div>
+                  <div className="flex justify-between text-slate-400 font-bold mb-1">
+                    <span>Kapasitas Memori</span>
+                    <span className="text-emerald-400 font-mono">Stabil</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-400 rounded-full w-[45%]" />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex justify-between text-slate-400 font-bold mb-1">
+                    <span>Sampah Cache</span>
+                    <span className="text-blue-300 font-mono">Terkontrol</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-400 rounded-full w-[28%]" />
+                  </div>
                 </div>
               </div>
             </div>

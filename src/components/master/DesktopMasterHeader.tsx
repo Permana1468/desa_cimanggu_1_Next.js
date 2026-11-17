@@ -244,3 +244,4 @@ export function DesktopMasterHeader({ session, tenants = [], onOpenNotif }: Desk
     </header>
   );
 }
+

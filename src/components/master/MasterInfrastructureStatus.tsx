@@ -1,10 +1,16 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { Server, Database, Zap, Cpu, CheckCircle2, AlertCircle } from "lucide-react";
 import { getRealtimeSystemHealth, SystemHealthData } from "@/actions/systemMonitor";
 
 export function MasterInfrastructureStatus() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { data: health, isLoading } = useSWR<SystemHealthData>(
     "master-realtime-infra-status", 
     getRealtimeSystemHealth, 
@@ -74,11 +80,11 @@ export function MasterInfrastructureStatus() {
                 <CheckCircle2 size={18} />
             </div>
             <div className="min-w-0">
-                <span className="text-slate-900 text-xs font-black block truncate">
-                  Node Linux ({health?.cpu?.cores || 1} Cores) • Node {health?.nodeVersion || process.version}
+                <span className="text-slate-900 text-xs font-black block truncate" suppressHydrationWarning>
+                  Node Linux ({mounted && health?.cpu?.cores ? health.cpu.cores : 1} Cores) • Node {mounted && health?.nodeVersion ? health.nodeVersion : "v20 LTS"}
                 </span>
-                <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider block">
-                  Uptime: {health?.serverUptimeHours || 0} Jam • Server Aktif
+                <span className="text-slate-400 text-[10px] uppercase font-bold tracking-wider block" suppressHydrationWarning>
+                  Uptime: {mounted && health?.serverUptimeHours ? health.serverUptimeHours : 0} Jam • Server Aktif
                 </span>
             </div>
         </div>
