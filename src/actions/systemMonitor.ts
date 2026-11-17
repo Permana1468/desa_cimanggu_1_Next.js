@@ -33,8 +33,8 @@ export interface SystemHealthData {
     totalBytes: number;
     totalMb: number;
     cacheDirBytes: number;
-    devArtifactsBytes: number;
     diagnosticsBytes: number;
+    devLogsBytes: number;
     formatted: string;
     isHeavy: boolean;
   };
@@ -78,11 +78,16 @@ function formatBytes(bytes: number): string {
   if (mb >= 1024) {
     return `${(mb / 1024).toFixed(2)} GB`;
   }
+  if (mb < 0.1) {
+    const kb = Math.round(bytes / 1024);
+    return `${kb} KB`;
+  }
   return `${mb.toFixed(1)} MB`;
 }
 
 /**
  * Fetch real-time system resource & cache health metrics
+ * (Accurately measures true cache, excluding active code chunks)
  */
 export async function getRealtimeSystemHealth(): Promise<SystemHealthData> {
   const memUsage = process.memoryUsage();
@@ -92,27 +97,30 @@ export async function getRealtimeSystemHealth(): Promise<SystemHealthData> {
   const osUsagePercent = Math.round((usedMem / totalMem) * 100);
 
   const cachePath = path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "cache");
-  const devPath = path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "dev");
   const diagnosticsPath = path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "diagnostics");
+  const devLogsPath = path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "dev", "logs");
 
   const cacheDirBytes = getDirectorySize(cachePath);
-  const devArtifactsBytes = getDirectorySize(devPath);
   const diagnosticsBytes = getDirectorySize(diagnosticsPath);
+  const devLogsBytes = getDirectorySize(devLogsPath);
 
-  const totalGarbageBytes = cacheDirBytes + devArtifactsBytes + diagnosticsBytes;
-  const totalGarbageMb = Number((totalGarbageBytes / (1024 * 1024)).toFixed(1));
+  // True disposable garbage: compilation cache + diagnostics + dev logs
+  const totalGarbageBytes = cacheDirBytes + diagnosticsBytes + devLogsBytes;
+  const totalGarbageMb = Number((totalGarbageBytes / (1024 * 1024)).toFixed(2));
 
   // Determine load level and warning
   let loadLevel: "HEALTHY" | "WARNING" | "CRITICAL" = "HEALTHY";
   let warningMessage = undefined;
 
-  const isMemoryHigh = osUsagePercent >= 85 || (memUsage.heapUsed / (1024 * 1024)) > 1500;
-  const isCacheHeavy = totalGarbageMb > 500;
+  const isMemoryCritical = osUsagePercent >= 90 || (memUsage.heapUsed / (1024 * 1024)) > 2048;
+  const isMemoryWarning = osUsagePercent >= 75 || (memUsage.heapUsed / (1024 * 1024)) > 1200;
+  const isCacheCritical = totalGarbageMb > 500;
+  const isCacheWarning = totalGarbageMb > 150;
 
-  if (isMemoryHigh || totalGarbageMb > 1000) {
+  if (isMemoryCritical || isCacheCritical) {
     loadLevel = "CRITICAL";
     warningMessage = `Beban sistem tergolong TINGGI! Sampah cache mencapai ${formatBytes(totalGarbageBytes)} dan penggunaan RAM ${osUsagePercent}%. Segera bersihkan cache untuk membebaskan ruang kerja server.`;
-  } else if (osUsagePercent >= 70 || totalGarbageMb > 250) {
+  } else if (isMemoryWarning || isCacheWarning) {
     loadLevel = "WARNING";
     warningMessage = `Sampah cache mulai menumpuk (${formatBytes(totalGarbageBytes)}). Disarankan melakukan pembersihan berkala agar performa kompilasi & rendering tetap optimal.`;
   }
@@ -145,10 +153,10 @@ export async function getRealtimeSystemHealth(): Promise<SystemHealthData> {
       totalBytes: totalGarbageBytes,
       totalMb: totalGarbageMb,
       cacheDirBytes,
-      devArtifactsBytes,
       diagnosticsBytes,
+      devLogsBytes,
       formatted: formatBytes(totalGarbageBytes),
-      isHeavy: isCacheHeavy,
+      isHeavy: isCacheCritical || isCacheWarning,
     },
     serverUptimeHours: Number((os.uptime() / 3600).toFixed(1)),
     nodeVersion: process.version,
@@ -156,7 +164,7 @@ export async function getRealtimeSystemHealth(): Promise<SystemHealthData> {
 }
 
 /**
- * One-Click System Cache & Garbage Purge Action
+ * One-Click System Cache & Garbage Purge Action (Safe Version)
  */
 export async function purgeSystemCacheAction(): Promise<{
   success: boolean;
@@ -171,31 +179,37 @@ export async function purgeSystemCacheAction(): Promise<{
     }
 
     const cachePath = path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "cache");
-    const devPath = path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "dev");
     const diagnosticsPath = path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "diagnostics");
+    const devLogsPath = path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "dev", "logs");
 
-    const beforeBytes = getDirectorySize(cachePath) + getDirectorySize(devPath) + getDirectorySize(diagnosticsPath);
+    const beforeBytes = getDirectorySize(cachePath) + getDirectorySize(diagnosticsPath) + getDirectorySize(devLogsPath);
 
-    // Safely remove cache files
-    const targets = [cachePath, devPath, diagnosticsPath];
+    // Safely remove cache files without deleting active code chunks
+    const targets = [cachePath, diagnosticsPath, devLogsPath];
     for (const target of targets) {
       if (fs.existsSync(target)) {
         try {
-          fs.rmSync(target, { recursive: true, force: true });
-          // Re-create empty directory so next builds don't fail
-          fs.mkdirSync(target, { recursive: true });
+          const files = fs.readdirSync(target);
+          for (const f of files) {
+            const p = path.join(target, f);
+            try {
+              fs.rmSync(p, { recursive: true, force: true });
+            } catch {}
+          }
         } catch (err: any) {
-          console.warn(`Could not fully remove ${target}:`, err.message);
+          console.warn(`Could not fully clear ${target}:`, err.message);
         }
       }
     }
 
-    const afterBytes = getDirectorySize(cachePath) + getDirectorySize(devPath) + getDirectorySize(diagnosticsPath);
+    const afterBytes = getDirectorySize(cachePath) + getDirectorySize(diagnosticsPath) + getDirectorySize(devLogsPath);
     const freedBytes = Math.max(0, beforeBytes - afterBytes);
 
     // Trigger V8 Garbage Collection if flag is enabled
     if (typeof (global as any).gc === "function") {
-      (global as any).gc();
+      try {
+        (global as any).gc();
+      } catch {}
     }
 
     // Record in Audit Log
@@ -214,7 +228,7 @@ export async function purgeSystemCacheAction(): Promise<{
         },
       });
     } catch {
-      // Ignore audit log error if db unavailable
+      // Ignore audit log error
     }
 
     revalidatePath("/master-admin/stats");
@@ -236,4 +250,3 @@ export async function purgeSystemCacheAction(): Promise<{
     };
   }
 }
-

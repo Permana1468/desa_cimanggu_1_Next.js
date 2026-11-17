@@ -12,10 +12,12 @@ import {
   Activity, 
   Sparkles, 
   Database,
-  Layers,
-  ShieldAlert
+  ShieldAlert,
+  Zap,
+  Sliders,
+  Check
 } from "lucide-react";
-import { getRealtimeSystemHealth, purgeSystemCacheAction, SystemHealthData } from "@/actions/systemMonitor";
+import { getRealtimeSystemHealth, SystemHealthData } from "@/actions/systemMonitor";
 import toast from "react-hot-toast";
 
 interface SystemHealthCacheManagerProps {
@@ -24,13 +26,14 @@ interface SystemHealthCacheManagerProps {
 
 export function SystemHealthCacheManager({ initialData }: SystemHealthCacheManagerProps) {
   const [cleaning, setCleaning] = useState(false);
+  const [cleanMode, setCleanMode] = useState<"SAFE" | "DEEP">("SAFE");
 
   const { data: health, mutate, isLoading } = useSWR<SystemHealthData>(
     "realtime-system-health",
     getRealtimeSystemHealth,
     {
       fallbackData: initialData,
-      refreshInterval: 6000, // Refresh automatically every 6 seconds
+      refreshInterval: 5000, // Refresh automatically every 5 seconds
       revalidateOnFocus: true,
     }
   );
@@ -38,16 +41,26 @@ export function SystemHealthCacheManager({ initialData }: SystemHealthCacheManag
   const handlePurgeCache = async () => {
     setCleaning(true);
     const toastId = toast.loading("Membersihkan cache & sampah sistem...");
+    
     try {
-      const res = await purgeSystemCacheAction();
-      if (res.success) {
-        toast.success(res.message, { id: toastId, duration: 4000 });
-        await mutate(); // Refresh real-time numbers immediately
+      // Use dedicated API endpoint for rock-solid stability and zero chunk-collision
+      const res = await fetch("/api/admin/purge-cache", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: cleanMode })
+      });
+
+      const json = await res.json();
+
+      if (res.ok && json.success) {
+        toast.success(json.message || "Cache berhasil dibersihkan!", { id: toastId, duration: 4000 });
+        await mutate(); // Refresh real-time metrics immediately
       } else {
-        toast.error(res.message, { id: toastId });
+        toast.error(json.message || "Gagal membersihkan cache.", { id: toastId });
       }
     } catch (err: any) {
-      toast.error(err.message || "Gagal membersihkan cache", { id: toastId });
+      console.error("Cache purge error:", err);
+      toast.error(err.message || "Gagal memproses pembersihan.", { id: toastId });
     } finally {
       setCleaning(false);
     }
@@ -57,9 +70,9 @@ export function SystemHealthCacheManager({ initialData }: SystemHealthCacheManag
   const isCritical = loadLevel === "CRITICAL";
   const isWarning = loadLevel === "WARNING";
 
-  // Cache percentage against 1024 MB (1 GB threshold)
+  // Cache percentage against 500 MB threshold
   const cacheMb = health?.cacheGarbage.totalMb || 0;
-  const cachePercent = Math.min(100, Math.round((cacheMb / 1024) * 100));
+  const cachePercent = Math.min(100, Math.round((cacheMb / 500) * 100));
 
   return (
     <div className="bg-slate-900/95 backdrop-blur-xl rounded-[2.5rem] p-6 md:p-8 text-white border border-slate-800 shadow-2xl relative overflow-hidden group">
@@ -85,7 +98,7 @@ export function SystemHealthCacheManager({ initialData }: SystemHealthCacheManag
             <HardDrive size={22} />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h3 className="text-xl font-black text-white tracking-tight">System Resource & Cache Collector</h3>
               <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
                 isCritical
@@ -104,21 +117,50 @@ export function SystemHealthCacheManager({ initialData }: SystemHealthCacheManag
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-3 self-end md:self-center">
+        <div className="flex items-center gap-3 self-end md:self-center flex-wrap">
+          {/* Mode Selector Pill */}
+          <div className="bg-slate-950/70 p-1 rounded-xl border border-slate-800 flex items-center text-[10px] font-bold">
+            <button
+              type="button"
+              onClick={() => setCleanMode("SAFE")}
+              className={`px-3 py-1.5 rounded-lg transition-all ${
+                cleanMode === "SAFE" 
+                  ? "bg-blue-600 text-white shadow-xs" 
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Mode Aman
+            </button>
+            <button
+              type="button"
+              onClick={() => setCleanMode("DEEP")}
+              className={`px-3 py-1.5 rounded-lg transition-all ${
+                cleanMode === "DEEP" 
+                  ? "bg-indigo-600 text-white shadow-xs" 
+                  : "text-slate-400 hover:text-white"
+              }`}
+            >
+              Pembersihan Total
+            </button>
+          </div>
+
           <button
+            type="button"
             onClick={() => mutate()}
             disabled={isLoading}
-            title="Refresh Status"
+            title="Refresh Status Realtime"
             className="p-3 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-all active:scale-95"
           >
             <RefreshCw size={16} className={isLoading ? "animate-spin text-blue-400" : ""} />
           </button>
+
           <button
+            type="button"
             onClick={handlePurgeCache}
             disabled={cleaning}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg transition-all active:scale-95 ${
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs font-black uppercase tracking-wider shadow-lg transition-all active:scale-95 disabled:opacity-50 ${
               isCritical
-                ? "bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-rose-600/30 animate-pulse"
+                ? "bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-rose-600/30"
                 : isWarning
                 ? "bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white shadow-amber-600/30"
                 : "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-600/30"
@@ -171,14 +213,17 @@ export function SystemHealthCacheManager({ initialData }: SystemHealthCacheManag
             </div>
             <div className="flex justify-between text-[10px] text-slate-500 font-mono">
               <span>0 MB</span>
-              <span>Ambang Batas: 1 GB</span>
+              <span>Ambang Batas: 500 MB</span>
             </div>
           </div>
 
           <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
-            <span>Cache / Dev / Temp:</span>
-            <span className="font-mono text-slate-300">
-              {health?.cacheGarbage.totalMb || 0} MB
+            <span>Status Cache:</span>
+            <span className={`font-semibold flex items-center gap-1 ${
+              (health?.cacheGarbage.totalMb || 0) < 100 ? "text-emerald-400" : "text-amber-400"
+            }`}>
+              <CheckCircle2 size={12} />
+              {(health?.cacheGarbage.totalMb || 0) < 100 ? "Bersih & Ringan" : "Perlu Dibersihkan"}
             </span>
           </div>
         </div>
@@ -248,4 +293,3 @@ export function SystemHealthCacheManager({ initialData }: SystemHealthCacheManag
     </div>
   );
 }
-
