@@ -235,14 +235,16 @@ export default function BukuTamuPage() {
               table-layout: fixed !important;
               border-collapse: collapse !important;
               page-break-inside: auto !important;
-              font-size: 11px !important;
+              font-size: 10px !important;
+              border: 1px solid #475569 !important;
             }
             #print-area-buku-tamu th,
             #print-area-buku-tamu td {
-              border: 1px solid black !important;
+              border: 1px solid #475569 !important;
               word-break: break-word !important;
               overflow-wrap: break-word !important;
-              padding: 4px 6px !important;
+              padding: 3px 4px !important;
+              line-height: 1.2 !important;
             }
             #print-area-buku-tamu tr {
               page-break-inside: avoid !important;
@@ -659,19 +661,19 @@ export default function BukuTamuPage() {
         </AnimatePresence>
       </div>
 
-      {/* Area Cetak Laporan Terisolasi F4 Landscape (Presisi 8 Kolom Resmi Puskesos) */}
+      {/* Area Cetak Laporan Terisolasi F4 & Multi-Format (Presisi 8 Kolom Resmi Puskesos) */}
       <div id="print-area-buku-tamu" className="hidden print:block p-4 bg-white text-black font-sans w-full">
         {/* Kop Surat Header Puskesos */}
-        <div className="flex items-center justify-between border-b-4 border-double border-black pb-3 mb-2">
+        <div className="flex items-center justify-between border-b-2 border-double border-slate-800 pb-2 mb-2">
           <div className="w-[85px] flex items-center justify-center">
             <img src="/images/PUSKESOS-1.png" alt="Logo Puskesos" className="w-[85px] h-auto object-contain" />
           </div>
           <div className="flex-1 text-center font-serif leading-tight">
-            <h2 className="text-[14px] font-semibold uppercase tracking-wide text-gray-800">PEMERINTAH KABUPATEN BOGOR</h2>
-            <h3 className="text-[14px] font-semibold uppercase tracking-wide text-gray-800">KECAMATAN CIBUNGBULANG</h3>
-            <h3 className="text-[15px] font-bold uppercase tracking-wide text-gray-900">DESA CIMANGGU I</h3>
-            <h1 className="text-[19px] font-black uppercase tracking-wider text-black mt-0.5 mb-0.5">PUSAT KESEJAHTERAAN SOSIAL (PUSKESOS)</h1>
-            <p className="text-[9.5px] font-sans text-gray-700">
+            <h2 className="text-[13px] font-semibold uppercase tracking-wide text-gray-800">PEMERINTAH KABUPATEN BOGOR</h2>
+            <h3 className="text-[13px] font-semibold uppercase tracking-wide text-gray-800">KECAMATAN CIBUNGBULANG</h3>
+            <h3 className="text-[14px] font-bold uppercase tracking-wide text-gray-900">DESA CIMANGGU I</h3>
+            <h1 className="text-[18px] font-black uppercase tracking-wider text-black mt-0.5 mb-0.5">PUSAT KESEJAHTERAAN SOSIAL (PUSKESOS)</h1>
+            <p className="text-[9px] font-sans text-gray-700">
               Kp. Ciaruteun RT.004 RW.008 Desa Cimanggu I Kecamatan Cibungbulang Kabupaten Bogor – 16630
             </p>
           </div>
@@ -690,61 +692,61 @@ export default function BukuTamuPage() {
         </div>
 
         {/* Tabel Cetak Laporan (Presisi 8 Kolom Resmi Puskesos) */}
-        <table className="w-full text-xs text-left border-collapse border border-black">
-          <thead className="bg-gray-200 text-black uppercase font-bold text-center border-b-2 border-black">
+        <table className="w-full text-xs text-left border-collapse border border-slate-600">
+          <thead className="bg-slate-100 text-slate-800 uppercase font-bold text-center border-b border-slate-600">
             <tr>
-              <th className="p-2 border border-black w-[4%]">NO</th>
-              <th className="p-2 border border-black w-[10%]">HARI</th>
-              <th className="p-2 border border-black w-[12%]">TANGGAL</th>
-              <th className="p-2 border border-black w-[20%] text-left">NAMA</th>
-              <th className="p-2 border border-black w-[15%] text-left">ALAMAT</th>
-              <th className="p-2 border border-black w-[20%] text-left">MAKSUD TUJUAN</th>
-              <th className="p-2 border border-black w-[12%] text-left">NO. HP/TELEPON</th>
-              <th className="p-2 border border-black w-[7%]">TANDA TANGAN</th>
+              <th className="p-1.5 border border-slate-600 w-[4%]">NO</th>
+              <th className="p-1.5 border border-slate-600 w-[8%]">HARI</th>
+              <th className="p-1.5 border border-slate-600 w-[11%]">TANGGAL</th>
+              <th className="p-1.5 border border-slate-600 w-[21%] text-left">NAMA</th>
+              <th className="p-1.5 border border-slate-600 w-[16%] text-left">ALAMAT</th>
+              <th className="p-1.5 border border-slate-600 w-[18%] text-left">MAKSUD TUJUAN</th>
+              <th className="p-1.5 border border-slate-600 w-[11%] text-left">NO. HP/TELEPON</th>
+              <th className="p-1.5 border border-slate-600 w-[11%]">TANDA TANGAN</th>
             </tr>
-            <tr className="bg-gray-300 text-[10px] italic font-semibold border-b border-black">
-              <td className="py-0.5 border border-black">1</td>
-              <td className="py-0.5 border border-black">2</td>
-              <td className="py-0.5 border border-black">3</td>
-              <td className="py-0.5 border border-black">4</td>
-              <td className="py-0.5 border border-black">5</td>
-              <td className="py-0.5 border border-black">6</td>
-              <td className="py-0.5 border border-black">7</td>
-              <td className="py-0.5 border border-black">8</td>
+            <tr className="bg-slate-50 text-[9.5px] italic text-slate-600 font-semibold border-b border-slate-600">
+              <td className="py-0.5 border border-slate-600">1</td>
+              <td className="py-0.5 border border-slate-600">2</td>
+              <td className="py-0.5 border border-slate-600">3</td>
+              <td className="py-0.5 border border-slate-600">4</td>
+              <td className="py-0.5 border border-slate-600">5</td>
+              <td className="py-0.5 border border-slate-600">6</td>
+              <td className="py-0.5 border border-slate-600">7</td>
+              <td className="py-0.5 border border-slate-600">8</td>
             </tr>
           </thead>
           <tbody>
             {data.length === 0 ? (
               <tr>
-                <td colSpan={8} className="p-6 text-center text-slate-500 border border-black">
+                <td colSpan={8} className="p-6 text-center text-slate-500 border border-slate-600">
                   Belum ada catatan buku tamu.
                 </td>
               </tr>
             ) : (
               data.map((item, index) => (
-                <tr key={item.id} className="border border-black">
-                  <td className="p-2 border border-black text-center font-semibold">{index + 1}</td>
-                  <td className="p-2 border border-black text-center font-medium">
+                <tr key={item.id} className="border border-slate-600">
+                  <td className="py-1 px-1.5 border border-slate-600 text-center font-semibold">{index + 1}</td>
+                  <td className="py-1 px-1.5 border border-slate-600 text-center font-medium">
                     {format(new Date(item.createdAt), "EEEE", { locale: id })}
                   </td>
-                  <td className="p-2 border border-black whitespace-nowrap">
+                  <td className="py-1 px-1.5 border border-slate-600 whitespace-nowrap">
                     {format(new Date(item.createdAt), "dd MMM yyyy", { locale: id })}
                   </td>
-                  <td className="p-2 border border-black">
+                  <td className="py-1 px-1.5 border border-slate-600">
                     <div className="font-bold text-slate-900">{item.namaLengkap}</div>
-                    {item.nik && <div className="text-[9px] text-slate-600 font-mono">NIK: {item.nik}</div>}
+                    {item.nik && <div className="text-[8.5px] text-slate-600 font-mono">NIK: {item.nik}</div>}
                   </td>
-                  <td className="p-2 border border-black">
+                  <td className="py-1 px-1.5 border border-slate-600">
                     <div className="text-slate-800">{item.alamat || item.jabatan || "-"}</div>
                   </td>
-                  <td className="p-2 border border-black">
+                  <td className="py-1 px-1.5 border border-slate-600">
                     <p className="text-slate-800">{item.keperluan}</p>
                   </td>
-                  <td className="p-2 border border-black whitespace-nowrap">
+                  <td className="py-1 px-1.5 border border-slate-600 whitespace-nowrap">
                     <span className="text-slate-800">{item.noHp || "-"}</span>
                   </td>
-                  <td className="p-1 border border-black text-center">
-                    <div className="w-16 h-8 mx-auto flex items-center justify-center overflow-hidden">
+                  <td className="py-0.5 px-1 border border-slate-600 text-center">
+                    <div className="w-14 h-5 mx-auto flex items-center justify-center overflow-hidden">
                       <img src={item.tandaTangan} alt="TTD" className="max-h-full max-w-full object-contain border-none outline-none" />
                     </div>
                   </td>
