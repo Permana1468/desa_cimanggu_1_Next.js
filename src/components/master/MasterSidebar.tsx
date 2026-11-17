@@ -29,7 +29,11 @@ import {
   Wrench,
   Activity,
   HardDrive,
-  Plus
+  Plus,
+  ShieldAlert,
+  ShieldCheck,
+  Eye,
+  Radio
 } from "lucide-react";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -71,6 +75,7 @@ const masterMenuGroups = [
   {
     category: "Sistem & Keamanan",
     items: [
+      { name: "Keamanan Siber", icon: ShieldAlert, href: "/master-admin/keamanan", badge: "C++ & Py" },
       { name: "Audit Logs", icon: History, href: "/master-admin/logs" },
       { name: "Mode Pemeliharaan", icon: Wrench, href: "/master-admin/maintenance" },
       { name: "Konfigurasi", icon: Settings, href: "/master-admin/config" },
@@ -202,7 +207,12 @@ export const MasterSidebar = ({
                       {(!isCollapsed || isOpen) && (
                         <span className="truncate tracking-tight">{item.name}</span>
                       )}
-                      {isActive && (!isCollapsed || isOpen) && (
+                      {(item as any).badge && (!isCollapsed || isOpen) && (
+                        <span className="ml-auto text-[9px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                          {(item as any).badge}
+                        </span>
+                      )}
+                      {isActive && (!isCollapsed || isOpen) && !(item as any).badge && (
                         <span className="w-1.5 h-1.5 rounded-full bg-white ml-auto shadow-xs" />
                       )}
                     </Link>
@@ -212,6 +222,74 @@ export const MasterSidebar = ({
             </div>
           ))}
         </nav>
+
+        {/* CCTV SENTRY CYBER SENTINEL WIDGET (VISUALISASI SIMPUL & OTAK KEAMANAN PROYEK) */}
+        {(!isCollapsed || isOpen) ? (
+          <div className="px-3 pt-2 pb-1">
+            <Link 
+              href="/master-admin/keamanan"
+              className="block relative p-3 rounded-2xl bg-gradient-to-br from-slate-900/95 via-slate-900 to-cyan-950/80 border border-cyan-500/30 shadow-lg shadow-cyan-950/40 hover:border-cyan-400 transition-all group overflow-hidden"
+            >
+              {/* Laser Scanning Line Animation */}
+              <div className="absolute inset-x-0 top-0 h-[1.5px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent animate-pulse" />
+              <div className="absolute -right-4 -bottom-4 w-16 h-16 bg-cyan-500/10 rounded-full blur-xl group-hover:bg-cyan-500/20 transition-all" />
+
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 group-hover:scale-110 transition-transform">
+                    <Eye size={13} className="animate-pulse" />
+                  </div>
+                  <div>
+                    <h5 className="text-[10px] font-black uppercase tracking-wider text-cyan-200 leading-tight">
+                      SENTRY CCTV BRAIN
+                    </h5>
+                    <p className="text-[8px] font-medium text-slate-400">
+                      Otak Pengawas Siber Realtime
+                    </p>
+                  </div>
+                </div>
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400"></span>
+                </span>
+              </div>
+
+              {/* 12-Node Micro Visual Mesh Matrix */}
+              <div className="bg-slate-950/60 rounded-xl p-2 border border-white/5 space-y-1.5">
+                <div className="flex items-center justify-between text-[9px]">
+                  <span className="text-slate-400 font-medium">12 Simpul Proyek:</span>
+                  <span className="text-emerald-400 font-mono font-bold">12/12 Terkoneksi</span>
+                </div>
+                {/* 12 Mesh Node Dots */}
+                <div className="grid grid-cols-6 gap-1 pt-0.5">
+                  {Array.from({ length: 12 }).map((_, idx) => (
+                    <div 
+                      key={idx} 
+                      className="h-1.5 rounded-full bg-cyan-400/80 shadow-[0_0_6px_rgba(34,211,238,0.8)]" 
+                      title={`Simpul ${idx + 1} Terproteksi`} 
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-2 flex items-center justify-between text-[8px] font-mono font-bold text-slate-300 pt-1 border-t border-white/5">
+                <span className="text-cyan-300">C++ WAF & Python AI</span>
+                <span className="text-cyan-400 group-hover:translate-x-0.5 transition-transform">RADAR TOPOLOGI &rarr;</span>
+              </div>
+            </Link>
+          </div>
+        ) : (
+          <div className="px-2 py-1 flex justify-center">
+            <Link
+              href="/master-admin/keamanan"
+              title="Sentry CCTV Brain: 12 Simpul Terkoneksi (C++ & Python)"
+              className="p-2.5 rounded-xl bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-900/60 transition-all flex items-center justify-center relative group"
+            >
+              <Eye size={16} className="animate-pulse" />
+              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+            </Link>
+          </div>
+        )}
 
         {/* BOTTOM HARMONIZED STATUS WIDGET (MATCHING ADMIN DESA ERGONOMICS) */}
         <div className="p-3 border-t border-white/5 space-y-2 mt-auto">

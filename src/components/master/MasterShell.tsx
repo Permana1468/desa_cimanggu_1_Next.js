@@ -10,6 +10,7 @@ import { Menu, LayoutDashboard, Settings, Plus, Home as HomeIcon, BarChart3, Bel
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { FloatingChat } from "../dashboard/FloatingChat";
+import { SecurityAlarmListener } from "../common/SecurityAlarmListener";
 
 export function MasterShell({ 
     children, 
@@ -222,6 +223,9 @@ export function MasterShell({
 
             {/* Floating Chat for Master Admins */}
             <FloatingChat session={session} />
+
+            {/* Sentry Security Realtime Alarm Listener */}
+            <SecurityAlarmListener />
         </div>
     );
 }

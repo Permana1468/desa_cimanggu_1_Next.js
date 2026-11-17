@@ -13,6 +13,7 @@ import { checkPathMaintenance } from "@/lib/maintenanceService";
 import { MobileDashboardHeader } from "@/components/dashboard/MobileDashboardHeader";
 import { DesktopDashboardHeader } from "@/components/dashboard/DesktopDashboardHeader";
 import { MaintenanceNotice } from "@/components/common/MaintenanceNotice";
+import { SecurityAlarmListener } from "@/components/common/SecurityAlarmListener";
 
 const KaurPerencanaanThreeBackground = dynamic(
   () => import("@/components/dashboard/roles/KaurPerencanaanThreeBackground").then((mod) => mod.KaurPerencanaanThreeBackground)
@@ -197,6 +198,9 @@ export default async function VillageAdminLayout({
       {/* Floating Transparent Chat for Dashboard Users */}
       <FloatingChat session={session} />
       {/* {role === "KAUR_PERENCANAAN" && <ImoRobotCompanion />} */}
+
+      {/* Sentry Cyber Fraud & Security Alarm Listener */}
+      <SecurityAlarmListener />
     </div>
   );
 }
