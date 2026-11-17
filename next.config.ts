@@ -82,7 +82,12 @@ const nextConfig: NextConfig = {
       "@react-three/drei",
       "googleapis",
       "exceljs",
-      "pdf-lib"
+      "pdf-lib",
+      "xlsx",
+      "docx",
+      "mammoth",
+      "docxtemplater",
+      "@vladmandic/face-api"
     ],
     serverActions: {
       bodySizeLimit: '20mb',
