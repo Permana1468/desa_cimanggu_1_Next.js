@@ -61,11 +61,29 @@ const nextConfig: NextConfig = {
   reactCompiler: false, // Turned off for dev speed (AST parsing is heavy)
   compress: true, // Enable gzip/brotli compression
   productionBrowserSourceMaps: false, // Disable sourcemaps in production for smaller builds
+  typescript: {
+    // Memungkinkan fast-build mode via `npm run build:fast` saat ingin kompilasi instan
+    ignoreBuildErrors: process.env.NEXT_IGNORE_TYPECHECK === "1",
+  },
   compiler: {
     removeConsole: isProd ? { exclude: ["error", "warn"] } : false,
   },
   experimental: {
-    optimizePackageImports: ["lucide-react", "framer-motion", "recharts", "date-fns", "@turf/turf", "leaflet", "lenis"],
+    optimizePackageImports: [
+      "lucide-react",
+      "framer-motion",
+      "recharts",
+      "date-fns",
+      "@turf/turf",
+      "leaflet",
+      "lenis",
+      "three",
+      "@react-three/fiber",
+      "@react-three/drei",
+      "googleapis",
+      "exceljs",
+      "pdf-lib"
+    ],
     serverActions: {
       bodySizeLimit: '20mb',
     },

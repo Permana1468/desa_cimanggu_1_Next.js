@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "cross-env NODE_OPTIONS='--max-old-space-size=2048 --max-http-header-size=1048576' next dev --turbo -H 0.0.0.0",
+    "dev": "cross-env NODE_OPTIONS='--max-old-space-size=4096 --max-http-header-size=1048576' next dev --turbo -H 0.0.0.0",
     "build": "cross-env NODE_OPTIONS='--max-old-space-size=6144' next build",
+    "build:fast": "cross-env NEXT_IGNORE_TYPECHECK=1 NODE_OPTIONS='--max-old-space-size=6144' next build",
     "start": "next start -H 0.0.0.0",
     "lint": "eslint",
     "type-check": "cross-env NODE_OPTIONS='--max-old-space-size=6144' tsc --noEmit",
