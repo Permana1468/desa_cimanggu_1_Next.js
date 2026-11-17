@@ -1,0 +1,32 @@
+[
+  {
+    "ip": "198.51.100.94",
+    "reason": "Auto-blocked by C++ Sentry WAF: XSS_ATTACK",
+    "timestamp": "2026-11-17T17:01:39.804Z"
+  },
+  {
+    "ip": "198.51.100.78",
+    "reason": "Auto-blocked by C++ Sentry WAF: SQL_INJECTION",
+    "timestamp": "2026-11-17T17:01:29.985Z"
+  },
+  {
+    "ip": "198.51.100.179",
+    "reason": "Auto-blocked by C++ Sentry WAF: SQL_INJECTION",
+    "timestamp": "2026-11-17T16:44:18.900Z"
+  },
+  {
+    "ip": "198.51.100.111",
+    "reason": "Auto-blocked by C++ Sentry WAF: XSS_ATTACK",
+    "timestamp": "2026-11-17T16:44:08.656Z"
+  },
+  {
+    "ip": "103.145.22.8",
+    "reason": "Automated SQLi Bot Scanner (Blocked by C++ WAF)",
+    "timestamp": "2026-11-17T16:28:40.907Z"
+  },
+  {
+    "ip": "45.155.205.233",
+    "reason": "Brute Force SSH & Auth Probe (Blocked by C++ Sentry)",
+    "timestamp": "2026-11-17T14:43:40.907Z"
+  }
+]

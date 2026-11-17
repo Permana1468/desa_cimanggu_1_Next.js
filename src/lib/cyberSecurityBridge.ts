@@ -432,6 +432,22 @@ export function recordIncident(incident: Omit<SecurityIncident, "id" | "timestam
   saveIncidents(current.slice(0, 100));
 }
 
+export function updateIncidentStatus(id: string, status: "BLOCKED" | "WARNING" | "RESOLVED"): boolean {
+  const current = getSecurityIncidents();
+  const item = current.find(i => i.id === id);
+  if (item) {
+    item.status = status;
+    saveIncidents(current);
+    return true;
+  }
+  return false;
+}
+
+export function isIpBlacklisted(ip: string): boolean {
+  const list = getBlacklistedIps();
+  return list.some(item => item.ip === ip);
+}
+
 function saveIncidents(incidents: SecurityIncident[]) {
   ensureDataDir();
   try {
@@ -516,3 +532,4 @@ export function consumeUserWarning(userId: string): string | null {
   } catch (e) {}
   return null;
 }
+

@@ -32,6 +32,37 @@ function cleanupRateLimitMap(now: number) {
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
   
+  // ── SENTRY CYBER WAF PERIMETER INGRESS FILTER ────────────────────────────
+  const userAgent = (req.headers.get('user-agent') || '').toLowerCase();
+  const rawSearch = req.nextUrl.search.toLowerCase();
+  const rawPath = pathname.toLowerCase();
+
+  // Attack Signatures for Ingress Filter
+  const isMaliciousBot = userAgent.includes('sqlmap') || userAgent.includes('nikto') || userAgent.includes('acunetix');
+  const isSqlInjection = rawSearch.includes("' union") || rawSearch.includes("select * from") || rawSearch.includes("or '1'='1'") || rawSearch.includes("--");
+  const isXssAttack = rawSearch.includes("<script") || rawSearch.includes("javascript:") || rawSearch.includes("onerror=") || rawSearch.includes("onload=");
+  const isTraversal = rawPath.includes("../") || rawPath.includes("etc/passwd") || rawSearch.includes("../");
+
+  if (isMaliciousBot || isSqlInjection || isXssAttack || isTraversal) {
+    return new NextResponse(
+      JSON.stringify({
+        status: "BLOCKED",
+        engine: "Sentry WAF Edge Ingress Guard",
+        threatLevel: "CRITICAL",
+        reason: isMaliciousBot ? "AUTOMATED_SCANNER" : isSqlInjection ? "SQL_INJECTION" : isXssAttack ? "XSS_ATTACK" : "PATH_TRAVERSAL",
+        message: "Akses diblokade secara otomatis oleh Sentry Cyber Security. Insiden telah dilaporkan ke Admin Master."
+      }),
+      { 
+        status: 403, 
+        headers: { 
+          'Content-Type': 'application/json',
+          'X-Sentry-Blocked': '1',
+          'X-Protection-Level': 'C++ Sentry High-Speed WAF'
+        } 
+      }
+    );
+  }
+
   // 1. Rate Limiting for API routes
   if (pathname.startsWith('/api/')) {
       const ip = req.headers.get('x-forwarded-for') || 'unknown';

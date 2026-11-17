@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useEffect } from "react";
 import { 
   ShieldAlert, 
   ShieldCheck, 
@@ -25,13 +25,20 @@ import {
   CornerDownRight, 
   Info,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Bell,
+  UserX,
+  FileCheck2
 } from "lucide-react";
 import { 
   simulateExternalAttackAction, 
   simulateInternalFraudAction, 
   blockIpAction, 
-  unblockIpAction 
+  unblockIpAction,
+  resolveIncidentAction,
+  suspendFraudulentUserAction,
+  sendDirectUserAlarmAction,
+  getRealtimeCyberSecurityOverview
 } from "@/actions/cyberSecurity";
 import toast from "react-hot-toast";
 
@@ -51,6 +58,42 @@ export function CyberSentryDashboard({ initialData }: CyberSentryDashboardProps)
   const [manualIp, setManualIp] = useState("");
   const [manualReason, setManualReason] = useState("");
   const [activeTab, setActiveTab] = useState<"TOPOLOGY" | "INCIDENTS" | "FIREWALL">("TOPOLOGY");
+  const [lastSync, setLastSync] = useState<string>("Baru Saja");
+
+  // Real-Time Background Synchronization (Auto-polls every 4 seconds)
+  useEffect(() => {
+    let isMounted = true;
+    const interval = setInterval(async () => {
+      try {
+        const updated = await getRealtimeCyberSecurityOverview();
+        if (isMounted && updated) {
+          setData(updated);
+          setLastSync(new Date().toLocaleTimeString("id-ID"));
+        }
+      } catch {
+        // Silent error for background poll
+      }
+    }, 4000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Quick refresh helper
+  const refreshData = async () => {
+    try {
+      const updated = await getRealtimeCyberSecurityOverview();
+      if (updated) {
+        setData(updated);
+        setLastSync(new Date().toLocaleTimeString("id-ID"));
+        toast.success("Data keamanan berhasil disinkronkan.");
+      }
+    } catch {
+      toast.error("Gagal menyinkronkan data.");
+    }
+  };
 
   // Handler: Test External Cyber Attack (Triggers C++ WAF)
   const handleTestExternalAttack = (vector: "SQLI" | "XSS" | "SCANNER") => {
@@ -67,6 +110,8 @@ export function CyberSentryDashboard({ initialData }: CyberSentryDashboardProps)
         } else {
           toast.success(`[C++ WAF] Request diproses: ${res.status}`, { duration: 4000 });
         }
+        const updated = await getRealtimeCyberSecurityOverview();
+        if (updated) setData(updated);
       } catch (err: any) {
         toast.dismiss(toastId);
         toast.error(err.message || "Gagal menjalankan simulasi.");
@@ -89,6 +134,8 @@ export function CyberSentryDashboard({ initialData }: CyberSentryDashboardProps)
         } else {
           toast.success(`[PYTHON AI] Tidak ada anomali terdeteksi.`);
         }
+        const updated = await getRealtimeCyberSecurityOverview();
+        if (updated) setData(updated);
       } catch (err: any) {
         toast.dismiss(toastId);
         toast.error(err.message || "Gagal menjalankan analisis.");
@@ -106,6 +153,8 @@ export function CyberSentryDashboard({ initialData }: CyberSentryDashboardProps)
         toast.success(`IP ${manualIp} telah diblokade ke firewall.`);
         setManualIp("");
         setManualReason("");
+        const updated = await getRealtimeCyberSecurityOverview();
+        if (updated) setData(updated);
       } catch (err: any) {
         toast.error(err.message || "Gagal memblokir IP.");
       }
@@ -118,8 +167,58 @@ export function CyberSentryDashboard({ initialData }: CyberSentryDashboardProps)
       try {
         await unblockIpAction(ip);
         toast.success(`IP ${ip} telah dibuka dari blokir.`);
+        const updated = await getRealtimeCyberSecurityOverview();
+        if (updated) setData(updated);
       } catch (err: any) {
         toast.error(err.message || "Gagal membuka blokir.");
+      }
+    });
+  };
+
+  // Handler Tindakan Khusus: Selesaikan Insiden
+  const handleResolveIncident = (incidentId: string) => {
+    startTransition(async () => {
+      try {
+        const res = await resolveIncidentAction(incidentId);
+        toast.success(res.message);
+        const updated = await getRealtimeCyberSecurityOverview();
+        if (updated) setData(updated);
+      } catch (e: any) {
+        toast.error(e.message || "Gagal memperbarui insiden.");
+      }
+    });
+  };
+
+  // Handler Tindakan Khusus: Nonaktifkan / Bekukan Akun Pelaku
+  const handleSuspendUser = (userIdentifier: string) => {
+    const reason = window.prompt(`Masukkan alasan pembekuan/penonaktifan akun untuk '${userIdentifier}':`, "Pelanggaran integritas data desa terdeteksi oleh AI Sentinel");
+    if (!reason) return;
+
+    startTransition(async () => {
+      try {
+        const res = await suspendFraudulentUserAction(userIdentifier, reason);
+        toast.success(res.message);
+        const updated = await getRealtimeCyberSecurityOverview();
+        if (updated) setData(updated);
+      } catch (e: any) {
+        toast.error(e.message || "Gagal membekukan akun.");
+      }
+    });
+  };
+
+  // Handler Tindakan Khusus: Kirim Peringatan Alarm Kustom
+  const handleSendDirectAlarm = (userIdentifier: string) => {
+    const msg = window.prompt(`Ketikkan pesan alarm peringatan langsung ke layar '${userIdentifier}':`, "Peringatan Khusus: Jangan mencoba mengakses atau memanipulasi data di luar wewenang Anda!");
+    if (!msg) return;
+
+    startTransition(async () => {
+      try {
+        const res = await sendDirectUserAlarmAction(userIdentifier, msg);
+        toast.success(res.message);
+        const updated = await getRealtimeCyberSecurityOverview();
+        if (updated) setData(updated);
+      } catch (e: any) {
+        toast.error(e.message || "Gagal mengirim alarm.");
       }
     });
   };
@@ -134,8 +233,22 @@ export function CyberSentryDashboard({ initialData }: CyberSentryDashboardProps)
         <div className="relative z-10 space-y-6">
           <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 pb-6 border-b border-white/10">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/15 border border-rose-400/25 text-rose-400 text-[10px] font-black uppercase tracking-[0.2em] mb-2.5">
-                <Radio size={13} className="animate-pulse" /> Live CCTV Security Overwatch • C++ & Python AI
+              <div className="flex items-center gap-2 flex-wrap mb-2.5">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/15 border border-rose-400/25 text-rose-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                  <Radio size={13} className="animate-pulse" /> Live CCTV Security Overwatch • C++ & Python AI
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-400/25 text-emerald-400 text-[10px] font-mono font-bold">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  SINKRONISASI REALTIME (Sinkron: {lastSync})
+                </div>
+                <button
+                  onClick={refreshData}
+                  disabled={isPending}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 text-[10px] font-bold transition-all"
+                  title="Sinkronkan Data Sekarang"
+                >
+                  <RefreshCw size={11} className={isPending ? "animate-spin" : ""} /> Refresh
+                </button>
               </div>
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
                 Pusat Keamanan Siber & <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-amber-300 to-blue-400">Sentry Sentinel</span>
@@ -410,8 +523,9 @@ export function CyberSentryDashboard({ initialData }: CyberSentryDashboardProps)
                   <th className="px-4 py-2">Sumber / Pelaku</th>
                   <th className="px-4 py-2">IP & Target Simpul</th>
                   <th className="px-4 py-2">Vektor Ancaman</th>
-                  <th className="px-4 py-2 text-center">Tindakan</th>
-                  <th className="px-4 py-2 text-right">Alarm Pengguna</th>
+                  <th className="px-4 py-2 text-center">Status</th>
+                  <th className="px-4 py-2 text-center">Alarm User</th>
+                  <th className="px-4 py-2 text-right">Penanganan Khusus (Tindakan Langsung)</th>
                 </tr>
               </thead>
               <tbody>
@@ -438,20 +552,82 @@ export function CyberSentryDashboard({ initialData }: CyberSentryDashboardProps)
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`text-xs font-bold ${
-                        inc.status === "BLOCKED" ? "text-rose-600" : "text-amber-600"
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider ${
+                        inc.status === "BLOCKED" 
+                          ? "bg-rose-100 text-rose-700" 
+                          : inc.status === "RESOLVED"
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-amber-100 text-amber-700"
                       }`}>
-                        {inc.status === "BLOCKED" ? "Diblokade C++ WAF" : "Peringatan Diterbitkan"}
+                        {inc.status === "BLOCKED" ? "Diblokade" : inc.status === "RESOLVED" ? "Selesai" : "Peringatan"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right rounded-r-2xl">
+                    <td className="px-4 py-3 text-center">
                       {inc.userWarningDispatched ? (
                         <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600">
-                          <CheckCircle2 size={13} /> Terkirim ke User
+                          <CheckCircle2 size={13} /> Aktif
                         </span>
                       ) : (
                         <span className="text-[11px] text-slate-400 font-mono">-</span>
                       )}
+                    </td>
+                    <td className="px-4 py-3 text-right rounded-r-2xl">
+                      <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                        {inc.status !== "RESOLVED" && (
+                          <button
+                            onClick={() => handleResolveIncident(inc.id)}
+                            disabled={isPending}
+                            className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 text-[10px] font-bold transition-all flex items-center gap-1"
+                            title="Tandai Insiden Selesai Ditangani"
+                          >
+                            <FileCheck2 size={11} /> Selesai
+                          </button>
+                        )}
+
+                        {inc.sourceType === "INTERNAL_FRAUD" && (
+                          <>
+                            <button
+                              onClick={() => handleSendDirectAlarm(inc.userOrIdentifier)}
+                              disabled={isPending}
+                              className="px-2 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-bold transition-all flex items-center gap-1"
+                              title="Kirim Alarm Langsung ke Layar User Ini"
+                            >
+                              <Bell size={11} /> Alarm
+                            </button>
+                            <button
+                              onClick={() => handleSuspendUser(inc.userOrIdentifier)}
+                              disabled={isPending}
+                              className="px-2 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 text-[10px] font-bold transition-all flex items-center gap-1"
+                              title="Bekukan / Nonaktifkan Akun Pelaku Ini"
+                            >
+                              <UserX size={11} /> Bekukan
+                            </button>
+                          </>
+                        )}
+
+                        {inc.sourceType === "EXTERNAL_ATTACK" && !data.blacklistedIps.some(b => b.ip === inc.ip) && (
+                          <button
+                            onClick={() => {
+                              startTransition(async () => {
+                                await blockIpAction(inc.ip, `Manual block dari insiden: ${inc.attackVector}`);
+                                const updated = await getRealtimeCyberSecurityOverview();
+                                if (updated) setData(updated);
+                                toast.success(`IP ${inc.ip} berhasil diisolasi.`);
+                              });
+                            }}
+                            disabled={isPending}
+                            className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold shadow-xs transition-all flex items-center gap-1"
+                          >
+                            <Lock size={11} /> Blokir IP
+                          </button>
+                        )}
+
+                        {inc.status === "RESOLVED" && (
+                          <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">
+                            Sudah Ditangani
+                          </span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -556,3 +732,4 @@ export function CyberSentryDashboard({ initialData }: CyberSentryDashboardProps)
     </div>
   );
 }
+

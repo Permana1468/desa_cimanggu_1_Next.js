@@ -1,0 +1,88 @@
+[
+  {
+    "sourceType": "INTERNAL_FRAUD",
+    "ip": "192.168.1.55",
+    "userOrIdentifier": "Admin Master Cimanggu (RT)",
+    "targetNode": "Data Kependudukan",
+    "attackVector": "TERRITORY_IDOR_BREACH",
+    "severity": "HIGH",
+    "status": "WARNING",
+    "detail": "PERINGATAN SISTEM KEAMANAN SIBER: Tindakan Anda (UPDATE_DATA_WARGA) terdeteksi melanggar 'Perdes Integritas Wilayah: Larangan Mengubah Data di Luar RT Terdaftar'. Detail: Ketua RT 001 mencoba memodifikasi entitas warga milik RT 005. Aktivitas ini telah dicatat oleh Sentry Brain dan diteruskan ke Dashboard Admin Master.",
+    "userWarningDispatched": true,
+    "id": "inc-907088",
+    "timestamp": "2026-11-17T17:01:47.088Z"
+  },
+  {
+    "sourceType": "EXTERNAL_ATTACK",
+    "ip": "198.51.100.94",
+    "userOrIdentifier": "EXTERNAL_ACTOR",
+    "targetNode": "PostgreSQL Database Core",
+    "attackVector": "XSS_ATTACK",
+    "severity": "CRITICAL",
+    "status": "BLOCKED",
+    "detail": "C++ WAF memblokade IP 198.51.100.94 saat mencoba XSS_ATTACK pada endpoint /api/data/warga. Score: 95",
+    "id": "inc-899804",
+    "timestamp": "2026-11-17T17:01:39.804Z"
+  },
+  {
+    "sourceType": "EXTERNAL_ATTACK",
+    "ip": "198.51.100.78",
+    "userOrIdentifier": "EXTERNAL_ACTOR",
+    "targetNode": "PostgreSQL Database Core",
+    "attackVector": "SQL_INJECTION",
+    "severity": "CRITICAL",
+    "status": "BLOCKED",
+    "detail": "C++ WAF memblokade IP 198.51.100.78 saat mencoba SQL_INJECTION pada endpoint /api/data/warga. Score: 100",
+    "id": "inc-889984",
+    "timestamp": "2026-11-17T17:01:29.984Z"
+  },
+  {
+    "sourceType": "EXTERNAL_ATTACK",
+    "ip": "198.51.100.179",
+    "userOrIdentifier": "EXTERNAL_ACTOR",
+    "targetNode": "PostgreSQL Database Core",
+    "attackVector": "SQL_INJECTION",
+    "severity": "CRITICAL",
+    "status": "BLOCKED",
+    "detail": "C++ WAF memblokade IP 198.51.100.179 saat mencoba SQL_INJECTION pada endpoint /api/data/warga. Score: 100",
+    "id": "inc-858900",
+    "timestamp": "2026-11-17T16:44:18.900Z"
+  },
+  {
+    "sourceType": "EXTERNAL_ATTACK",
+    "ip": "198.51.100.111",
+    "userOrIdentifier": "EXTERNAL_ACTOR",
+    "targetNode": "PostgreSQL Database Core",
+    "attackVector": "XSS_ATTACK",
+    "severity": "CRITICAL",
+    "status": "BLOCKED",
+    "detail": "C++ WAF memblokade IP 198.51.100.111 saat mencoba XSS_ATTACK pada endpoint /api/data/warga. Score: 95",
+    "id": "inc-848655",
+    "timestamp": "2026-11-17T16:44:08.655Z"
+  },
+  {
+    "id": "inc-001",
+    "timestamp": "2026-11-17T16:28:40.906Z",
+    "sourceType": "EXTERNAL_ATTACK",
+    "ip": "103.145.22.8",
+    "userOrIdentifier": "UNKNOWN_SCANNER",
+    "targetNode": "PostgreSQL Database Core",
+    "attackVector": "SQL_INJECTION",
+    "severity": "CRITICAL",
+    "status": "BLOCKED",
+    "detail": "C++ Sentry WAF mendeteksi payload 'UNION SELECT * FROM users' dari bot scanner dan memblokir IP secara instan."
+  },
+  {
+    "id": "inc-002",
+    "timestamp": "2026-11-17T16:01:40.906Z",
+    "sourceType": "INTERNAL_FRAUD",
+    "ip": "192.168.1.14",
+    "userOrIdentifier": "Operator Lapangan (OPERATOR_DESA)",
+    "targetNode": "C++ AHSP RAB Engine",
+    "attackVector": "FINANCIAL_DATA_TAMPERING",
+    "severity": "HIGH",
+    "status": "WARNING",
+    "detail": "Python AI Sentinel mendeteksi percobaan modifikasi nominal anggaran APBDes tanpa tiket otorisasi pimpinan.",
+    "userWarningDispatched": true
+  }
+]

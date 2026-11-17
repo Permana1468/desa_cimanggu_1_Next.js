@@ -11,8 +11,11 @@ import {
   scanRequestWithCppWaf,
   analyzeUserBehaviorWithPython,
   consumeUserWarning,
-  dispatchUserWarning
+  dispatchUserWarning,
+  updateIncidentStatus,
+  recordIncident
 } from "@/lib/cyberSecurityBridge";
+import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function getCyberSecurityOverview() {
@@ -180,4 +183,120 @@ export async function checkActiveUserSecurityAlarm() {
     if (warning) return warning;
   }
   return null;
+}
+
+/**
+ * Tindakan Khusus Admin: Menandai insiden telah diselesaikan
+ */
+export async function resolveIncidentAction(incidentId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || (session.user as any).role !== "ADMIN_MASTER") {
+    throw new Error("Unauthorized.");
+  }
+
+  const success = updateIncidentStatus(incidentId, "RESOLVED");
+  revalidatePath("/master-admin/keamanan");
+  return { success, message: "Status insiden berhasil diperbarui menjadi Terselesaikan (RESOLVED)." };
+}
+
+/**
+ * Tindakan Khusus Admin: Nonaktifkan Akun Pelaku Pelanggaran Internal
+ */
+export async function suspendFraudulentUserAction(userIdOrIdentifier: string, reason: string) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || (session.user as any).role !== "ADMIN_MASTER") {
+    throw new Error("Unauthorized.");
+  }
+
+  let user = await prisma.user.findUnique({ where: { id: userIdOrIdentifier } }).catch(() => null);
+  if (!user) {
+    user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: userIdOrIdentifier },
+          { fullName: { contains: userIdOrIdentifier, mode: "insensitive" } }
+        ]
+      }
+    }).catch(() => null);
+  }
+
+  if (user) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { isActive: false }
+    });
+
+    const alertMsg = `AKUN ANDA TELAH DINONAKTIFKAN: Akses akun '${user.fullName}' telah dibekukan oleh Master Administrator. Alasan: "${reason}". Hubungi Kantor Desa Cimanggu I untuk klarifikasi dan verifikasi fisik.`;
+    dispatchUserWarning(user.id, alertMsg);
+    if (user.email) dispatchUserWarning(user.email, alertMsg);
+    if (user.fullName) dispatchUserWarning(user.fullName, alertMsg);
+
+    recordIncident({
+      sourceType: "INTERNAL_FRAUD",
+      ip: "127.0.0.1",
+      userOrIdentifier: `${user.fullName} (${user.role})`,
+      targetNode: "Auth & Identity Vault",
+      attackVector: "ACCOUNT_SUSPENDED_BY_ADMIN",
+      severity: "HIGH",
+      status: "BLOCKED",
+      detail: `Akun internal ${user.fullName} telah dibekukan/dinonaktifkan oleh Admin Master karena ${reason}`,
+      userWarningDispatched: true
+    });
+
+    revalidatePath("/master-admin/keamanan");
+    revalidatePath("/master-admin/pengguna-sistem");
+    return { success: true, message: `Akun ${user.fullName} berhasil DINONAKTIFKAN secara permanen sampai ditinjau kembali.` };
+  } else {
+    // If user not in DB (mock or external), dispatch warning by identifier
+    const alertMsg = `PERINGATAN SANKSI TEGAS: Pengguna '${userIdOrIdentifier}' telah dibekukan dari sistem desa karena pelanggaran: ${reason}`;
+    dispatchUserWarning(userIdOrIdentifier, alertMsg);
+    recordIncident({
+      sourceType: "INTERNAL_FRAUD",
+      ip: "127.0.0.1",
+      userOrIdentifier: userIdOrIdentifier,
+      targetNode: "Auth & Identity Vault",
+      attackVector: "ACCOUNT_SUSPENDED_BY_ADMIN",
+      severity: "HIGH",
+      status: "BLOCKED",
+      detail: `Identitas pengguna ${userIdOrIdentifier} ditandai dibekukan oleh Admin Master: ${reason}`,
+      userWarningDispatched: true
+    });
+    revalidatePath("/master-admin/keamanan");
+    return { success: true, message: `Peringatan penonaktifan telah dikirimkan ke '${userIdOrIdentifier}'.` };
+  }
+}
+
+/**
+ * Tindakan Khusus Admin: Kirim Peringatan / Alarm Kustom Langsung ke Layar Pengguna
+ */
+export async function sendDirectUserAlarmAction(targetUserOrId: string, customMessage: string) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user || (session.user as any).role !== "ADMIN_MASTER") {
+    throw new Error("Unauthorized.");
+  }
+
+  const formattedMsg = `PERINGATAN RESMI MASTER ADMINISTRATOR: ${customMessage}`;
+  dispatchUserWarning(targetUserOrId, formattedMsg);
+
+  recordIncident({
+    sourceType: "RULE_VIOLATION",
+    ip: "127.0.0.1",
+    userOrIdentifier: targetUserOrId,
+    targetNode: "Sentry Brain (Otak Kepala Keamanan)",
+    attackVector: "DIRECT_ADMIN_DISCIPLINARY_WARNING",
+    severity: "MEDIUM",
+    status: "WARNING",
+    detail: `Peringatan langsung diterbitkan oleh Admin Master kepada '${targetUserOrId}': ${customMessage}`,
+    userWarningDispatched: true
+  });
+
+  revalidatePath("/master-admin/keamanan");
+  return { success: true, message: `Alarm peringatan telah dikirimkan ke layar pengguna '${targetUserOrId}'.` };
+}
+
+/**
+ * Polling Realtime Cepat untuk Pemantauan Tanpa Reload
+ */
+export async function getRealtimeCyberSecurityOverview() {
+  return await getCyberSecurityOverview();
 }
