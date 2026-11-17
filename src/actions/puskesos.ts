@@ -565,4 +565,56 @@ export async function getPuskesosLaporanRekap(tenantId?: string) {
   };
 }
 
+// =======================================================
+// HYBRID AI ENGINES (PYTHON & C++ INTEGRATION)
+// =======================================================
+import { executePythonPovertyEngine, PovertyAnalysisInput, PovertyAnalysisResult } from "@/lib/povertyBridge";
+import { executeCppRouteOptimizer, SurveyPoint, RouteOptimizationResult } from "@/lib/routeBridge";
+
+/**
+ * Audit & Evaluasi Kemiskinan Berbasis AI Python (MPI & 14 Parameter Kelayakan UHC)
+ */
+export async function evaluateWargaPovertyWithAi(
+  input: PovertyAnalysisInput
+): Promise<PovertyAnalysisResult> {
+  return await executePythonPovertyEngine(input);
+}
+
+/**
+ * Optimasi Rute Survei Lapangan Puskesos / Bedah Rumah dengan Native C++ Engine (2-Opt TSP)
+ */
+export async function optimizePuskesosSurveyRoute(
+  tenantId?: string,
+  customPoints?: SurveyPoint[]
+): Promise<RouteOptimizationResult> {
+  const targetTenantId = resolveWriteTenantId(tenantId);
+
+  let points: SurveyPoint[] = customPoints || [];
+
+  if (!points || points.length === 0) {
+    const gisList = await prisma.kesraGisWarga.findMany({
+      where: { tenantId: targetTenantId },
+      take: 25,
+      select: { id: true, nama: true, latitude: true, longitude: true }
+    });
+
+    points = gisList.map((g) => ({
+      id: g.id,
+      name: g.nama,
+      lat: g.latitude,
+      lng: g.longitude,
+    }));
+  }
+
+  const startPoint: SurveyPoint = {
+    id: "KANTOR_DESA",
+    name: "Kantor Desa Cimanggu I",
+    lat: -6.6267,
+    lng: 106.6713,
+  };
+
+  return await executeCppRouteOptimizer(points, startPoint);
+}
+
+
 

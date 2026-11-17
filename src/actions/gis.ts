@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import * as turf from '@turf/turf';
 import { executeCppGeoEngine, GeoSpatialResult } from "@/lib/cppBridge";
+import { executeCppRouteOptimizer, SurveyPoint, RouteOptimizationResult } from "@/lib/routeBridge";
 
 /**
  * High-performance Geodesic Calculation powered by Native C++ Engine
@@ -19,6 +20,16 @@ export async function calculateBoundaryMetricsCpp(coordinates: any): Promise<Geo
     }
   }
   return await executeCppGeoEngine(parsedCoords);
+}
+
+/**
+ * High-performance TSP Surveyor Route Optimization powered by Native C++ Engine
+ */
+export async function optimizeSurveyorRouteCpp(
+  points: SurveyPoint[],
+  startPoint?: SurveyPoint
+): Promise<RouteOptimizationResult> {
+  return await executeCppRouteOptimizer(points, startPoint);
 }
 
 export async function getGisDashboardStats(tenantId: string) {
