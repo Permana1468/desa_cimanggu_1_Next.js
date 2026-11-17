@@ -18,15 +18,47 @@ import {
   Globe,
   RefreshCw
 } from "lucide-react";
+import dynamic from "next/dynamic";
 
-import { PuskesosPengaduanTab } from "../puskesos/PuskesosPengaduanTab";
-import { PuskesosRujukanTab } from "../puskesos/PuskesosRujukanTab";
-import { PuskesosPpksTab } from "../puskesos/PuskesosPpksTab";
-import { PuskesosPengurusTab } from "../puskesos/PuskesosPengurusTab";
-import { PuskesosWargaTab } from "../puskesos/PuskesosWargaTab";
-import { PuskesosUhcTab } from "../puskesos/PuskesosUhcTab";
-import { PuskesosGisTab } from "../puskesos/PuskesosGisTab";
-import { PuskesosLaporanTab } from "../puskesos/PuskesosLaporanTab";
+const PuskesosTabLoader = () => (
+  <div className="p-12 flex flex-col items-center justify-center min-h-[350px] gap-3 bg-white rounded-3xl border border-slate-100 shadow-sm">
+    <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    <span className="text-xs font-semibold text-slate-500">Memuat modul Puskesos...</span>
+  </div>
+);
+
+const PuskesosPengaduanTab = dynamic(
+  () => import("../puskesos/PuskesosPengaduanTab").then((m) => m.PuskesosPengaduanTab),
+  { ssr: false, loading: PuskesosTabLoader }
+);
+const PuskesosRujukanTab = dynamic(
+  () => import("../puskesos/PuskesosRujukanTab").then((m) => m.PuskesosRujukanTab),
+  { ssr: false, loading: PuskesosTabLoader }
+);
+const PuskesosPpksTab = dynamic(
+  () => import("../puskesos/PuskesosPpksTab").then((m) => m.PuskesosPpksTab),
+  { ssr: false, loading: PuskesosTabLoader }
+);
+const PuskesosPengurusTab = dynamic(
+  () => import("../puskesos/PuskesosPengurusTab").then((m) => m.PuskesosPengurusTab),
+  { ssr: false, loading: PuskesosTabLoader }
+);
+const PuskesosWargaTab = dynamic(
+  () => import("../puskesos/PuskesosWargaTab").then((m) => m.PuskesosWargaTab),
+  { ssr: false, loading: PuskesosTabLoader }
+);
+const PuskesosUhcTab = dynamic(
+  () => import("../puskesos/PuskesosUhcTab").then((m) => m.PuskesosUhcTab),
+  { ssr: false, loading: PuskesosTabLoader }
+);
+const PuskesosGisTab = dynamic(
+  () => import("../puskesos/PuskesosGisTab").then((m) => m.PuskesosGisTab),
+  { ssr: false, loading: PuskesosTabLoader }
+);
+const PuskesosLaporanTab = dynamic(
+  () => import("../puskesos/PuskesosLaporanTab").then((m) => m.PuskesosLaporanTab),
+  { ssr: false, loading: PuskesosTabLoader }
+);
 import { getPuskesosDashboardStats } from "@/actions/puskesos";
 
 export function PuskesosDashboard({ session, stats: initialStats }: any) {

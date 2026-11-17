@@ -88,6 +88,15 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '20mb',
     },
   },
+  onDemandEntries: {
+    // Pertahankan cache halaman di dev server hingga 1 jam agar tidak recompiling ulang saat bolak-balik tab
+    maxInactiveAge: 60 * 60 * 1000,
+    pagesBufferLength: 64,
+  },
+  devIndicators: {
+    // Geser indikator dev ke kanan bawah agar tidak menutupi status card sidebar kiri
+    position: 'bottom-right',
+  },
   async headers() {
     return [
       {
