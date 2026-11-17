@@ -1,31 +1,46 @@
 "use client";
 
+import useSWR from "swr";
 import { 
     ResponsiveContainer, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid 
 } from 'recharts';
 import { TrendingUp, ShieldCheck, ArrowUpRight, Activity } from "lucide-react";
+import { getWeeklyOverviewStats } from "@/actions/master";
 
-const residentGrowthData = [
-    { name: 'Sen', residents: 410, change: '+12' },
-    { name: 'Sel', residents: 580, change: '+24' },
-    { name: 'Rab', residents: 720, change: '+18' },
-    { name: 'Kam', residents: 950, change: '+32' },
-    { name: 'Jum', residents: 1200, change: '+45' },
-    { name: 'Sab', residents: 1650, change: '+60' },
-    { name: 'Min', residents: 2100, change: '+85' },
-];
+interface OverviewChartsProps {
+    tenantId?: string;
+}
 
-const transactionLogsData = [
-    { name: 'Sen', logs: 240, latency: '12ms' },
-    { name: 'Sel', logs: 380, latency: '14ms' },
-    { name: 'Rab', logs: 650, latency: '11ms' },
-    { name: 'Kam', logs: 490, latency: '13ms' },
-    { name: 'Jum', logs: 720, latency: '15ms' },
-    { name: 'Sab', logs: 530, latency: '12ms' },
-    { name: 'Min', logs: 890, latency: '10ms' },
-];
+export function OverviewCharts({ tenantId }: OverviewChartsProps) {
+    const { data } = useSWR(
+        ["master-weekly-overview", tenantId || "all"],
+        () => getWeeklyOverviewStats(tenantId),
+        {
+            refreshInterval: 10000,
+            revalidateOnFocus: true
+        }
+    );
 
-export function OverviewCharts() {
+    const residentGrowthData = data?.residentGrowth || [
+        { name: 'Sen', residents: 0, change: '0' },
+        { name: 'Sel', residents: 0, change: '0' },
+        { name: 'Rab', residents: 0, change: '0' },
+        { name: 'Kam', residents: 0, change: '0' },
+        { name: 'Jum', residents: 0, change: '0' },
+        { name: 'Sab', residents: 0, change: '0' },
+        { name: 'Min', residents: 0, change: '0' },
+    ];
+
+    const transactionLogsData = data?.transactionLogs || [
+        { name: 'Sen', logs: 0, latency: '12ms' },
+        { name: 'Sel', logs: 0, latency: '12ms' },
+        { name: 'Rab', logs: 0, latency: '12ms' },
+        { name: 'Kam', logs: 0, latency: '12ms' },
+        { name: 'Jum', logs: 0, latency: '12ms' },
+        { name: 'Sab', logs: 0, latency: '12ms' },
+        { name: 'Min', logs: 0, latency: '12ms' },
+    ];
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* CHART 1: POPULATION GROWTH */}
@@ -39,13 +54,13 @@ export function OverviewCharts() {
                             <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
                                 Pertumbuhan Populasi
                             </h3>
-                            <p className="text-slate-400 text-xs font-semibold">Estimasi registrasi & update warga mingguan</p>
+                            <p className="text-slate-400 text-xs font-semibold">Registrasi & update warga 7 hari terakhir</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-1.5 self-start sm:self-auto px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-black">
                         <ArrowUpRight size={14} className="stroke-[2.5]" />
-                        <span>+14.8% Tren Positif</span>
+                        <span>+{data?.totalWeeklyWarga || 0} Terdata Minggu Ini</span>
                     </div>
                 </div>
 
@@ -82,7 +97,7 @@ export function OverviewCharts() {
                                 }}
                                 itemStyle={{ color: '#60a5fa' }}
                                 labelStyle={{ color: '#cbd5e1' }}
-                                formatter={(val: any) => [`${val} Warga`, 'Akumulasi']}
+                                formatter={(val: any) => [`${val} Warga`, 'Registrasi']}
                             />
                             <Area 
                                 type="monotone" 
@@ -102,19 +117,19 @@ export function OverviewCharts() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0 border border-blue-100">
-                            <ShieldCheck size={20} />
+                            <Activity size={20} />
                         </div>
                         <div>
                             <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
                                 Transaksi & Audit Log
                             </h3>
-                            <p className="text-slate-400 text-xs font-semibold">Volume aktivitas data & audit sistem</p>
+                            <p className="text-slate-400 text-xs font-semibold">Trafik audit event 7 hari terakhir</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-1.5 self-start sm:self-auto px-3 py-1.5 rounded-xl bg-blue-50 border border-blue-100 text-blue-700 text-xs font-black">
-                        <Activity size={14} className="stroke-[2.5]" />
-                        <span>Aktivitas Normal</span>
+                        <ShieldCheck size={14} className="stroke-[2.5]" />
+                        <span>{data?.totalWeeklyLogs || 0} Total Event</span>
                     </div>
                 </div>
 
@@ -145,13 +160,12 @@ export function OverviewCharts() {
                                 }}
                                 itemStyle={{ color: '#38bdf8' }}
                                 labelStyle={{ color: '#cbd5e1' }}
-                                formatter={(val: any) => [`${val} Transaksi`, 'Volume Log']}
+                                formatter={(val: any) => [`${val} Event Log`, 'Audit']}
                             />
                             <Bar 
                                 dataKey="logs" 
-                                fill="#0f172a" 
-                                radius={[8, 8, 2, 2]} 
-                                barSize={24} 
+                                fill="#0284c7" 
+                                radius={[6, 6, 0, 0]} 
                             />
                         </BarChart>
                     </ResponsiveContainer>

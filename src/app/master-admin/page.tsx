@@ -27,6 +27,7 @@ import { authOptions } from "@/lib/auth";
 import { MasterInfrastructureStatus } from "@/components/master/MasterInfrastructureStatus";
 import { OverviewCharts } from "@/components/master/OverviewChartsWrapper";
 import { SupabaseStorageStats } from "@/components/master/SupabaseStorageStats";
+import { SystemHealthCacheManager } from "@/components/master/SystemHealthCacheManager";
 import { getMaintenanceSettings } from "@/lib/maintenanceService";
 
 export default async function MasterDashboardPage({ 
@@ -214,6 +215,9 @@ export default async function MasterDashboardPage({
             />
         </div>
       </div>
+
+      {/* ── REALTIME SYSTEM HEALTH & CACHE CLEANER ───────────── */}
+      <SystemHealthCacheManager />
 
       {/* ── CHARTS SECTION ─────────────────────────────────── */}
       <OverviewCharts />
