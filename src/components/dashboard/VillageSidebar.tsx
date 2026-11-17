@@ -159,6 +159,7 @@ const menuItems = [
   { name: "Monitoring", icon: Activity, href: "/dashboard/monitoring" },
   { name: "Tracking Layanan", icon: Clock, href: "/dashboard/tracking" },
   { name: 'Pengaturan', icon: Settings, href: '/dashboard/settings' },
+  { name: 'Instan Studio Foto', icon: Sparkles, href: '/dashboard?tab=studio-foto' },
   { name: 'Marketplace UMKM', icon: ShoppingBag, href: '/umkm' },
 ];
 
@@ -734,7 +735,8 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                   { name: "Data Kependudukan", icon: Database, href: "/dashboard/warga", activeParam: "warga" },
                   { name: "Arsip Digital", icon: Archive, href: "/dashboard/arsip", activeParam: "" },
                   { name: "Monitoring", icon: Activity, href: "/dashboard/monitoring", activeParam: "" },
-                ].map((item) => {
+                  { name: "Instan Studio Foto", icon: Sparkles, href: "/dashboard", activeParam: "studio-foto", isAi: true },
+                ].map((item: any) => {
                    const isDashboard = item.href === "/dashboard";
                    const isActive = isDashboard 
                      ? (pathname === "/dashboard" && (!tabParam || tabParam === "overview" || tabParam === item.activeParam))
@@ -752,7 +754,16 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                        } ${isCollapsed && !isOpen ? 'justify-center' : ''}`}
                      >
                        <item.icon size={20} className={`transition-all duration-300 ${isActive ? (isHackerTheme ? "animate-luxury-pulse luxury-glow-strong text-teal-300" : "") : "group-hover:scale-125 transition-transform"}`} />
-                       {(!isCollapsed || isOpen) && <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>{item.name}</span>}
+                       {(!isCollapsed || isOpen) && (
+                         <div className="flex items-center justify-between flex-1">
+                           <span className={`text-sm ${isHackerTheme ? 'font-mono' : ''}`}>{item.name}</span>
+                           {item.isAi && (
+                             <span className="px-1.5 py-0.5 text-[9px] font-black rounded-md bg-gradient-to-r from-sky-400 to-indigo-500 text-white shadow-xs tracking-wider animate-pulse">
+                               AI
+                             </span>
+                           )}
+                         </div>
+                       )}
                      </Link>
                    );
                 })}

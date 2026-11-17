@@ -41,6 +41,7 @@ const CyberPlanAhspTab = dynamic(() => import("../perencanaan/CyberPlanAhspTab")
 const CyberPlanRkkdTab = dynamic(() => import("../perencanaan/CyberPlanRkkdTab").then(m => m.CyberPlanRkkdTab), { ssr: false, loading: PlanTabLoader });
 const CyberPlanMusrenbangTab = dynamic(() => import("../perencanaan/CyberPlanMusrenbangTab").then(m => m.CyberPlanMusrenbangTab), { ssr: false, loading: PlanTabLoader });
 const ApbdesInfografisBoard = dynamic(() => import("../perencanaan/ApbdesInfografisBoard").then(m => m.ApbdesInfografisBoard), { ssr: false, loading: PlanTabLoader });
+const KaurStudioFotoTab = dynamic(() => import("./kaur-perencanaan/KaurStudioFotoTab").then(m => m.KaurStudioFotoTab), { ssr: false, loading: PlanTabLoader });
 
 export function PerencanaanDashboard({ session, stats, isHackerTheme }: { session: any, stats: any, isHackerTheme?: boolean }) {
   const roleName = session?.user?.role?.replace(/_/g, ' ') || "KAUR PERENCANAAN";
@@ -170,6 +171,18 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
       setActiveTab("main");
       router.push("/dashboard?tab=overview");
     }} />;
+  }
+
+  if (tabParam === "studio-foto" || activeTab === "studio-foto" || tabParam === "instan-studio") {
+    return (
+      <KaurStudioFotoTab 
+        isHackerTheme={isHackerTheme}
+        onBack={() => {
+          setActiveTab("main");
+          router.push("/dashboard?tab=overview");
+        }} 
+      />
+    );
   }
 
   return (
