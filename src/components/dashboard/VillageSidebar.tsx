@@ -739,13 +739,16 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                 ].map((item: any) => {
                    const isDashboard = item.href === "/dashboard";
                    const isActive = isDashboard 
-                     ? (pathname === "/dashboard" && (!tabParam || tabParam === "overview" || tabParam === item.activeParam))
+                     ? (item.activeParam === "overview"
+                         ? (pathname === "/dashboard" && (!tabParam || tabParam === "overview" || tabParam === "main"))
+                         : (pathname === "/dashboard" && tabParam === item.activeParam))
                      : (pathname.startsWith(item.href) || (item.activeParam && tabParam === item.activeParam));
                    
                    return (
                      <Link
                        key={item.name}
                        href={item.href + (item.activeParam && isDashboard ? `?tab=${item.activeParam}` : '')}
+                       scroll={false}
                        onClick={() => setIsOpen(false)}
                        className={`flex items-center gap-3 px-4 py-3 rounded-2xl transition-all group relative z-10 ${
                          isActive
@@ -804,6 +807,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                             <Link
                               key={subItem.tab}
                               href={`/dashboard?tab=${subItem.tab}`}
+                              scroll={false}
                               onClick={() => setIsOpen(false)}
                               className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all text-xs group ${
                                 tabParam === subItem.tab
@@ -889,6 +893,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                                    <Link
                                      key={subItem.tab}
                                      href={`/dashboard?tab=${subItem.tab}`}
+                                     scroll={false}
                                      onClick={() => setIsOpen(false)}
                                      className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg transition-all text-xs group ${
                                        tabParam === subItem.tab
@@ -916,6 +921,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                            <Link
                              key={item.tab}
                              href={`/dashboard?tab=${item.tab}`}
+                             scroll={false}
                              onClick={() => setIsOpen(false)}
                              className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all text-sm group ${
                                tabParam === item.tab

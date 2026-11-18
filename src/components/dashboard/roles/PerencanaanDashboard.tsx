@@ -27,22 +27,15 @@ import type { RkkdSubFeature } from "../perencanaan/CyberPlanRkkdTab";
 import type { MusrenbangSubFeature } from "../perencanaan/CyberPlanMusrenbangTab";
 import { LuxuryRingChart } from "./LuxuryRingChart";
 
-const PlanTabLoader = () => (
-  <div className="p-10 flex flex-col items-center justify-center min-h-[300px] gap-2">
-    <div className="w-7 h-7 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
-    <span className="text-xs font-medium text-slate-500">Memuat modul CyberPlan...</span>
-  </div>
-);
-
-const CyberPlanRabTab = dynamic(() => import("../perencanaan/CyberPlanRabTab").then(m => m.CyberPlanRabTab), { ssr: false, loading: PlanTabLoader });
-const CyberPlanTakeOffTab = dynamic(() => import("../perencanaan/CyberPlanTakeOffTab").then(m => m.CyberPlanTakeOffTab), { ssr: false, loading: PlanTabLoader });
-const CyberPlanHargaSatuanTab = dynamic(() => import("../perencanaan/CyberPlanHargaSatuanTab").then(m => m.CyberPlanHargaSatuanTab), { ssr: false, loading: PlanTabLoader });
-const CyberPlanAhspTab = dynamic(() => import("../perencanaan/CyberPlanAhspTab").then(m => m.CyberPlanAhspTab), { ssr: false, loading: PlanTabLoader });
-const CyberPlanRkkdTab = dynamic(() => import("../perencanaan/CyberPlanRkkdTab").then(m => m.CyberPlanRkkdTab), { ssr: false, loading: PlanTabLoader });
-const CyberPlanMusrenbangTab = dynamic(() => import("../perencanaan/CyberPlanMusrenbangTab").then(m => m.CyberPlanMusrenbangTab), { ssr: false, loading: PlanTabLoader });
-const ApbdesInfografisBoard = dynamic(() => import("../perencanaan/ApbdesInfografisBoard").then(m => m.ApbdesInfografisBoard), { ssr: false, loading: PlanTabLoader });
-const KaurStudioFotoTab = dynamic(() => import("./kaur-perencanaan/KaurStudioFotoTab").then(m => m.KaurStudioFotoTab), { ssr: false, loading: PlanTabLoader });
-const CyberPlanProgressTab = dynamic(() => import("../perencanaan/CyberPlanProgressTab").then(m => m.CyberPlanProgressTab), { ssr: false, loading: PlanTabLoader });
+const CyberPlanRabTab = dynamic(() => import("../perencanaan/CyberPlanRabTab").then(m => m.CyberPlanRabTab));
+const CyberPlanTakeOffTab = dynamic(() => import("../perencanaan/CyberPlanTakeOffTab").then(m => m.CyberPlanTakeOffTab));
+const CyberPlanHargaSatuanTab = dynamic(() => import("../perencanaan/CyberPlanHargaSatuanTab").then(m => m.CyberPlanHargaSatuanTab));
+const CyberPlanAhspTab = dynamic(() => import("../perencanaan/CyberPlanAhspTab").then(m => m.CyberPlanAhspTab));
+const CyberPlanRkkdTab = dynamic(() => import("../perencanaan/CyberPlanRkkdTab").then(m => m.CyberPlanRkkdTab));
+const CyberPlanMusrenbangTab = dynamic(() => import("../perencanaan/CyberPlanMusrenbangTab").then(m => m.CyberPlanMusrenbangTab));
+const ApbdesInfografisBoard = dynamic(() => import("../perencanaan/ApbdesInfografisBoard").then(m => m.ApbdesInfografisBoard));
+const KaurStudioFotoTab = dynamic(() => import("./kaur-perencanaan/KaurStudioFotoTab").then(m => m.KaurStudioFotoTab));
+const CyberPlanProgressTab = dynamic(() => import("../perencanaan/CyberPlanProgressTab").then(m => m.CyberPlanProgressTab));
 
 export function PerencanaanDashboard({ session, stats, isHackerTheme }: { session: any, stats: any, isHackerTheme?: boolean }) {
   const roleName = session?.user?.role?.replace(/_/g, ' ') || "KAUR PERENCANAAN";
@@ -50,6 +43,10 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
   const router = useRouter();
   const tabParam = searchParams.get("tab");
   const [activeTab, setActiveTab] = useState(tabParam || "main");
+
+  useEffect(() => {
+    setActiveTab(tabParam || "main");
+  }, [tabParam]);
 
   // Real-time states
   const [serverLoad, setServerLoad] = useState(24);
@@ -120,7 +117,7 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
         defaultTab={defaultSubTab}
         onBack={() => {
           setActiveTab("main");
-          router.push("/dashboard?tab=overview");
+          router.push("/dashboard?tab=overview", { scroll: false });
         }} 
       />
     );
@@ -135,7 +132,7 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
         defaultTab={defaultSubTab}
         onBack={() => {
           setActiveTab("main");
-          router.push("/dashboard?tab=overview");
+          router.push("/dashboard?tab=overview", { scroll: false });
         }} 
       />
     );
@@ -144,7 +141,7 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
   if (tabParam === "rab" || activeTab === "rab") {
     return <CyberPlanRabTab onBack={() => {
       setActiveTab("main");
-      router.push("/dashboard?tab=overview");
+      router.push("/dashboard?tab=overview", { scroll: false });
     }} />;
   }
 
@@ -153,11 +150,11 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
       <CyberPlanTakeOffTab 
         onBack={() => {
           setActiveTab("main");
-          router.push("/dashboard?tab=overview");
+          router.push("/dashboard?tab=overview", { scroll: false });
         }}
         onNavigateToRab={() => {
           setActiveTab("rab");
-          router.push("/dashboard?tab=rab");
+          router.push("/dashboard?tab=rab", { scroll: false });
         }} 
       />
     );
@@ -166,14 +163,14 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
   if (tabParam === "harga-satuan" || activeTab === "harga-satuan") {
     return <CyberPlanHargaSatuanTab onBack={() => {
       setActiveTab("main");
-      router.push("/dashboard?tab=overview");
+      router.push("/dashboard?tab=overview", { scroll: false });
     }} />;
   }
 
   if (tabParam === "ahsp" || activeTab === "ahsp") {
     return <CyberPlanAhspTab onBack={() => {
       setActiveTab("main");
-      router.push("/dashboard?tab=overview");
+      router.push("/dashboard?tab=overview", { scroll: false });
     }} />;
   }
 
@@ -184,7 +181,7 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
         isHackerTheme={isHackerTheme}
         onBack={() => {
           setActiveTab("main");
-          router.push("/dashboard?tab=overview");
+          router.push("/dashboard?tab=overview", { scroll: false });
         }} 
       />
     );
@@ -196,7 +193,7 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
         isHackerTheme={isHackerTheme}
         onBack={() => {
           setActiveTab("main");
-          router.push("/dashboard?tab=overview");
+          router.push("/dashboard?tab=overview", { scroll: false });
         }} 
       />
     );

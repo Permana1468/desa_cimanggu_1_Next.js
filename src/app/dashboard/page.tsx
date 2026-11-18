@@ -66,10 +66,14 @@ export default async function VillageDashboardPage() {
   const isExecutive = ["ADMIN_DESA", "KADES", "SEKDES", "ADMIN_MASTER"].includes(role) && !email.includes("operator");
   const isWarga = role === "WARGA";
   const needsSurat = isExecutive || isWarga;
+  const isPerencanaan = role === "KAUR_PERENCANAAN";
+  const needsStats = !isPerencanaan;
 
   // Fetch only what this role needs, executing in parallel to eliminate waterfall latency
   const [stats, latestSurat, realtimeStats, villageProfile] = await Promise.all([
-    getVillageDashboardStats(),
+    needsStats 
+      ? getVillageDashboardStats() 
+      : Promise.resolve({ suratPending: 0, laporanVerified: 0, totalAparatur: 0, totalProposals: 0, unverifiedWarga: 0 }),
     needsSurat ? getSuratList() : Promise.resolve([] as any[]),
     isExecutive ? getDashboardRealtimeStats() : Promise.resolve(null),
     isExecutive ? getVillageProfile() : Promise.resolve(null)

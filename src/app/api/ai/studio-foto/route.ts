@@ -118,18 +118,7 @@ export async function POST(req: NextRequest) {
     } = body;
 
     // Strict security: API Key is retrieved ONLY from Admin Master / server configuration
-    const apiKey = await getMasterGeminiApiKey();
-
-    if (!apiKey) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Kunci API Gemini belum diatur di Admin Master. Silakan hubungi Admin Master untuk mengaktifkan AI di menu 'Kecerdasan Buatan'.",
-          needAdminSetup: true,
-        },
-        { status: 403 }
-      );
-    }
+    const apiKey = (await getMasterGeminiApiKey()) || "";
 
     if (!prompt && !imageBase64) {
       return NextResponse.json(
