@@ -60,10 +60,11 @@ export function CyberSentryDashboard({ initialData }: CyberSentryDashboardProps)
   const [activeTab, setActiveTab] = useState<"TOPOLOGY" | "INCIDENTS" | "FIREWALL">("TOPOLOGY");
   const [lastSync, setLastSync] = useState<string>("Baru Saja");
 
-  // Real-Time Background Synchronization (Auto-polls every 4 seconds)
+  // Real-Time Background Synchronization (Auto-polls every 10 seconds when tab is active)
   useEffect(() => {
     let isMounted = true;
     const interval = setInterval(async () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
       try {
         const updated = await getRealtimeCyberSecurityOverview();
         if (isMounted && updated) {
@@ -73,7 +74,7 @@ export function CyberSentryDashboard({ initialData }: CyberSentryDashboardProps)
       } catch {
         // Silent error for background poll
       }
-    }, 4000);
+    }, 10000);
 
     return () => {
       isMounted = false;

@@ -12,7 +12,8 @@ import {
   Clock,
   LucideIcon 
 } from "lucide-react";
-import { getLiveNotifications, LiveNotification } from "@/actions/notifications";
+import type { LiveNotification } from "@/actions/notifications";
+export type { LiveNotification };
 
 export interface NotificationItem {
   id: string;
@@ -63,11 +64,16 @@ export function useNotifications() {
   };
 
   const fetchLive = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
 
     try {
-      const liveData = await getLiveNotifications();
+      const res = await fetch("/api/notifications", { cache: "no-store" });
+      if (!res.ok) throw new Error("Failed to fetch notifications API");
+      const json = await res.json();
+      const liveData: any[] = json.notifications || [];
+
       const readSet = getStoredSet(STORAGE_READ_KEY);
       const deletedSet = getStoredSet(STORAGE_DELETED_KEY);
 
@@ -82,7 +88,7 @@ export function useNotifications() {
       setNotifications(mapped);
       setIsLoaded(true);
     } catch (err) {
-      console.error("Error fetching live notifications:", err);
+      console.warn("Error fetching live notifications:", err);
     } finally {
       isFetchingRef.current = false;
     }
@@ -97,8 +103,8 @@ export function useNotifications() {
     window.addEventListener("refresh-notifications", handleRefresh);
     window.addEventListener("focus", handleFocus);
 
-    // Realtime polling every 12 seconds for immediate notification updates
-    const interval = setInterval(fetchLive, 12000);
+    // Non-intrusive polling every 30 seconds for background notifications
+    const interval = setInterval(fetchLive, 30000);
 
     return () => {
       window.removeEventListener("refresh-notifications", handleRefresh);

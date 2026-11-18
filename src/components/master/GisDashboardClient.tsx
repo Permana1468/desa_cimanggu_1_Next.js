@@ -226,6 +226,7 @@ export default function GisDashboardClient({
 
     // REAL-TIME DATABASE POLLING
     const interval = setInterval(async () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
       try {
         const res = await getGisDashboardStats(tenantId);
         if (res.success && res.data) {
@@ -237,7 +238,7 @@ export default function GisDashboardClient({
           });
         }
       } catch (err) { }
-    }, 5000); // Poll every 5 seconds
+    }, 15000); // Poll every 15 seconds when tab is active
 
     return () => {
       clearInterval(interval);

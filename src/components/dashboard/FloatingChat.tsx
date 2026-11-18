@@ -9,8 +9,6 @@ import {
     ChevronLeft
 } from "lucide-react";
 import { 
-    updateUserHeartbeat, 
-    getChatContacts, 
     getChatHistory, 
     sendChatMessage 
 } from "@/actions/chat";
@@ -77,13 +75,13 @@ export function FloatingChat({ session }: { session: any }) {
 
     useEffect(() => {
         if (!role || role === "WARGA") return;
-        const initialTimer = setTimeout(() => {
-            updateUserHeartbeat();
-        }, 2500);
+        const sendHeartbeat = () => {
+            if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+            fetch("/api/chat/heartbeat", { method: "POST" }).catch(() => {});
+        };
 
-        const heartbeatInterval = setInterval(() => {
-            updateUserHeartbeat();
-        }, 60000);
+        const initialTimer = setTimeout(sendHeartbeat, 2500);
+        const heartbeatInterval = setInterval(sendHeartbeat, 60000);
 
         return () => {
             clearTimeout(initialTimer);
@@ -93,12 +91,15 @@ export function FloatingChat({ session }: { session: any }) {
 
 
     const fetchContacts = async (showLoading = false) => {
+        if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
         if (showLoading) setLoadingContacts(true);
         try {
-            const data = await getChatContacts();
+            const res = await fetch("/api/chat/contacts", { cache: "no-store" });
+            if (!res.ok) return;
+            const json = await res.json();
+            const data = json.contacts || [];
             
             if (!Array.isArray(data)) {
-                console.error("getChatContacts did not return an array:", data);
                 return;
             }
             

@@ -25,7 +25,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import type { RkkdSubFeature } from "../perencanaan/CyberPlanRkkdTab";
 import type { MusrenbangSubFeature } from "../perencanaan/CyberPlanMusrenbangTab";
-import { LuxuryRingChart } from "./LuxuryRingChart";
 
 const CyberPlanRabTab = dynamic(() => import("../perencanaan/CyberPlanRabTab").then(m => m.CyberPlanRabTab));
 const CyberPlanTakeOffTab = dynamic(() => import("../perencanaan/CyberPlanTakeOffTab").then(m => m.CyberPlanTakeOffTab));
@@ -94,19 +93,6 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
     setIsEditingName(false);
   };
 
-  useEffect(() => {
-    // Only run telemetry interval if on main overview tab to optimize rendering performance
-    if (tabParam && tabParam !== "overview" && tabParam !== "main") return;
-
-    const interval = setInterval(() => {
-      setServerLoad(prev => Math.max(10, Math.min(95, prev + (Math.random() * 10 - 5))));
-      if (Math.random() > 0.8) {
-        setDbSync(prev => prev >= 100 ? 98 : 100);
-      }
-      setSerapan(prev => prev < 100 ? prev + (Math.random() * 0.05) : prev);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [tabParam]);
 
   const musrenbangTabs = ["undangan-musrenbang", "musling-rw", "musling-kadus", "finance", "musrenbang"];
   if (tabParam && musrenbangTabs.includes(tabParam)) {
