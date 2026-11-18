@@ -98,7 +98,7 @@ export default async function VillageDashboardPage() {
 
   // 3. PERENCANAAN
   if (role === "KAUR_PERENCANAAN") {
-    const isHackerTheme = themeMode === 'hacker';
+    const isHackerTheme = false;
     return <PerencanaanDashboard session={session} stats={stats} isHackerTheme={isHackerTheme} />;
   }
 

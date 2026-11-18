@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { checkActiveUserSecurityAlarm } from "@/actions/cyberSecurity";
 import { ShieldAlert, AlertTriangle, X, CheckCircle, Volume2, Shield } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -38,12 +37,16 @@ export function SecurityAlarmListener() {
   }, []);
 
   const checkForAlarm = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
     try {
-      const msg = await checkActiveUserSecurityAlarm();
-      if (msg) {
-        setAlarmMessage(msg);
-        setIsOpen(true);
-        playAlarmSound();
+      const res = await fetch("/api/security/alarm-check", { cache: "no-store" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.alarm) {
+          setAlarmMessage(data.alarm);
+          setIsOpen(true);
+          playAlarmSound();
+        }
       }
     } catch {
       // Silent error handling for background polling
@@ -54,8 +57,8 @@ export function SecurityAlarmListener() {
     // Initial check on mount
     checkForAlarm();
 
-    // Check periodically every 8 seconds
-    const interval = setInterval(checkForAlarm, 8000);
+    // Check periodically every 20 seconds (lightweight API, no server action re-renders)
+    const interval = setInterval(checkForAlarm, 20000);
     return () => clearInterval(interval);
   }, [checkForAlarm]);
 

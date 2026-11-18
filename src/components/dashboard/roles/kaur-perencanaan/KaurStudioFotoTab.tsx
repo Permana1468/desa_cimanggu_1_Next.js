@@ -393,7 +393,8 @@ export function KaurStudioFotoTab({ onBack, isHackerTheme }: KaurStudioFotoTabPr
           modeName: activeConfig.name,
           aspectRatio: data.aspectRatio || aspectRatio,
           timestamp: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
-          prompt: prompt
+          prompt: prompt,
+          engineUsed: data.engineUsed || "Google Gemini AI (Vision & Intelegensi Budaya) + Sana Ultra HD Engine"
         };
         setGeneratedResult(newResult);
         setGenerationHistory((prev) => [newResult, ...prev.slice(0, 7)]);

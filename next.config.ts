@@ -98,10 +98,7 @@ const nextConfig: NextConfig = {
     maxInactiveAge: 60 * 60 * 1000,
     pagesBufferLength: 64,
   },
-  devIndicators: {
-    // Geser indikator dev ke kanan bawah agar tidak menutupi status card sidebar kiri
-    position: 'bottom-right',
-  },
+  devIndicators: false,
   async headers() {
     return [
       {
