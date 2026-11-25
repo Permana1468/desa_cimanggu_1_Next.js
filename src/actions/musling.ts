@@ -93,9 +93,12 @@ export async function getOfficialRtsForRw(rwParam: string): Promise<string[]> {
             }
         }
 
-        for (const row of dbRts) {
-            const rtDigits = String(row.rt || "").replace(/\D/g, "");
-            if (rtDigits) rtSet.add(pad3(rtDigits));
+        // Hanya gunakan fallback DataKependudukan jika village_structure belum dikonfigurasi untuk RW ini
+        if (rtSet.size === 0) {
+            for (const row of dbRts) {
+                const rtDigits = String(row.rt || "").replace(/\D/g, "");
+                if (rtDigits) rtSet.add(pad3(rtDigits));
+            }
         }
 
         return Array.from(rtSet).sort();

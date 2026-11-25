@@ -195,8 +195,8 @@ export async function getWilayahStrukturOptions() {
                 });
             });
 
-            // Also supplement with distinct RT from DataKependudukan for this RW
-            if (tenantId) {
+            // Only supplement from DataKependudukan if village_structure has no RT configured for this RW
+            if (rtOptions.length === 0 && tenantId) {
                 const dbRts = await prisma.dataKependudukan.findMany({
                     where: {
                         tenantId,

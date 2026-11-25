@@ -67,7 +67,8 @@ export async function getWilayahPosyanduRecap(filterRw?: string, filterRt?: stri
             residentWhere.rt = { in: rtVars };
         }
 
-        const [residents, balitaList, ibuHamilList, lansiaList] = await Promise.all([
+        const [structureRow, residentsRaw, balitaRaw, ibuHamilRaw, lansiaRaw] = await Promise.all([
+            prisma.systemSetting.findUnique({ where: { id: "village_structure" } }),
             prisma.dataKependudukan.findMany({
                 where: residentWhere,
                 select: {
@@ -110,6 +111,36 @@ export async function getWilayahPosyanduRecap(filterRw?: string, filterRt?: stri
                 orderBy: [{ rw: "asc" }, { rt: "asc" }, { namaLengkap: "asc" }]
             })
         ]);
+
+        // Peta resmi RT per RW dari village_structure agar RT liar/salah ketik tidak ikut muncul
+        const officialRtsByRw = new Map<string, Set<string>>();
+        const structure = (structureRow?.settings as any) || { dusun: [] };
+        for (const d of structure.dusun || []) {
+            for (const rwObj of d.rw || []) {
+                const rwDigits = String(rwObj.name || rwObj.nomor || "").replace(/\D/g, "");
+                if (!rwDigits) continue;
+                const cleanRwKey = rwDigits.padStart(3, "0");
+                if (!officialRtsByRw.has(cleanRwKey)) officialRtsByRw.set(cleanRwKey, new Set());
+                for (const rtItem of rwObj.rt || []) {
+                    const rtStr = typeof rtItem === "string" ? rtItem : String(rtItem?.name || rtItem?.nomor || "");
+                    const rtDigits = rtStr.replace(/\D/g, "");
+                    if (rtDigits) officialRtsByRw.get(cleanRwKey)!.add(rtDigits.padStart(3, "0"));
+                }
+            }
+        }
+
+        const isOfficialRt = (rawRw?: string | null, rawRt?: string | null) => {
+            const cleanRw = String(rawRw || "000").replace(/\D/g, "").padStart(3, "0");
+            const cleanRt = String(rawRt || "000").replace(/\D/g, "").padStart(3, "0");
+            const allowedSet = officialRtsByRw.get(cleanRw);
+            if (!allowedSet || allowedSet.size === 0) return true;
+            return allowedSet.has(cleanRt);
+        };
+
+        const residents = residentsRaw.filter(r => isOfficialRt(r.rw, r.rt));
+        const balitaList = balitaRaw.filter(b => isOfficialRt(b.rw, b.rt));
+        const ibuHamilList = ibuHamilRaw.filter(ih => isOfficialRt(ih.rw, ih.rt));
+        const lansiaList = lansiaRaw.filter(l => isOfficialRt(l.rw, l.rt));
 
         const today = new Date();
         let sasaranBalita = 0;
@@ -182,6 +213,21 @@ export async function getWilayahPosyanduRecap(filterRw?: string, filterRt?: stri
             }
             return { rtStat: rtStatsMap[key], rwStat: rwStatsMap[cleanRw] };
         };
+
+        // Pre-seed official RTs in scope so all official RTs appear cleanly
+        if (role === "RW") {
+            const cleanRw = userRw.replace(/\D/g, "").padStart(3, "0");
+            officialRtsByRw.get(cleanRw)?.forEach(rt => ensureRt(cleanRw, rt));
+        } else if (role === "RT") {
+            const cleanRw = userRw.replace(/\D/g, "").padStart(3, "0");
+            const cleanRt = userRt.replace(/\D/g, "").padStart(3, "0");
+            ensureRt(cleanRw, cleanRt);
+        } else if (role === "KADUS") {
+            allowedRws.forEach(rwItem => {
+                const cleanRw = rwItem.replace(/\D/g, "").padStart(3, "0");
+                officialRtsByRw.get(cleanRw)?.forEach(rt => ensureRt(cleanRw, rt));
+            });
+        }
 
         residents.forEach(r => {
             const { rtStat, rwStat } = ensureRt(r.rw, r.rt);
