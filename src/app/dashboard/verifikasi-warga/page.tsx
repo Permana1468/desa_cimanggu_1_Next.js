@@ -10,8 +10,10 @@ export default async function VerifikasiWargaPage() {
         redirect("/login");
     }
 
-    // Hanya ADMIN_DESA, KADES, dsb yang bisa akses dashboard, tapi kita render datanya
-    const userRole = (session.user as any).role;
+    const userRole = String((session.user as any).role || "").toUpperCase();
+    if (!["OPERATOR_DESA", "ADMIN_DESA", "KADES", "SEKDES", "ADMIN_MASTER"].includes(userRole)) {
+        redirect("/dashboard");
+    }
     
     // Get all Warga users
     const wargaUsers = await prisma.user.findMany({

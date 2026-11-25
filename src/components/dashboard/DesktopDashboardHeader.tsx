@@ -108,7 +108,9 @@ export function DesktopDashboardHeader({ session }: DesktopDashboardHeaderProps)
     brandTitle = "KEPALA DESA";
   } else if (baseRole === "SEKDES" || nameLower.includes("sekretaris desa") || nameLower.includes("sekdes")) {
     brandTitle = "SEKRETARIS DESA";
-  } else if (["ADMIN_DESA", "ADMIN_MASTER", "OPERATOR_DESA"].includes(baseRole)) {
+  } else if (baseRole === "OPERATOR_DESA" || nameLower.includes("operator")) {
+    brandTitle = "OPERATOR DESA";
+  } else if (["ADMIN_DESA", "ADMIN_MASTER"].includes(baseRole)) {
     brandTitle = "ADMIN DESA";
   } else {
     brandTitle = "ADMIN DESA";

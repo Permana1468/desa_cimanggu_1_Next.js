@@ -33,7 +33,7 @@ import {
 } from "recharts";
 
 // Realtime Actions
-import { getDashboardRealtimeStats } from "@/actions/dashboard";
+import { getOperatorRealtimeOverview } from "@/actions/dashboard";
 import { getVillageDashboardStats } from "@/actions/village";
 import dynamic from "next/dynamic";
 
@@ -77,54 +77,46 @@ function OperatorMainView({ session, initialStats }: { session: any; initialStat
     suratPending: initialStats?.suratPending || 0,
     laporanVerified: initialStats?.laporanVerified || 0,
     totalAparatur: initialStats?.totalAparatur || 0,
+    unverifiedWarga: initialStats?.unverifiedWarga || 0,
+    totalWarga: 0,
+    totalNews: 0,
   });
 
   const [lastSyncTime, setLastSyncTime] = useState<string>("");
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [chartTrend, setChartTrend] = useState<any[]>([]);
+  const [recentLogs, setRecentLogs] = useState<any[]>([]);
 
   const fetchLiveData = async () => {
     if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
     setIsSyncing(true);
     try {
-      const [rtStats, vStats] = await Promise.all([
-        getDashboardRealtimeStats(),
+      const [opStats, vStats] = await Promise.all([
+        getOperatorRealtimeOverview(),
         getVillageDashboardStats(),
       ]);
 
-      const suratHariIni = rtStats?.suratHariIni || 0;
-      const totalAntrean = rtStats?.totalAntrean || vStats?.suratPending || 0;
-      const suratSelesai = rtStats?.suratSelesai || 0;
-      const totalAparatur = vStats?.totalAparatur || initialStats?.totalAparatur || 0;
-
       setRealtimeData({
-        suratHariIni,
-        totalAntrean,
-        suratSelesai,
+        suratHariIni: opStats?.suratHariIni || 0,
+        totalAntrean: opStats?.totalAntrean || vStats?.suratPending || 0,
+        suratSelesai: opStats?.suratSelesai || 0,
         suratPending: vStats?.suratPending || 0,
         laporanVerified: vStats?.laporanVerified || 0,
-        totalAparatur,
+        totalAparatur: vStats?.totalAparatur || initialStats?.totalAparatur || 0,
+        unverifiedWarga: opStats?.unverifiedWarga ?? vStats?.unverifiedWarga ?? 0,
+        totalWarga: opStats?.totalWarga || 0,
+        totalNews: opStats?.totalNews || 0,
       });
 
       const now = new Date();
       setLastSyncTime(now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
 
-      // Generate hourly dynamic trend dataset
-      const hours = ["08:00", "10:00", "12:00", "14:00", "16:00", "Live"];
-      const baseSurat = suratHariIni || 8;
-      const baseAntrean = totalAntrean || 4;
-      const baseSelesai = suratSelesai || 6;
-
-      const trend = hours.map((h, i) => {
-        const progress = (i + 1) / hours.length;
-        return {
-          waktu: h,
-          suratMasuk: Math.round(baseSurat * (0.4 + progress * 0.6)),
-          antrean: Math.max(1, Math.round(baseAntrean * (1.1 - progress * 0.3))),
-          disetujui: Math.round(baseSelesai * (0.3 + progress * 0.7)),
-        };
-      });
-      setChartTrend(trend);
+      if (Array.isArray(opStats?.chartTrend)) {
+        setChartTrend(opStats.chartTrend);
+      }
+      if (Array.isArray(opStats?.recentLogs)) {
+        setRecentLogs(opStats.recentLogs);
+      }
     } catch (err) {
       console.error("Error syncing realtime dashboard data:", err);
     } finally {
@@ -138,6 +130,16 @@ function OperatorMainView({ session, initialStats }: { session: any; initialStat
     window.addEventListener("refresh-notifications", handleRefresh);
     window.addEventListener("focus", handleRefresh);
 
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+        bc.onmessage = () => {
+          fetchLiveData();
+        };
+      } catch {}
+    }
+
     const interval = setInterval(() => {
       if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
       fetchLiveData();
@@ -145,6 +147,7 @@ function OperatorMainView({ session, initialStats }: { session: any; initialStat
     return () => {
       window.removeEventListener("refresh-notifications", handleRefresh);
       window.removeEventListener("focus", handleRefresh);
+      if (bc) bc.close();
       clearInterval(interval);
     };
   }, []);
@@ -239,13 +242,13 @@ function OperatorMainView({ session, initialStats }: { session: any; initialStat
 
           <div className="space-y-4">
             <RealtimeMetricRow label="Status Sistem Operasional" value="ONLINE 100%" color="text-emerald-600 bg-emerald-50" />
-            <RealtimeMetricRow label="Total Aparatur Aktif" value={`${realtimeData.totalAparatur} Orang`} color="text-indigo-600 bg-indigo-50" />
-            <RealtimeMetricRow label="Surat Terverifikasi" value={`${realtimeData.laporanVerified} Berkas`} color="text-blue-600 bg-blue-50" />
-            <RealtimeMetricRow label="Antrean Menunggu Action" value={`${realtimeData.totalAntrean} Berkas`} color="text-amber-600 bg-amber-50" />
+            <RealtimeMetricRow label="Akun Warga Menunggu Verifikasi" value={`${realtimeData.unverifiedWarga} Akun`} color={realtimeData.unverifiedWarga > 0 ? "text-rose-600 bg-rose-50" : "text-emerald-600 bg-emerald-50"} />
+            <RealtimeMetricRow label="Basis Data Warga Aktif" value={`${realtimeData.totalWarga.toLocaleString("id-ID")} Jiwa`} color="text-indigo-600 bg-indigo-50" />
+            <RealtimeMetricRow label="Antrean Persuratan Aktif" value={`${realtimeData.totalAntrean} Berkas`} color="text-amber-600 bg-amber-50" />
           </div>
 
           <div className="mt-6 pt-6 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-400">
-            <span>Interval Sync: 5 Detik</span>
+            <span>Sync: Broadcast + 25 Detik</span>
             <span className="text-emerald-600 flex items-center gap-1">
               <TrendingUp size={14} /> Terhubung Ke Database
             </span>
@@ -263,11 +266,11 @@ function OperatorMainView({ session, initialStats }: { session: any; initialStat
             <MainPillarCard 
                 icon={UserCheck} 
                 title="Pusat Verifikasi Warga" 
-                desc="Validasi NIK, sinkronisasi data kependudukan, dan approval akun."
-                href="/dashboard/warga"
+                desc="Validasi NIK, sinkronisasi data kependudukan, dan approval akun warga."
+                href="/dashboard/verifikasi-warga"
                 color="from-emerald-500 to-teal-600"
                 shadow="shadow-emerald-500/20"
-                stats="Warga Aktif"
+                stats={realtimeData.unverifiedWarga > 0 ? `${realtimeData.unverifiedWarga} Menunggu` : "Semua Terverifikasi"}
             />
             <MainPillarCard 
                 icon={FileText} 
@@ -285,7 +288,7 @@ function OperatorMainView({ session, initialStats }: { session: any; initialStat
                 href="/dashboard/cms"
                 color="from-amber-500 to-orange-600"
                 shadow="shadow-amber-500/20"
-                stats="Portal Publik"
+                stats={`${realtimeData.totalNews} Berita`}
             />
             <MainPillarCard 
                 icon={FolderArchive} 
@@ -313,9 +316,13 @@ function OperatorMainView({ session, initialStats }: { session: any; initialStat
                 </div>
                 
                 <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
-                    <LogItem time="Hari ini" user="System Live" action="Verifikasi persuratan otomatis aktif" status="success" />
-                    <LogItem time="Realtime" user="Pelayanan" action="Sinkronisasi data kependudukan terhubung" status="info" />
-                    <LogItem time="Realtime" user="Operator" action="Akses 6 modul Laporan LPJ Kesra aktif" status="info" />
+                    {recentLogs.length === 0 ? (
+                      <LogItem time="Live" user="Sistem" action="Menunggu aktivitas operasional terbaru..." status="info" />
+                    ) : (
+                      recentLogs.map((log) => (
+                        <LogItem key={log.id} time={log.time} user={log.user} action={log.action} status={log.status} />
+                      ))
+                    )}
                 </div>
             </div>
         </div>

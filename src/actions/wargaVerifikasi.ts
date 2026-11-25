@@ -11,9 +11,9 @@ export async function verifyWargaUser(userId: string, isActive: boolean) {
         if (!session?.user) throw new Error("Unauthorized");
 
         const role = (session.user as any).role;
-        // Hanya Admin Desa atau Admin Master yang bisa memverifikasi
-        if (role !== "ADMIN_DESA" && role !== "KADES" && role !== "ADMIN_MASTER") {
-            throw new Error("Hanya Admin Desa yang dapat memverifikasi warga");
+        // Hanya Operator Desa, Admin Desa, Kades, Sekdes, atau Admin Master yang bisa memverifikasi
+        if (!["OPERATOR_DESA", "ADMIN_DESA", "KADES", "SEKDES", "ADMIN_MASTER"].includes(role)) {
+            throw new Error("Anda tidak memiliki izin untuk memverifikasi akun warga.");
         }
 
         const user = await prisma.user.findUnique({ where: { id: userId } });

@@ -250,6 +250,82 @@ export async function getDashboardRealtimeStats() {
     }
 }
 
+export async function getOperatorRealtimeOverview() {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) throw new Error("Unauthorized");
+    const tenantId = (session.user as any).tenantId;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+
+    const [
+        suratHariIni,
+        totalAntrean,
+        suratSelesai,
+        unverifiedWarga,
+        totalWarga,
+        totalNews,
+        surat7Days,
+        recentAuditLogs
+    ] = await Promise.all([
+        prisma.surat.count({ where: { tenantId, createdAt: { gte: today } } }),
+        prisma.surat.count({ where: { tenantId, status: "TERTUNDA" } }),
+        prisma.surat.count({ where: { tenantId, status: "DISETUJUI", createdAt: { gte: today } } }),
+        prisma.user.count({ where: { tenantId, role: "WARGA", isActive: false } }),
+        prisma.dataKependudukan.count({ where: { tenantId, statusKependudukan: { notIn: ["MENINGGAL", "PINDAH", "PINDAH_KELUAR"] } } }),
+        prisma.berita.count({ where: { tenantId } }),
+        prisma.surat.findMany({
+            where: { tenantId, createdAt: { gte: sevenDaysAgo } },
+            select: { createdAt: true, status: true }
+        }),
+        prisma.auditLog.findMany({
+            where: { tenantId },
+            orderBy: { createdAt: "desc" },
+            take: 5,
+            include: { user: { select: { fullName: true, role: true } } }
+        })
+    ]);
+
+    // Aggregate real 7-day trend
+    const dayMap: Record<string, { waktu: string; suratMasuk: number; disetujui: number; antrean: number }> = {};
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(sevenDaysAgo);
+        d.setDate(d.getDate() + i);
+        const key = d.toISOString().split("T")[0];
+        const label = d.toLocaleDateString("id-ID", { day: "2-digit", month: "short" });
+        dayMap[key] = { waktu: label, suratMasuk: 0, disetujui: 0, antrean: 0 };
+    }
+
+    surat7Days.forEach((s: any) => {
+        const key = new Date(s.createdAt).toISOString().split("T")[0];
+        if (dayMap[key]) {
+            dayMap[key].suratMasuk++;
+            if (s.status === "DISETUJUI") dayMap[key].disetujui++;
+            else if (s.status === "TERTUNDA") dayMap[key].antrean++;
+        }
+    });
+
+    return {
+        suratHariIni,
+        totalAntrean,
+        suratSelesai,
+        unverifiedWarga,
+        totalWarga,
+        totalNews,
+        chartTrend: Object.values(dayMap),
+        recentLogs: recentAuditLogs.map((log: any) => ({
+            id: log.id,
+            time: new Date(log.createdAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
+            user: log.user?.fullName || "Sistem",
+            action: `${log.action.replace(/_/g, " ")} (${log.entity})`,
+            status: log.action.includes("FAILED") || log.action.includes("DELETE") ? "pending" : "success"
+        }))
+    };
+}
+
 export async function saveApbdesBatch(dataArray: any[], tenantId: string) {
     const session = await checkAdminDesa();
     try {

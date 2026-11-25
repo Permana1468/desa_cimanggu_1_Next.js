@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 import { 
   Users, 
   CheckCircle2, 
@@ -16,6 +18,7 @@ import {
 import { verifyWargaUser } from "@/actions/wargaVerifikasi";
 
 export default function VerifikasiWargaClient({ users }: { users: any[] }) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
 
@@ -42,6 +45,9 @@ export default function VerifikasiWargaClient({ users }: { users: any[] }) {
 
     if (!res.success) {
       alert(res.error);
+    } else {
+      triggerNotificationRefresh();
+      router.refresh();
     }
   };
 
