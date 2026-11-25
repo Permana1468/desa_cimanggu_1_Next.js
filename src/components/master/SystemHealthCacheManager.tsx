@@ -33,8 +33,8 @@ export function SystemHealthCacheManager({ initialData }: SystemHealthCacheManag
     getRealtimeSystemHealth,
     {
       fallbackData: initialData,
-      refreshInterval: 5000, // Refresh automatically every 5 seconds
-      revalidateOnFocus: true,
+      refreshInterval: 30000, // Refresh automatically every 30 seconds
+      revalidateOnFocus: false,
     }
   );
 

@@ -31,9 +31,6 @@ const KasiPelayananDashboard = dynamic(() => import("@/components/dashboard/role
 
 export default async function VillageDashboardPage() {
   const session = await getServerSession(authOptions);
-  const { cookies } = await import("next/headers");
-  const cookieStore = await cookies();
-  const themeMode = cookieStore?.get('themeMode')?.value || 'hacker';
   
   if (session?.user?.email === "petagis@cimanggu1.desa.id") {
     redirect("/gis-dashboard");

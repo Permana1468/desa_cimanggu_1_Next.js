@@ -15,8 +15,8 @@ export function MasterInfrastructureStatus() {
     "master-realtime-infra-status", 
     getRealtimeSystemHealth, 
     { 
-      refreshInterval: 5000,
-      revalidateOnFocus: true
+      refreshInterval: 30000,
+      revalidateOnFocus: false
     }
   );
 

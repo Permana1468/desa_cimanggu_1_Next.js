@@ -1,7 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { cookies } from 'next/headers';
 import {
     FileText,
     Map as MapIcon,
@@ -41,14 +40,10 @@ import { LandingSectionsWrapper } from '../components/landing/LandingSectionsWra
 import { DesktopParallaxLanding } from '../components/landing/DesktopParallaxLanding';
 import { LandingModeHandler } from '../components/landing/LandingModeHandler';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const revalidate = 60;
 
 export default async function LandingPage() {
-    // Read Initial Theme Cookie (Server-Side)
-    const cookieStore = await cookies();
-
-    // FETCH DATA ON SERVER
+    // FETCH DATA ON SERVER WITH 60s ISR CACHING
     const [statsRes, newsRes, profileRes, aparaturRes, lembagaRes, uiConfig] = await Promise.all([
         getVillageStats(),
         getLatestNews(),
@@ -58,8 +53,6 @@ export default async function LandingPage() {
         getLandingUiConfig()
     ]);
 
-    const hasThemeCookie = cookieStore.has('landingThemeMode');
-    const hasDualCookie = cookieStore.has('landingDualMode');
     const jakartaHour = Number(
         new Intl.DateTimeFormat('en-US', {
             timeZone: 'Asia/Jakarta',
@@ -68,12 +61,8 @@ export default async function LandingPage() {
         }).format(new Date())
     );
     const isAutoNight = jakartaHour >= 18 || jakartaHour < 6;
-    const initialIsNightMode = hasThemeCookie
-        ? cookieStore.get('landingThemeMode')?.value === 'night'
-        : uiConfig.defaultThemeMode === 'night' || (uiConfig.defaultThemeMode === 'auto' && isAutoNight);
-    const initialIsDualMode = hasDualCookie
-        ? cookieStore.get('landingDualMode')?.value === 'true'
-        : uiConfig.defaultThemeMode === 'dual';
+    const initialIsNightMode = uiConfig.defaultThemeMode === 'night' || (uiConfig.defaultThemeMode === 'auto' && isAutoNight);
+    const initialIsDualMode = uiConfig.defaultThemeMode === 'dual';
 
     // Data Mapping with Rich Cimanggu I Defaults
     const defaultSiteData = {

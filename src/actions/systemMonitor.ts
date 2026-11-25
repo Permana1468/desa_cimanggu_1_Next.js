@@ -46,12 +46,13 @@ export interface SystemHealthData {
  * Utility to calculate directory size recursively
  */
 function getDirectorySize(dirPath: string): number {
+  if (process.env.NEXT_PHASE === 'phase-production-build' || typeof window !== 'undefined') return 0;
   if (!fs.existsSync(dirPath)) return 0;
   let total = 0;
   try {
     const entries = fs.readdirSync(dirPath, { withFileTypes: true });
     for (const entry of entries) {
-      const fullPath = path.join(dirPath, entry.name);
+      const fullPath = path.join(/*turbopackIgnore: true*/ dirPath, entry.name);
       try {
         if (entry.isDirectory()) {
           total += getDirectorySize(fullPath);
@@ -85,6 +86,16 @@ function formatBytes(bytes: number): string {
   return `${mb.toFixed(1)} MB`;
 }
 
+let cachedGarbage = {
+  cacheDirBytes: 0,
+  diagnosticsBytes: 0,
+  devLogsBytes: 0,
+  totalGarbageBytes: 0,
+  totalGarbageMb: 0,
+  timestamp: 0,
+};
+const GARBAGE_CACHE_TTL_MS = 60 * 1000;
+
 /**
  * Fetch real-time system resource & cache health metrics
  * (Accurately measures true cache, excluding active code chunks)
@@ -96,17 +107,29 @@ export async function getRealtimeSystemHealth(): Promise<SystemHealthData> {
   const usedMem = totalMem - freeMem;
   const osUsagePercent = Math.round((usedMem / totalMem) * 100);
 
-  const cachePath = path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "cache");
-  const diagnosticsPath = path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "diagnostics");
-  const devLogsPath = path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "dev", "logs");
+  const now = Date.now();
+  if (now - cachedGarbage.timestamp >= GARBAGE_CACHE_TTL_MS) {
+    const cachePath = path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "cache");
+    const diagnosticsPath = path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "diagnostics");
+    const devLogsPath = path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "dev", "logs");
 
-  const cacheDirBytes = getDirectorySize(cachePath);
-  const diagnosticsBytes = getDirectorySize(diagnosticsPath);
-  const devLogsBytes = getDirectorySize(devLogsPath);
+    const cacheDirBytes = getDirectorySize(cachePath);
+    const diagnosticsBytes = getDirectorySize(diagnosticsPath);
+    const devLogsBytes = getDirectorySize(devLogsPath);
+    const totalGarbageBytes = cacheDirBytes + diagnosticsBytes + devLogsBytes;
+    const totalGarbageMb = Number((totalGarbageBytes / (1024 * 1024)).toFixed(2));
 
-  // True disposable garbage: compilation cache + diagnostics + dev logs
-  const totalGarbageBytes = cacheDirBytes + diagnosticsBytes + devLogsBytes;
-  const totalGarbageMb = Number((totalGarbageBytes / (1024 * 1024)).toFixed(2));
+    cachedGarbage = {
+      cacheDirBytes,
+      diagnosticsBytes,
+      devLogsBytes,
+      totalGarbageBytes,
+      totalGarbageMb,
+      timestamp: now,
+    };
+  }
+
+  const { cacheDirBytes, diagnosticsBytes, devLogsBytes, totalGarbageBytes, totalGarbageMb } = cachedGarbage;
 
   // Determine load level and warning
   let loadLevel: "HEALTHY" | "WARNING" | "CRITICAL" = "HEALTHY";
@@ -191,7 +214,7 @@ export async function purgeSystemCacheAction(): Promise<{
         try {
           const files = fs.readdirSync(target);
           for (const f of files) {
-            const p = path.join(target, f);
+            const p = path.join(/*turbopackIgnore: true*/ target, f);
             try {
               fs.rmSync(p, { recursive: true, force: true });
             } catch {}
@@ -204,6 +227,9 @@ export async function purgeSystemCacheAction(): Promise<{
 
     const afterBytes = getDirectorySize(cachePath) + getDirectorySize(diagnosticsPath) + getDirectorySize(devLogsPath);
     const freedBytes = Math.max(0, beforeBytes - afterBytes);
+
+    // Invalidate cached garbage size so next health read computes fresh values
+    cachedGarbage.timestamp = 0;
 
     // Trigger V8 Garbage Collection if flag is enabled
     if (typeof (global as any).gc === "function") {

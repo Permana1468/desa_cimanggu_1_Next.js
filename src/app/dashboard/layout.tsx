@@ -15,10 +15,6 @@ import { DesktopDashboardHeader } from "@/components/dashboard/DesktopDashboardH
 import { MaintenanceNotice } from "@/components/common/MaintenanceNotice";
 import { SecurityAlarmListener } from "@/components/common/SecurityAlarmListener";
 
-const KaurPerencanaanThreeBackground = dynamic(
-  () => import("@/components/dashboard/roles/KaurPerencanaanThreeBackground").then((mod) => mod.KaurPerencanaanThreeBackground)
-);
-
 export default async function VillageAdminLayout({
   children,
 }: {
@@ -51,8 +47,6 @@ export default async function VillageAdminLayout({
 
   return (
     <div className={`flex flex-col h-screen overflow-hidden ${isHackerTheme ? 'bg-slate-950 text-cyan-50' : 'bg-white text-slate-950 light-mode'}`}>
-      {isHackerTheme && <KaurPerencanaanThreeBackground />}
-
       {/* Full-Width Desktop Top Header (Aligned with Mockup Navbar) */}
       <DesktopDashboardHeader session={session} />
 

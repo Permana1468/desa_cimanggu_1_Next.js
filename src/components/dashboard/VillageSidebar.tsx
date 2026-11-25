@@ -4,7 +4,7 @@ import NextLink from "next/link";
 import type { ComponentProps } from "react";
 
 function Link(props: ComponentProps<typeof NextLink>) {
-  return <NextLink prefetch={false} {...props} />;
+  return <NextLink prefetch={true} {...props} />;
 }
 import { usePathname, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -74,10 +74,7 @@ import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 
-const SidebarThreeBackground = dynamic(
-  () => import("./roles/SidebarThreeBackground").then((mod) => mod.SidebarThreeBackground),
-  { ssr: false }
-);
+
 import { GlobalNotificationPanel } from "./GlobalNotificationPanel";
 import { getVillageDashboardStats } from "@/actions/village";
 import { detectUserPosyanduUnit } from "@/lib/posyandu";
@@ -374,8 +371,6 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
           }
         `}
       >
-        {isHackerTheme && <SidebarThreeBackground />}
-        
         {/* Logo & Toggle Area (Logo hidden on desktop to avoid duplicate with top navbar) */}
         <div className={`relative z-10 px-5 pt-4 pb-2 flex items-center ${isCollapsed && !isOpen ? 'justify-center' : 'justify-between'} lg:pt-5 lg:pb-1 ${isHackerTheme ? 'border-b border-cyan-500/30' : ''}`}>
           <div className="flex items-center gap-3 overflow-hidden lg:hidden">
@@ -415,7 +410,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                   ? "/dashboard?tab=surat-pengantar" 
                   : "/dashboard/surat"
               }
-              prefetch={false}
+              prefetch={true}
               onClick={() => setIsOpen(false)}
               className={`w-full py-3.5 px-5 rounded-full bg-white ${
                 role === "POSYANDU" 
@@ -1724,7 +1719,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                         <Link
                           key={item.name}
                           href={item.href}
-                          prefetch={false}
+                          prefetch={true}
                           onClick={() => setIsOpen(false)}
                           className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all group ${
                             isActive

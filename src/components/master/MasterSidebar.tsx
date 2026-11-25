@@ -191,7 +191,7 @@ export const MasterSidebar = ({
                     <Link
                       key={item.name}
                       href={item.href}
-                      prefetch={false}
+                      prefetch={true}
                       onClick={() => setIsOpen(false)}
                       title={isCollapsed ? item.name : undefined}
                       className={`flex items-center gap-3.5 px-3.5 py-2.5 rounded-2xl transition-all duration-200 group text-xs sm:text-sm ${
