@@ -9,7 +9,9 @@ export async function GET(req: NextRequest) {
   const safeTo = rawTo.startsWith("/") && !rawTo.startsWith("//") ? rawTo : "/umkm";
   const disable = req.nextUrl.searchParams.get("disable") === "1";
 
-  const redirectUrl = new URL(safeTo, req.url);
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || req.nextUrl.host;
+  const proto = req.headers.get("x-forwarded-proto") || req.nextUrl.protocol.replace(":", "") || "http";
+  const redirectUrl = new URL(safeTo, `${proto}://${host}`);
   const res = NextResponse.redirect(redirectUrl);
 
   if (role !== "ADMIN_MASTER") {
