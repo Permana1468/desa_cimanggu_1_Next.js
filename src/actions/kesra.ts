@@ -270,6 +270,51 @@ export async function updateKesraPmtDistribusiStatus(id: string, status: string)
 // EDUCATION & ATS (ANAK PUTUS SEKOLAH)
 // =======================
 
+export async function lookupWargaByNikForKesra(query: string) {
+    const { tenantId } = await verifyKesraAccess();
+    const cleanQ = (query || "").trim();
+    if (!cleanQ) return [];
+
+    const citizens = await prisma.dataKependudukan.findMany({
+        where: {
+            tenantId,
+            statusKependudukan: { notIn: ["MENINGGAL", "PINDAH", "PINDAH_KELUAR"] },
+            OR: [
+                { nik: { contains: cleanQ } },
+                { namaLengkap: { contains: cleanQ, mode: "insensitive" } }
+            ]
+        },
+        select: {
+            id: true,
+            nik: true,
+            namaLengkap: true,
+            tanggalLahir: true,
+            jenisKelamin: true,
+            pendidikan: true,
+            pekerjaan: true,
+            rt: true,
+            rw: true,
+            dusun: true,
+            alamat: true
+        },
+        take: 8,
+        orderBy: { namaLengkap: "asc" }
+    });
+
+    const today = new Date();
+    return citizens.map(c => {
+        const birth = new Date(c.tanggalLahir);
+        const ageYears = Math.max(
+            0,
+            today.getFullYear() - birth.getFullYear() - (today < new Date(today.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0)
+        );
+        return {
+            ...c,
+            usia: ageYears
+        };
+    });
+}
+
 export async function getKesraAtsList() {
     const { tenantId } = await verifyKesraAccess();
     return await prisma.kesraAts.findMany({
@@ -279,21 +324,35 @@ export async function getKesraAtsList() {
 }
 
 export async function addKesraAts(data: any) {
-    const { tenantId } = await verifyKesraAccess();
-    const ats = await prisma.kesraAts.create({
-        data: {
-            nik: data.nik,
-            nama: data.nama,
-            usia: parseInt(data.usia) || 12,
-            pendidikanTerakhir: data.pendidikanTerakhir,
-            alasanPutusSekolah: data.alasanPutusSekolah,
-            minatKejarPaket: data.minatKejarPaket === "true" || data.minatKejarPaket === true,
-            statusBantuan: data.statusBantuan || "PENDING",
-            tenantId
+    try {
+        const { tenantId } = await verifyKesraAccess();
+        const cleanNik = String(data.nik || "").trim();
+        if (!cleanNik) return { success: false, error: "NIK wajib diisi." };
+
+        const existing = await prisma.kesraAts.findFirst({
+            where: { nik: cleanNik, tenantId }
+        });
+        if (existing) {
+            return { success: false, error: `NIK ${cleanNik} sudah tercatat pada data Anak Putus Sekolah.` };
         }
-    });
-    revalidatePath("/dashboard");
-    return { success: true, ats };
+
+        const ats = await prisma.kesraAts.create({
+            data: {
+                nik: cleanNik,
+                nama: String(data.nama || "").trim(),
+                usia: parseInt(data.usia) || 12,
+                pendidikanTerakhir: data.pendidikanTerakhir,
+                alasanPutusSekolah: data.alasanPutusSekolah,
+                minatKejarPaket: data.minatKejarPaket === "true" || data.minatKejarPaket === true,
+                statusBantuan: data.statusBantuan || "PENDING",
+                tenantId
+            }
+        });
+        revalidatePath("/dashboard");
+        return { success: true, ats };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Gagal menyimpan data ATS." };
+    }
 }
 
 export async function deleteKesraAts(id: string) {
@@ -524,22 +583,46 @@ export async function getKesraPengangguranList() {
 }
 
 export async function addKesraPengangguran(data: any) {
-    const { tenantId } = await verifyKesraAccess();
-    const pengangguran = await prisma.kesraPengangguran.create({
-        data: {
-            nik: data.nik,
-            nama: data.nama,
-            usia: parseInt(data.usia) || 0,
-            pendidikan: data.pendidikan,
-            keahlian: data.keahlian,
-            lamaMenganggur: parseInt(data.lamaMenganggur) || 0,
-            minatPelatihan: data.minatPelatihan === "true" || data.minatPelatihan === true,
-            status: data.status || "MENCARI_KERJA",
-            tenantId
+    try {
+        const { tenantId } = await verifyKesraAccess();
+        const cleanNik = String(data.nik || "").trim();
+        if (!cleanNik) return { success: false, error: "NIK wajib diisi." };
+
+        const existing = await prisma.kesraPengangguran.findFirst({
+            where: { nik: cleanNik, tenantId }
+        });
+        if (existing) {
+            return { success: false, error: `NIK ${cleanNik} sudah tercatat pada data Pengangguran.` };
         }
+
+        const pengangguran = await prisma.kesraPengangguran.create({
+            data: {
+                nik: cleanNik,
+                nama: String(data.nama || "").trim(),
+                usia: parseInt(data.usia) || 0,
+                pendidikan: data.pendidikan,
+                keahlian: data.keahlian,
+                lamaMenganggur: parseInt(data.lamaMenganggur) || 0,
+                minatPelatihan: data.minatPelatihan === "true" || data.minatPelatihan === true,
+                status: data.status || "MENCARI_KERJA",
+                tenantId
+            }
+        });
+        revalidatePath("/dashboard");
+        return { success: true, pengangguran };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Gagal menyimpan data pengangguran." };
+    }
+}
+
+export async function updateKesraPengangguranStatus(id: string, status: string) {
+    const { tenantId } = await verifyKesraAccess();
+    await prisma.kesraPengangguran.updateMany({
+        where: { id, tenantId },
+        data: { status }
     });
     revalidatePath("/dashboard");
-    return { success: true, pengangguran };
+    return { success: true };
 }
 
 export async function deleteKesraPengangguran(id: string) {

@@ -1,39 +1,69 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Search, Briefcase, Printer, Loader2, Sparkles, GraduationCap } from "lucide-react";
-import { getKesraPengangguranList, addKesraPengangguran, deleteKesraPengangguran, getKesraKependudukanList } from "@/actions/kesra";
+import { Plus, Trash2, Search, Briefcase, Printer, Loader2, Sparkles, GraduationCap, CheckCircle2 } from "lucide-react";
+import { getKesraPengangguranList, addKesraPengangguran, deleteKesraPengangguran, updateKesraPengangguranStatus, lookupWargaByNikForKesra } from "@/actions/kesra";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 export function KesraPengangguranTab({ _session }: any) {
   const [data, setData] = useState<any[]>([]);
-  const [kependudukan, setKependudukan] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     fetchData();
+
+    const handleRefresh = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      fetchData();
+    };
+    window.addEventListener("refresh-notifications", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+        bc.onmessage = (ev) => {
+          if (ev.data?.type === "SYNC_EVENT" || ev.data?.type === "KESRA_UPDATED" || ev.data?.type === "WARGA_UPDATED") {
+            fetchData();
+          }
+        };
+      } catch {}
+    }
+
+    const interval = setInterval(handleRefresh, 30000);
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      if (bc) bc.close();
+      clearInterval(interval);
+    };
   }, []);
 
   async function fetchData() {
     setLoading(true);
     try {
-      const [list, kep] = await Promise.all([
-        getKesraPengangguranList(),
-        getKesraKependudukanList()
-      ]);
+      const list = await getKesraPengangguranList();
       setData(list);
-      setKependudukan(kep);
     } catch (e) {
       console.error(e);
     }
     setLoading(false);
   };
 
+  const handleStatusChange = async (id: string, status: string) => {
+    await updateKesraPengangguranStatus(id, status);
+    fetchData();
+    triggerNotificationRefresh();
+  };
+
   const handleDelete = async (id: string) => {
     if (confirm("Hapus data pengangguran ini?")) {
       await deleteKesraPengangguran(id);
       fetchData();
+      triggerNotificationRefresh();
     }
   };
 
@@ -204,15 +234,21 @@ export function KesraPengangguranTab({ _session }: any) {
                       </span>
                     </td>
                     <td className="px-3 py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        d.status === "MENCARI_KERJA" 
-                          ? "bg-red-50 text-red-700 border border-red-200" 
-                          : d.status === "PELATIHAN" 
-                          ? "bg-amber-50 text-amber-700 border border-amber-200" 
-                          : "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                      }`}>
-                        {d.status === "MENCARI_KERJA" ? "Mencari Kerja" : d.status === "PELATIHAN" ? "Pelatihan" : "Sudah Kerja"}
-                      </span>
+                      <select
+                        value={d.status}
+                        onChange={(e) => handleStatusChange(d.id, e.target.value)}
+                        className={`px-2 py-1 rounded-lg text-[10px] font-bold border outline-none cursor-pointer ${
+                          d.status === "MENCARI_KERJA" 
+                            ? "bg-red-50 text-red-700 border-red-200" 
+                            : d.status === "PELATIHAN" 
+                            ? "bg-amber-50 text-amber-700 border-amber-200" 
+                            : "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        }`}
+                      >
+                        <option value="MENCARI_KERJA">Mencari Kerja</option>
+                        <option value="PELATIHAN">Pelatihan</option>
+                        <option value="SUDAH_KERJA">Sudah Kerja</option>
+                      </select>
                     </td>
                     <td className="px-3 py-3">
                       <div className="flex justify-center">
@@ -233,89 +269,129 @@ export function KesraPengangguranTab({ _session }: any) {
       </div>
 
       {showModal && (
-        <ModalTambahPengangguran onClose={() => setShowModal(false)} onRefresh={fetchData} kependudukan={kependudukan} />
+        <ModalTambahPengangguran onClose={() => setShowModal(false)} onRefresh={fetchData} />
       )}
     </div>
   );
 }
 
-function ModalTambahPengangguran({ onClose, onRefresh, kependudukan }: any) {
+function ModalTambahPengangguran({ onClose, onRefresh }: any) {
   const [loading, setLoading] = useState(false);
+  const [searchingNik, setSearchingNik] = useState(false);
   const [searchWarga, setSearchWarga] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
   const [selectedWarga, setSelectedWarga] = useState<any>(null);
-
-  const filteredWarga = kependudukan.filter((w: any) =>
-    w.namaLengkap.toLowerCase().includes(searchWarga.toLowerCase()) ||
-    w.nik.includes(searchWarga)
-  ).slice(0, 5);
+  const [pendidikan, setPendidikan] = useState("");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleSelectWarga = (w: any) => {
     setSelectedWarga(w);
+    setPendidikan(w.pendidikan || "");
     setSearchWarga("");
+    setSuggestions([]);
+    setErrorMsg(null);
+  };
+
+  const handleSearchChange = async (val: string) => {
+    setSearchWarga(val);
+    setErrorMsg(null);
+    const clean = val.trim();
+    if (clean.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+    setSearchingNik(true);
+    try {
+      const results = await lookupWargaByNikForKesra(clean);
+      const exact = results.find((r: any) => r.nik === clean);
+      if (exact) {
+        handleSelectWarga(exact);
+      } else {
+        setSuggestions(results);
+      }
+    } catch {
+      setSuggestions([]);
+    } finally {
+      setSearchingNik(false);
+    }
   };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     if (!selectedWarga) {
-      alert("Mohon sinkronisasikan warga dari data kependudukan terlebih dahulu.");
+      setErrorMsg("Mohon ketik NIK atau pilih warga dari data kependudukan terlebih dahulu.");
       return;
     }
     setLoading(true);
+    setErrorMsg(null);
     const fd = new FormData(e.target);
-    await addKesraPengangguran({
+    const res = await addKesraPengangguran({
       nik: selectedWarga.nik,
       nama: selectedWarga.namaLengkap,
-      usia: Math.floor((new Date().getTime() - new Date(selectedWarga.tanggalLahir).getTime()) / (1000 * 60 * 60 * 24 * 365.25)),
-      pendidikan: fd.get("pendidikan"),
+      usia: selectedWarga.usia ?? Math.floor((new Date().getTime() - new Date(selectedWarga.tanggalLahir).getTime()) / (1000 * 60 * 60 * 24 * 365.25)),
+      pendidikan,
       keahlian: fd.get("keahlian"),
       lamaMenganggur: parseInt(fd.get("lamaMenganggur") as string) || 0,
       minatPelatihan: fd.get("minatPelatihan") === "true",
       status: fd.get("status")
     });
     setLoading(false);
+    if (!res?.success) {
+      setErrorMsg(res?.error || "Gagal menyimpan data.");
+      return;
+    }
+    triggerNotificationRefresh();
     onRefresh();
     onClose();
   };
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
         <div className="flex justify-between items-center mb-5">
           <div>
             <h3 className="text-lg font-bold text-slate-800">Catat Pengangguran</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Sinkronkan data kependudukan lokal</p>
+            <p className="text-xs text-slate-500 mt-0.5">Ketik 16 digit NIK untuk pengisian data otomatis</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all text-xl">&times;</button>
         </div>
+
+        {errorMsg && (
+          <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+            {errorMsg}
+          </div>
+        )}
         
         {/* Sync Search Section */}
         {!selectedWarga ? (
-          <div className="space-y-2 mb-4">
-            <label className="block text-xs font-semibold text-slate-600">Cari & Sinkronkan Data Penduduk *</label>
+          <div className="space-y-2 mb-4 relative">
+            <label className="block text-xs font-semibold text-slate-600">Masukkan NIK atau Nama Warga *</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
               <input
                 type="text"
                 value={searchWarga}
-                onChange={e => setSearchWarga(e.target.value)}
-                placeholder="Nama atau NIK warga..."
-                className="w-full pl-9 pr-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none"
+                onChange={e => handleSearchChange(e.target.value)}
+                placeholder="Ketik 16 digit NIK atau nama warga..."
+                className="w-full pl-9 pr-9 py-2.5 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none font-mono"
               />
+              {searchingNik && <Loader2 className="w-4 h-4 animate-spin text-indigo-500 absolute right-3 top-1/2 -translate-y-1/2" />}
             </div>
-            {searchWarga && (
-              <div className="border border-slate-100 bg-white rounded-xl shadow-lg divide-y divide-slate-50 overflow-hidden max-h-40 overflow-y-auto">
-                {filteredWarga.map((w: any) => (
-                  <div
+            {suggestions.length > 0 && (
+              <div className="border border-slate-100 bg-white rounded-xl shadow-lg divide-y divide-slate-50 overflow-hidden max-h-44 overflow-y-auto">
+                {suggestions.map((w: any) => (
+                  <button
+                    type="button"
                     key={w.id}
                     onClick={() => handleSelectWarga(w)}
-                    className="p-2.5 hover:bg-slate-50 cursor-pointer text-xs transition-colors flex justify-between items-center"
+                    className="w-full text-left p-2.5 hover:bg-indigo-50 cursor-pointer text-xs transition-colors flex justify-between items-center"
                   >
                     <div>
                       <span className="font-bold text-slate-800 block">{w.namaLengkap}</span>
-                      <span className="text-[10px] text-slate-400 font-mono">{w.nik}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">{w.nik} • RT {w.rt}/RW {w.rw} ({w.usia} Thn)</span>
                     </div>
-                    <span className="text-[10px] font-bold text-indigo-500">Pilih</span>
-                  </div>
+                    <span className="text-[10px] font-bold text-indigo-600">Pilih</span>
+                  </button>
                 ))}
               </div>
             )}
@@ -323,11 +399,13 @@ function ModalTambahPengangguran({ onClose, onRefresh, kependudukan }: any) {
         ) : (
           <div className="bg-indigo-50 border border-indigo-100 p-3 rounded-xl flex justify-between items-center mb-4">
             <div>
-              <span className="block text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Penduduk Sinkron</span>
+              <span className="flex items-center gap-1 text-[10px] font-bold text-indigo-600 uppercase tracking-widest">
+                <CheckCircle2 size={12} /> Penduduk Tersinkron ({selectedWarga.usia} Tahun)
+              </span>
               <span className="font-bold text-slate-800 text-xs mt-1 block">{selectedWarga.namaLengkap}</span>
-              <span className="text-[10px] text-slate-400 font-mono">{selectedWarga.nik}</span>
+              <span className="text-[10px] text-slate-500 font-mono">{selectedWarga.nik} • RT {selectedWarga.rt}/RW {selectedWarga.rw}</span>
             </div>
-            <button onClick={() => setSelectedWarga(null)} className="text-[10px] font-bold text-red-500 hover:underline">Ubah</button>
+            <button type="button" onClick={() => { setSelectedWarga(null); setPendidikan(""); }} className="text-[10px] font-bold text-red-500 hover:underline">Ubah</button>
           </div>
         )}
 
@@ -335,7 +413,7 @@ function ModalTambahPengangguran({ onClose, onRefresh, kependudukan }: any) {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Pendidikan Terakhir</label>
-              <input name="pendidikan" required placeholder="SMA / S1" type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none" />
+              <input name="pendidikan" required value={pendidikan} onChange={e => setPendidikan(e.target.value)} placeholder="Otomatis dari NIK / SMA" type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50/60" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Keahlian Utama</label>

@@ -5,6 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { getWilayahVariants } from "@/lib/wilayahUtils";
+import { resolvePosyanduUnit } from "@/lib/posyandu";
 
 async function verifyRwAccess() {
     const session = await getServerSession(authOptions);
@@ -242,7 +243,7 @@ export async function getRwHealthRealtimeSummary(rwParam?: string) {
             where: {
                 tenantId,
                 rw: { in: getWilayahVariants(rw) },
-                statusKependudukan: { notIn: ["MENINGGAL", "PINDAH"] }
+                statusKependudukan: { notIn: ["MENINGGAL", "PINDAH", "PINDAH_KELUAR"] }
             },
             select: {
                 tanggalLahir: true,
@@ -276,6 +277,269 @@ export async function getRwHealthRealtimeSummary(rwParam?: string) {
             totalLansia
         };
     } catch {
+        return null;
+    }
+}
+
+/**
+ * Rekapitulasi Posyandu & Kesehatan Terintegrasi Real-Time untuk Dashboard RW
+ * Menarik langsung hasil inputan Kader Posyandu (Balita, Penimbangan, Ibu Hamil, Lansia) khusus cakupan wilayah RW & RT tersebut.
+ */
+export async function getRwPosyanduRecap(rwParam?: string) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user) throw new Error("Unauthorized");
+        const tenantId = (session.user as any).tenantId;
+        const userRole = String((session.user as any).role || "").toUpperCase();
+        const rw = (userRole === "RW" ? (session.user as any).rw : rwParam) || (session.user as any).rw;
+
+        if (!tenantId || !rw) return null;
+
+        const rwVariants = getWilayahVariants(rw);
+        const posyanduUnit = resolvePosyanduUnit(rw);
+
+        const [residents, balitaList, ibuHamilList, lansiaList] = await Promise.all([
+            prisma.dataKependudukan.findMany({
+                where: {
+                    tenantId,
+                    rw: { in: rwVariants },
+                    statusKependudukan: { notIn: ["MENINGGAL", "PINDAH", "PINDAH_KELUAR"] }
+                },
+                select: {
+                    id: true,
+                    rt: true,
+                    tanggalLahir: true,
+                    jenisKelamin: true,
+                    noKK: true
+                }
+            }),
+            prisma.posyanduBalita.findMany({
+                where: {
+                    tenantId,
+                    rw: { in: rwVariants }
+                },
+                include: {
+                    records: {
+                        orderBy: { tanggal: "desc" },
+                        take: 1
+                    }
+                },
+                orderBy: [{ rt: "asc" }, { namaLengkap: "asc" }]
+            }),
+            prisma.posyanduIbuHamil.findMany({
+                where: {
+                    tenantId,
+                    rw: { in: rwVariants }
+                },
+                include: {
+                    records: {
+                        orderBy: { tanggal: "desc" },
+                        take: 1
+                    }
+                },
+                orderBy: [{ rt: "asc" }, { namaLengkap: "asc" }]
+            }),
+            prisma.posyanduLansia.findMany({
+                where: {
+                    tenantId,
+                    rw: { in: rwVariants }
+                },
+                include: {
+                    records: {
+                        orderBy: { tanggal: "desc" },
+                        take: 1
+                    }
+                },
+                orderBy: [{ rt: "asc" }, { namaLengkap: "asc" }]
+            })
+        ]);
+
+        const today = new Date();
+        let sasaranBalita = 0;
+        let sasaranLansia = 0;
+        const uniqueKK = new Set<string>();
+        const rtStatsMap: Record<string, {
+            rt: string;
+            totalWarga: number;
+            sasaranBalita: number;
+            balitaPosyandu: number;
+            balitaStunting: number;
+            ibuHamil: number;
+            ibuHamilRisti: number;
+            sasaranLansia: number;
+            lansiaPosyandu: number;
+        }> = {};
+
+        const ensureRt = (rawRt?: string | null) => {
+            const clean = String(rawRt || "000").replace(/\D/g, "").padStart(3, "0");
+            if (!rtStatsMap[clean]) {
+                rtStatsMap[clean] = {
+                    rt: clean,
+                    totalWarga: 0,
+                    sasaranBalita: 0,
+                    balitaPosyandu: 0,
+                    balitaStunting: 0,
+                    ibuHamil: 0,
+                    ibuHamilRisti: 0,
+                    sasaranLansia: 0,
+                    lansiaPosyandu: 0
+                };
+            }
+            return rtStatsMap[clean];
+        };
+
+        residents.forEach(r => {
+            const rtStat = ensureRt(r.rt);
+            rtStat.totalWarga++;
+            if (r.noKK) uniqueKK.add(r.noKK);
+            if (r.tanggalLahir) {
+                const birth = new Date(r.tanggalLahir);
+                const ageYears = today.getFullYear() - birth.getFullYear() - (today < new Date(today.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0);
+                if (ageYears >= 0 && ageYears <= 5) {
+                    sasaranBalita++;
+                    rtStat.sasaranBalita++;
+                } else if (ageYears >= 60) {
+                    sasaranLansia++;
+                    rtStat.sasaranLansia++;
+                }
+            }
+        });
+
+        let giziNormal = 0;
+        let giziKurang = 0;
+        let giziLebih = 0;
+        let stuntingCount = 0;
+        let balitaDitimbangCount = 0;
+
+        const balitaDetails = balitaList.map(b => {
+            const rtStat = ensureRt(b.rt);
+            rtStat.balitaPosyandu++;
+            if (b.statusStunting) {
+                stuntingCount++;
+                rtStat.balitaStunting++;
+            }
+
+            const latestRec = b.records?.[0] || null;
+            if (latestRec && (latestRec.beratBadan || latestRec.tinggiBadan)) {
+                balitaDitimbangCount++;
+            }
+            const statusGizi = latestRec?.statusGizi || (b.statusStunting ? "Stunting" : "Normal");
+            if (statusGizi === "Normal") giziNormal++;
+            else if (statusGizi === "Gizi Kurang" || statusGizi === "Stunting" || b.statusStunting) giziKurang++;
+            else if (statusGizi === "Gizi Lebih") giziLebih++;
+
+            const birth = new Date(b.tanggalLahir);
+            const diffMonths = Math.max(0, (today.getFullYear() - birth.getFullYear()) * 12 + (today.getMonth() - birth.getMonth()));
+
+            return {
+                id: b.id,
+                nik: b.nik || "-",
+                namaLengkap: b.namaLengkap,
+                jenisKelamin: b.jenisKelamin,
+                tanggalLahir: b.tanggalLahir,
+                usiaBulan: diffMonths,
+                namaOrangTua: b.namaOrangTua,
+                rt: String(b.rt || "").padStart(3, "0"),
+                rw: String(b.rw || "").padStart(3, "0"),
+                posyanduName: b.posyanduName || posyanduUnit.name,
+                statusStunting: b.statusStunting,
+                latestRecord: latestRec ? {
+                    tanggal: latestRec.tanggal,
+                    beratBadan: latestRec.beratBadan,
+                    tinggiBadan: latestRec.tinggiBadan,
+                    lingkarKepala: latestRec.lingkarKepala,
+                    statusGizi: latestRec.statusGizi,
+                    imunisasi: latestRec.imunisasi,
+                    keterangan: latestRec.keterangan
+                } : null
+            };
+        });
+
+        let ibuHamilRistiCount = 0;
+        const ibuHamilDetails = ibuHamilList.map(ih => {
+            const rtStat = ensureRt(ih.rt);
+            rtStat.ibuHamil++;
+            if (ih.risikoTinggi) {
+                ibuHamilRistiCount++;
+                rtStat.ibuHamilRisti++;
+            }
+            const latestRec = ih.records?.[0] || null;
+            return {
+                id: ih.id,
+                nik: ih.nik || "-",
+                namaLengkap: ih.namaLengkap,
+                usiaKandungan: ih.usiaKandungan,
+                beratBadanAwal: ih.beratBadan,
+                risikoTinggi: ih.risikoTinggi,
+                rt: String(ih.rt || "").padStart(3, "0"),
+                rw: String(ih.rw || "").padStart(3, "0"),
+                posyanduName: ih.posyanduName || posyanduUnit.name,
+                latestRecord: latestRec ? {
+                    tanggal: latestRec.tanggal,
+                    beratBadan: latestRec.beratBadan ?? ih.beratBadan,
+                    tensiDarah: latestRec.tensi,
+                    statusRisiko: latestRec.statusRisiko,
+                    keterangan: latestRec.keterangan
+                } : null
+            };
+        });
+
+        const lansiaDetails = lansiaList.map(l => {
+            const rtStat = ensureRt(l.rt);
+            rtStat.lansiaPosyandu++;
+            const latestRec = l.records?.[0] || null;
+            let ageYears = l.usia || 60;
+            if (l.tanggalLahir) {
+                const birth = new Date(l.tanggalLahir);
+                ageYears = Math.max(0, today.getFullYear() - birth.getFullYear() - (today < new Date(today.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0));
+            }
+            return {
+                id: l.id,
+                nik: l.nik || "-",
+                namaLengkap: l.namaLengkap,
+                usiaTahun: ageYears,
+                memilikiPenyakitBawaan: l.memilikiPenyakitBawaan,
+                rt: String(l.rt || "").padStart(3, "0"),
+                rw: String(l.rw || "").padStart(3, "0"),
+                posyanduName: l.posyanduName || posyanduUnit.name,
+                latestRecord: latestRec ? {
+                    tanggal: latestRec.tanggal,
+                    beratBadan: latestRec.beratBadan,
+                    tensiDarah: latestRec.tensi,
+                    gulaDarah: latestRec.gulaDarah,
+                    kondisiUmum: latestRec.kondisiUmum,
+                    keterangan: latestRec.keterangan
+                } : null
+            };
+        });
+
+        const rtBreakdown = Object.values(rtStatsMap).sort((a, b) => a.rt.localeCompare(b.rt));
+
+        return {
+            rw: String(rw).replace(/\D/g, "").padStart(3, "0"),
+            posyanduUnit,
+            summary: {
+                totalWarga: residents.length,
+                totalKK: uniqueKK.size,
+                sasaranBalita,
+                balitaTerdaftarPosyandu: balitaList.length,
+                balitaDitimbang: balitaDitimbangCount,
+                balitaStunting: stuntingCount,
+                giziNormal,
+                giziKurang,
+                giziLebih,
+                ibuHamilTerdaftar: ibuHamilList.length,
+                ibuHamilRisti: ibuHamilRistiCount,
+                sasaranLansia,
+                lansiaTerdaftarPosyandu: lansiaList.length
+            },
+            rtBreakdown,
+            balitaDetails,
+            ibuHamilDetails,
+            lansiaDetails
+        };
+    } catch (e) {
+        console.error("getRwPosyanduRecap error:", e);
         return null;
     }
 }

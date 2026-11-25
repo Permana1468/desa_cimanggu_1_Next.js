@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Search, Award, MapPin, Compass, AlertCircle, RefreshCw, Calendar, Check, X, ShieldAlert } from "lucide-react";
-import { getKesraAtsList, addKesraAts, deleteKesraAts, updateKesraAtsStatusBantuan, recordKesraAtsVisit } from "@/actions/kesra";
+import { Plus, Trash2, Search, Award, MapPin, Compass, AlertCircle, RefreshCw, Calendar, Check, X, ShieldAlert, Loader2, CheckCircle2 } from "lucide-react";
+import { getKesraAtsList, addKesraAts, deleteKesraAts, updateKesraAtsStatusBantuan, recordKesraAtsVisit, lookupWargaByNikForKesra } from "@/actions/kesra";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 export function KesraAtsTab({ session }: any) {
   const [ats, setAts] = useState<any[]>([]);
@@ -12,6 +13,33 @@ export function KesraAtsTab({ session }: any) {
 
   useEffect(() => {
     fetchData();
+
+    const handleRefresh = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      fetchData();
+    };
+    window.addEventListener("refresh-notifications", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+        bc.onmessage = (ev) => {
+          if (ev.data?.type === "SYNC_EVENT" || ev.data?.type === "KESRA_UPDATED" || ev.data?.type === "WARGA_UPDATED") {
+            fetchData();
+          }
+        };
+      } catch {}
+    }
+
+    const interval = setInterval(handleRefresh, 30000);
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      if (bc) bc.close();
+      clearInterval(interval);
+    };
   }, []);
 
   async function fetchData() {
@@ -28,17 +56,20 @@ export function KesraAtsTab({ session }: any) {
   const handleUpdateStatus = async (id: string, status: string) => {
     await updateKesraAtsStatusBantuan(id, status);
     fetchData();
+    triggerNotificationRefresh();
   };
 
   const handleRecordVisit = async (id: string) => {
     await recordKesraAtsVisit(id);
     fetchData();
+    triggerNotificationRefresh();
   };
 
   const handleDelete = async (id: string) => {
     if (confirm("Hapus data anak putus sekolah ini?")) {
       await deleteKesraAts(id);
       fetchData();
+      triggerNotificationRefresh();
     }
   };
 
@@ -212,52 +243,155 @@ export function KesraAtsTab({ session }: any) {
 
 function ModalTambahAts({ onClose, onRefresh }: any) {
   const [loading, setLoading] = useState(false);
+  const [searchingNik, setSearchingNik] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [nik, setNik] = useState("");
+  const [nama, setNama] = useState("");
+  const [usia, setUsia] = useState<string>("");
+  const [pendidikanTerakhir, setPendidikanTerakhir] = useState("SD");
+  const [alasanPutusSekolah, setAlasanPutusSekolah] = useState("");
+  const [minatKejarPaket, setMinatKejarPaket] = useState("true");
+  const [matchedInfo, setMatchedInfo] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const mapPendidikanToAts = (p?: string | null) => {
+    if (!p) return "SD";
+    const upper = p.toUpperCase();
+    if (upper.includes("SMA") || upper.includes("SMK") || upper.includes("SLTA")) return "SMA";
+    if (upper.includes("SMP") || upper.includes("SLTP")) return "SMP";
+    if (upper.includes("TIDAK")) return "TIDAK_SEKOLAH";
+    return "SD";
+  };
+
+  const applyCitizen = (c: any) => {
+    setNik(c.nik || "");
+    setNama(c.namaLengkap || "");
+    setUsia(String(c.usia ?? ""));
+    setPendidikanTerakhir(mapPendidikanToAts(c.pendidikan));
+    setMatchedInfo(`Tersinkron: ${c.namaLengkap} (RT ${c.rt} / RW ${c.rw})`);
+    setSuggestions([]);
+    setErrorMsg(null);
+  };
+
+  const handleNikChange = async (val: string) => {
+    setNik(val);
+    setMatchedInfo(null);
+    setErrorMsg(null);
+    const clean = val.trim();
+    if (clean.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+    setSearchingNik(true);
+    try {
+      const results = await lookupWargaByNikForKesra(clean);
+      const exact = results.find((r: any) => r.nik === clean);
+      if (exact) {
+        applyCitizen(exact);
+      } else {
+        setSuggestions(results);
+      }
+    } catch {
+      setSuggestions([]);
+    } finally {
+      setSearchingNik(false);
+    }
+  };
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     setLoading(true);
-    const fd = new FormData(e.target);
-    await addKesraAts({
-      nik: fd.get("nik")?.toString(),
-      nama: fd.get("nama"),
-      usia: parseInt(fd.get("usia") as string) || 12,
-      pendidikanTerakhir: fd.get("pendidikanTerakhir"),
-      alasanPutusSekolah: fd.get("alasanPutusSekolah"),
-      minatKejarPaket: fd.get("minatKejarPaket") === "true",
+    setErrorMsg(null);
+    const res = await addKesraAts({
+      nik,
+      nama,
+      usia: parseInt(usia) || 12,
+      pendidikanTerakhir,
+      alasanPutusSekolah,
+      minatKejarPaket: minatKejarPaket === "true",
       statusBantuan: "PENDING"
     });
     setLoading(false);
+    if (!res?.success) {
+      setErrorMsg(res?.error || "Gagal menyimpan data.");
+      return;
+    }
+    triggerNotificationRefresh();
     onRefresh();
     onClose();
   };
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl">
-        <div className="flex justify-between items-center mb-6">
+      <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+        <div className="flex justify-between items-center mb-5">
           <div>
             <h3 className="text-lg font-bold text-slate-800">Tambah Data Anak Putus Sekolah</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Isi data lengkap anak untuk advokasi beasiswa</p>
+            <p className="text-xs text-slate-500 mt-0.5">Ketik NIK untuk pengisian otomatis dari data kependudukan</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all text-xl">&times;</button>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1.5">NIK Anak *</label>
-            <input name="nik" required type="text" maxLength={16} placeholder="16 digit NIK" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none" />
+
+        {errorMsg && (
+          <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+            {errorMsg}
           </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="relative">
+            <label className="block text-xs font-semibold text-slate-600 mb-1.5">NIK / Cari Nama Anak *</label>
+            <div className="relative">
+              <input
+                name="nik"
+                required
+                type="text"
+                maxLength={16}
+                value={nik}
+                onChange={(e) => handleNikChange(e.target.value)}
+                placeholder="Ketik 16 digit NIK atau nama..."
+                className="w-full border border-slate-200 rounded-xl px-3 py-2.5 pr-9 text-sm focus:ring-2 focus:ring-amber-500 outline-none font-mono"
+              />
+              {searchingNik && <Loader2 className="w-4 h-4 animate-spin text-amber-500 absolute right-3 top-1/2 -translate-y-1/2" />}
+            </div>
+            {matchedInfo && (
+              <div className="mt-1.5 flex items-center gap-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg">
+                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                <span>{matchedInfo}</span>
+              </div>
+            )}
+            {suggestions.length > 0 && (
+              <div className="absolute z-20 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-44 overflow-y-auto divide-y divide-slate-100">
+                {suggestions.map((c: any) => (
+                  <button
+                    type="button"
+                    key={c.id}
+                    onClick={() => applyCitizen(c)}
+                    className="w-full text-left px-3 py-2 hover:bg-amber-50 transition-colors flex justify-between items-center text-xs"
+                  >
+                    <div>
+                      <span className="font-bold text-slate-800 block">{c.namaLengkap}</span>
+                      <span className="text-[10px] text-slate-400 font-mono">{c.nik} • RT {c.rt}/RW {c.rw} ({c.usia} Thn)</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-amber-600">Pilih</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nama Lengkap Anak *</label>
-            <input name="nama" required type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none" />
+            <input name="nama" required type="text" value={nama} onChange={(e) => setNama(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none bg-slate-50/50" />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Usia *</label>
-              <input name="usia" required type="number" min="5" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none" />
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5">Usia (Tahun) *</label>
+              <input name="usia" required type="number" min="5" value={usia} onChange={(e) => setUsia(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none bg-slate-50/50" />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">Pendidikan Terakhir *</label>
-              <select name="pendidikanTerakhir" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none bg-white">
+              <select name="pendidikanTerakhir" value={pendidikanTerakhir} onChange={(e) => setPendidikanTerakhir(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none bg-white">
                 <option value="SD">SD/MI</option>
                 <option value="SMP">SMP/MTs</option>
                 <option value="SMA">SMA/MA/SMK</option>
@@ -267,11 +401,11 @@ function ModalTambahAts({ onClose, onRefresh }: any) {
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1.5">Alasan Putus Sekolah *</label>
-            <input name="alasanPutusSekolah" required placeholder="Faktor Ekonomi / Membantu Orang Tua" type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none" />
+            <input name="alasanPutusSekolah" required value={alasanPutusSekolah} onChange={(e) => setAlasanPutusSekolah(e.target.value)} placeholder="Faktor Ekonomi / Membantu Orang Tua" type="text" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1.5">Minat Mengikuti Kejar Paket (Paket A/B/C)?</label>
-            <select name="minatKejarPaket" className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none bg-white">
+            <select name="minatKejarPaket" value={minatKejarPaket} onChange={(e) => setMinatKejarPaket(e.target.value)} className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none bg-white">
               <option value="true">Ya, Minat</option>
               <option value="false">Tidak Minat / Bekerja</option>
             </select>
