@@ -948,6 +948,34 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
 
   useEffect(() => {
     loadWarga();
+
+    const handleRefresh = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      loadWarga();
+    };
+
+    window.addEventListener("refresh-warga", handleRefresh);
+    window.addEventListener("refresh-notifications", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+        bc.onmessage = (ev) => {
+          if (ev.data?.type === "WARGA_UPDATED" || ev.data?.type === "MUTASI_UPDATED") {
+            loadWarga();
+          }
+        };
+      } catch (e) {}
+    }
+
+    return () => {
+      window.removeEventListener("refresh-warga", handleRefresh);
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      if (bc) bc.close();
+    };
   }, [filterRt, filterRw]);
 
   useEffect(() => {
@@ -1028,6 +1056,16 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
       await deleteWarga(id);
       alert("Berhasil menghapus data warga");
       loadWarga();
+
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        try {
+          const bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+          bc.postMessage({ type: "WARGA_UPDATED", action: "DELETE", id });
+          bc.close();
+        } catch (e) {}
+      }
+      window.dispatchEvent(new Event("refresh-warga"));
+      window.dispatchEvent(new Event("refresh-notifications"));
     } catch (e) {
       alert("Gagal menghapus data");
     }
@@ -1049,6 +1087,16 @@ function WargaTab({ session, onReportMutation }: { session?: any; onReportMutati
       }
       setShowModal(false);
       loadWarga();
+
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        try {
+          const bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+          bc.postMessage({ type: "WARGA_UPDATED", action: editingId ? "UPDATE" : "ADD", nik: payload.nik });
+          bc.close();
+        } catch (e) {}
+      }
+      window.dispatchEvent(new Event("refresh-warga"));
+      window.dispatchEvent(new Event("refresh-notifications"));
     } catch (err: any) {
       alert("Gagal menyimpan data: " + (err?.message || "Terjadi kesalahan data."));
     }

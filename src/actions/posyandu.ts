@@ -5,8 +5,9 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { getRWsForPosyandu, getPosyanduUnit, detectUserPosyanduUnit, normalizeRwList } from "@/lib/posyandu";
+import { getRWsForPosyandu, getPosyanduUnit, detectUserPosyanduUnit, normalizeRwList, resolvePosyanduUnit, POSYANDU_UNITS } from "@/lib/posyandu";
 import { executePythonStuntingEngine, BalitaAnalysisInput, BalitaAnalysisResult } from "@/lib/pythonBridge";
+import { runBalitaDemografiEngine } from "@/lib/balitaDemografiBridge";
 
 async function verifyPosyanduAccess(posyanduFilter?: string) {
     const session = await getServerSession(authOptions);
@@ -16,7 +17,7 @@ async function verifyPosyanduAccess(posyanduFilter?: string) {
     const rwString = (session.user as any).rw;
     const tenantId = (session.user as any).tenantId;
 
-    const isAllowedRole = ["POSYANDU", "RW", "ADMIN_DESA", "KADES", "SEKDES", "KASI_KESEJAHTERAAN", "KASI_PELAYANAN", "TP_PKK", "ADMIN_MASTER", "SYSTEM_ADMIN", "KASI", "KAUR"].includes(role) || role?.startsWith("KASI");
+    const isAllowedRole = ["POSYANDU", "RW", "RT", "KADUS", "ADMIN_DESA", "KADES", "SEKDES", "KASI_KESEJAHTERAAN", "KASI_PELAYANAN", "TP_PKK", "ADMIN_MASTER", "SYSTEM_ADMIN", "KASI", "KAUR"].includes(role) || role?.startsWith("KASI");
 
     if (!isAllowedRole) {
         throw new Error(`Akses ditolak. Fitur ini khusus untuk Posyandu dan Administrator. Role Anda: ${role}`);
@@ -128,6 +129,360 @@ export async function addPosyanduBalita(data: any) {
 
     revalidatePath("/dashboard");
     return { success: true, balita };
+}
+
+/**
+ * Sinkronisasi Rekapitulasi Balita (<= 5 Tahun) Data Kependudukan dengan Posyandu Mawar I - VII
+ * Dihitung presisi menggunakan Python Demografi Engine dengan validasi kelompok usia & wilayah RW.
+ */
+export async function getPosyanduBalitaKependudukanSync(posyanduFilter?: string) {
+    const { tenantId, normalizedRws } = await verifyPosyanduAccess(posyanduFilter);
+
+    // Filter balita maksimal 5 tahun (lahir dalam kurun 65 bulan terakhir)
+    const fiveYearsAgo = new Date();
+    fiveYearsAgo.setMonth(fiveYearsAgo.getMonth() - 65);
+
+    const wargaCondition: any = {
+        tenantId,
+        tanggalLahir: { gte: fiveYearsAgo },
+        statusKependudukan: { notIn: ["MENINGGAL", "PINDAH_KELUAR"] }
+    };
+
+    const posyanduCondition: any = { tenantId };
+
+    if (normalizedRws.length > 0) {
+        wargaCondition.rw = { in: normalizedRws };
+        posyanduCondition.rw = { in: normalizedRws };
+    }
+
+    const [citizens, posyanduBalita] = await Promise.all([
+        prisma.dataKependudukan.findMany({
+            where: wargaCondition,
+            select: {
+                id: true,
+                nik: true,
+                noKK: true,
+                namaLengkap: true,
+                tempatLahir: true,
+                tanggalLahir: true,
+                jenisKelamin: true,
+                namaIbu: true,
+                namaAyah: true,
+                rt: true,
+                rw: true,
+                dusun: true,
+                alamat: true,
+                statusKependudukan: true
+            },
+            orderBy: { tanggalLahir: "desc" }
+        }),
+        prisma.posyanduBalita.findMany({
+            where: posyanduCondition,
+            select: {
+                id: true,
+                nik: true,
+                namaLengkap: true,
+                tanggalLahir: true,
+                jenisKelamin: true,
+                namaOrangTua: true,
+                rt: true,
+                rw: true,
+                statusStunting: true,
+                posyanduName: true
+            }
+        })
+    ]);
+
+    const result = await runBalitaDemografiEngine({
+        citizens,
+        posyanduBalita,
+        filterPosyandu: posyanduFilter || "ALL",
+        referenceDate: new Date().toISOString().split("T")[0]
+    });
+
+    return result;
+}
+
+/**
+ * Real-time Instant NIK Lookup saat Kader mengetik NIK Balita.
+ * Otomatis mendeteksi data kependudukan resmi dan penetapan Posyandu Mawar.
+ */
+export async function lookupNikForBalita(nik: string, posyanduFilter?: string) {
+    const cleanNik = String(nik || "").trim();
+    if (!cleanNik || cleanNik.length < 10) {
+        return { found: false, nik: cleanNik, message: "NIK minimal 10 digit angka" };
+    }
+
+    const { tenantId } = await verifyPosyanduAccess(posyanduFilter);
+
+    const warga = await prisma.dataKependudukan.findFirst({
+        where: {
+            tenantId,
+            nik: cleanNik
+        }
+    });
+
+    if (!warga) {
+        return {
+            found: false,
+            nik: cleanNik,
+            message: "NIK belum terdaftar di Data Kependudukan Desa."
+        };
+    }
+
+    // Periksa apakah balita sudah terdaftar di PosyanduBalita
+    const existingBalita = await prisma.posyanduBalita.findFirst({
+        where: {
+            tenantId,
+            OR: [
+                { nik: cleanNik },
+                { namaLengkap: { equals: warga.namaLengkap, mode: "insensitive" }, rt: warga.rt, rw: warga.rw }
+            ]
+        }
+    });
+
+    // Hitung usia dalam bulan
+    const dob = new Date(warga.tanggalLahir);
+    const now = new Date();
+    const ageMonths = (now.getFullYear() - dob.getFullYear()) * 12 + (now.getMonth() - dob.getMonth());
+
+    // Alokasikan ke Posyandu Mawar sesuai cakupan RW
+    const unit = resolvePosyanduUnit(warga.rw);
+
+    return {
+        found: true,
+        warga: {
+            id: warga.id,
+            nik: warga.nik,
+            noKK: warga.noKK,
+            namaLengkap: warga.namaLengkap,
+            tempatLahir: warga.tempatLahir,
+            tanggalLahir: warga.tanggalLahir.toISOString().split("T")[0],
+            jenisKelamin: warga.jenisKelamin === "LAKI_LAKI" || warga.jenisKelamin === "L" ? "L" : "P",
+            namaOrangTua: warga.namaIbu || warga.namaAyah || "-",
+            rt: warga.rt,
+            rw: warga.rw,
+            dusun: warga.dusun,
+            alamat: warga.alamat,
+            ageMonths,
+            isBalita: ageMonths <= 60,
+            posyanduName: unit.name,
+            posyanduId: unit.id,
+            posyanduUnitCode: unit.unitCode,
+            alreadyInPosyandu: !!existingBalita,
+            existingBalitaId: existingBalita?.id || null
+        }
+    };
+}
+
+/**
+ * Pendaftaran Terpadu Balita yang Belum Masuk KK / Belum Terdata Kependudukan:
+ * Menulis data kependudukan resmi (DataKependudukan) dengan No KK & NIK Wajib,
+ * sekaligus mendaftarkan anak ke PosyanduBalita dan membuka PosyanduRecord.
+ */
+export async function registerBalitaWithNewWarga(payload: {
+    nik: string;
+    noKK: string;
+    namaLengkap: string;
+    tempatLahir?: string;
+    tanggalLahir: string;
+    jenisKelamin: string;
+    namaIbu?: string;
+    namaAyah?: string;
+    rt: string;
+    rw: string;
+    alamat?: string;
+    posyanduName?: string;
+    posyanduFilter?: string;
+    statusStunting?: boolean;
+}) {
+    const { tenantId, user } = await verifyPosyanduAccess(payload.posyanduFilter);
+
+    const cleanNik = String(payload.nik || "").trim();
+    const cleanNoKk = String(payload.noKK || "").trim();
+
+    if (!cleanNik) {
+        throw new Error("NIK Balita wajib diisi!");
+    }
+    if (!cleanNoKk) {
+        throw new Error("No. Kartu Keluarga (KK) wajib diisi untuk melacak keberadaan fisik warga balita!");
+    }
+    if (!payload.namaLengkap || !payload.namaLengkap.trim()) {
+        throw new Error("Nama Lengkap Balita wajib diisi!");
+    }
+    if (!payload.tanggalLahir) {
+        throw new Error("Tanggal Lahir Balita wajib diisi!");
+    }
+
+    const cleanRt = String(payload.rt || "001").replace(/\D/g, "").padStart(3, "0");
+    const cleanRw = String(payload.rw || "001").replace(/\D/g, "").padStart(3, "0");
+
+    // Resolve Dusun
+    const structureConfig = await prisma.systemSetting.findUnique({
+        where: { id: "village_structure" }
+    });
+    const structure = (structureConfig?.settings as any) || { dusun: [] };
+    let dusun = "Dusun I";
+    if (structure && Array.isArray(structure.dusun)) {
+        for (const d of structure.dusun) {
+            if (Array.isArray(d.rwList) && d.rwList.includes(cleanRw)) {
+                dusun = d.name;
+                break;
+            }
+        }
+    }
+
+    // Resolve Posyandu Unit
+    const unitObj = resolvePosyanduUnit(cleanRw);
+    const finalPosyanduName = payload.posyanduName || unitObj.name;
+
+    // 1. Simpan atau pastikan warga terdaftar di DataKependudukan
+    let citizen = await prisma.dataKependudukan.findFirst({
+        where: { tenantId, nik: cleanNik }
+    });
+
+    if (!citizen) {
+        citizen = await prisma.dataKependudukan.create({
+            data: {
+                tenantId,
+                nik: cleanNik,
+                noKK: cleanNoKk,
+                namaLengkap: payload.namaLengkap.trim().toUpperCase(),
+                tempatLahir: payload.tempatLahir ? payload.tempatLahir.trim() : "BOGOR",
+                tanggalLahir: new Date(payload.tanggalLahir),
+                jenisKelamin: payload.jenisKelamin === "P" ? "PEREMPUAN" : "LAKI_LAKI",
+                agama: "ISLAM",
+                statusKawin: "BELUM_KAWIN",
+                hubunganKeluarga: "ANAK",
+                pendidikan: "BELUM_SEKOLAH",
+                pekerjaan: "BELUM_TIDAK_BEKERJA",
+                namaAyah: payload.namaAyah ? payload.namaAyah.trim() : "-",
+                namaIbu: payload.namaIbu ? payload.namaIbu.trim() : "-",
+                alamat: payload.alamat ? payload.alamat.trim() : `Desa Cimanggu I RT ${cleanRt} / RW ${cleanRw}`,
+                rt: cleanRt,
+                rw: cleanRw,
+                dusun,
+                statusKependudukan: "AKTIF",
+                keteranganStatus: "TERCATAT_POSYANDU_VALIDASI_KK"
+            }
+        });
+    }
+
+    // 2. Simpan atau perbarui di PosyanduBalita
+    let balita = await prisma.posyanduBalita.findFirst({
+        where: { tenantId, nik: cleanNik }
+    });
+
+    const namaOrtu = payload.namaIbu || payload.namaAyah || citizen.namaIbu || citizen.namaAyah || "-";
+
+    if (!balita) {
+        balita = await prisma.posyanduBalita.create({
+            data: {
+                tenantId,
+                nik: cleanNik,
+                namaLengkap: payload.namaLengkap.trim().toUpperCase(),
+                tanggalLahir: new Date(payload.tanggalLahir),
+                jenisKelamin: payload.jenisKelamin === "P" ? "P" : "L",
+                namaOrangTua: namaOrtu,
+                rt: cleanRt,
+                rw: cleanRw,
+                posyanduName: finalPosyanduName,
+                statusStunting: Boolean(payload.statusStunting)
+            }
+        });
+
+        // 3. Catat rekam awal di PosyanduRecord
+        await prisma.posyanduRecord.create({
+            data: {
+                tenantId,
+                balitaId: balita.id,
+                tanggal: new Date(),
+                statusGizi: balita.statusStunting ? "Stunting" : "Normal",
+                keterangan: "Pendaftaran Balita Terpadu (Sinkronisasi Data Kependudukan)",
+            }
+        });
+    }
+
+    revalidatePath("/dashboard");
+    revalidatePath("/dashboard/warga");
+    revalidatePath("/master-admin/data");
+    revalidatePath("/dashboard/kesra");
+
+    return {
+        success: true,
+        message: "Berhasil mendaftarkan balita dan menyinkronkan data kependudukan.",
+        citizen,
+        balita
+    };
+}
+
+/**
+ * Sinkronisasi Satu-Klik (Bulk / Individual) dari Data Kependudukan ke Register Posyandu
+ */
+export async function syncBalitaFromKependudukan(wargaIds: string[], targetPosyanduFilter?: string) {
+    const { tenantId } = await verifyPosyanduAccess(targetPosyanduFilter);
+
+    if (!Array.isArray(wargaIds) || wargaIds.length === 0) {
+        throw new Error("Tidak ada warga yang dipilih untuk disinkronkan.");
+    }
+
+    const citizens = await prisma.dataKependudukan.findMany({
+        where: {
+            tenantId,
+            id: { in: wargaIds }
+        }
+    });
+
+    let syncedCount = 0;
+
+    for (const c of citizens) {
+        const cleanNik = String(c.nik || "").trim();
+        const existing = await prisma.posyanduBalita.findFirst({
+            where: {
+                tenantId,
+                OR: [
+                    { nik: cleanNik },
+                    { namaLengkap: { equals: c.namaLengkap, mode: "insensitive" }, rt: c.rt, rw: c.rw }
+                ]
+            }
+        });
+
+        if (!existing) {
+            const unit = resolvePosyanduUnit(c.rw);
+            const namaOrtu = c.namaIbu || c.namaAyah || "-";
+            const jk = c.jenisKelamin === "PEREMPUAN" || c.jenisKelamin === "P" ? "P" : "L";
+
+            const newBalita = await prisma.posyanduBalita.create({
+                data: {
+                    tenantId,
+                    nik: cleanNik || null,
+                    namaLengkap: c.namaLengkap,
+                    tanggalLahir: c.tanggalLahir,
+                    jenisKelamin: jk,
+                    namaOrangTua: namaOrtu,
+                    rt: c.rt,
+                    rw: c.rw,
+                    posyanduName: unit.name,
+                    statusStunting: false
+                }
+            });
+
+            await prisma.posyanduRecord.create({
+                data: {
+                    tenantId,
+                    balitaId: newBalita.id,
+                    tanggal: new Date(),
+                    statusGizi: "Normal",
+                    keterangan: "Auto-Sinkronisasi dari Data Kependudukan Resmi Desa",
+                }
+            });
+
+            syncedCount++;
+        }
+    }
+
+    revalidatePath("/dashboard");
+    return { success: true, count: syncedCount };
 }
 
 export async function updatePosyanduBalitaStatus(id: string, statusStunting: boolean) {

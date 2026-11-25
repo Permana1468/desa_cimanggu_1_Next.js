@@ -136,3 +136,16 @@ export function resolvePosyanduRWs(userRw?: string | null, posyanduFilter?: stri
 
   return [];
 }
+
+/**
+ * Resolve Posyandu Unit object for any given RW string (e.g. "001" -> Mawar I, "004" -> Mawar IV)
+ */
+export function resolvePosyanduUnit(rw: string): PosyanduUnit {
+  const clean = String(rw || "").replace(/\D/g, "").padStart(3, "0");
+  for (const unit of POSYANDU_UNITS) {
+    if (unit.rws.some(r => r.replace(/\D/g, "").padStart(3, "0") === clean)) {
+      return unit;
+    }
+  }
+  return POSYANDU_UNITS[0];
+}
