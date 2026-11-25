@@ -22,6 +22,13 @@ import {
 } from "lucide-react";
 import { UsulanItem } from "./DraftUsulanRw";
 import { UndanganMuslingRwData } from "./UndanganMuslingRw";
+import {
+  getMuslingRwRecap,
+  syncLegacyLocalSubmissionsToDb,
+  approveMuslingRtSubmissions,
+  reviseMuslingRtSubmission
+} from "@/actions/musling";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 interface RtSubmissionGroup {
   rtNo: string;
@@ -53,92 +60,124 @@ export function RekapanUsulanRwTab({
 
   const [pendingSubmissions, setPendingSubmissions] = useState<RtSubmissionGroup[]>([]);
   const [approvedArchive, setApprovedArchive] = useState<RtSubmissionGroup[]>([]);
+  const [rtCoverage, setRtCoverage] = useState<{ rtNo: string; status: string; itemCount: number; namaKetuaRt?: string }[]>([]);
   const [mounted, setMounted] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
+  const [hasMigratedLocal, setHasMigratedLocal] = useState(false);
 
   const [revisionModalRt, setRevisionModalRt] = useState<string | null>(null);
   const [revisionNoteText, setRevisionNoteText] = useState<string>("");
 
-  const loadSubmissions = () => {
+  const collectLegacyLocalSubmissions = (year: string): any[] => {
+    const legacy: any[] = [];
     try {
-      const pendingGroups: RtSubmissionGroup[] = [];
-
       for (let r = 1; r <= 30; r++) {
         const rtPadded = String(r).padStart(3, "0");
         const rtRaw = String(r);
-
         const sentKeys = [
           `musling_sent_usulan_rt_${rtPadded}_rw_${paddedRw}_v1`,
           `musling_sent_usulan_rt_${rtPadded}_rw_${rawRw}_v1`,
           `musling_sent_usulan_rt_${rtRaw}_rw_${paddedRw}_v1`,
           `musling_sent_usulan_rt_${rtRaw}_rw_${rawRw}_v1`
         ];
-
         for (const k of sentKeys) {
           const raw = localStorage.getItem(k);
           if (raw) {
             try {
               const parsed = JSON.parse(raw);
               if (Array.isArray(parsed.items) && parsed.items.length > 0) {
-                const status = parsed.status || "pending";
-                // Only load as pending if not yet approved and not yet revised
-                if (status === "pending") {
-                  pendingGroups.push({
-                    rtNo: rtPadded,
-                    namaKetuaRt: parsed.namaKetuaRt || `Ketua RT ${rtPadded}`,
-                    sentAt: parsed.sentAt || "",
-                    tahun: parsed.tahun || undanganData?.tahun || "2026",
-                    items: parsed.items,
-                    status: "pending"
-                  });
-                }
+                legacy.push({
+                  rtNo: rtPadded,
+                  rwNo: paddedRw,
+                  namaKetuaRt: parsed.namaKetuaRt || `Ketua RT ${rtPadded}`,
+                  sentAt: parsed.sentAt || new Date().toISOString(),
+                  tahun: parsed.tahun || year,
+                  items: parsed.items,
+                  status: parsed.status || "pending"
+                });
                 break;
               }
-            } catch (e) {}
+            } catch {}
           }
         }
       }
-
-      setPendingSubmissions(pendingGroups);
-
-      // Load Approved Archive for selectedYear
-      loadArchiveForYear(selectedYear);
-    } catch (err) {
-      console.error("Error loading submissions for RW:", err);
-    }
+      // Also check approved archive in localStorage
+      const archiveKey = localStorage.getItem(`musling_approved_usulan_rw_${paddedRw}_year_${year}_v1`) ||
+                         localStorage.getItem(`musling_approved_usulan_rw_${rawRw}_year_${year}_v1`);
+      if (archiveKey) {
+        try {
+          const parsedArr = JSON.parse(archiveKey);
+          if (Array.isArray(parsedArr)) {
+            parsedArr.forEach((g: any) => {
+              if (g.rtNo && Array.isArray(g.items) && g.items.length > 0 && !legacy.some(l => l.rtNo === g.rtNo)) {
+                legacy.push({
+                  ...g,
+                  rwNo: paddedRw,
+                  tahun: g.tahun || year,
+                  status: "approved"
+                });
+              }
+            });
+          }
+        } catch {}
+      }
+    } catch {}
+    return legacy;
   };
 
-  const loadArchiveForYear = (year: string) => {
+  const loadSubmissions = async () => {
     try {
-      const archiveKeyPadded = `musling_approved_usulan_rw_${paddedRw}_year_${year}_v1`;
-      const archiveKeyRaw = `musling_approved_usulan_rw_${rawRw}_year_${year}_v1`;
-
-      const savedPadded = localStorage.getItem(archiveKeyPadded);
-      const savedRaw = localStorage.getItem(archiveKeyRaw);
-      const rawData = savedPadded || savedRaw;
-
-      if (rawData) {
-        const parsed: RtSubmissionGroup[] = JSON.parse(rawData);
-        if (Array.isArray(parsed)) {
-          setApprovedArchive(parsed);
-          return;
+      if (!hasMigratedLocal && typeof window !== "undefined") {
+        const legacy = collectLegacyLocalSubmissions(selectedYear);
+        if (legacy.length > 0) {
+          await syncLegacyLocalSubmissionsToDb(paddedRw, selectedYear, legacy);
         }
+        setHasMigratedLocal(true);
       }
-      setApprovedArchive([]);
+
+      const recap = await getMuslingRwRecap(paddedRw, selectedYear);
+      if (recap) {
+        setPendingSubmissions(recap.pendingSubmissions as any);
+        setApprovedArchive(recap.approvedArchive as any);
+        setRtCoverage(recap.rtCoverage || []);
+      }
     } catch (err) {
-      console.error("Error loading archive for year:", err);
-      setApprovedArchive([]);
+      console.error("Error loading submissions for RW:", err);
     }
   };
 
   useEffect(() => {
     loadSubmissions();
     setMounted(true);
-  }, [userRw, undanganData?.rwNo]);
 
-  useEffect(() => {
-    loadArchiveForYear(selectedYear);
-  }, [selectedYear]);
+    const handleRefresh = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      loadSubmissions();
+    };
+
+    window.addEventListener("refresh-notifications", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+        bc.onmessage = (ev) => {
+          if (ev.data?.type === "SYNC_EVENT" || ev.data?.type === "MUSLING_UPDATED") {
+            loadSubmissions();
+          }
+        };
+      } catch {}
+    }
+
+    const interval = setInterval(handleRefresh, 25000);
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      if (bc) bc.close();
+      clearInterval(interval);
+    };
+  }, [userRw, undanganData?.rwNo, selectedYear]);
 
   // Open Revision Modal
   const handleOpenRevisionModal = (rtNo: string) => {
@@ -149,23 +188,22 @@ export function RekapanUsulanRwTab({
   };
 
   // Send Revision Note (returns to RT & removes from RW Rekapan)
-  const handleSendRevisionNote = () => {
+  const handleSendRevisionNote = async () => {
     if (!revisionModalRt) return;
     try {
       const rtNo = revisionModalRt;
+      await reviseMuslingRtSubmission(paddedRw, selectedYear, rtNo, revisionNoteText);
 
-      // 1. Save revision note for RT
+      // Sync localStorage fallback
       const revKeyPadded = `musling_revision_note_rt_${rtNo}_rw_${paddedRw}_v1`;
       const revKeyRaw = `musling_revision_note_rt_${rtNo}_rw_${rawRw}_v1`;
       localStorage.setItem(revKeyPadded, revisionNoteText);
       localStorage.setItem(revKeyRaw, revisionNoteText);
 
-      // 2. Mark sent payload as revised
       const sentKeys = [
         `musling_sent_usulan_rt_${rtNo}_rw_${paddedRw}_v1`,
         `musling_sent_usulan_rt_${rtNo}_rw_${rawRw}_v1`
       ];
-
       sentKeys.forEach((k) => {
         const existing = localStorage.getItem(k);
         if (existing) {
@@ -173,11 +211,10 @@ export function RekapanUsulanRwTab({
             const parsed = JSON.parse(existing);
             parsed.status = "revised";
             localStorage.setItem(k, JSON.stringify(parsed));
-          } catch (e) {}
+          } catch {}
         }
       });
 
-      // 3. Reset RT sent status so RT can edit again
       const statusKeys = [
         `musling_sent_status_rt_${rtNo}_rw_${paddedRw}_v1`,
         `musling_sent_status_rt_${rtNo}_rw_${rawRw}_v1`
@@ -186,9 +223,10 @@ export function RekapanUsulanRwTab({
         localStorage.setItem(sk, JSON.stringify({ isSent: false, revisedAt: new Date().toISOString() }));
       });
 
-      setSuccessToast(`⚠️ Catatan Revisi Usulan RT ${rtNo} Berhasil Dikirim! Data dikembalikan ke RT ${rtNo}.`);
+      setSuccessToast(`⚠️ Catatan Revisi Usulan RT ${rtNo} Berhasil Dikirim secara Real-Time ke RT ${rtNo}.`);
       setRevisionModalRt(null);
       setRevisionNoteText("");
+      triggerNotificationRefresh();
       setTimeout(() => setSuccessToast(null), 6000);
       loadSubmissions();
     } catch (err) {
@@ -196,79 +234,63 @@ export function RekapanUsulanRwTab({
     }
   };
 
-  // Approve RT submission: add to RW Draft Usulan & Archive, remove from Rekapan
-  const handleVerifyRt = (group: RtSubmissionGroup) => {
-    try {
-      const rtNo = group.rtNo;
-      const targetYear = group.tahun || selectedYear || "2026";
+  // Helper: sync approved items to RW Draft Usulan localStorage
+  const syncApprovedGroupsToLocalDraft = (groups: RtSubmissionGroup[], targetYear: string) => {
+    const rwItemsKeyPadded = `musling_draft_usulan_items_rw_${paddedRw}_v1`;
+    const rwItemsKeyRaw = `musling_draft_usulan_items_rw_${rawRw}_v1`;
 
-      // 1. Mark sent usulan as approved
-      const sentKeys = [
-        `musling_sent_usulan_rt_${rtNo}_rw_${paddedRw}_v1`,
-        `musling_sent_usulan_rt_${rtNo}_rw_${rawRw}_v1`
-      ];
+    let existingRwItems: UsulanItem[] = [];
+    const currentRwItemsRaw = localStorage.getItem(rwItemsKeyPadded) || localStorage.getItem(rwItemsKeyRaw);
+    if (currentRwItemsRaw) {
+      try {
+        existingRwItems = JSON.parse(currentRwItemsRaw);
+      } catch {}
+    }
 
-      sentKeys.forEach((k) => {
-        const existing = localStorage.getItem(k);
-        if (existing) {
-          try {
-            const parsed = JSON.parse(existing);
-            parsed.status = "approved";
-            localStorage.setItem(k, JSON.stringify(parsed));
-          } catch (e) {}
-        }
-      });
-
-      // 2. Clear revision notes
-      localStorage.removeItem(`musling_revision_note_rt_${rtNo}_rw_${paddedRw}_v1`);
-      localStorage.removeItem(`musling_revision_note_rt_${rtNo}_rw_${rawRw}_v1`);
-
-      // 3. Update RW Draft Usulan (musling_draft_usulan_items_rw_${paddedRw}_v1)
-      const rwItemsKeyPadded = `musling_draft_usulan_items_rw_${paddedRw}_v1`;
-      const rwItemsKeyRaw = `musling_draft_usulan_items_rw_${rawRw}_v1`;
-
-      let existingRwItems: UsulanItem[] = [];
-      const currentRwItemsRaw = localStorage.getItem(rwItemsKeyPadded) || localStorage.getItem(rwItemsKeyRaw);
-      if (currentRwItemsRaw) {
-        try {
-          existingRwItems = JSON.parse(currentRwItemsRaw);
-        } catch (e) {}
-      }
-
-      const seenIds = new Set(existingRwItems.map((i) => i.id));
+    const seenIds = new Set(existingRwItems.map((i) => i.id));
+    groups.forEach((group) => {
       group.items.forEach((item) => {
         if (!seenIds.has(item.id)) {
           seenIds.add(item.id);
           existingRwItems.push(item);
         }
       });
+    });
 
-      localStorage.setItem(rwItemsKeyPadded, JSON.stringify(existingRwItems));
-      localStorage.setItem(rwItemsKeyRaw, JSON.stringify(existingRwItems));
+    localStorage.setItem(rwItemsKeyPadded, JSON.stringify(existingRwItems));
+    localStorage.setItem(rwItemsKeyRaw, JSON.stringify(existingRwItems));
 
-      // 4. Update Archive DAFTAR USULAN by year
-      const archiveKeyPadded = `musling_approved_usulan_rw_${paddedRw}_year_${targetYear}_v1`;
-      const archiveKeyRaw = `musling_approved_usulan_rw_${rawRw}_year_${targetYear}_v1`;
+    const archiveKeyPadded = `musling_approved_usulan_rw_${paddedRw}_year_${targetYear}_v1`;
+    const archiveKeyRaw = `musling_approved_usulan_rw_${rawRw}_year_${targetYear}_v1`;
+    let existingArchive: RtSubmissionGroup[] = [];
+    const currentArchiveRaw = localStorage.getItem(archiveKeyPadded) || localStorage.getItem(archiveKeyRaw);
+    if (currentArchiveRaw) {
+      try {
+        existingArchive = JSON.parse(currentArchiveRaw);
+      } catch {}
+    }
+    const approvedRtSet = new Set(groups.map(g => g.rtNo));
+    existingArchive = existingArchive.filter((g) => !approvedRtSet.has(g.rtNo));
+    groups.forEach((group) => {
+      existingArchive.push({ ...group, status: "approved" });
+    });
+    localStorage.setItem(archiveKeyPadded, JSON.stringify(existingArchive));
+    localStorage.setItem(archiveKeyRaw, JSON.stringify(existingArchive));
+  };
 
-      let existingArchive: RtSubmissionGroup[] = [];
-      const currentArchiveRaw = localStorage.getItem(archiveKeyPadded) || localStorage.getItem(archiveKeyRaw);
-      if (currentArchiveRaw) {
-        try {
-          existingArchive = JSON.parse(currentArchiveRaw);
-        } catch (e) {}
-      }
+  // Approve RT submission: atomic DB update + RW Draft Usulan + Archive
+  const handleVerifyRt = async (group: RtSubmissionGroup) => {
+    try {
+      const rtNo = group.rtNo;
+      const targetYear = group.tahun || selectedYear || "2026";
+      await approveMuslingRtSubmissions(paddedRw, targetYear, [rtNo]);
 
-      // Remove previous entry for this RT if exists, then add updated
-      existingArchive = existingArchive.filter((g) => g.rtNo !== rtNo);
-      existingArchive.push({
-        ...group,
-        status: "approved"
-      });
-
-      localStorage.setItem(archiveKeyPadded, JSON.stringify(existingArchive));
-      localStorage.setItem(archiveKeyRaw, JSON.stringify(existingArchive));
+      localStorage.removeItem(`musling_revision_note_rt_${rtNo}_rw_${paddedRw}_v1`);
+      localStorage.removeItem(`musling_revision_note_rt_${rtNo}_rw_${rawRw}_v1`);
+      syncApprovedGroupsToLocalDraft([group], targetYear);
 
       setSuccessToast(`✅ Usulan RT ${rtNo} Berhasil Disetujui! Otomatis masuk ke Draft Usulan RW & Daftar Usulan (Arsip ${targetYear}).`);
+      triggerNotificationRefresh();
       setTimeout(() => setSuccessToast(null), 6000);
       loadSubmissions();
     } catch (err) {
@@ -276,13 +298,22 @@ export function RekapanUsulanRwTab({
     }
   };
 
-  // Approve all pending RT submissions
-  const handleVerifyAll = () => {
-    pendingSubmissions.forEach((group) => {
-      handleVerifyRt(group);
-    });
-    setSuccessToast(`✅ Seluruh Usulan RT Berhasil Disetujui & Masuk ke Draft RW serta Daftar Usulan!`);
-    setTimeout(() => setSuccessToast(null), 6000);
+  // Approve all pending RT submissions atomically
+  const handleVerifyAll = async () => {
+    if (pendingSubmissions.length === 0) return;
+    try {
+      const targetYear = selectedYear || "2026";
+      const rtNos = pendingSubmissions.map(g => g.rtNo);
+      await approveMuslingRtSubmissions(paddedRw, targetYear, rtNos);
+      syncApprovedGroupsToLocalDraft(pendingSubmissions, targetYear);
+
+      setSuccessToast(`✅ Seluruh (${rtNos.length} RT) Usulan Berhasil Disetujui & Masuk ke Draft RW serta Daftar Usulan!`);
+      triggerNotificationRefresh();
+      setTimeout(() => setSuccessToast(null), 6000);
+      loadSubmissions();
+    } catch (err) {
+      console.error("Error approving all RT submissions:", err);
+    }
   };
 
   const totalPendingUsulan = pendingSubmissions.reduce((acc, g) => acc + g.items.length, 0);
@@ -345,7 +376,7 @@ export function RekapanUsulanRwTab({
           }`}
         >
           <Archive size={16} />
-          <span>DAFTAR USULAN & ARSIP (TAHUN KE TAHUN)</span>
+          <span>DAFTAR USULAN &amp; ARSIP (TAHUN KE TAHUN)</span>
           {approvedArchive.length > 0 && (
             <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-emerald-600 text-white font-bold">
               {approvedArchive.length} RT
@@ -353,6 +384,47 @@ export function RekapanUsulanRwTab({
           )}
         </button>
       </div>
+
+      {/* OFFICIAL RT COVERAGE MATRIX FOR THIS RW */}
+      {rtCoverage.length > 0 && (
+        <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs no-print">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-700">
+              Cakupan RT Resmi RW {paddedRw} ({rtCoverage.length} RT Binaan • Tahun {selectedYear})
+            </span>
+            <span className="text-[10px] font-bold text-slate-400">
+              Sinkron Otomatis dengan Struktur Wilayah Desa
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {rtCoverage.map((rt) => (
+              <div
+                key={rt.rtNo}
+                className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold flex items-center gap-2 ${
+                  rt.status === "approved"
+                    ? "bg-emerald-50 border-emerald-200 text-emerald-700"
+                    : rt.status === "pending"
+                    ? "bg-amber-50 border-amber-200 text-amber-700"
+                    : rt.status === "revised"
+                    ? "bg-rose-50 border-rose-200 text-rose-700"
+                    : "bg-slate-50 border-slate-200 text-slate-500"
+                }`}
+              >
+                <span>RT {rt.rtNo}</span>
+                <span className="text-[10px] opacity-80">
+                  {rt.status === "approved"
+                    ? `✓ Disetujui (${rt.itemCount})`
+                    : rt.status === "pending"
+                    ? `⏳ Menunggu (${rt.itemCount})`
+                    : rt.status === "revised"
+                    ? "↺ Revisi"
+                    : "• Belum Kirim"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* SUB-TAB 1: REKAPAN VERIFIKASI USULAN MASUK */}
       {activeSubTab === "rekapan" && (

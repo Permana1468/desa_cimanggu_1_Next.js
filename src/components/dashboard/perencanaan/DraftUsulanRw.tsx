@@ -23,6 +23,8 @@ import {
   Banknote
 } from "lucide-react";
 import { UndanganMuslingRwData } from "./UndanganMuslingRw";
+import { submitMuslingUsulanRt, getMuslingRtStatus } from "@/actions/musling";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 export interface UsulanItem {
   id: string;
@@ -148,18 +150,33 @@ export function DraftUsulanRw({
     }
   }, [undanganData?.rwNo, undanganData?.namaKetuaRw, undanganData?.tanggalAcara, undanganData?.tahun]);
 
-  // Handle RT sending draft usulan directly to RW
-  const handleSendToRw = () => {
+  // Handle RT sending draft usulan directly to RW (Persisted to DB + LocalStorage + Realtime Broadcast)
+  const handleSendToRw = async () => {
     try {
+      const targetYear = headerData.tahunUsulan || "2026";
       const payload = {
         rtNo: activeRt,
         rwNo: activeRw,
         namaKetuaRt: headerData.namaKetuaRt,
         sentAt: new Date().toISOString(),
-        tahun: headerData.tahunUsulan || "2026",
+        tahun: targetYear,
+        items: usulanList,
+        status: "pending" as const
+      };
+
+      const dbRes = await submitMuslingUsulanRt({
+        rtNo: activeRt,
+        rwNo: paddedRw,
+        namaKetuaRt: headerData.namaKetuaRt,
+        tahun: targetYear,
         items: usulanList,
         status: "pending"
-      };
+      });
+
+      if (!dbRes?.success) {
+        alert(dbRes?.error || "Gagal mengirim usulan ke RW.");
+        return;
+      }
 
       localStorage.setItem(`musling_sent_usulan_rt_${activeRt}_rw_${paddedRw}_v1`, JSON.stringify(payload));
       localStorage.setItem(`musling_sent_usulan_rt_${activeRt}_rw_${rawRw}_v1`, JSON.stringify(payload));
@@ -173,7 +190,8 @@ export function DraftUsulanRw({
       setRevisionNote(null);
 
       setIsSent(true);
-      setSendSuccessMsg(`✅ Usulan RT ${activeRt} Berhasil Dikirim ke Ketua RW ${activeRw}!`);
+      setSendSuccessMsg(`✅ Usulan RT ${activeRt} Berhasil Dikirim ke Ketua RW ${activeRw} secara Real-Time!`);
+      triggerNotificationRefresh();
       setTimeout(() => setSendSuccessMsg(null), 7000);
     } catch (err) {
       console.error("Error sending usulan to RW:", err);
@@ -263,6 +281,39 @@ export function DraftUsulanRw({
     }
     setMounted(true);
   }, [isRt, activeRt, activeRw, headerStorageKey, itemsStorageKey, userName, paddedRw, rawRw, undanganData?.namaKetuaRw]);
+
+  // Sync status & revision note from PostgreSQL for RT in real-time
+  useEffect(() => {
+    if (!isRt) return;
+    const syncRtStatus = async () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      try {
+        const dbSub = await getMuslingRtStatus(activeRt, paddedRw, headerData.tahunUsulan || "2026");
+        if (dbSub) {
+          if (dbSub.status === "revised" && dbSub.revisionNote) {
+            setRevisionNote(dbSub.revisionNote);
+            setIsSent(false);
+          } else if (dbSub.status === "pending" || dbSub.status === "approved") {
+            setRevisionNote(null);
+            setIsSent(true);
+          }
+        }
+      } catch {}
+    };
+    syncRtStatus();
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+        bc.onmessage = (ev) => {
+          if (ev.data?.type === "SYNC_EVENT" || ev.data?.type === "MUSLING_UPDATED") syncRtStatus();
+        };
+      } catch {}
+    }
+    return () => {
+      if (bc) bc.close();
+    };
+  }, [isRt, activeRt, paddedRw, headerData.tahunUsulan]);
 
   // Load Archive data when selectedArchiveYear changes
   useEffect(() => {
