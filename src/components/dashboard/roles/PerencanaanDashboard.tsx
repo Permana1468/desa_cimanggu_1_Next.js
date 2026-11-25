@@ -37,6 +37,7 @@ const CyberPlanMusrenbangTab = dynamic(() => import("../perencanaan/CyberPlanMus
 const ApbdesInfografisBoard = dynamic(() => import("../perencanaan/ApbdesInfografisBoard").then(m => m.ApbdesInfografisBoard));
 const KaurStudioFotoTab = dynamic(() => import("./kaur-perencanaan/KaurStudioFotoTab").then(m => m.KaurStudioFotoTab));
 const CyberPlanProgressTab = dynamic(() => import("../perencanaan/CyberPlanProgressTab").then(m => m.CyberPlanProgressTab));
+const KaurPerencanaanRealtimeHub = dynamic(() => import("../perencanaan/KaurPerencanaanRealtimeHub").then(m => m.KaurPerencanaanRealtimeHub));
 
 export function PerencanaanDashboard({ session, stats, isHackerTheme }: { session: any, stats: any, isHackerTheme?: boolean }) {
   const roleName = session?.user?.role?.replace(/_/g, ' ') || "KAUR PERENCANAAN";
@@ -380,15 +381,18 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
         </button>
 
         {/* Shortcut 3: Realisasi */}
-        <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm flex items-center gap-3.5 group">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0">
+        <button 
+          onClick={() => setActiveTab("scurve")} 
+          className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm hover:border-emerald-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex items-center gap-3.5 group cursor-pointer text-left"
+        >
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all">
             <Activity size={22} />
           </div>
           <div>
-            <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Realisasi Fisik</h4>
+            <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider group-hover:text-emerald-700">Realisasi Fisik</h4>
             <p className="text-[11px] text-sky-600 font-bold font-mono">100% Progres Lapangan</p>
           </div>
-        </div>
+        </button>
 
         {/* Telemetry: Server & DB Live Status */}
         <div className="bg-white p-4 rounded-3xl border border-slate-200/80 shadow-sm flex items-center justify-between gap-3">
@@ -417,7 +421,20 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
       </div>
 
       {/* ------------------------------------------------------------- */}
-      {/* 3. FULL-WIDTH DENSE EXECUTIVE FINANCIAL STATS BOARD           */}
+      {/* 3. REAL-TIME MULTI-FEATURE CHARTS & INTER-USER TRACKING HUB   */}
+      {/* ------------------------------------------------------------- */}
+      <div className="w-full">
+        <KaurPerencanaanRealtimeHub 
+          onNavigateTab={(tab) => {
+            setActiveTab(tab);
+            router.push(`/dashboard?tab=${tab}`, { scroll: false });
+          }}
+          isHackerTheme={isHackerTheme}
+        />
+      </div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* 4. FULL-WIDTH DENSE EXECUTIVE FINANCIAL STATS BOARD           */}
       {/* ------------------------------------------------------------- */}
       <div className="w-full">
         <ApbdesInfografisBoard 
