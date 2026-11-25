@@ -8,6 +8,7 @@ import {
     addBumdesUnit, 
     deleteBumdesUnit 
 } from "@/actions/village";
+import { BumdesUmkmPanel } from "@/components/umkm/BumdesUmkmPanel";
 import { useSession } from "next-auth/react";
 import { 
     ShoppingBag, 
@@ -333,6 +334,9 @@ export default function BumdesPage() {
                     )}
                 </div>
             </div>
+
+            {/* MONITORING MARKETPLACE UMKM DESA */}
+            <BumdesUmkmPanel canEdit={canEdit} />
 
             {/* ADD TRANSACTION MODAL */}
             {showAddModal && (
