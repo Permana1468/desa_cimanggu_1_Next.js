@@ -1811,6 +1811,13 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                   return false;
                 });
 
+                if (role === "KADUS") {
+                  itemsToRender.splice(2, 0,
+                    { name: "Posyandu & Kesehatan", icon: HeartPulse, href: "/dashboard?tab=health" },
+                    { name: "ATS & Pengangguran", icon: Briefcase, href: "/dashboard?tab=sosial" }
+                  );
+                }
+
                 if (role === "LPM") {
                   itemsToRender = [
                     { name: "Dashboard", icon: LayoutDashboard, href: "/kelembagaan?tab=overview" },
@@ -1864,12 +1871,13 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                     { name: isRwRole ? "Inventaris RW" : "Inventaris RT", icon: Package, href: "/dashboard?tab=inventory" },
                     { name: "GeoSENSUS", icon: Compass, href: "/dashboard?tab=geosensus" },
                     { name: "Data Bansos", icon: HeartHandshake, href: "/dashboard?tab=bansos" },
+                    { name: "Posyandu & Kesehatan", icon: HeartPulse, href: "/dashboard?tab=health" },
+                    { name: "ATS & Pengangguran", icon: Briefcase, href: "/dashboard?tab=sosial" },
                     { name: "Keamanan Lingkungan", icon: ShieldCheck, href: "/dashboard?tab=security" },
                     { name: "Usulan Musrenbang", icon: Banknote, href: "/kelembagaan/musrenbang" }
                   ];
                   if (isRwRole) {
                     itemsToRender.push(
-                      { name: "Posyandu & Kesehatan", icon: HeartPulse, href: "/dashboard?tab=health" },
                       { name: "Kelembagaan RW", icon: Building2, href: "/dashboard?tab=institutions" }
                     );
                   }

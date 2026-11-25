@@ -45,6 +45,7 @@ import "@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css";
 import { RwSecurityTab } from "../rw/RwSecurityTab";
 import { RwHealthTab } from "../rw/RwHealthTab";
 import { RwInstitutionsTab } from "../rw/RwInstitutionsTab";
+import { WilayahSosialTab } from "../wilayah/WilayahSosialTab";
 import { UndanganMuslingRw } from "../perencanaan/UndanganMuslingRw";
 import { PhysicalMutationAlertBanner } from "@/components/dashboard/mutasi/PhysicalMutationAlertBanner";
 
@@ -105,14 +106,14 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
   const tabParam = searchParams ? searchParams.get("tab") : null;
 
   // Active Main Tab
-  const [activeTab, setActiveTab] = useState<"overview" | "warga" | "rumah" | "finance" | "surat" | "kegiatan" | "lampid" | "announcements" | "complaints" | "inventory" | "geosensus" | "bansos" | "security" | "health" | "institutions" | "musling-rw">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "warga" | "rumah" | "finance" | "surat" | "kegiatan" | "lampid" | "announcements" | "complaints" | "inventory" | "geosensus" | "bansos" | "security" | "health" | "sosial" | "institutions" | "musling-rw">("overview");
   const [preFilledMutation, setPreFilledMutation] = useState<{ nik: string, namaLengkap: string, type: "mati" | "pindah" } | null>(null);
 
   useEffect(() => {
     if (tabParam) {
       if (tabParam === "surat-pengantar") {
         setActiveTab("surat");
-      } else if (["overview", "warga", "rumah", "finance", "surat", "kegiatan", "lampid", "announcements", "complaints", "inventory", "geosensus", "bansos", "security", "health", "institutions", "musling-rw"].includes(tabParam)) {
+      } else if (["overview", "warga", "rumah", "finance", "surat", "kegiatan", "lampid", "announcements", "complaints", "inventory", "geosensus", "bansos", "security", "health", "sosial", "institutions", "musling-rw"].includes(tabParam)) {
         setActiveTab(tabParam as any);
       }
     }
@@ -275,6 +276,26 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
             >
               LAMPID
             </button>
+            <button
+              onClick={() => setActiveTab("health")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "health"
+                  ? "bg-white text-[#1d64ec] shadow-xs"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              Posyandu
+            </button>
+            <button
+              onClick={() => setActiveTab("sosial")}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                activeTab === "sosial"
+                  ? "bg-white text-[#1d64ec] shadow-xs"
+                  : "text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              ATS &amp; Pengangguran
+            </button>
             {isRw && (
               <>
                 <button
@@ -286,16 +307,6 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
                   }`}
                 >
                   Kelembagaan
-                </button>
-                <button
-                  onClick={() => setActiveTab("health")}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    activeTab === "health"
-                      ? "bg-white text-[#1d64ec] shadow-xs"
-                      : "text-slate-500 hover:text-slate-800"
-                  }`}
-                >
-                  Posyandu
                 </button>
                 <button
                   onClick={() => setActiveTab("security")}
@@ -419,6 +430,7 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
         {activeTab === "bansos" && <BansosTab session={session} />}
         {activeTab === "security" && <RwSecurityTab session={session} />}
         {activeTab === "health" && <RwHealthTab session={session} />}
+        {activeTab === "sosial" && <WilayahSosialTab session={session} />}
         {activeTab === "institutions" && <RwInstitutionsTab session={session} />}
         {activeTab === "musling-rw" && (
           <UndanganMuslingRw 

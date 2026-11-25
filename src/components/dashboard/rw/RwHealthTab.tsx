@@ -6,13 +6,16 @@ import {
     Search, Filter, Activity, Scale, Ruler, Stethoscope, AlertTriangle,
     CheckCircle2, BarChart3, MapPin
 } from "lucide-react";
-import { getRwPosyanduRecap } from "@/actions/rw";
+import { getWilayahPosyanduRecap } from "@/actions/wilayahTerpadu";
 
 export function RwHealthTab({ session }: { session: any }) {
+    const role = String((session?.user as any)?.role || "RW").toUpperCase();
     const rwNo = String((session?.user as any)?.rw || "009").replace(/\D/g, "").padStart(3, "0");
+    const rtNo = String((session?.user as any)?.rt || "001").replace(/\D/g, "").padStart(3, "0");
     const [recap, setRecap] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeSubTab, setActiveSubTab] = useState<"balita" | "ibu_hamil" | "lansia" | "rt_rekap">("balita");
+    const [selectedRw, setSelectedRw] = useState<string>("ALL");
     const [selectedRt, setSelectedRt] = useState<string>("ALL");
     const [searchQuery, setSearchQuery] = useState("");
     const [lastSync, setLastSync] = useState<string>("-");
@@ -20,17 +23,17 @@ export function RwHealthTab({ session }: { session: any }) {
     const loadData = useCallback(async (showSpinner = false) => {
         if (showSpinner) setLoading(true);
         try {
-            const data = await getRwPosyanduRecap(rwNo);
+            const data = await getWilayahPosyanduRecap();
             if (data) {
                 setRecap(data);
                 setLastSync(new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
             }
         } catch (err) {
-            console.error("Failed to load RW Posyandu Recap:", err);
+            console.error("Failed to load Wilayah Posyandu Recap:", err);
         } finally {
             setLoading(false);
         }
-    }, [rwNo]);
+    }, []);
 
     useEffect(() => {
         loadData(true);
@@ -86,15 +89,23 @@ export function RwHealthTab({ session }: { session: any }) {
         lansiaTerdaftarPosyandu: 0
     };
 
+    const rwList: string[] = useMemo(() => {
+        if (!recap?.rwBreakdown) return [];
+        return recap.rwBreakdown.map((r: any) => r.rw);
+    }, [recap]);
+
     const rtList: string[] = useMemo(() => {
         if (!recap?.rtBreakdown) return [];
-        return recap.rtBreakdown.map((r: any) => r.rt);
-    }, [recap]);
+        return recap.rtBreakdown
+            .filter((r: any) => selectedRw === "ALL" || r.rw === selectedRw)
+            .map((r: any) => `${r.rw}-${r.rt}`);
+    }, [recap, selectedRw]);
 
     const filteredBalita = useMemo(() => {
         const list = recap?.balitaDetails || [];
         return list.filter((b: any) => {
-            if (selectedRt !== "ALL" && b.rt !== selectedRt) return false;
+            if (selectedRw !== "ALL" && b.rw !== selectedRw) return false;
+            if (selectedRt !== "ALL" && `${b.rw}-${b.rt}` !== selectedRt) return false;
             if (searchQuery.trim()) {
                 const q = searchQuery.toLowerCase();
                 return (
@@ -105,31 +116,33 @@ export function RwHealthTab({ session }: { session: any }) {
             }
             return true;
         });
-    }, [recap, selectedRt, searchQuery]);
+    }, [recap, selectedRw, selectedRt, searchQuery]);
 
     const filteredIbuHamil = useMemo(() => {
         const list = recap?.ibuHamilDetails || [];
         return list.filter((ih: any) => {
-            if (selectedRt !== "ALL" && ih.rt !== selectedRt) return false;
+            if (selectedRw !== "ALL" && ih.rw !== selectedRw) return false;
+            if (selectedRt !== "ALL" && `${ih.rw}-${ih.rt}` !== selectedRt) return false;
             if (searchQuery.trim()) {
                 const q = searchQuery.toLowerCase();
                 return (ih.namaLengkap || "").toLowerCase().includes(q) || (ih.nik || "").includes(q);
             }
             return true;
         });
-    }, [recap, selectedRt, searchQuery]);
+    }, [recap, selectedRw, selectedRt, searchQuery]);
 
     const filteredLansia = useMemo(() => {
         const list = recap?.lansiaDetails || [];
         return list.filter((l: any) => {
-            if (selectedRt !== "ALL" && l.rt !== selectedRt) return false;
+            if (selectedRw !== "ALL" && l.rw !== selectedRw) return false;
+            if (selectedRt !== "ALL" && `${l.rw}-${l.rt}` !== selectedRt) return false;
             if (searchQuery.trim()) {
                 const q = searchQuery.toLowerCase();
                 return (l.namaLengkap || "").toLowerCase().includes(q) || (l.nik || "").includes(q);
             }
             return true;
         });
-    }, [recap, selectedRt, searchQuery]);
+    }, [recap, selectedRw, selectedRt, searchQuery]);
 
     const balitaCakupanPct = summary.sasaranBalita > 0
         ? Math.min(100, Math.round((summary.balitaTerdaftarPosyandu / summary.sasaranBalita) * 100))
@@ -156,16 +169,16 @@ export function RwHealthTab({ session }: { session: any }) {
                     <div>
                         <div className="inline-flex flex-wrap items-center gap-2 px-3 py-1 rounded-full bg-white/15 text-rose-100 text-[11px] font-bold backdrop-blur-md mb-3 border border-white/20">
                             <Sparkles size={13} className="text-amber-300" />
-                            <span>Rekapitulasi Real-Time • {recap?.posyanduUnit?.name || `Posyandu Wilayah RW ${rwNo}`}</span>
+                            <span>Rekapitulasi Real-Time • {(recap?.posyanduUnits || []).join(", ") || `Posyandu Wilayah RW ${rwNo}`}</span>
                             <span className="bg-emerald-400/20 text-emerald-100 px-2 py-0.5 rounded-full text-[10px] border border-emerald-300/30">
                                 Live Sync: {lastSync}
                             </span>
                         </div>
                         <h2 className="text-2xl lg:text-3xl font-black mb-2 flex items-center gap-3">
-                            <HeartPulse className="shrink-0" /> Rekap Posyandu & Kesehatan RW {rwNo}
+                            <HeartPulse className="shrink-0" /> Rekap Posyandu & Kesehatan {recap?.scopeLabel || (role === "RT" ? `RT ${rtNo} / RW ${rwNo}` : `RW ${rwNo}`)}
                         </h2>
                         <p className="text-rose-100 max-w-2xl text-xs sm:text-sm leading-relaxed">
-                            Pemantauan otomatis hasil inputan Kader Posyandu (penimbangan balita, tinggi badan, status gizi, ibu hamil, dan posbindu lansia) khusus cakupan RW {rwNo} beserta rincian per RT.
+                            Pemantauan otomatis hasil inputan Kader Posyandu (penimbangan balita, tinggi badan, status gizi, ibu hamil, dan posbindu lansia) khusus cakupan wilayah Anda.
                         </p>
                     </div>
 
@@ -311,31 +324,33 @@ export function RwHealthTab({ session }: { session: any }) {
                                 const hBumil = Math.max(4, Math.round((r.ibuHamil / maxRtBarVal) * 100));
                                 const hLansia = Math.max(4, Math.round((r.lansiaPosyandu / maxRtBarVal) * 100));
                                 return (
-                                    <div key={r.rt} className="flex-1 min-w-[54px] flex flex-col items-center gap-2 h-full justify-end">
+                                    <div key={r.key || r.rt} className="flex-1 min-w-[60px] flex flex-col items-center gap-2 h-full justify-end">
                                         <div className="flex items-end gap-1 h-40 w-full justify-center">
                                             <div
                                                 className="w-3 bg-blue-500 rounded-t-md transition-all duration-500 relative group"
                                                 style={{ height: `${hBalita}%` }}
-                                                title={`RT ${r.rt} - Balita Posyandu: ${r.balitaPosyandu}`}
+                                                title={`RT ${r.rt} / RW ${r.rw} - Balita Posyandu: ${r.balitaPosyandu}`}
                                             >
                                                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-black text-blue-700">{r.balitaPosyandu}</span>
                                             </div>
                                             <div
                                                 className="w-3 bg-pink-500 rounded-t-md transition-all duration-500 relative"
                                                 style={{ height: `${hBumil}%` }}
-                                                title={`RT ${r.rt} - Ibu Hamil: ${r.ibuHamil}`}
+                                                title={`RT ${r.rt} / RW ${r.rw} - Ibu Hamil: ${r.ibuHamil}`}
                                             >
                                                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-black text-pink-700">{r.ibuHamil}</span>
                                             </div>
                                             <div
                                                 className="w-3 bg-amber-500 rounded-t-md transition-all duration-500 relative"
                                                 style={{ height: `${hLansia}%` }}
-                                                title={`RT ${r.rt} - Lansia Posyandu: ${r.lansiaPosyandu}`}
+                                                title={`RT ${r.rt} / RW ${r.rw} - Lansia Posyandu: ${r.lansiaPosyandu}`}
                                             >
                                                 <span className="absolute -top-4 left-1/2 -translate-x-1/2 text-[9px] font-black text-amber-700">{r.lansiaPosyandu}</span>
                                             </div>
                                         </div>
-                                        <span className="text-[10px] font-black text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">RT {r.rt}</span>
+                                        <span className="text-[10px] font-black text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md whitespace-nowrap">
+                                            {role === "KADUS" ? `RT ${r.rt}/RW ${r.rw}` : `RT ${r.rt}`}
+                                        </span>
                                     </div>
                                 );
                             })}
@@ -372,19 +387,37 @@ export function RwHealthTab({ session }: { session: any }) {
 
                     {activeSubTab !== "rt_rekap" && (
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-                            <div className="relative">
-                                <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                <select
-                                    value={selectedRt}
-                                    onChange={(e) => setSelectedRt(e.target.value)}
-                                    className="pl-8 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-rose-500"
-                                >
-                                    <option value="ALL">Semua RT (RW {rwNo})</option>
-                                    {rtList.map(rt => (
-                                        <option key={rt} value={rt}>RT {rt}</option>
-                                    ))}
-                                </select>
-                            </div>
+                            {rwList.length > 1 && (
+                                <div className="relative">
+                                    <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <select
+                                        value={selectedRw}
+                                        onChange={(e) => { setSelectedRw(e.target.value); setSelectedRt("ALL"); }}
+                                        className="pl-8 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-rose-500"
+                                    >
+                                        <option value="ALL">Semua RW Cakupan</option>
+                                        {rwList.map(rw => (
+                                            <option key={rw} value={rw}>RW {rw}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+                            {rtList.length > 1 && (
+                                <div className="relative">
+                                    <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                    <select
+                                        value={selectedRt}
+                                        onChange={(e) => setSelectedRt(e.target.value)}
+                                        className="pl-8 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-rose-500"
+                                    >
+                                        <option value="ALL">Semua RT</option>
+                                        {rtList.map(key => {
+                                            const [rRw, rRt] = key.split("-");
+                                            return <option key={key} value={key}>RT {rRt}{rwList.length > 1 ? ` (RW ${rRw})` : ""}</option>;
+                                        })}
+                                    </select>
+                                </div>
+                            )}
                             <div className="relative">
                                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                 <input
@@ -612,8 +645,11 @@ export function RwHealthTab({ session }: { session: any }) {
                             </thead>
                             <tbody className="divide-y divide-slate-100 text-xs">
                                 {(recap?.rtBreakdown || []).map((r: any) => (
-                                    <tr key={r.rt} className="hover:bg-slate-50/60">
-                                        <td className="px-4 py-3.5 font-black text-slate-800">RT {r.rt} / RW {rwNo}</td>
+                                    <tr key={r.key || r.rt} className="hover:bg-slate-50/60">
+                                        <td className="px-4 py-3.5">
+                                            <div className="font-black text-slate-800">RT {r.rt} / RW {r.rw || rwNo}</div>
+                                            <div className="text-[10px] text-rose-600 font-semibold">{r.posyanduName}</div>
+                                        </td>
                                         <td className="px-4 py-3.5 text-center font-bold text-slate-600">{r.totalWarga}</td>
                                         <td className="px-4 py-3.5 text-center font-bold text-slate-700">{r.sasaranBalita}</td>
                                         <td className="px-4 py-3.5 text-center font-black text-blue-600">{r.balitaPosyandu}</td>

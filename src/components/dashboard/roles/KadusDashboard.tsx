@@ -2,23 +2,44 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { 
   Users, MapPin, FileText, AlertTriangle, TrendingUp, Search, 
   ChevronRight, Building, Plus, Trash2, Home as HomeIcon,
-  ShieldCheck, ArrowRight, Loader2, Info, UserPlus, FileSignature, AlertCircle, HardHat, HeartPulse, Map
+  ShieldCheck, ArrowRight, Loader2, Info, UserPlus, FileSignature, AlertCircle, HardHat, HeartPulse, Map, Briefcase
 } from "lucide-react";
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { getKadusDashboardSummary } from "@/actions/kadus";
 import { formatDusun } from "@/lib/formatters";
 import { PhysicalMutationAlertBanner } from "@/components/dashboard/mutasi/PhysicalMutationAlertBanner";
 
+const RwHealthTab = dynamic(() => import("../rw/RwHealthTab").then(m => m.RwHealthTab), {
+  ssr: false,
+  loading: () => <div className="p-12 text-center text-slate-400 text-xs">Memuat Rekap Posyandu Dusun...</div>
+});
+const WilayahSosialTab = dynamic(() => import("../wilayah/WilayahSosialTab").then(m => m.WilayahSosialTab), {
+  ssr: false,
+  loading: () => <div className="p-12 text-center text-slate-400 text-xs">Memuat Data ATS &amp; Pengangguran Dusun...</div>
+});
+
 export function KadusDashboard({ session, stats: initialStats }: { session: any, stats: any }) {
   const dusun = (session?.user as any)?.rw || "Dusun"; 
   const tenantId = (session?.user as any)?.tenantId;
+  const searchParams = useSearchParams();
+  const urlTab = searchParams.get("tab");
 
+  const [activeTab, setActiveTab] = useState<"overview" | "health" | "sosial">(
+    urlTab === "health" ? "health" : urlTab === "sosial" ? "sosial" : "overview"
+  );
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (urlTab === "health" || urlTab === "sosial" || urlTab === "overview") {
+      setActiveTab(urlTab);
+    }
+  }, [urlTab]);
 
   const fetchData = async (showLoading = true) => {
     if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
@@ -77,9 +98,42 @@ export function KadusDashboard({ session, stats: initialStats }: { session: any,
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
         <div>
           <h2 className="text-2xl font-black text-slate-800 tracking-tight">Dashboard Kepala {formatDusun(dusun)}</h2>
-          <p className="text-sm text-slate-500 mt-1">Sistem Informasi Manajemen Wilayah {formatDusun(dusun)} Terintegrasi</p>
+          <p className="text-sm text-slate-500 mt-1">Sistem Informasi Manajemen Wilayah {formatDusun(dusun)} Terintegrasi (Cakupan RW &amp; RT)</p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200/80">
+          <button
+            onClick={() => setActiveTab("overview")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === "overview" ? "bg-white text-teal-600 shadow-xs" : "text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            Ringkasan Dusun
+          </button>
+          <button
+            onClick={() => setActiveTab("health")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === "health" ? "bg-white text-rose-600 shadow-xs" : "text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <HeartPulse size={14} /> Posyandu &amp; Kesehatan
+          </button>
+          <button
+            onClick={() => setActiveTab("sosial")}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === "sosial" ? "bg-white text-indigo-600 shadow-xs" : "text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <Briefcase size={14} /> ATS &amp; Pengangguran
+          </button>
         </div>
       </div>
+
+      {activeTab === "health" && <RwHealthTab session={session} />}
+      {activeTab === "sosial" && <WilayahSosialTab session={session} />}
+
+      {activeTab === "overview" && (
+        <>
 
       {/* Peringatan Wajib Pembaruan Berkas Fisik Dusun */}
       <PhysicalMutationAlertBanner 
@@ -293,6 +347,8 @@ export function KadusDashboard({ session, stats: initialStats }: { session: any,
             </ResponsiveContainer>
         </ChartCard>
       </div>
+        </>
+      )}
     </div>
   );
 }
