@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
+import { getWilayahVariants } from "@/lib/wilayahUtils";
 
 export interface MuslingUsulanItem {
     id: string;
@@ -64,9 +65,17 @@ export async function getOfficialRtsForRw(rwParam: string): Promise<string[]> {
     const targetRw = pad3(rwParam);
     const targetRaw = String(parseInt(targetRw, 10));
     try {
-        const config = await prisma.systemSetting.findUnique({
-            where: { id: "village_structure" }
-        });
+        const [config, dbRts] = await Promise.all([
+            prisma.systemSetting.findUnique({ where: { id: "village_structure" } }),
+            prisma.dataKependudukan.findMany({
+                where: {
+                    rw: { in: getWilayahVariants(targetRw) },
+                    rt: { not: "" }
+                },
+                select: { rt: true },
+                distinct: ["rt"]
+            })
+        ]);
         const structure = (config?.settings as any) || { dusun: [] };
         const rtSet = new Set<string>();
 
@@ -83,6 +92,12 @@ export async function getOfficialRtsForRw(rwParam: string): Promise<string[]> {
                 }
             }
         }
+
+        for (const row of dbRts) {
+            const rtDigits = String(row.rt || "").replace(/\D/g, "");
+            if (rtDigits) rtSet.add(pad3(rtDigits));
+        }
+
         return Array.from(rtSet).sort();
     } catch {
         return [];

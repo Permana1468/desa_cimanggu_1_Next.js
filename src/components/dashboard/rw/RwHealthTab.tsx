@@ -153,10 +153,10 @@ export function RwHealthTab({ session }: { session: any }) {
         : 0;
 
     const maxRtBarVal = useMemo(() => {
-        if (!recap?.rtBreakdown?.length) return 10;
+        if (!recap?.rtBreakdown?.length) return 3;
         return Math.max(
-            5,
-            ...recap.rtBreakdown.map((r: any) => Math.max(r.sasaranBalita, r.balitaPosyandu, r.sasaranLansia, r.lansiaPosyandu, r.ibuHamil))
+            3,
+            ...recap.rtBreakdown.map((r: any) => Math.max(r.balitaPosyandu || 0, r.ibuHamil || 0, r.lansiaPosyandu || 0))
         );
     }, [recap]);
 
@@ -279,7 +279,7 @@ export function RwHealthTab({ session }: { session: any }) {
                             { label: "Balita Sasaran (Data Kependudukan 0-5 Thn)", val: summary.sasaranBalita, max: Math.max(summary.sasaranBalita, summary.balitaTerdaftarPosyandu, 1), color: "bg-slate-400" },
                             { label: "Balita Terdaftar & Ikut Posyandu", val: summary.balitaTerdaftarPosyandu, max: Math.max(summary.sasaranBalita, summary.balitaTerdaftarPosyandu, 1), color: "bg-blue-600" },
                             { label: "Balita Gizi Normal", val: summary.giziNormal, max: Math.max(summary.balitaTerdaftarPosyandu, 1), color: "bg-emerald-500" },
-                            { label: "Balita Gizi Kurang / Stunting", val: summary.balitaStunting + summary.giziKurang, max: Math.max(summary.balitaTerdaftarPosyandu, 1), color: "bg-rose-500" },
+                            { label: "Balita Gizi Kurang / Stunting", val: summary.giziKurang, max: Math.max(summary.balitaTerdaftarPosyandu, 1), color: "bg-rose-500" },
                             { label: "Ibu Hamil Dipantau", val: summary.ibuHamilTerdaftar, max: Math.max(summary.ibuHamilTerdaftar, 10), color: "bg-pink-500" },
                             { label: "Lansia Terlayani Posbindu", val: summary.lansiaTerdaftarPosyandu, max: Math.max(summary.sasaranLansia, summary.lansiaTerdaftarPosyandu, 1), color: "bg-amber-500" }
                         ].map((bar, idx) => {

@@ -11,6 +11,7 @@ import {
     deleteRwInstitution, addRwInstitutionMember, updateRwInstitutionMember, 
     removeRwInstitutionMember 
 } from "@/actions/rw";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 export function RwInstitutionsTab({ session }: { session: any }) {
     const rwNo = (session?.user as any)?.rw || "009";
@@ -42,6 +43,33 @@ export function RwInstitutionsTab({ session }: { session: any }) {
 
     useEffect(() => {
         loadInstitutions();
+
+        const handleRefresh = () => {
+            if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+            loadInstitutions();
+        };
+        window.addEventListener("refresh-notifications", handleRefresh);
+        window.addEventListener("focus", handleRefresh);
+
+        let bc: BroadcastChannel | null = null;
+        if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+            try {
+                bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+                bc.onmessage = (ev) => {
+                    if (ev.data?.type === "SYNC_EVENT" || ev.data?.type === "INSTITUTIONS_UPDATED") {
+                        loadInstitutions();
+                    }
+                };
+            } catch {}
+        }
+
+        const interval = setInterval(handleRefresh, 30000);
+        return () => {
+            window.removeEventListener("refresh-notifications", handleRefresh);
+            window.removeEventListener("focus", handleRefresh);
+            if (bc) bc.close();
+            clearInterval(interval);
+        };
     }, [rwNo]);
 
     const handleAddInst = async (e: React.FormEvent) => {
@@ -52,6 +80,7 @@ export function RwInstitutionsTab({ session }: { session: any }) {
         setInstForm({ name: "", description: "" });
         setSubmittingInst(false);
         loadInstitutions();
+        triggerNotificationRefresh();
     };
 
     const handleQuickAdd = async (name: string, description: string) => {

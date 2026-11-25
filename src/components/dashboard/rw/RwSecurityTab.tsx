@@ -11,6 +11,7 @@ import {
     updateRwPatrolSchedule, deleteRwPatrolSchedule 
 } from "@/actions/rw";
 import { getWilayahStrukturOptions } from "@/actions/rt";
+import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 export function RwSecurityTab({ session }: { session: any }) {
     const rwNo = (session?.user as any)?.rw || "009";
@@ -62,6 +63,35 @@ export function RwSecurityTab({ session }: { session: any }) {
                 setRtList(res.rtList);
             }
         });
+
+        const handleRefresh = () => {
+            if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+            loadLogs();
+            loadSchedules();
+        };
+        window.addEventListener("refresh-notifications", handleRefresh);
+        window.addEventListener("focus", handleRefresh);
+
+        let bc: BroadcastChannel | null = null;
+        if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+            try {
+                bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+                bc.onmessage = (ev) => {
+                    if (ev.data?.type === "SYNC_EVENT" || ev.data?.type === "SECURITY_UPDATED") {
+                        loadLogs();
+                        loadSchedules();
+                    }
+                };
+            } catch {}
+        }
+
+        const interval = setInterval(handleRefresh, 30000);
+        return () => {
+            window.removeEventListener("refresh-notifications", handleRefresh);
+            window.removeEventListener("focus", handleRefresh);
+            if (bc) bc.close();
+            clearInterval(interval);
+        };
     }, [rwNo]);
 
     const handleAddLog = async (e: React.FormEvent) => {
@@ -78,6 +108,7 @@ export function RwSecurityTab({ session }: { session: any }) {
         setLogForm({ type: "TAMU", reporter: "", title: "", description: "" });
         setSubmittingLog(false);
         loadLogs();
+        triggerNotificationRefresh();
     };
 
     const handleAddPatrol = async (e: React.FormEvent) => {
