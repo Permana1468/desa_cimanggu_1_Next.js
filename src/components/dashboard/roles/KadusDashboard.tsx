@@ -40,10 +40,21 @@ export function KadusDashboard({ session, stats: initialStats }: { session: any,
     window.addEventListener("refresh-notifications", handleRefresh);
     window.addEventListener("focus", handleRefresh);
 
-    const interval = setInterval(() => fetchData(false), 30000);
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+        bc.onmessage = () => {
+          fetchData(false);
+        };
+      } catch (e) {}
+    }
+
+    const interval = setInterval(() => fetchData(false), 25000);
     return () => {
       window.removeEventListener("refresh-notifications", handleRefresh);
       window.removeEventListener("focus", handleRefresh);
+      if (bc) bc.close();
       clearInterval(interval);
     };
   }, []);
@@ -99,6 +110,116 @@ export function KadusDashboard({ session, stats: initialStats }: { session: any,
             <StatWidget icon={HardHat} label="Proyek Infrastruktur" value={data.totalProyek} suffix="Proyek" color="text-indigo-600" bg="bg-indigo-50" />
         </div>
       </div>
+
+      {/* REKAPITULASI MUTASI KEPENDUDUKAN & LAMPID TINGKAT DUSUN */}
+      {data.lampidSummary && (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <h3 className="text-base font-black text-slate-800 tracking-tight">
+                  Rekapitulasi Mutasi Kependudukan (LAMPID) Wilayah {formatDusun(dusun)}
+                </h3>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Data pergerakan warga bulan {new Intl.DateTimeFormat('id-ID', { month: 'long' }).format(new Date(data.lampidSummary.tahun, data.lampidSummary.bulan - 1))} {data.lampidSummary.tahun} lintas RW binaan
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {data.lampidSummary.pendingFisikCount > 0 ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+                  {data.lampidSummary.pendingFisikCount} Menunggu Berkas Fisik
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  Semua Berkas Fisik Sinkron
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Metric Cards Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
+            <div className="bg-emerald-50/70 border border-emerald-100 rounded-xl p-4">
+              <span className="text-[11px] font-bold text-emerald-700 uppercase tracking-wider block">Kelahiran (Lahir)</span>
+              <div className="flex items-baseline justify-between mt-1">
+                <span className="text-2xl font-black text-emerald-950">+{data.lampidSummary.lahir}</span>
+                <span className="text-xs font-bold text-emerald-600">Jiwa</span>
+              </div>
+            </div>
+            <div className="bg-rose-50/70 border border-rose-100 rounded-xl p-4">
+              <span className="text-[11px] font-bold text-rose-700 uppercase tracking-wider block">Kematian (Mati)</span>
+              <div className="flex items-baseline justify-between mt-1">
+                <span className="text-2xl font-black text-rose-950">-{data.lampidSummary.mati}</span>
+                <span className="text-xs font-bold text-rose-600">Jiwa</span>
+              </div>
+            </div>
+            <div className="bg-sky-50/70 border border-sky-100 rounded-xl p-4">
+              <span className="text-[11px] font-bold text-sky-700 uppercase tracking-wider block">Kedatangan (Masuk)</span>
+              <div className="flex items-baseline justify-between mt-1">
+                <span className="text-2xl font-black text-sky-950">+{data.lampidSummary.datang}</span>
+                <span className="text-xs font-bold text-sky-600">Jiwa</span>
+              </div>
+            </div>
+            <div className="bg-amber-50/70 border border-amber-100 rounded-xl p-4">
+              <span className="text-[11px] font-bold text-amber-700 uppercase tracking-wider block">Kepindahan (Keluar)</span>
+              <div className="flex items-baseline justify-between mt-1">
+                <span className="text-2xl font-black text-amber-950">-{data.lampidSummary.pindah}</span>
+                <span className="text-xs font-bold text-amber-600">Jiwa</span>
+              </div>
+            </div>
+            <div className="col-span-2 md:col-span-1 bg-slate-900 text-white rounded-xl p-4 shadow-sm">
+              <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider block">Pertumbuhan Bersih</span>
+              <div className="flex items-baseline justify-between mt-1">
+                <span className="text-2xl font-black text-white">
+                  {data.lampidSummary.mutasiNetto > 0 ? `+${data.lampidSummary.mutasiNetto}` : data.lampidSummary.mutasiNetto}
+                </span>
+                <span className="text-xs font-bold text-slate-400">Netto</span>
+              </div>
+            </div>
+          </div>
+
+          {/* RW Breakdown Table */}
+          {data.lampidSummary.perRw && data.lampidSummary.perRw.length > 0 && (
+            <div className="overflow-x-auto border border-slate-100 rounded-xl">
+              <table className="w-full text-left text-xs text-slate-700">
+                <thead className="bg-slate-50 border-b border-slate-100 font-bold text-slate-500 uppercase tracking-wider">
+                  <tr>
+                    <th className="py-2.5 px-3">Wilayah RW</th>
+                    <th className="py-2.5 px-3 text-center text-emerald-700">Lahir (+)</th>
+                    <th className="py-2.5 px-3 text-center text-rose-700">Mati (-)</th>
+                    <th className="py-2.5 px-3 text-center text-sky-700">Datang (+)</th>
+                    <th className="py-2.5 px-3 text-center text-amber-700">Pindah (-)</th>
+                    <th className="py-2.5 px-3 text-center text-slate-800">Saldo Mutasi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium">
+                  {data.lampidSummary.perRw.map((r: any) => {
+                    const netto = (r.lahir + r.datang) - (r.mati + r.pindah);
+                    return (
+                      <tr key={r.rw} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="py-2 px-3 font-bold text-slate-800">RW {r.rw}</td>
+                        <td className="py-2 px-3 text-center font-semibold text-emerald-600">+{r.lahir}</td>
+                        <td className="py-2 px-3 text-center font-semibold text-rose-600">-{r.mati}</td>
+                        <td className="py-2 px-3 text-center font-semibold text-sky-600">+{r.datang}</td>
+                        <td className="py-2 px-3 text-center font-semibold text-amber-600">-{r.pindah}</td>
+                        <td className="py-2 px-3 text-center font-black text-slate-800">
+                          <span className={`px-2 py-0.5 rounded text-[11px] ${netto > 0 ? "bg-emerald-100 text-emerald-800" : netto < 0 ? "bg-rose-100 text-rose-800" : "bg-slate-100 text-slate-600"}`}>
+                            {netto > 0 ? `+${netto}` : netto}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* CHARTS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

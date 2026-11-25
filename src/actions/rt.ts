@@ -7,6 +7,7 @@ import { revalidatePath } from "next/cache";
 import * as turf from '@turf/turf';
 
 import { cleanDigits, cleanName, getWilayahVariants, isWilayahMatch } from "@/lib/wilayahUtils";
+import { executeLampidEngine } from "@/lib/lampidBridge";
 
 async function getRtSession() {
     const session = await getServerSession(authOptions);
@@ -526,37 +527,134 @@ export async function getRtDeathReports() {
     }
 }
 
-export async function addRtDeathReport(data: { nik: string, namaLengkap: string, tanggalMeninggal: Date, penyebab?: string, keterangan?: string }) {
+export async function addRtDeathReport(data: { nik: string, namaLengkap: string, tanggalMeninggal: Date, penyebab?: string, keterangan?: string, successorNik?: string }) {
     const { tenantId, rt, rw } = await getRtSession();
     try {
+        // 1. Ambil data warga dari master kependudukan
+        let targetWarga: any = null;
+        let noKK: string | null = null;
+        let isKepalaKeluarga = false;
+        let successorInfo: { nik: string; nama: string; hubungan: string } | null = null;
+        let remainingMembersCount = 0;
+
+        if (data.nik) {
+            targetWarga = await prisma.dataKependudukan.findFirst({
+                where: { tenantId, nik: data.nik }
+            });
+
+            if (targetWarga) {
+                noKK = targetWarga.noKK;
+                const hk = (targetWarga.hubunganKeluarga || "").toUpperCase().replace(/[-_\s]+/g, "");
+                isKepalaKeluarga = hk === "KEPALAKELUARGA";
+
+                // 2. Periksa anggota keluarga lain dalam 1 KK
+                if (noKK) {
+                    const familyMembers = await prisma.dataKependudukan.findMany({
+                        where: {
+                            tenantId,
+                            noKK,
+                            NOT: { nik: data.nik },
+                            statusKependudukan: { notIn: ["MENINGGAL", "PINDAH_KELUAR"] }
+                        },
+                        orderBy: { tanggalLahir: "asc" }
+                    });
+
+                    remainingMembersCount = familyMembers.length;
+
+                    // 3. Suksesi Kepala Keluarga digital jika yang meninggal adalah Kepala Keluarga
+                    if (isKepalaKeluarga && familyMembers.length > 0) {
+                        let candidate: any = null;
+
+                        if (data.successorNik) {
+                            candidate = familyMembers.find(m => m.nik === data.successorNik);
+                        }
+
+                        // Prioritas 1: Pasangan (ISTRI / SUAMI)
+                        if (!candidate) {
+                            candidate = familyMembers.find(m => {
+                                const rel = (m.hubunganKeluarga || "").toUpperCase();
+                                return rel.includes("ISTRI") || rel.includes("SUAMI");
+                            });
+                        }
+
+                        // Prioritas 2: Anak dewasa tertua (umur >= 17)
+                        if (!candidate) {
+                            const curYear = new Date().getFullYear();
+                            candidate = familyMembers.find(m => {
+                                const bYear = m.tanggalLahir ? new Date(m.tanggalLahir).getFullYear() : curYear;
+                                return (curYear - bYear) >= 17;
+                            });
+                        }
+
+                        // Prioritas 3: Anggota tertua yang ada
+                        if (!candidate) {
+                            candidate = familyMembers[0];
+                        }
+
+                        if (candidate) {
+                            await prisma.dataKependudukan.update({
+                                where: { id: candidate.id },
+                                data: {
+                                    hubunganKeluarga: "KEPALA_KELUARGA",
+                                    keteranganStatus: `Kepala Keluarga baru (suksesi digital menggantikan almarhum/ah ${data.namaLengkap})`
+                                }
+                            });
+                            successorInfo = {
+                                nik: candidate.nik,
+                                nama: candidate.namaLengkap,
+                                hubungan: candidate.hubunganKeluarga
+                            };
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4. Catat laporan kematian resmi tingkat RT/Desa
         const report = await prisma.rtDeathReport.create({
             data: {
-                rt,
-                rw,
+                rt: targetWarga?.rt || rt,
+                rw: targetWarga?.rw || rw,
                 nik: data.nik,
                 namaLengkap: data.namaLengkap,
                 tanggalMeninggal: new Date(data.tanggalMeninggal),
                 penyebab: data.penyebab,
-                keterangan: data.keterangan,
+                keterangan: data.keterangan || (successorInfo ? `Penerus KK: ${successorInfo.nama} (${successorInfo.nik})` : undefined),
                 statusFisik: "MENUNGGU_BERKAS_FISIK",
                 tenantId
             }
         });
 
-        // Tandai data kependudukan utama menjadi MUTASI_PENDING (menunggu bukti fisik)
+        // 5. Update status data kependudukan digital
         if (data.nik) {
             await prisma.dataKependudukan.updateMany({
                 where: { tenantId, nik: data.nik },
                 data: {
-                    statusKependudukan: "MUTASI_PENDING",
-                    keteranganStatus: `Lapor Meninggal (${new Date(data.tanggalMeninggal).toLocaleDateString("id-ID")}) - Menunggu Penyerahan Berkas Fisik Desa`
+                    statusKependudukan: "MENINGGAL",
+                    keteranganStatus: `Wafat tgl ${new Date(data.tanggalMeninggal).toLocaleDateString("id-ID")} - KK digital telah disesuaikan. Menunggu pembaruan fisik KK & Akta Kematian.`
                 }
             });
         }
 
         revalidatePath("/dashboard");
         revalidatePath("/dashboard/warga");
-        return { success: true, report };
+        revalidatePath("/dashboard/kesra");
+        revalidatePath("/dashboard/surat");
+
+        return { 
+            success: true, 
+            report,
+            kkSync: {
+                noKK: noKK || targetWarga?.noKK || "-",
+                wasKepalaKeluarga: isKepalaKeluarga,
+                successor: successorInfo,
+                remainingMembersCount,
+                actionRequired: "NOTIFIKASI_PEMBARUAN_FISIK_TERBIT",
+                noticeMessage: isKepalaKeluarga && successorInfo 
+                    ? `Kepala Keluarga almarhum telah dialihkan secara digital kepada ${successorInfo.nama}. Wajib segera proses blangko fisik KK baru & Akta Kematian.`
+                    : `Data 1 KK telah disesuaikan secara digital (${remainingMembersCount} anggota tersisa). Wajib segera ajukan pembaruan fisik KK & Akta Kematian.`
+            }
+        };
     } catch (error: any) {
         return { success: false, error: error.message };
     }
@@ -1474,100 +1572,33 @@ export async function getRwMapBoundaries() {
     }
 }
 
-export async function getRtDemographicReport(month: number, year: number) {
+export async function getRtDemographicReport(month: number, year: number, targetRw?: string, targetRt?: string) {
     try {
         const { tenantId, rt, rw, role } = await getRtSession();
-        const { filterScope } = await buildWilayahFilterScope(role, rt, rw, tenantId);
-        const reportFilterScope = await buildReportFilterScope(role, rt, rw, tenantId);
+        const effectiveRt = targetRt || rt;
+        const effectiveRw = targetRw || rw;
 
-        // Fetch all residents (selecting only needed fields)
-        const residents = await prisma.dataKependudukan.findMany({
-            where: filterScope,
-            select: {
-                nik: true,
-                tanggalLahir: true,
-                jenisKelamin: true,
-                noKK: true
-            }
-        });
-
-        // Fetch all death and move reports to filter out inactive ones for the target month
-        const [deaths, moves] = await Promise.all([
-            prisma.rtDeathReport.findMany({
-                where: reportFilterScope,
-                select: { nik: true, tanggalMeninggal: true }
-            }),
-            prisma.rtMoveReport.findMany({
-                where: reportFilterScope,
-                select: { nik: true, tanggalPindah: true }
-            })
-        ]);
-
-        const deadNiks = new Set(
-            deaths.filter(d => {
-                const dDate = new Date(d.tanggalMeninggal);
-                const dMonths = (year - dDate.getFullYear()) * 12 + (month - (dDate.getMonth() + 1));
-                return dMonths >= 0;
-            }).map(d => d.nik)
-        );
-
-        const movedNiks = new Set(
-            moves.filter(m => {
-                const mDate = new Date(m.tanggalPindah);
-                const mMonths = (year - mDate.getFullYear()) * 12 + (month - (mDate.getMonth() + 1));
-                return mMonths >= 0;
-            }).map(m => m.nik)
-        );
-
-        // Active residents in this target month
-        const activeResidents = residents.filter(r => !deadNiks.has(r.nik) && !movedNiks.has(r.nik));
-
-        // Initialize age cohorts (0-11 months, 1 to 74, 75+)
-        const ageDistribution: Record<string, { L: number; P: number }> = {};
-        ageDistribution["0-11 BLN"] = { L: 0, P: 0 };
-        for (let i = 1; i <= 74; i++) {
-            ageDistribution[i.toString()] = { L: 0, P: 0 };
-        }
-        ageDistribution["75+"] = { L: 0, P: 0 };
-
-        let wajibKtpL = 0;
-        let wajibKtpP = 0;
-
-        activeResidents.forEach(r => {
-            if (!r.tanggalLahir) return;
-            const birthDate = new Date(r.tanggalLahir);
-            const birthYear = birthDate.getFullYear();
-            const birthMonth = birthDate.getMonth() + 1;
-
-            const totalMonthsDiff = (year - birthYear) * 12 + (month - birthMonth);
-            if (totalMonthsDiff < 0) return; // Not born yet
-
-            const ageInYears = Math.floor(totalMonthsDiff / 12);
-            const genderKey = (r.jenisKelamin || "").toUpperCase().replace(/[-_\s]+/g, "").startsWith("L") ? "L" : "P";
-
-            if (totalMonthsDiff <= 11) {
-                ageDistribution["0-11 BLN"][genderKey]++;
-            } else if (ageInYears >= 75) {
-                ageDistribution["75+"][genderKey]++;
-            } else {
-                ageDistribution[ageInYears.toString()][genderKey]++;
-            }
-
-            if (ageInYears >= 17) {
-                if (genderKey === "L") wajibKtpL++;
-                else wajibKtpP++;
-            }
-        });
-
-        // Family Cards (unique noKK)
-        const uniqueKk = new Set(activeResidents.map(r => r.noKK));
-        const totalKK = uniqueKk.size;
+        const { filterScope } = await buildWilayahFilterScope(role, effectiveRt, effectiveRw, tenantId);
+        const reportFilterScope = await buildReportFilterScope(role, effectiveRt, effectiveRw, tenantId);
 
         // Fetch mutasi for the specific month
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 1);
 
-        const [birthsThisMonth, deathsThisMonth, movesThisMonth, incomingThisMonth] = await Promise.all([
+        const [residents, birthsThisMonth, deathsThisMonth, movesThisMonth, incomingThisMonth] = await Promise.all([
+            prisma.dataKependudukan.findMany({
+                where: filterScope,
+                select: {
+                    nik: true,
+                    tanggalLahir: true,
+                    jenisKelamin: true,
+                    noKK: true,
+                    rt: true,
+                    rw: true,
+                    statusKependudukan: true,
+                    hubunganKeluarga: true
+                }
+            }),
             prisma.rtBirthReport.findMany({
                 where: {
                     ...reportFilterScope,
@@ -1594,59 +1625,16 @@ export async function getRtDemographicReport(month: number, year: number) {
             })
         ]);
 
-        const isMaleJk = (val?: string | null) => {
-            if (!val) return false;
-            const s = val.trim().toUpperCase().replace(/[-_\s]+/g, "");
-            return s === "LAKILAKI" || s === "L" || s === "MALE" || s === "M";
-        };
-
-        const isFemaleJk = (val?: string | null) => {
-            if (!val) return false;
-            const s = val.trim().toUpperCase().replace(/[-_\s]+/g, "");
-            return s === "PEREMPUAN" || s === "P" || s === "FEMALE" || s === "F";
-        };
-
-        // Map mutasi by gender
-        const mutasi = {
-            lahir: {
-                L: birthsThisMonth.filter(b => isMaleJk(b.jenisKelamin)).length,
-                P: birthsThisMonth.filter(b => isFemaleJk(b.jenisKelamin)).length,
-            },
-            mati: {
-                L: deathsThisMonth.filter(d => {
-                    const res = residents.find(r => r.nik === d.nik);
-                    return isMaleJk(res?.jenisKelamin);
-                }).length,
-                P: deathsThisMonth.filter(d => {
-                    const res = residents.find(r => r.nik === d.nik);
-                    return isFemaleJk(res?.jenisKelamin);
-                }).length,
-            },
-            pindah: {
-                L: movesThisMonth.filter(m => {
-                    const res = residents.find(r => r.nik === m.nik);
-                    return isMaleJk(res?.jenisKelamin);
-                }).length,
-                P: movesThisMonth.filter(m => {
-                    const res = residents.find(r => r.nik === m.nik);
-                    return isFemaleJk(res?.jenisKelamin);
-                }).length,
-            },
-            datang: {
-                L: incomingThisMonth.filter(i => {
-                    const res = residents.find(r => r.nik === i.nik);
-                    return isMaleJk(res?.jenisKelamin);
-                }).length,
-                P: incomingThisMonth.filter(i => {
-                    const res = residents.find(r => r.nik === i.nik);
-                    return isFemaleJk(res?.jenisKelamin);
-                }).length,
-            }
-        };
-
-        // Total Warga L and P
-        const totalWargaL = activeResidents.filter(r => isMaleJk(r.jenisKelamin)).length;
-        const totalWargaP = activeResidents.filter(r => isFemaleJk(r.jenisKelamin)).length;
+        // Eksekusi kalkulasi demografi presisi tinggi via Lampid Engine (Python/TS)
+        const engineResult = await executeLampidEngine({
+            month,
+            year,
+            residents,
+            births: birthsThisMonth,
+            deaths: deathsThisMonth,
+            moves: movesThisMonth,
+            incomings: incomingThisMonth
+        });
 
         // Build resident change descriptions (Keterangan Perubahan Penduduk)
         const changesDesc: string[] = [];
@@ -1665,16 +1653,32 @@ export async function getRtDemographicReport(month: number, year: number) {
 
         return {
             success: true,
-            rtInfo: { rt, rw, role },
-            ageDistribution,
+            rtInfo: { rt: effectiveRt, rw: effectiveRw, role },
+            ageDistribution: engineResult.ageDistribution,
             totals: {
-                penduduk: { L: totalWargaL, P: totalWargaP },
-                wajibKtp: { L: wajibKtpL, P: wajibKtpP },
-                totalKK,
-                // Assume 0 for temporary residents for now (or calculate from incoming if needed)
+                penduduk: { L: engineResult.saldoAkhir.L, P: engineResult.saldoAkhir.P },
+                wajibKtp: { L: engineResult.wajibKtp.L, P: engineResult.wajibKtp.P },
+                totalKK: engineResult.kartuKeluarga.akhir,
                 pendudukSementara: { L: 0, P: 0 }
             },
-            mutasi,
+            mutasi: {
+                lahir: engineResult.mutasiTambah.lahir,
+                mati: engineResult.mutasiKurang.mati,
+                pindah: engineResult.mutasiKurang.pindah,
+                datang: engineResult.mutasiTambah.datang
+            },
+            balanceEquation: {
+                isBalanced: engineResult.isBalanced,
+                persamaan: engineResult.persamaanMatematis,
+                saldoAwal: engineResult.saldoAwal,
+                mutasiTambah: engineResult.mutasiTambah,
+                mutasiKurang: engineResult.mutasiKurang,
+                saldoAkhir: engineResult.saldoAkhir,
+                kartuKeluarga: engineResult.kartuKeluarga,
+                engine: engineResult.engine,
+                executionMode: engineResult.executionMode
+            },
+            wilayahBreakdown: engineResult.wilayahBreakdown,
             changesDesc: changesDesc.join(" | ") || "Tidak ada perubahan data kependudukan bulan ini."
         };
     } catch (error: any) {

@@ -516,9 +516,11 @@ export async function deleteWarga(id: string) {
         const userRt = (session.user as any).rt;
         const userRw = (session.user as any).rw;
 
+        const targetWarga = await prisma.dataKependudukan.findUnique({ where: { id } });
+        if (!targetWarga) throw new Error("Warga not found");
+        const tenantId = (session.user as any).tenantId;
+
         if (role === "RT" || role === "RW") {
-            const targetWarga = await prisma.dataKependudukan.findUnique({ where: { id } });
-            if (!targetWarga) throw new Error("Warga not found");
             const cleanTargetRt = cleanDigits(targetWarga.rt || "");
             const cleanTargetRw = cleanDigits(targetWarga.rw || "");
             const cleanUserRt = cleanDigits(userRt || "");
@@ -528,6 +530,48 @@ export async function deleteWarga(id: string) {
             }
             if (role === "RW" && cleanTargetRw !== cleanUserRw) {
                 throw new Error("Unauthorized");
+            }
+        }
+
+        // Penanganan Suksesi KK Digital jika yang dihapus adalah Kepala Keluarga
+        if (targetWarga.noKK) {
+            const hk = (targetWarga.hubunganKeluarga || "").toUpperCase().replace(/[-_\s]+/g, "");
+            if (hk === "KEPALAKELUARGA") {
+                const remaining = await prisma.dataKependudukan.findMany({
+                    where: { 
+                        tenantId, 
+                        noKK: targetWarga.noKK, 
+                        NOT: { id }, 
+                        statusKependudukan: { notIn: ["MENINGGAL", "PINDAH_KELUAR"] } 
+                    },
+                    orderBy: { tanggalLahir: "asc" }
+                });
+
+                if (remaining.length > 0) {
+                    // Prioritas 1: Pasangan (ISTRI/SUAMI)
+                    let cand = remaining.find(m => {
+                        const rel = (m.hubunganKeluarga || "").toUpperCase();
+                        return rel.includes("ISTRI") || rel.includes("SUAMI");
+                    });
+                    // Prioritas 2: Anak dewasa tertua (>= 17 tahun)
+                    if (!cand) {
+                        const curYear = new Date().getFullYear();
+                        cand = remaining.find(m => {
+                            const bYear = m.tanggalLahir ? new Date(m.tanggalLahir).getFullYear() : curYear;
+                            return (curYear - bYear) >= 17;
+                        }) || remaining[0];
+                    }
+
+                    if (cand) {
+                        await prisma.dataKependudukan.update({
+                            where: { id: cand.id },
+                            data: {
+                                hubunganKeluarga: "KEPALA_KELUARGA",
+                                keteranganStatus: `Suksesi Kepala Keluarga baru (anggota sebelumnya ${targetWarga.namaLengkap} dihapus/mutasi)`
+                            }
+                        });
+                    }
+                }
             }
         }
 

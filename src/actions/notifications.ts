@@ -426,6 +426,67 @@ export async function getLiveNotifications(): Promise<LiveNotification[]> {
       const userRt = user.rt ? String(user.rt).trim() : null;
       const userRw = user.rw ? String(user.rw).trim() : null;
 
+      // A. Wajib Pembaruan Berkas Fisik KK & Akta Kematian (Kematian Tercatat Digital)
+      try {
+        const pendingDeaths = await prisma.rtDeathReport.findMany({
+          where: {
+            tenantId,
+            ...(role === "RT" && userRt ? { rt: userRt } : {}),
+            ...(role === "RW" && userRw ? { rw: userRw } : {}),
+            statusFisik: "MENUNGGU_BERKAS_FISIK"
+          },
+          take: 4,
+          orderBy: { createdAt: "desc" }
+        });
+
+        for (const d of pendingDeaths) {
+          notifications.push({
+            id: `rt-death-fisik-${d.id}`,
+            type: "info",
+            title: `Wajib Pembaruan Fisik KK: ${d.namaLengkap}`,
+            description: `Warga wafat di RT ${d.rt || "-"}/RW ${d.rw || "-"}. KK digital telah disesuaikan. Segera ajukan blangko fisik KK baru & Akta Kematian ke Desa.`,
+            time: new Date(d.createdAt).toISOString(),
+            read: false,
+            actionUrl: "/dashboard?tab=lampid",
+            badgeColor: "text-rose-700 bg-rose-50 border-rose-300",
+            priority: "high"
+          });
+        }
+      } catch (err) {
+        console.warn("Notification error RT/RW death fisik:", err);
+      }
+
+      // B. Pembaruan Fisik Kelahiran Baru
+      try {
+        const pendingBirths = await prisma.rtBirthReport.findMany({
+          where: {
+            tenantId,
+            ...(role === "RT" && userRt ? { rt: userRt } : {}),
+            ...(role === "RW" && userRw ? { rw: userRw } : {}),
+            statusFisik: "MENUNGGU_BERKAS_FISIK"
+          },
+          take: 3,
+          orderBy: { createdAt: "desc" }
+        });
+
+        for (const b of pendingBirths) {
+          notifications.push({
+            id: `rt-birth-fisik-${b.id}`,
+            type: "info",
+            title: `Pembaruan Fisik KK: Bayi ${b.namaBayi}`,
+            description: `Kelahiran baru di RT ${b.rt || "-"}/RW ${b.rw || "-"}. Wajib segera cetak penambahan anak pada blangko KK fisik baru.`,
+            time: new Date(b.createdAt).toISOString(),
+            read: false,
+            actionUrl: "/dashboard?tab=lampid",
+            badgeColor: "text-teal-700 bg-teal-50 border-teal-300",
+            priority: "medium"
+          });
+        }
+      } catch (err) {
+        console.warn("Notification error RT/RW birth fisik:", err);
+      }
+
+      // C. Pengaduan Lingkungan Warga
       try {
         const whereClause: any = { tenantId, status: "PENDING" };
         if (role === "RT" && userRt) whereClause.rt = userRt;
@@ -433,7 +494,7 @@ export async function getLiveNotifications(): Promise<LiveNotification[]> {
 
         const complaints = await prisma.rtComplaint.findMany({
           where: whereClause,
-          take: 5,
+          take: 4,
           orderBy: { createdAt: "desc" }
         });
 
@@ -454,6 +515,7 @@ export async function getLiveNotifications(): Promise<LiveNotification[]> {
         console.warn("Notification error RT/RW complaints:", err);
       }
 
+      // D. Pembaruan Sensus Warga
       try {
         const recentWarga = await prisma.dataKependudukan.findMany({
           where: {
@@ -480,6 +542,65 @@ export async function getLiveNotifications(): Promise<LiveNotification[]> {
         }
       } catch (err) {
         console.warn("Notification error RT/RW warga:", err);
+      }
+
+      notifications.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+      return notifications;
+    }
+
+    // ==========================================
+    // 3b. KEPALA DUSUN (KADUS) NOTIFICATIONS
+    // ==========================================
+    if (role === "KADUS") {
+      const userRw = user.rw ? String(user.rw).trim() : null; // Dusun
+      try {
+        const { buildWilayahFilterScope } = await import("@/actions/rt");
+        const { allowedRws } = await buildWilayahFilterScope("KADUS", "", userRw || "", tenantId);
+        const validRws = allowedRws.length > 0 ? allowedRws : ["_NONE_"];
+
+        // 1. Mutasi Fisik Kematian yang Perlu Pembaruan KK Fisik di Dusun
+        const pendingDeaths = await prisma.rtDeathReport.findMany({
+          where: { tenantId, rw: { in: validRws }, statusFisik: "MENUNGGU_BERKAS_FISIK" },
+          take: 3,
+          orderBy: { createdAt: "desc" }
+        });
+
+        for (const d of pendingDeaths) {
+          notifications.push({
+            id: `kadus-death-${d.id}`,
+            type: "info",
+            title: `Pembaruan Fisik KK Dusun: ${d.namaLengkap}`,
+            description: `Warga RW ${d.rw || "-"} dilaporkan meninggal. KK digital telah disesuaikan, monitoring pembaruan blangko fisik KK & Akta Kematian.`,
+            time: new Date(d.createdAt).toISOString(),
+            read: false,
+            actionUrl: "/dashboard",
+            badgeColor: "text-rose-700 bg-rose-50 border-rose-300",
+            priority: "high"
+          });
+        }
+
+        // 2. Pengaduan Lingkungan di Wilayah Dusun
+        const complaints = await prisma.rtComplaint.findMany({
+          where: { tenantId, rw: { in: validRws }, status: "PENDING" },
+          take: 3,
+          orderBy: { createdAt: "desc" }
+        });
+
+        for (const c of complaints) {
+          notifications.push({
+            id: `kadus-complaint-${c.id}`,
+            type: "pengaduan",
+            title: `Pengaduan Dusun RW ${c.rw || "-"}`,
+            description: `"${c.title}": ${c.content ? c.content.substring(0, 75) + "..." : "Menunggu koordinasi Kepala Dusun."}`,
+            time: new Date(c.createdAt).toISOString(),
+            read: false,
+            actionUrl: "/dashboard",
+            badgeColor: "text-amber-600 bg-amber-50 border-amber-200",
+            priority: "medium"
+          });
+        }
+      } catch (err) {
+        console.warn("Notification error Kadus:", err);
       }
 
       notifications.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());

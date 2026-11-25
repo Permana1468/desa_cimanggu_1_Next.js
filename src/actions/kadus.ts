@@ -20,24 +20,69 @@ export async function getKadusDashboardSummary() {
     const { filterScope, allowedRws } = await buildWilayahFilterScope(role, "", userRw, tenantId);
     const validRws = allowedRws.length > 0 ? allowedRws : ["_NONE_"];
 
+    const curMonth = new Date().getMonth() + 1;
+    const curYear = new Date().getFullYear();
+    const startDate = new Date(curYear, curMonth - 1, 1);
+    const endDate = new Date(curYear, curMonth, 1);
+
     const [
         totalKeluarga,
         wargaList,
         totalBansos,
         totalKeamanan,
         totalProyek,
-        totalPosyanduStunting
+        totalPosyanduStunting,
+        dusunBirths,
+        dusunDeaths,
+        dusunMoves,
+        dusunIncomings
     ] = await Promise.all([
         prisma.rumahWarga.count({ where: { tenantId, rw: { in: validRws } } }),
         prisma.dataKependudukan.findMany({ 
             where: { tenantId, ...filterScope },
-            select: { jenisKelamin: true, tanggalLahir: true, pendidikan: true, pekerjaan: true }
+            select: { jenisKelamin: true, tanggalLahir: true, pendidikan: true, pekerjaan: true, rw: true, noKK: true }
         }),
         prisma.bansosData.count({ where: { warga: { tenantId, ...filterScope } } }),
         prisma.rwSecurityLog.count({ where: { rw: { in: validRws } } }), 
         prisma.infrastrukturProject.count({ where: { tenantId, lokasi: { contains: userRw || "" } } }), 
-        prisma.posyanduBalita.count({ where: { tenantId, statusStunting: true, rw: { in: validRws } } })
+        prisma.posyanduBalita.count({ where: { tenantId, statusStunting: true, rw: { in: validRws } } }),
+        prisma.rtBirthReport.findMany({
+            where: { tenantId, rw: { in: validRws }, tanggalLahir: { gte: startDate, lt: endDate } }
+        }),
+        prisma.rtDeathReport.findMany({
+            where: { tenantId, rw: { in: validRws }, tanggalMeninggal: { gte: startDate, lt: endDate } }
+        }),
+        prisma.rtMoveReport.findMany({
+            where: { tenantId, rw: { in: validRws }, tanggalPindah: { gte: startDate, lt: endDate } }
+        }),
+        prisma.rtIncomingReport.findMany({
+            where: { tenantId, rw: { in: validRws }, tanggalDatang: { gte: startDate, lt: endDate } }
+        })
     ]);
+
+    // Lampid Summary for Dusun
+    const pendingFisikCount = dusunDeaths.filter(d => d.statusFisik === "MENUNGGU_BERKAS_FISIK").length +
+                              dusunBirths.filter(b => b.statusFisik === "MENUNGGU_BERKAS_FISIK").length +
+                              dusunMoves.filter(m => m.statusFisik === "MENUNGGU_BERKAS_FISIK").length +
+                              dusunIncomings.filter(i => i.statusFisik === "MENUNGGU_BERKAS_FISIK").length;
+
+    const lampidSummary = {
+        bulan: curMonth,
+        tahun: curYear,
+        lahir: dusunBirths.length,
+        mati: dusunDeaths.length,
+        pindah: dusunMoves.length,
+        datang: dusunIncomings.length,
+        mutasiNetto: (dusunBirths.length + dusunIncomings.length) - (dusunDeaths.length + dusunMoves.length),
+        pendingFisikCount,
+        perRw: validRws.map(rw => ({
+            rw,
+            lahir: dusunBirths.filter(b => b.rw === rw).length,
+            mati: dusunDeaths.filter(d => d.rw === rw).length,
+            pindah: dusunMoves.filter(m => m.rw === rw).length,
+            datang: dusunIncomings.filter(i => i.rw === rw).length,
+        }))
+    };
 
     // Aggregate Warga Data
     const totalWarga = wargaList.length;
@@ -104,6 +149,7 @@ export async function getKadusDashboardSummary() {
         totalPosyanduStunting,
         dusunName: userRw,
         allowedRws,
+        lampidSummary,
         charts: {
             genderData,
             ageData,

@@ -172,6 +172,35 @@ export function WilayahDashboard({ session, stats: initialStats }: { session: an
 
   useEffect(() => {
     fetchStats();
+
+    const handleRefresh = () => {
+      fetchStats();
+    };
+
+    window.addEventListener("refresh-notifications", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+        bc.onmessage = () => {
+          fetchStats();
+        };
+      } catch (e) {}
+    }
+
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      fetchStats();
+    }, 25000);
+
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      if (bc) bc.close();
+      clearInterval(interval);
+    };
   }, [activeTab]);
 
   return (
@@ -2851,28 +2880,6 @@ function LampidTab({
     }
   };
 
-  const handleAddBirth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await addRtBirthReport({
-        namaBayi: birthForm.namaBayi,
-        tanggalLahir: new Date(birthForm.tanggalLahir),
-        jenisKelamin: birthForm.jenisKelamin,
-        namaAyah: birthForm.namaAyah || undefined,
-        namaIbu: birthForm.namaIbu || undefined,
-        keterangan: birthForm.keterangan || undefined
-      });
-      if (res.success) {
-        alert("Berhasil melaporkan kelahiran");
-        setShowModal(false);
-        setBirthForm({ namaBayi: "", tanggalLahir: new Date().toISOString().split('T')[0], jenisKelamin: "LAKI_LAKI", namaAyah: "", namaIbu: "", keterangan: "" });
-        loadData();
-      }
-    } catch (err) {
-      alert("Terjadi kesalahan.");
-    }
-  };
-
   const handleAddDeath = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -2884,11 +2891,26 @@ function LampidTab({
         keterangan: deathForm.keterangan || undefined
       });
       if (res.success) {
-        alert("Berhasil melaporkan kematian");
+        let msg = "✓ Berhasil mencatat mutasi kematian warga.";
+        if (res.kkSync) {
+          msg += `\n\n📋 PENYESUAIAN 1 KK DIGITAL:\n• No. KK: ${res.kkSync.noKK}\n• ${res.kkSync.noticeMessage}\n\n⚠️ NOTIFIKASI FISIK TERBIT:\nInstruksi telah dikirim otomatis ke Meja Pelayanan Desa untuk penyerahan berkas fisik dan pencetakan blangko Kartu Keluarga baru + Akta Kematian.`;
+        }
+        alert(msg);
         setShowModal(false);
         setDeathForm({ nik: "", namaLengkap: "", tanggalMeninggal: new Date().toISOString().split('T')[0], penyebab: "", keterangan: "" });
         setSubTab("mati");
         loadData();
+        fetchReportData();
+
+        // Broadcast realtime update to other tabs
+        if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+          try {
+            const bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+            bc.postMessage({ type: "MUTASI_UPDATED", feature: "DEATH", nik: deathForm.nik });
+            bc.close();
+          } catch (e) {}
+        }
+        window.dispatchEvent(new Event("refresh-notifications"));
       }
     } catch (err) {
       alert("Terjadi kesalahan.");
@@ -2906,11 +2928,21 @@ function LampidTab({
         alasan: moveForm.alasan || undefined
       });
       if (res.success) {
-        alert("Berhasil melaporkan kepindahan");
+        alert("✓ Berhasil melaporkan kepindahan. Notifikasi pembaruan fisik KK & Surat Pindah telah terbit.");
         setShowModal(false);
         setMoveForm({ nik: "", namaLengkap: "", tanggalPindah: new Date().toISOString().split('T')[0], alamatTujuan: "", alasan: "" });
         setSubTab("pindah");
         loadData();
+        fetchReportData();
+
+        if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+          try {
+            const bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+            bc.postMessage({ type: "MUTASI_UPDATED", feature: "MOVE", nik: moveForm.nik });
+            bc.close();
+          } catch (e) {}
+        }
+        window.dispatchEvent(new Event("refresh-notifications"));
       }
     } catch (err) {
       alert("Terjadi kesalahan.");
@@ -2929,11 +2961,54 @@ function LampidTab({
         keterangan: incomingForm.keterangan || undefined
       });
       if (res.success) {
-        alert("Berhasil melaporkan kedatangan warga");
+        alert("✓ Berhasil melaporkan kedatangan warga. Notifikasi pendaftaran KK baru terbit.");
         setShowModal(false);
         setIncomingForm({ nik: "", noKK: "", namaLengkap: "", tanggalDatang: new Date().toISOString().split('T')[0], alamatAsal: "", keterangan: "" });
         setSubTab("datang");
         loadData();
+        fetchReportData();
+
+        if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+          try {
+            const bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+            bc.postMessage({ type: "MUTASI_UPDATED", feature: "INCOMING", nik: incomingForm.nik });
+            bc.close();
+          } catch (e) {}
+        }
+        window.dispatchEvent(new Event("refresh-notifications"));
+      }
+    } catch (err) {
+      alert("Terjadi kesalahan.");
+    }
+  };
+
+  const handleAddBirth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const res = await addRtBirthReport({
+        namaBayi: birthForm.namaBayi,
+        tanggalLahir: new Date(birthForm.tanggalLahir),
+        jenisKelamin: birthForm.jenisKelamin,
+        namaAyah: birthForm.namaAyah || undefined,
+        namaIbu: birthForm.namaIbu || undefined,
+        keterangan: birthForm.keterangan || undefined
+      });
+      if (res.success) {
+        alert("✓ Berhasil melaporkan kelahiran baru. Notifikasi penambahan anggota KK fisik baru terbit.");
+        setShowModal(false);
+        setBirthForm({ namaBayi: "", tanggalLahir: new Date().toISOString().split('T')[0], jenisKelamin: "LAKI_LAKI", namaAyah: "", namaIbu: "", keterangan: "" });
+        setSubTab("lahir");
+        loadData();
+        fetchReportData();
+
+        if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+          try {
+            const bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+            bc.postMessage({ type: "MUTASI_UPDATED", feature: "BIRTH" });
+            bc.close();
+          } catch (e) {}
+        }
+        window.dispatchEvent(new Event("refresh-notifications"));
       }
     } catch (err) {
       alert("Terjadi kesalahan.");
@@ -2950,7 +3025,7 @@ function LampidTab({
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowPrintModal(true)}
-            className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
+            className="bg-slate-800 hover:bg-slate-900 text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer"
           >
             <Printer size={16} /> Cetak Laporan (Gambar 2)
           </button>
@@ -2959,12 +3034,74 @@ function LampidTab({
               setModalFormType(subTab);
               setShowModal(true);
             }}
-            className="bg-[#1d64ec] hover:bg-blue-700 text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
+            className="bg-[#1d64ec] hover:bg-blue-700 text-white px-5 py-3 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer"
           >
             <Plus size={16} /> Laporkan Peristiwa
           </button>
         </div>
       </div>
+
+      {/* PERSAMAAN KESEIMBANGAN MATEMATIS DEMOGRAFI LAMPID */}
+      {reportData?.balanceEquation && (
+        <div className="bg-gradient-to-r from-blue-900 via-slate-900 to-indigo-950 text-white rounded-2xl p-5 border border-blue-800/60 shadow-md space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-blue-800/40 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-blue-500/20 text-blue-300 flex items-center justify-center border border-blue-400/30">
+                <CheckCircle2 size={18} className="text-emerald-400" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-white">Validasi Persamaan Demografi (LAMPID)</h4>
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    100% Balans Matematis
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-300 font-mono">
+                  {reportData.balanceEquation.persamaan}
+                </p>
+              </div>
+            </div>
+
+            <span className="text-[10px] font-mono text-cyan-300 bg-cyan-950/60 px-2.5 py-1 rounded-lg border border-cyan-500/30 self-start sm:self-auto">
+              Engine: {reportData.balanceEquation.executionMode || "PYTHON"}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div className="bg-white/5 rounded-xl p-2.5 border border-white/10">
+              <div className="text-[10px] font-bold text-slate-400 uppercase">Saldo Awal</div>
+              <div className="text-base font-black font-mono text-white mt-0.5">
+                {reportData.balanceEquation.saldoAwal.total} <span className="text-[10px] font-normal text-slate-400">Jiwa</span>
+              </div>
+              <div className="text-[9px] text-slate-400">L: {reportData.balanceEquation.saldoAwal.L} | P: {reportData.balanceEquation.saldoAwal.P}</div>
+            </div>
+
+            <div className="bg-emerald-500/10 rounded-xl p-2.5 border border-emerald-500/20">
+              <div className="text-[10px] font-bold text-emerald-300 uppercase">+ Tambah (L+D)</div>
+              <div className="text-base font-black font-mono text-emerald-400 mt-0.5">
+                +{reportData.balanceEquation.mutasiTambah.total.total} <span className="text-[10px] font-normal text-emerald-300/70">Jiwa</span>
+              </div>
+              <div className="text-[9px] text-emerald-300/80">Lahir {reportData.balanceEquation.mutasiTambah.lahir.total} | Datang {reportData.balanceEquation.mutasiTambah.datang.total}</div>
+            </div>
+
+            <div className="bg-rose-500/10 rounded-xl p-2.5 border border-rose-500/20">
+              <div className="text-[10px] font-bold text-rose-300 uppercase">- Kurang (M+P)</div>
+              <div className="text-base font-black font-mono text-rose-400 mt-0.5">
+                -{reportData.balanceEquation.mutasiKurang.total.total} <span className="text-[10px] font-normal text-rose-300/70">Jiwa</span>
+              </div>
+              <div className="text-[9px] text-rose-300/80">Mati {reportData.balanceEquation.mutasiKurang.mati.total} | Pindah {reportData.balanceEquation.mutasiKurang.pindah.total}</div>
+            </div>
+
+            <div className="bg-sky-500/10 rounded-xl p-2.5 border border-sky-500/20">
+              <div className="text-[10px] font-bold text-sky-300 uppercase">= Saldo Akhir</div>
+              <div className="text-base font-black font-mono text-sky-400 mt-0.5">
+                {reportData.balanceEquation.saldoAkhir.total} <span className="text-[10px] font-normal text-sky-300/70">Jiwa</span>
+              </div>
+              <div className="text-[9px] text-sky-300/80">KK: {reportData.balanceEquation.kartuKeluarga.akhir} KK Aktif</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Sub Tabs */}
       <div className="flex gap-2 bg-slate-50 p-1.5 rounded-2xl w-fit">
