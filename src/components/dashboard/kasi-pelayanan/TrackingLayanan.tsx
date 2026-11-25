@@ -65,11 +65,14 @@ export function TrackingLayanan({ session }: { session: any }) {
 
   useEffect(() => {
     fetchTrackingList();
-    const handleRefresh = () => fetchTrackingList();
+    const handleRefresh = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      fetchTrackingList();
+    };
     window.addEventListener("refresh-notifications", handleRefresh);
     window.addEventListener("focus", handleRefresh);
 
-    const interval = setInterval(fetchTrackingList, 15000);
+    const interval = setInterval(handleRefresh, 25000);
     return () => {
       window.removeEventListener("refresh-notifications", handleRefresh);
       window.removeEventListener("focus", handleRefresh);

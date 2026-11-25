@@ -36,7 +36,10 @@ export function KadusDashboard({ session, stats: initialStats }: { session: any,
   useEffect(() => {
     fetchData(true);
 
-    const handleRefresh = () => fetchData(false);
+    const handleRefresh = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      fetchData(false);
+    };
     window.addEventListener("refresh-notifications", handleRefresh);
     window.addEventListener("focus", handleRefresh);
 
@@ -50,7 +53,7 @@ export function KadusDashboard({ session, stats: initialStats }: { session: any,
       } catch (e) {}
     }
 
-    const interval = setInterval(() => fetchData(false), 25000);
+    const interval = setInterval(handleRefresh, 25000);
     return () => {
       window.removeEventListener("refresh-notifications", handleRefresh);
       window.removeEventListener("focus", handleRefresh);

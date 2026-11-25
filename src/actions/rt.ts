@@ -7,7 +7,8 @@ import { revalidatePath } from "next/cache";
 import * as turf from '@turf/turf';
 
 import { cleanDigits, cleanName, getWilayahVariants, isWilayahMatch } from "@/lib/wilayahUtils";
-import { executeLampidEngine } from "@/lib/lampidBridge";
+import { executeLampidEngine, invalidateLampidCache } from "@/lib/lampidBridge";
+import { invalidateBalitaDemografiCache } from "@/lib/balitaDemografiBridge";
 
 async function getRtSession() {
     const session = await getServerSession(authOptions);
@@ -489,6 +490,8 @@ export async function addRtBirthReport(data: { namaBayi: string, tanggalLahir: D
                 tenantId
             }
         });
+        invalidateLampidCache();
+        invalidateBalitaDemografiCache();
         revalidatePath("/dashboard");
         return { success: true, report };
     } catch (error: any) {
@@ -505,6 +508,8 @@ export async function deleteRtBirthReport(id: string) {
             if (!isWilayahMatch(role, target.rt, target.rw, rt, rw)) throw new Error("Unauthorized");
         }
         await prisma.rtBirthReport.delete({ where: { id } });
+        invalidateLampidCache();
+        invalidateBalitaDemografiCache();
         revalidatePath("/dashboard");
         return { success: true };
     } catch (error: any) {
@@ -636,6 +641,8 @@ export async function addRtDeathReport(data: { nik: string, namaLengkap: string,
             });
         }
 
+        invalidateLampidCache();
+        invalidateBalitaDemografiCache();
         revalidatePath("/dashboard");
         revalidatePath("/dashboard/warga");
         revalidatePath("/dashboard/kesra");
@@ -681,6 +688,8 @@ export async function deleteRtDeathReport(id: string) {
             });
         }
 
+        invalidateLampidCache();
+        invalidateBalitaDemografiCache();
         revalidatePath("/dashboard");
         revalidatePath("/dashboard/warga");
         return { success: true };
@@ -732,6 +741,7 @@ export async function addRtMoveReport(data: { nik: string, namaLengkap: string, 
             });
         }
 
+        invalidateLampidCache();
         revalidatePath("/dashboard");
         revalidatePath("/dashboard/warga");
         return { success: true, report };
@@ -761,6 +771,7 @@ export async function deleteRtMoveReport(id: string) {
             });
         }
 
+        invalidateLampidCache();
         revalidatePath("/dashboard");
         revalidatePath("/dashboard/warga");
         return { success: true };
@@ -800,6 +811,8 @@ export async function addRtIncomingReport(data: { nik: string, noKK: string, nam
                 tenantId
             }
         });
+        invalidateLampidCache();
+        invalidateBalitaDemografiCache();
         revalidatePath("/dashboard");
         return { success: true, report };
     } catch (error: any) {
@@ -816,6 +829,8 @@ export async function deleteRtIncomingReport(id: string) {
             if (!isWilayahMatch(role, target.rt, target.rw, rt, rw)) throw new Error("Unauthorized");
         }
         await prisma.rtIncomingReport.delete({ where: { id } });
+        invalidateLampidCache();
+        invalidateBalitaDemografiCache();
         revalidatePath("/dashboard");
         return { success: true };
     } catch (error: any) {

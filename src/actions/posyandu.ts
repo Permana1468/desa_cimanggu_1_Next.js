@@ -7,7 +7,7 @@ import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { getRWsForPosyandu, getPosyanduUnit, detectUserPosyanduUnit, normalizeRwList, resolvePosyanduUnit, POSYANDU_UNITS } from "@/lib/posyandu";
 import { executePythonStuntingEngine, BalitaAnalysisInput, BalitaAnalysisResult } from "@/lib/pythonBridge";
-import { runBalitaDemografiEngine } from "@/lib/balitaDemografiBridge";
+import { runBalitaDemografiEngine, invalidateBalitaDemografiCache } from "@/lib/balitaDemografiBridge";
 
 async function verifyPosyanduAccess(posyanduFilter?: string) {
     const session = await getServerSession(authOptions);
@@ -127,6 +127,7 @@ export async function addPosyanduBalita(data: any) {
         }
     });
 
+    invalidateBalitaDemografiCache();
     revalidatePath("/dashboard");
     return { success: true, balita };
 }
@@ -403,6 +404,7 @@ export async function registerBalitaWithNewWarga(payload: {
         });
     }
 
+    invalidateBalitaDemografiCache();
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/warga");
     revalidatePath("/master-admin/data");
@@ -481,6 +483,7 @@ export async function syncBalitaFromKependudukan(wargaIds: string[], targetPosya
         }
     }
 
+    invalidateBalitaDemografiCache();
     revalidatePath("/dashboard");
     return { success: true, count: syncedCount };
 }
@@ -493,6 +496,7 @@ export async function updatePosyanduBalitaStatus(id: string, statusStunting: boo
         data: { statusStunting }
     });
 
+    invalidateBalitaDemografiCache();
     revalidatePath("/dashboard");
     return { success: true };
 }
@@ -504,6 +508,7 @@ export async function deletePosyanduBalita(id: string) {
         where: { id, tenantId }
     });
 
+    invalidateBalitaDemografiCache();
     revalidatePath("/dashboard");
     return { success: true };
 }

@@ -89,14 +89,16 @@ function PosyanduDashboardContent({ session }: any) {
     if (activeTab === "overview") {
       fetchStats();
 
-      // Realtime polling and cross-tab update listener
+      // Realtime polling and cross-tab update listener with visibility guard
       const interval = setInterval(() => {
+        if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
         getPosyanduDashboardStats(selectedPosyandu).then(data => {
           if (data) setStats(data);
         }).catch(err => console.error("Silent stats refresh error:", err));
-      }, 12000);
+      }, 25000);
 
       const handleRefresh = () => {
+        if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
         getPosyanduDashboardStats(selectedPosyandu).then(data => {
           if (data) setStats(data);
         }).catch(err => console.error("Event stats refresh error:", err));
@@ -105,10 +107,23 @@ function PosyanduDashboardContent({ session }: any) {
       window.addEventListener("refresh-notifications", handleRefresh);
       window.addEventListener("focus", handleRefresh);
 
+      let bc: BroadcastChannel | null = null;
+      if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+        try {
+          bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+          bc.onmessage = (ev) => {
+            if (ev.data?.type === "POSYANDU_UPDATED" || ev.data?.type === "WARGA_UPDATED") {
+              fetchStats();
+            }
+          };
+        } catch (e) {}
+      }
+
       return () => {
         clearInterval(interval);
         window.removeEventListener("refresh-notifications", handleRefresh);
         window.removeEventListener("focus", handleRefresh);
+        if (bc) bc.close();
       };
     }
   }, [activeTab, selectedPosyandu]);

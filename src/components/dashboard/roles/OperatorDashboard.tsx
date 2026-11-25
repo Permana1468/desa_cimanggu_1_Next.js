@@ -138,7 +138,10 @@ function OperatorMainView({ session, initialStats }: { session: any; initialStat
     window.addEventListener("refresh-notifications", handleRefresh);
     window.addEventListener("focus", handleRefresh);
 
-    const interval = setInterval(fetchLiveData, 20000); // Intelligent sync every 20s
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      fetchLiveData();
+    }, 25000);
     return () => {
       window.removeEventListener("refresh-notifications", handleRefresh);
       window.removeEventListener("focus", handleRefresh);

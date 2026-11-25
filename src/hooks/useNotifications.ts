@@ -151,8 +151,11 @@ export function useNotifications() {
     };
     window.addEventListener("storage", handleStorage);
 
-    // Non-intrusive polling every 30 seconds for background notifications
-    const interval = setInterval(fetchLive, 30000);
+    // Non-intrusive polling every 30 seconds for background notifications with visibility guard
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      fetchLive();
+    }, 30000);
 
     return () => {
       window.removeEventListener("refresh-notifications", handleRefresh);

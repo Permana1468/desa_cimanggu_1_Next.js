@@ -72,12 +72,15 @@ export function AntrianLoket({ session }: { session: any }) {
 
   useEffect(() => {
     fetchQueues();
-    const handleRefresh = () => fetchQueues();
+    const handleRefresh = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      fetchQueues();
+    };
     window.addEventListener("refresh-notifications", handleRefresh);
     window.addEventListener("focus", handleRefresh);
 
-    // Auto-refresh every 10 seconds for real-time synchronization with visibility guard
-    const timer = setInterval(fetchQueues, 10000);
+    // Auto-refresh every 15 seconds for real-time synchronization with visibility guard
+    const timer = setInterval(handleRefresh, 15000);
     return () => {
       window.removeEventListener("refresh-notifications", handleRefresh);
       window.removeEventListener("focus", handleRefresh);

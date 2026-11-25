@@ -90,7 +90,10 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
     window.addEventListener("refresh-notifications", handleRefresh);
     window.addEventListener("focus", handleRefresh);
 
-    const interval = setInterval(syncKaurMetrics, 30000);
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      syncKaurMetrics();
+    }, 30000);
     return () => {
       window.removeEventListener("refresh-notifications", handleRefresh);
       window.removeEventListener("focus", handleRefresh);

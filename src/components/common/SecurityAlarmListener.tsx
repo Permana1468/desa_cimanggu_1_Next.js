@@ -57,9 +57,19 @@ export function SecurityAlarmListener() {
     // Initial check on mount
     checkForAlarm();
 
-    // Check periodically every 20 seconds (lightweight API, no server action re-renders)
-    const interval = setInterval(checkForAlarm, 20000);
-    return () => clearInterval(interval);
+    const handleFocus = () => checkForAlarm();
+    window.addEventListener("focus", handleFocus);
+
+    // Check periodically every 25 seconds when tab is active (lightweight API)
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      checkForAlarm();
+    }, 25000);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      clearInterval(interval);
+    };
   }, [checkForAlarm]);
 
   if (!isOpen || !alarmMessage) return null;

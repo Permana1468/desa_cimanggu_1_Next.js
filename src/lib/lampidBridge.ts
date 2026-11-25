@@ -273,20 +273,36 @@ export function computeTsLampidFallback(data: LampidEngineInput): LampidEngineRe
   };
 }
 
+const lampidCache = new Map<string, { timestamp: number; result: LampidEngineResult }>();
+const LAMPID_CACHE_TTL = 15000; // 15 seconds
+
+export function invalidateLampidCache() {
+  lampidCache.clear();
+}
+
 /**
  * Execute Python Demographic Balance Engine with seamless TypeScript fallback
  */
 export async function executeLampidEngine(input: LampidEngineInput): Promise<LampidEngineResult> {
+  const cacheKey = `${input.year}_${input.month}_${input.residents.length}_${input.births.length}_${input.deaths.length}_${input.moves.length}_${input.incomings.length}`;
+  const cached = lampidCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < LAMPID_CACHE_TTL) {
+    return cached.result;
+  }
+
   const scriptPath = path.join(process.cwd(), "services", "demografi", "lampid_engine.py");
 
   if (!fs.existsSync(scriptPath)) {
-    return computeTsLampidFallback(input);
+    const res = computeTsLampidFallback(input);
+    lampidCache.set(cacheKey, { timestamp: Date.now(), result: res });
+    return res;
   }
 
   return new Promise((resolve) => {
     try {
       const payload = JSON.stringify(input);
-      const py = spawn("python3", [scriptPath, payload], { timeout: 4000 });
+      // For large payloads, always pipe through stdin to avoid ARG_MAX limits
+      const py = spawn("python3", [scriptPath], { timeout: 4000 });
 
       let out = "";
       let err = "";
@@ -304,26 +320,38 @@ export async function executeLampidEngine(input: LampidEngineInput): Promise<Lam
           try {
             const parsed = JSON.parse(out.trim());
             if (!parsed.error) {
-              resolve({
+              const result: LampidEngineResult = {
                 ...parsed,
                 executionMode: "PYTHON"
-              });
+              };
+              lampidCache.set(cacheKey, { timestamp: Date.now(), result });
+              resolve(result);
               return;
             }
           } catch (e) {
             console.warn("Failed to parse python lampid_engine output:", e);
           }
         }
-        resolve(computeTsLampidFallback(input));
+        const fallback = computeTsLampidFallback(input);
+        lampidCache.set(cacheKey, { timestamp: Date.now(), result: fallback });
+        resolve(fallback);
       });
 
       py.on("error", (e) => {
         console.warn("Python lampid_engine spawn error:", e.message);
-        resolve(computeTsLampidFallback(input));
+        const fallback = computeTsLampidFallback(input);
+        lampidCache.set(cacheKey, { timestamp: Date.now(), result: fallback });
+        resolve(fallback);
       });
+
+      // Write payload to stdin
+      py.stdin.write(payload);
+      py.stdin.end();
     } catch (e) {
       console.warn("Exception during Python lampid_engine execution:", e);
-      resolve(computeTsLampidFallback(input));
+      const fallback = computeTsLampidFallback(input);
+      lampidCache.set(cacheKey, { timestamp: Date.now(), result: fallback });
+      resolve(fallback);
     }
   });
 }

@@ -81,7 +81,10 @@ export function FloatingChat({ session }: { session: any }) {
         };
 
         const initialTimer = setTimeout(sendHeartbeat, 2500);
-        const heartbeatInterval = setInterval(sendHeartbeat, 60000);
+        const heartbeatInterval = setInterval(() => {
+            if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+            sendHeartbeat();
+        }, 60000);
 
         return () => {
             clearTimeout(initialTimer);
@@ -139,6 +142,7 @@ export function FloatingChat({ session }: { session: any }) {
         }, delay);
 
         const interval = setInterval(() => {
+            if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
             fetchContacts();
         }, 60000);
 
@@ -186,6 +190,7 @@ export function FloatingChat({ session }: { session: any }) {
         fetchMessages(true);
 
         const interval = setInterval(() => {
+            if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
             fetchMessages();
         }, 10000);
 

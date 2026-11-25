@@ -47,7 +47,10 @@ export function WargaDashboard({
     window.addEventListener("refresh-notifications", handleRefresh);
     window.addEventListener("focus", handleRefresh);
 
-    const interval = setInterval(fetchLiveWargaSurat, 30000);
+    const interval = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      fetchLiveWargaSurat();
+    }, 30000);
     return () => {
       window.removeEventListener("refresh-notifications", handleRefresh);
       window.removeEventListener("focus", handleRefresh);

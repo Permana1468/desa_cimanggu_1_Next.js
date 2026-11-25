@@ -48,10 +48,23 @@ export interface BalitaDemografiResult {
   totalFiltered: number;
 }
 
+const balitaCache = new Map<string, { timestamp: number; result: BalitaDemografiResult }>();
+const BALITA_CACHE_TTL = 15000; // 15 seconds
+
+export function invalidateBalitaDemografiCache() {
+  balitaCache.clear();
+}
+
 /**
  * Execute Python Balita Demografi Engine with TS Fallback
  */
 export async function runBalitaDemografiEngine(payload: BalitaDemografiPayload): Promise<BalitaDemografiResult> {
+  const cacheKey = `${payload.filterPosyandu || "ALL"}_${payload.citizens.length}_${payload.posyanduBalita.length}_${payload.referenceDate || ""}`;
+  const cached = balitaCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < BALITA_CACHE_TTL) {
+    return cached.result;
+  }
+
   const pythonScript = path.join(process.cwd(), "services", "ai_posyandu", "balita_demografi_engine.py");
 
   try {
@@ -93,12 +106,15 @@ export async function runBalitaDemografiEngine(payload: BalitaDemografiPayload):
 
     const parsed = JSON.parse(pythonResult);
     if (parsed && !parsed.error) {
+      balitaCache.set(cacheKey, { timestamp: Date.now(), result: parsed });
       return parsed;
     }
     throw new Error(parsed.error || "Invalid python output");
   } catch (err: any) {
     console.warn("[BalitaDemografiEngine] Python subprocess fallback to TypeScript:", err.message);
-    return computeBalitaDemografiTS(payload);
+    const fallback = computeBalitaDemografiTS(payload);
+    balitaCache.set(cacheKey, { timestamp: Date.now(), result: fallback });
+    return fallback;
   }
 }
 
@@ -376,3 +392,4 @@ export function computeBalitaDemografiTS(payload: BalitaDemografiPayload): Balit
     totalFiltered: filtered.length
   };
 }
+

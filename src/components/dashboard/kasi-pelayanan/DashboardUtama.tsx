@@ -61,11 +61,14 @@ export function DashboardUtama({ session, stats }: { session: any, stats: any })
 
   useEffect(() => {
     loadLoketData();
-    const handleRefresh = () => loadLoketData();
+    const handleRefresh = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      loadLoketData();
+    };
     window.addEventListener("refresh-notifications", handleRefresh);
     window.addEventListener("focus", handleRefresh);
 
-    const interval = setInterval(loadLoketData, 20000);
+    const interval = setInterval(handleRefresh, 25000);
     return () => {
       window.removeEventListener("refresh-notifications", handleRefresh);
       window.removeEventListener("focus", handleRefresh);
