@@ -3,8 +3,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { Store, CheckCircle2, XCircle, Loader2, RefreshCw, Printer } from "lucide-react";
 import Link from "next/link";
-import { getBumdesUmkmOverview, updateUmkmStoreStatus } from "@/app/actions/umkm";
+import { getBumdesUmkmOverview, updateUmkmStoreStatus, verifyStorePayoutSettings } from "@/app/actions/umkm";
 import { parseOrderMeta } from "@/lib/umkmOrderMeta";
+import { parseStoreMeta } from "@/lib/umkmStoreMeta";
 
 const formatRp = (val: number) => `Rp ${Math.round(val || 0).toLocaleString("id-ID")}`;
 
@@ -30,6 +31,14 @@ export function BumdesUmkmPanel({ canEdit }: { canEdit: boolean }) {
   const handleStoreAction = async (storeId: string, status: "APPROVED" | "REJECTED") => {
     setBusyId(storeId);
     const res = await updateUmkmStoreStatus(storeId, status);
+    setBusyId(null);
+    if (!res.success) alert(res.error);
+    else await load();
+  };
+
+  const handleVerifyPayout = async (storeId: string, approved: boolean) => {
+    setBusyId(storeId);
+    const res = await verifyStorePayoutSettings(storeId, approved);
     setBusyId(null);
     if (!res.success) alert(res.error);
     else await load();
@@ -95,13 +104,23 @@ export function BumdesUmkmPanel({ canEdit }: { canEdit: boolean }) {
         <div className="border border-slate-200 rounded-2xl p-5 space-y-3">
           <h4 className="text-sm font-black text-slate-800">Daftar Toko UMKM Desa</h4>
           <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
-            {data.stores.map((s: any) => (
-              <div key={s.id} className="py-3 flex items-center justify-between gap-2 text-xs">
+            {data.stores.map((s: any) => {
+              const payout = parseStoreMeta(s.banner);
+              return (
+              <div key={s.id} className="py-3 flex flex-wrap items-center justify-between gap-2 text-xs">
                 <div>
                   <p className="font-bold text-slate-900">{s.storeName}</p>
                   <p className="text-slate-500">
                     {s.user?.fullName || "-"} • {s._count?.products || 0} Produk • {s._count?.orders || 0} Order
                   </p>
+                  {payout.accountNumber && (
+                    <p className="text-[11px] font-semibold text-blue-700 mt-0.5">
+                      Rekening: {payout.bankName} {payout.accountNumber} ({payout.accountHolder}) •{" "}
+                      <span className={payout.payoutStatus === "VERIFIED" ? "text-emerald-700" : "text-amber-700"}>
+                        KYC: {payout.payoutStatus}
+                      </span>
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <span
@@ -135,9 +154,19 @@ export function BumdesUmkmPanel({ canEdit }: { canEdit: boolean }) {
                       </button>
                     </>
                   )}
+                  {canEdit && payout.payoutStatus === "PENDING" && (
+                    <button
+                      onClick={() => handleVerifyPayout(s.id, true)}
+                      disabled={busyId === s.id}
+                      className="px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black cursor-pointer"
+                    >
+                      Verifikasi Rek/QRIS
+                    </button>
+                  )}
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Printer, ShoppingBag, Receipt, QrCode, Building2, Wallet } from "lucide-react";
+import { ArrowLeft, Printer, ShoppingBag, Receipt, QrCode, Building2, Wallet, MapPin } from "lucide-react";
 import { parseOrderMeta } from "@/lib/umkmOrderMeta";
 import { UmkmOrderActions } from "@/components/umkm/UmkmOrderActions";
 import { UmkmQrImage } from "@/components/umkm/UmkmQrImage";
@@ -140,6 +140,13 @@ export default async function BuyerOrdersPage() {
                         status={ord.status}
                         paymentMethod={meta.paymentMethod}
                       />
+                      <Link
+                        href={`/umkm/orders/${ord.id}/tracking`}
+                        className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black flex items-center gap-1.5"
+                      >
+                        <MapPin size={13} />
+                        <span>Lacak Barang</span>
+                      </Link>
                       <Link
                         href={`/umkm/orders/${ord.id}/receipt`}
                         className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black flex items-center gap-1.5"

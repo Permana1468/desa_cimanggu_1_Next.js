@@ -5,15 +5,18 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Plus, Package, CheckCircle2, Truck, Printer, Banknote,
-  Trash2, Eye, EyeOff, ShoppingBag, Loader2
+  Trash2, Eye, EyeOff, ShoppingBag, Loader2, ShieldCheck, MapPin, Landmark
 } from "lucide-react";
 import {
   addProduct,
   deleteProduct,
   updateProductBySeller,
   updateOrderStatusBySeller,
+  saveStorePayoutSettings,
+  addOrderTrackingUpdate,
 } from "@/app/actions/umkm";
 import { parseOrderMeta } from "@/lib/umkmOrderMeta";
+import { parseStoreMeta } from "@/lib/umkmStoreMeta";
 import { UmkmSafeImage } from "@/components/umkm/UmkmSafeImage";
 
 const CATEGORIES = [
@@ -31,6 +34,16 @@ const CATEGORIES = [
 
 const formatRp = (val: number) => `Rp ${Math.round(val || 0).toLocaleString("id-ID")}`;
 
+function broadcastOrderSync(orderId?: string) {
+  if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+    try {
+      const bc = new BroadcastChannel("desa_cimanggu_umkm_sync");
+      bc.postMessage({ orderId, ts: Date.now() });
+      bc.close();
+    } catch {}
+  }
+}
+
 export default function SellerDashboardClient({
   store,
   products,
@@ -45,17 +58,27 @@ export default function SellerDashboardClient({
   const urlTab = searchParams.get("tab") || "produk";
   const urlAdd = searchParams.get("add") === "1";
 
-  const [activeTab, setActiveTab] = useState<"produk" | "pesanan" | "keuangan">(
-    urlTab === "pesanan" ? "pesanan" : urlTab === "keuangan" ? "keuangan" : "produk"
+  const [activeTab, setActiveTab] = useState<"produk" | "pesanan" | "keuangan" | "rekening">(
+    urlTab === "pesanan" || urlTab === "keuangan" || urlTab === "rekening" ? urlTab : "produk"
   );
   const [isAdding, setIsAdding] = useState(urlAdd);
 
   useEffect(() => {
-    if (urlTab === "pesanan" || urlTab === "keuangan" || urlTab === "produk") {
+    if (urlTab === "pesanan" || urlTab === "keuangan" || urlTab === "produk" || urlTab === "rekening") {
       setActiveTab(urlTab);
     }
     if (urlAdd) setIsAdding(true);
   }, [urlTab, urlAdd]);
+
+  // Real-time auto-refresh untuk pesanan masuk baru setiap 15 detik saat tab aktif
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        router.refresh();
+      }
+    }, 15000);
+    return () => clearInterval(timer);
+  }, [router]);
 
   // Add product states
   const [name, setName] = useState("");
@@ -66,6 +89,23 @@ export default function SellerDashboardClient({
   const [image, setImage] = useState("");
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+
+  // Payout / Rekening & QRIS states
+  const existingPayout = parseStoreMeta(store.banner);
+  const [bankName, setBankName] = useState(existingPayout.bankName || "BRI");
+  const [accountNumber, setAccountNumber] = useState(existingPayout.accountNumber || "");
+  const [accountHolder, setAccountHolder] = useState(existingPayout.accountHolder || "");
+  const [qrisImageUrl, setQrisImageUrl] = useState(existingPayout.qrisImageUrl || "");
+  const [storePhone, setStorePhone] = useState(existingPayout.storePhone || "");
+  const [savingPayout, setSavingPayout] = useState(false);
+
+  // Live Tracking Modal state
+  const [trackingOrder, setTrackingOrder] = useState<any | null>(null);
+  const [trackStep, setTrackStep] = useState<"PACKING" | "SHIPPED" | "DELIVERED">("SHIPPED");
+  const [trackTitle, setTrackTitle] = useState("Pesanan Dalam Perjalanan Kurir Desa");
+  const [trackNote, setTrackNote] = useState("");
+  const [courierName, setCourierName] = useState("");
+  const [courierPhone, setCourierPhone] = useState("");
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +126,25 @@ export default function SellerDashboardClient({
       setPrice("");
       setStock("");
       setImage("");
+      router.refresh();
+    } else {
+      alert(res.error);
+    }
+  };
+
+  const handleSavePayout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingPayout(true);
+    const res = await saveStorePayoutSettings(store.id, {
+      bankName,
+      accountNumber,
+      accountHolder,
+      qrisImageUrl,
+      storePhone,
+    });
+    setSavingPayout(false);
+    if (res.success) {
+      alert("Data Rekening & QRIS toko disimpan! Status: Menunggu Verifikasi Keamanan oleh BUMDes/Admin.");
       router.refresh();
     } else {
       alert(res.error);
@@ -128,7 +187,32 @@ export default function SellerDashboardClient({
     const res = await updateOrderStatusBySeller(orderId, nextStatus, note);
     setBusyId(null);
     if (!res.success) alert(res.error);
-    else router.refresh();
+    else {
+      broadcastOrderSync(orderId);
+      router.refresh();
+    }
+  };
+
+  const handleSendTrackingUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!trackingOrder) return;
+    setBusyId(trackingOrder.id);
+    const res = await addOrderTrackingUpdate(trackingOrder.id, {
+      step: trackStep,
+      title: trackTitle,
+      note: trackNote || trackTitle,
+      courierName,
+      courierPhone,
+    });
+    setBusyId(null);
+    if (!res.success) {
+      alert(res.error);
+    } else {
+      broadcastOrderSync(trackingOrder.id);
+      setTrackingOrder(null);
+      setTrackNote("");
+      router.refresh();
+    }
   };
 
   const settledOrders = orders.filter((o) =>
@@ -142,9 +226,20 @@ export default function SellerDashboardClient({
       {/* Header Toko */}
       <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-wrap justify-between items-center gap-4">
         <div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-            Toko Terverifikasi ({store.status})
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+              Toko Terverifikasi ({store.status})
+            </span>
+            <span
+              className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-0.5 rounded-full ${
+                existingPayout.payoutStatus === "VERIFIED"
+                  ? "bg-blue-50 text-blue-700"
+                  : "bg-amber-50 text-amber-700"
+              }`}
+            >
+              Rekening/QRIS: {existingPayout.payoutStatus}
+            </span>
+          </div>
           <h1 className="text-xl font-black text-slate-900 mt-1">{store.storeName}</h1>
         </div>
         <button
@@ -162,8 +257,12 @@ export default function SellerDashboardClient({
       <div className="flex border-b border-slate-200 px-4 gap-2 overflow-x-auto">
         {[
           { key: "produk" as const, label: `Produk (${products.length})` },
-          { key: "pesanan" as const, label: `Pesanan Masuk (${orders.length})${pendingOrderCount > 0 ? ` • ${pendingOrderCount} Aktif` : ""}` },
+          {
+            key: "pesanan" as const,
+            label: `Pesanan Masuk (${orders.length})${pendingOrderCount > 0 ? ` • ${pendingOrderCount} Aktif` : ""}`,
+          },
           { key: "keuangan" as const, label: `Keuangan & Omzet` },
+          { key: "rekening" as const, label: `Rekening & QRIS Toko` },
         ].map((t) => (
           <button
             key={t.key}
@@ -407,6 +506,14 @@ export default function SellerDashboardClient({
                       </div>
                     </div>
 
+                    {meta.paymentStatus === "AWAITING_VERIFICATION" && (
+                      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-3 text-xs text-indigo-900 font-bold flex flex-wrap items-center justify-between gap-2">
+                        <span>
+                          Pembeli ({meta.paymentSenderName}) telah mengirim bukti transfer! Cek mutasi rekening/QRIS Anda lalu klik &quot;Verifikasi Lunas&quot;.
+                        </span>
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                       <div className="space-y-1">
                         <p className="font-bold text-slate-900">
@@ -430,40 +537,43 @@ export default function SellerDashboardClient({
                     </div>
 
                     <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
-                      <Link
-                        href={`/umkm/orders/${ord.id}/receipt`}
-                        className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1.5"
-                      >
-                        <Printer size={13} /> Lihat Struk / Bon
-                      </Link>
+                      <div className="flex flex-wrap gap-2">
+                        <Link
+                          href={`/umkm/orders/${ord.id}/receipt`}
+                          className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1.5"
+                        >
+                          <Printer size={13} /> Struk / Bon
+                        </Link>
+                        <Link
+                          href={`/umkm/orders/${ord.id}/tracking`}
+                          className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold flex items-center gap-1.5"
+                        >
+                          <MapPin size={13} /> Lacak
+                        </Link>
+                      </div>
 
                       <div className="flex flex-wrap gap-2">
                         {ord.status === "UNPAID" && (
                           <button
-                            onClick={() => handleOrderStatus(ord.id, "PAID", "Pembayaran dikonfirmasi penjual")}
+                            onClick={() => handleOrderStatus(ord.id, "PAID", "Pembayaran dikonfirmasi sah oleh pemilik toko")}
                             disabled={busyId === ord.id}
                             className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer"
                           >
                             {busyId === ord.id ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
-                            <span>Konfirmasi Lunas</span>
+                            <span>Verifikasi Lunas</span>
                           </button>
                         )}
-                        {(ord.status === "PAID" || (ord.status === "UNPAID" && meta.paymentMethod === "COD")) && (
+                        {ord.status !== "CANCELLED" && ord.status !== "COMPLETED" && (
                           <button
-                            onClick={() =>
-                              handleOrderStatus(
-                                ord.id,
-                                "SHIPPED",
-                                meta.shippingMethod === "PICKUP"
-                                  ? "Barang siap diambil di toko / BUMDes"
-                                  : "Sedang diantar oleh Kurir Lokal Desa"
-                              )
-                            }
-                            disabled={busyId === ord.id}
+                            onClick={() => {
+                              setTrackingOrder(ord);
+                              setCourierName(meta.courierName || "");
+                              setCourierPhone(meta.courierPhone || "");
+                            }}
                             className="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black flex items-center gap-1.5 cursor-pointer"
                           >
                             <Truck size={13} />
-                            <span>{meta.shippingMethod === "PICKUP" ? "Siap Diambil" : "Kirim Pesanan"}</span>
+                            <span>Update Tracking Kurir</span>
                           </button>
                         )}
                         {ord.status === "SHIPPED" && (
@@ -542,7 +652,197 @@ export default function SellerDashboardClient({
             </div>
           </div>
         )}
+
+        {/* TAB 4: REKENING BANK & QRIS MILIK TOKO (KYC KEAMANAN) */}
+        {activeTab === "rekening" && (
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 space-y-5 max-w-2xl">
+            <div className="flex items-start justify-between gap-3 pb-4 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <Landmark size={22} />
+                </div>
+                <div>
+                  <h2 className="text-base font-black text-slate-900">Rekening Bank &amp; QRIS Pemilik Toko</h2>
+                  <p className="text-xs text-slate-500">
+                    Pembayaran pembeli akan masuk ke rekening/QRIS ini setelah diverifikasi BUMDes/Admin Desa.
+                  </p>
+                </div>
+              </div>
+              <span
+                className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
+                  existingPayout.payoutStatus === "VERIFIED"
+                    ? "bg-emerald-100 text-emerald-700"
+                    : existingPayout.payoutStatus === "PENDING"
+                      ? "bg-amber-100 text-amber-800"
+                      : "bg-slate-100 text-slate-600"
+                }`}
+              >
+                {existingPayout.payoutStatus}
+              </span>
+            </div>
+
+            <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-3.5 text-xs text-blue-900 flex items-start gap-2.5">
+              <ShieldCheck size={17} className="text-blue-600 shrink-0 mt-0.5" />
+              <span>
+                <strong>Keamanan Keuangan:</strong> Demi mencegah penipuan, nama pemilik rekening harus sesuai dengan identitas pelaku UMKM terdaftar. Setiap perubahan data akan diverifikasi ulang oleh BUMDes.
+              </span>
+            </div>
+
+            <form onSubmit={handleSavePayout} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Nama Bank *</label>
+                  <select
+                    value={bankName}
+                    onChange={(e) => setBankName(e.target.value)}
+                    className="w-full border border-slate-300 rounded-xl p-2.5 text-sm bg-white"
+                  >
+                    <option value="BRI">Bank BRI</option>
+                    <option value="BNI">Bank BNI</option>
+                    <option value="MANDIRI">Bank Mandiri</option>
+                    <option value="BCA">Bank BCA</option>
+                    <option value="BJB">Bank BJB</option>
+                    <option value="BSI">Bank Syariah Indonesia (BSI)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Nomor Rekening *</label>
+                  <input
+                    type="text"
+                    required
+                    value={accountNumber}
+                    onChange={(e) => setAccountNumber(e.target.value)}
+                    placeholder="Contoh: 012301004567501"
+                    className="w-full border border-slate-300 rounded-xl p-2.5 text-sm font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">Nama Pemilik Rekening (Sesuai Buku Tabungan) *</label>
+                  <input
+                    type="text"
+                    required
+                    value={accountHolder}
+                    onChange={(e) => setAccountHolder(e.target.value)}
+                    placeholder="Nama lengkap pemilik rekening"
+                    className="w-full border border-slate-300 rounded-xl p-2.5 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 mb-1">No. WhatsApp Toko / Kurir</label>
+                  <input
+                    type="tel"
+                    value={storePhone}
+                    onChange={(e) => setStorePhone(e.target.value)}
+                    placeholder="08xxxxxxxxxx"
+                    className="w-full border border-slate-300 rounded-xl p-2.5 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">URL Gambar QRIS Toko (Opsional)</label>
+                <input
+                  type="text"
+                  value={qrisImageUrl}
+                  onChange={(e) => setQrisImageUrl(e.target.value)}
+                  placeholder="https://... (Link gambar QRIS merchant Anda)"
+                  className="w-full border border-slate-300 rounded-xl p-2.5 text-sm"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={savingPayout}
+                className="px-6 py-3 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-black cursor-pointer disabled:opacity-50"
+              >
+                {savingPayout ? "Menyimpan..." : "Simpan & Ajukan Verifikasi Keamanan"}
+              </button>
+            </form>
+          </div>
+        )}
       </div>
+
+      {/* MODAL UPDATE LIVE TRACKING KURIR */}
+      {trackingOrder && (
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <form
+            onSubmit={handleSendTrackingUpdate}
+            className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200"
+          >
+            <h3 className="text-base font-black text-slate-900">Update Pelacakan Barang Real-Time</h3>
+            <div>
+              <label className="block text-xs font-bold text-slate-600 mb-1">Tahap Pengiriman</label>
+              <select
+                value={trackStep}
+                onChange={(e) => {
+                  const val = e.target.value as any;
+                  setTrackStep(val);
+                  if (val === "PACKING") setTrackTitle("Pesanan Sedang Dikemas Toko");
+                  if (val === "SHIPPED") setTrackTitle("Pesanan Dalam Perjalanan Kurir Desa");
+                  if (val === "DELIVERED") setTrackTitle("Pesanan Tiba di Alamat Tujuan");
+                }}
+                className="w-full border border-slate-300 rounded-xl p-2.5 text-xs font-bold bg-white"
+              >
+                <option value="PACKING">Dikemas oleh Toko</option>
+                <option value="SHIPPED">Dikirim oleh Kurir Desa</option>
+                <option value="DELIVERED">Sudah Tiba / Selesai</option>
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">Nama Kurir</label>
+                <input
+                  type="text"
+                  value={courierName}
+                  onChange={(e) => setCourierName(e.target.value)}
+                  placeholder="Contoh: Pak Budi"
+                  className="w-full border border-slate-300 rounded-xl p-2 text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-600 mb-1">No. WA Kurir</label>
+                <input
+                  type="tel"
+                  value={courierPhone}
+                  onChange={(e) => setCourierPhone(e.target.value)}
+                  placeholder="08xxxxxxxxxx"
+                  className="w-full border border-slate-300 rounded-xl p-2 text-xs"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-600 mb-1">Keterangan Posisi Barang *</label>
+              <textarea
+                rows={2}
+                required
+                value={trackNote}
+                onChange={(e) => setTrackNote(e.target.value)}
+                placeholder="Contoh: Kurir berangkat menuju Kp. Cimanggu RT 002/RW 009"
+                className="w-full border border-slate-300 rounded-xl p-2.5 text-xs"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setTrackingOrder(null)}
+                className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={busyId === trackingOrder.id}
+                className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black cursor-pointer"
+              >
+                {busyId === trackingOrder.id ? "Mengirim..." : "Kirim Update Live"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

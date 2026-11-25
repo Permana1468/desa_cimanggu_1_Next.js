@@ -1,3 +1,11 @@
+export interface UmkmTrackingEvent {
+  time: string;
+  step: "ORDER_CREATED" | "PAYMENT_SUBMITTED" | "PAYMENT_VERIFIED" | "PACKING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+  title: string;
+  note: string;
+  actor: string;
+}
+
 export interface UmkmOrderMeta {
   invoiceNo: string;
   recipientName: string;
@@ -6,12 +14,24 @@ export interface UmkmOrderMeta {
   notes?: string;
   shippingMethod: "KURIR_DESA" | "PICKUP";
   paymentMethod: "QRIS" | "BANK_VA" | "COD";
-  paymentChannel: string; // e.g. "QRIS_NASIONAL" | "BRI" | "BNI" | "MANDIRI" | "BCA" | "COD"
-  paymentStatus: "PENDING" | "SETTLED" | "COD_PENDING" | "EXPIRED" | "CANCELLED";
+  paymentChannel: string;
+  paymentStatus: "PENDING" | "AWAITING_VERIFICATION" | "SETTLED" | "COD_PENDING" | "EXPIRED" | "CANCELLED";
   paymentRef?: string;
   vaNumber?: string;
   qrisPayload?: string;
-  gatewayProvider?: "MIDTRANS" | "XENDIT" | "DESAPAY_INTERNAL";
+  gatewayProvider?: "MIDTRANS" | "XENDIT" | "DESAPAY_INTERNAL" | "DIRECT_MERCHANT";
+  storeBankInfo?: {
+    bankName: string;
+    accountNumber: string;
+    accountHolder: string;
+    qrisImageUrl?: string;
+  };
+  paymentSenderName?: string;
+  paymentProofUrl?: string;
+  paymentSubmittedAt?: string;
+  courierName?: string;
+  courierPhone?: string;
+  trackingEvents?: UmkmTrackingEvent[];
   subtotal: number;
   discount: number;
   shippingFee: number;
@@ -38,9 +58,7 @@ export function parseOrderMeta(rawAddress: string | null | undefined, fallbackTo
     try {
       const parsed = JSON.parse(rawAddress.slice(META_PREFIX.length));
       return parsed as UmkmOrderMeta;
-    } catch {
-      // fallback below
-    }
+    } catch {}
   }
 
   return {
@@ -53,6 +71,7 @@ export function parseOrderMeta(rawAddress: string | null | undefined, fallbackTo
     paymentChannel: "COD",
     paymentStatus: "COD_PENDING",
     gatewayProvider: "DESAPAY_INTERNAL",
+    trackingEvents: [],
     subtotal: fallbackTotal,
     discount: 0,
     shippingFee: 0,
@@ -63,4 +82,3 @@ export function parseOrderMeta(rawAddress: string | null | undefined, fallbackTo
     receiptSignature: "-",
   };
 }
-

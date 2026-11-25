@@ -82,10 +82,17 @@ export default function SellerCenterLayout({
 
             <div className="pt-2 border-t border-slate-100">
               <div className="flex items-center gap-2 font-black text-xs uppercase tracking-wider text-slate-400 px-2 mb-2">
-                <DollarSign size={14} className="text-emerald-600" /> Pembayaran API
+                <DollarSign size={14} className="text-emerald-600" /> Rekening &amp; QRIS
               </div>
+              <ul className="text-slate-700 space-y-1 text-xs font-bold mb-2">
+                <li>
+                  <Link href="/umkm/seller?tab=rekening" className="block px-3 py-2 rounded-xl hover:bg-emerald-50 hover:text-emerald-700">
+                    Rekening &amp; QRIS Toko
+                  </Link>
+                </li>
+              </ul>
               <p className="px-2 text-[11px] text-slate-500 leading-relaxed">
-                Mendukung QRIS, Transfer Virtual Account Bank, dan COD Kurir Desa secara otomatis.
+                Rekening &amp; QRIS pribadi toko diverifikasi BUMDes/Admin demi keamanan transaksi warga.
               </p>
             </div>
           </nav>

@@ -11,6 +11,7 @@ import {
   type UmkmShippingMethod,
 } from "@/lib/umkmEngine";
 import { parseOrderMeta, serializeOrderMeta, type UmkmOrderMeta } from "@/lib/umkmOrderMeta";
+import { parseStoreMeta, serializeStoreMeta } from "@/lib/umkmStoreMeta";
 import { createUmkmPaymentInstruction } from "@/lib/umkmPaymentGateway";
 
 const FALLBACK_IMAGE =
@@ -378,6 +379,17 @@ export async function createSecureCheckout(input: SecureCheckoutRequest) {
         buyerEmail: buyer.email,
       });
 
+      const storePayout = parseStoreMeta(group.store.banner);
+      const useDirectMerchant =
+        payInstruction.provider === "DESAPAY_INTERNAL" &&
+        storePayout.payoutStatus === "VERIFIED" &&
+        input.paymentMethod !== "COD" &&
+        Boolean(
+          (input.paymentMethod === "BANK_VA" && storePayout.accountNumber) ||
+          (input.paymentMethod === "QRIS" && storePayout.qrisImageUrl)
+        );
+
+      const nowIso = new Date().toISOString();
       const meta: UmkmOrderMeta = {
         invoiceNo,
         recipientName: input.recipientName.trim(),
@@ -386,12 +398,31 @@ export async function createSecureCheckout(input: SecureCheckoutRequest) {
         notes: input.notes?.trim() || "",
         shippingMethod: input.shippingMethod,
         paymentMethod: input.paymentMethod,
-        paymentChannel: input.paymentChannel || input.paymentMethod,
+        paymentChannel: useDirectMerchant && input.paymentMethod === "BANK_VA"
+          ? storePayout.bankName
+          : input.paymentChannel || input.paymentMethod,
         paymentStatus: input.paymentMethod === "COD" ? "COD_PENDING" : "PENDING",
         paymentRef: payInstruction.paymentRef,
-        vaNumber: payInstruction.vaNumber,
+        vaNumber: useDirectMerchant ? storePayout.accountNumber : payInstruction.vaNumber,
         qrisPayload: payInstruction.qrisPayload,
-        gatewayProvider: payInstruction.provider,
+        gatewayProvider: useDirectMerchant ? "DIRECT_MERCHANT" : payInstruction.provider,
+        storeBankInfo: useDirectMerchant
+          ? {
+              bankName: storePayout.bankName,
+              accountNumber: storePayout.accountNumber,
+              accountHolder: storePayout.accountHolder,
+              qrisImageUrl: storePayout.qrisImageUrl,
+            }
+          : undefined,
+        trackingEvents: [
+          {
+            time: nowIso,
+            step: "ORDER_CREATED",
+            title: "Pesanan Dibuat",
+            note: `Pesanan ${invoiceNo} berhasil dibuat (${input.paymentMethod}). Stok produk telah dikunci.`,
+            actor: input.recipientName.trim(),
+          },
+        ],
         subtotal: ledger.subtotal,
         discount: ledger.discount,
         shippingFee: ledger.shippingFee,
@@ -527,6 +558,14 @@ export async function settleUmkmOrderPayment(orderId: string, channelLabel?: str
     meta.paymentStatus = "SETTLED";
     meta.paidAt = new Date().toISOString();
     if (channelLabel) meta.trackingNote = `Pembayaran terkonfirmasi via ${channelLabel}`;
+    meta.trackingEvents = meta.trackingEvents || [];
+    meta.trackingEvents.push({
+      time: meta.paidAt,
+      step: "PAYMENT_VERIFIED",
+      title: "Pembayaran Terverifikasi (LUNAS)",
+      note: channelLabel ? `Pembayaran sah terkonfirmasi via ${channelLabel}.` : "Pembayaran telah diterima & diverifikasi.",
+      actor: "Sistem Pembayaran",
+    });
 
     await prisma.$transaction(async (tx) => {
       await tx.umkmOrder.update({
@@ -580,17 +619,40 @@ export async function updateOrderStatusBySeller(
 
     const meta = parseOrderMeta(order.address, order.totalAmount);
     if (trackingNote) meta.trackingNote = trackingNote;
+    meta.trackingEvents = meta.trackingEvents || [];
+    const nowIso = new Date().toISOString();
 
     if (nextStatus === "SHIPPED") {
-      meta.shippedAt = new Date().toISOString();
+      meta.shippedAt = nowIso;
+      meta.trackingEvents.push({
+        time: nowIso,
+        step: "SHIPPED",
+        title: meta.shippingMethod === "PICKUP" ? "Pesanan Siap Diambil di Toko" : "Pesanan Dikirim Kurir Desa",
+        note: trackingNote || "Pesanan dalam perjalanan menuju alamat penerima.",
+        actor: order.store.storeName,
+      });
     } else if (nextStatus === "COMPLETED") {
-      meta.completedAt = new Date().toISOString();
+      meta.completedAt = nowIso;
       if (meta.paymentStatus !== "SETTLED") {
         meta.paymentStatus = "SETTLED";
-        meta.paidAt = meta.paidAt || new Date().toISOString();
+        meta.paidAt = meta.paidAt || nowIso;
       }
+      meta.trackingEvents.push({
+        time: nowIso,
+        step: "DELIVERED",
+        title: "Pesanan Selesai",
+        note: trackingNote || "Pesanan telah selesai diterima pembeli.",
+        actor: order.store.storeName,
+      });
     } else if (nextStatus === "CANCELLED") {
       meta.paymentStatus = "CANCELLED";
+      meta.trackingEvents.push({
+        time: nowIso,
+        step: "CANCELLED",
+        title: "Pesanan Dibatalkan",
+        note: trackingNote || "Pesanan dibatalkan dan stok dikembalikan.",
+        actor: order.store.storeName,
+      });
     }
 
     await prisma.$transaction(async (tx) => {
@@ -638,10 +700,19 @@ export async function confirmOrderReceivedByBuyer(orderId: string) {
     }
 
     const meta = parseOrderMeta(order.address, order.totalAmount);
+    const nowIso = new Date().toISOString();
     meta.paymentStatus = "SETTLED";
-    meta.paidAt = meta.paidAt || new Date().toISOString();
-    meta.completedAt = new Date().toISOString();
+    meta.paidAt = meta.paidAt || nowIso;
+    meta.completedAt = nowIso;
     meta.trackingNote = "Pesanan diterima dengan baik oleh pembeli.";
+    meta.trackingEvents = meta.trackingEvents || [];
+    meta.trackingEvents.push({
+      time: nowIso,
+      step: "DELIVERED",
+      title: "Diterima oleh Pembeli",
+      note: "Pembeli mengonfirmasi barang diterima dalam kondisi baik.",
+      actor: user.name || "Pembeli",
+    });
 
     await prisma.umkmOrder.update({
       where: { id: orderId },
@@ -870,6 +941,221 @@ export async function ensureUmkmSeedData() {
     return { success: true };
   } catch (error: any) {
     console.error("Error seeding UMKM data:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Menyimpan Rekening Bank & QRIS milik Pemilik Toko.
+ * Demi keamanan keuangan, setiap perubahan rekening/QRIS otomatis berstatus PENDING
+ * sampai diverifikasi oleh BUMDes / Admin Desa / Admin Master.
+ */
+export async function saveStorePayoutSettings(
+  storeId: string,
+  data: {
+    bankName: string;
+    accountNumber: string;
+    accountHolder: string;
+    qrisImageUrl?: string;
+    qrisNmid?: string;
+    storePhone?: string;
+    storeAddress?: string;
+  }
+) {
+  try {
+    const { user, store } = await assertStoreAuthority(storeId);
+    const cleanBank = data.bankName.trim().toUpperCase();
+    const cleanAcc = data.accountNumber.replace(/[^0-9]/g, "");
+    const cleanHolder = data.accountHolder.trim();
+
+    if (!cleanBank || !cleanAcc || !cleanHolder) {
+      return { success: false, error: "Nama Bank, Nomor Rekening, dan Nama Pemilik wajib diisi." };
+    }
+
+    const payoutMeta = {
+      bankName: cleanBank,
+      accountNumber: cleanAcc,
+      accountHolder: cleanHolder,
+      qrisImageUrl: data.qrisImageUrl?.trim() || "",
+      qrisNmid: data.qrisNmid?.trim() || "",
+      storePhone: data.storePhone?.trim() || "",
+      storeAddress: data.storeAddress?.trim() || "",
+      payoutStatus: "PENDING" as const,
+    };
+
+    await prisma.$transaction(async (tx) => {
+      await tx.umkmStore.update({
+        where: { id: storeId },
+        data: { banner: serializeStoreMeta(payoutMeta) },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          action: "UMKM_PAYOUT_UPDATED",
+          entity: "UmkmStore",
+          entityId: storeId,
+          details: { bankName: cleanBank, accountHolder: cleanHolder, status: "PENDING" },
+          userId: user.id,
+          tenantId: store.tenantId,
+          category: "UMKM",
+        },
+      });
+    });
+
+    revalidatePath("/umkm/seller");
+    revalidatePath("/dashboard/bumdes");
+    revalidatePath("/master-admin/umkm");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Verifikasi KYC Rekening Bank & QRIS Pemilik Toko oleh BUMDes / Admin Desa / Admin Master
+ */
+export async function verifyStorePayoutSettings(storeId: string, approved: boolean) {
+  try {
+    const session = await getServerSession(authOptions);
+    const user = (session?.user as any) || {};
+    if (!["ADMIN_MASTER", "BUMDES", "ADMIN_DESA", "KADES"].includes(user.role)) {
+      return { success: false, error: "Akses ditolak: hanya BUMDes atau Admin yang dapat memverifikasi rekening." };
+    }
+
+    const store = await prisma.umkmStore.findUnique({ where: { id: storeId } });
+    if (!store) return { success: false, error: "Toko tidak ditemukan" };
+
+    const meta = parseStoreMeta(store.banner);
+    meta.payoutStatus = approved ? "VERIFIED" : "REJECTED";
+    meta.verifiedBy = user.name || user.role;
+    meta.verifiedAt = new Date().toISOString();
+
+    await prisma.umkmStore.update({
+      where: { id: storeId },
+      data: { banner: serializeStoreMeta(meta) },
+    });
+
+    revalidatePath("/umkm/seller");
+    revalidatePath("/dashboard/bumdes");
+    revalidatePath("/master-admin/umkm");
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Pembeli mengirimkan bukti transfer / pembayaran QRIS langsung ke rekening/QRIS toko
+ */
+export async function submitManualPaymentProof(
+  orderId: string,
+  data: { senderName: string; proofUrl?: string; note?: string }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) return { success: false, error: "Unauthorized" };
+    const user = session.user as any;
+
+    const order = await prisma.umkmOrder.findUnique({ where: { id: orderId } });
+    if (!order || order.buyerId !== user.id) {
+      return { success: false, error: "Pesanan tidak ditemukan." };
+    }
+
+    const meta = parseOrderMeta(order.address, order.totalAmount);
+    const nowIso = new Date().toISOString();
+    meta.paymentStatus = "AWAITING_VERIFICATION";
+    meta.paymentSenderName = data.senderName.trim();
+    meta.paymentProofUrl = data.proofUrl?.trim() || "";
+    meta.paymentSubmittedAt = nowIso;
+    meta.trackingNote = `Bukti transfer dari ${data.senderName.trim()} menunggu verifikasi penjual.`;
+    meta.trackingEvents = meta.trackingEvents || [];
+    meta.trackingEvents.push({
+      time: nowIso,
+      step: "PAYMENT_SUBMITTED",
+      title: "Bukti Pembayaran Dikirim",
+      note: `Pengirim: ${data.senderName.trim()}${data.note ? ` (${data.note})` : ""}. Menunggu verifikasi mutasi penjual.`,
+      actor: user.name || "Pembeli",
+    });
+
+    await prisma.umkmOrder.update({
+      where: { id: orderId },
+      data: { address: serializeOrderMeta(meta) },
+    });
+
+    revalidatePath("/umkm/orders");
+    revalidatePath("/umkm/seller");
+    revalidatePath(`/umkm/orders/${orderId}/tracking`);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Penjual / Kurir Desa memperbarui posisi & log perjalanan barang secara real-time
+ */
+export async function addOrderTrackingUpdate(
+  orderId: string,
+  data: {
+    step: "PACKING" | "SHIPPED" | "DELIVERED";
+    title: string;
+    note: string;
+    courierName?: string;
+    courierPhone?: string;
+  }
+) {
+  try {
+    const order = await prisma.umkmOrder.findUnique({
+      where: { id: orderId },
+      include: { store: true },
+    });
+    if (!order) return { success: false, error: "Pesanan tidak ditemukan" };
+    await assertStoreAuthority(order.storeId);
+
+    const meta = parseOrderMeta(order.address, order.totalAmount);
+    const nowIso = new Date().toISOString();
+    if (data.courierName?.trim()) meta.courierName = data.courierName.trim();
+    if (data.courierPhone?.trim()) meta.courierPhone = data.courierPhone.trim();
+    meta.trackingNote = data.note.trim();
+    meta.trackingEvents = meta.trackingEvents || [];
+    meta.trackingEvents.push({
+      time: nowIso,
+      step: data.step,
+      title: data.title.trim(),
+      note: data.note.trim(),
+      actor: order.store.storeName,
+    });
+
+    const nextDbStatus =
+      data.step === "DELIVERED"
+        ? "COMPLETED"
+        : data.step === "SHIPPED"
+          ? "SHIPPED"
+          : order.status;
+
+    if (data.step === "SHIPPED" && !meta.shippedAt) meta.shippedAt = nowIso;
+    if (data.step === "DELIVERED") {
+      meta.completedAt = nowIso;
+      if (meta.paymentStatus !== "SETTLED") {
+        meta.paymentStatus = "SETTLED";
+        meta.paidAt = meta.paidAt || nowIso;
+      }
+    }
+
+    await prisma.umkmOrder.update({
+      where: { id: orderId },
+      data: {
+        status: nextDbStatus,
+        address: serializeOrderMeta(meta),
+      },
+    });
+
+    revalidatePath("/umkm/seller");
+    revalidatePath("/umkm/orders");
+    revalidatePath(`/umkm/orders/${orderId}/tracking`);
+    revalidatePath(`/umkm/orders/${orderId}/receipt`);
+    return { success: true };
+  } catch (error: any) {
     return { success: false, error: error.message };
   }
 }

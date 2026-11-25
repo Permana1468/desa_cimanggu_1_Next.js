@@ -7,7 +7,7 @@ import {
   ArrowLeft, MapPin, CheckCircle2, QrCode, Building2, Truck,
   ShieldCheck, Printer, Copy, Loader2, Wallet, CreditCard
 } from "lucide-react";
-import { createSecureCheckout } from "@/app/actions/umkm";
+import { createSecureCheckout, submitManualPaymentProof } from "@/app/actions/umkm";
 import { UmkmSafeImage } from "@/components/umkm/UmkmSafeImage";
 import { UmkmQrImage } from "@/components/umkm/UmkmQrImage";
 
@@ -30,6 +30,9 @@ export default function CheckoutPage() {
   const [createdOrders, setCreatedOrders] = useState<any[] | null>(null);
   const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [paidOrderIds, setPaidOrderIds] = useState<Record<string, boolean>>({});
+  const [awaitingVerifyIds, setAwaitingVerifyIds] = useState<Record<string, boolean>>({});
+  const [senderNameMap, setSenderNameMap] = useState<Record<string, string>>({});
+  const [proofNoteMap, setProofNoteMap] = useState<Record<string, string>>({});
   const [copiedText, setCopiedText] = useState<string | null>(null);
 
   // Kalkulasi pratinjau identik dengan C++ Native Ledger Engine (umkm_ledger)
@@ -120,6 +123,29 @@ export default function CheckoutPage() {
     }
   };
 
+  const handleSubmitDirectProof = async (orderId: string) => {
+    const sender = senderNameMap[orderId] || recipientName;
+    if (!sender.trim()) {
+      setErrorMsg("Mohon isi nama pengirim transfer/e-wallet.");
+      return;
+    }
+    setVerifyingId(orderId);
+    setErrorMsg("");
+    try {
+      const res = await submitManualPaymentProof(orderId, {
+        senderName: sender.trim(),
+        note: proofNoteMap[orderId] || "",
+      });
+      if (!res.success) {
+        setErrorMsg(res.error || "Gagal mengirim konfirmasi transfer.");
+      } else {
+        setAwaitingVerifyIds((prev) => ({ ...prev, [orderId]: true }));
+      }
+    } finally {
+      setVerifyingId(null);
+    }
+  };
+
   const handleCopy = (txt: string) => {
     navigator.clipboard.writeText(txt);
     setCopiedText(txt);
@@ -149,7 +175,9 @@ export default function CheckoutPage() {
 
           {createdOrders.map((ord) => {
             const isPaid = paidOrderIds[ord.id] || ord.status === "PAID";
+            const isAwaiting = awaitingVerifyIds[ord.id];
             const meta = ord.meta;
+            const isDirectMerchant = meta.gatewayProvider === "DIRECT_MERCHANT" && meta.storeBankInfo;
 
             return (
               <div key={ord.id} className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
@@ -162,12 +190,20 @@ export default function CheckoutPage() {
                     className={`px-3 py-1 rounded-full text-[11px] font-black uppercase ${
                       isPaid
                         ? "bg-emerald-500 text-white"
-                        : meta.paymentMethod === "COD"
-                          ? "bg-blue-500 text-white"
-                          : "bg-amber-400 text-slate-950"
+                        : isAwaiting
+                          ? "bg-indigo-500 text-white"
+                          : meta.paymentMethod === "COD"
+                            ? "bg-blue-500 text-white"
+                            : "bg-amber-400 text-slate-950"
                     }`}
                   >
-                    {isPaid ? "LUNAS (PAID)" : meta.paymentMethod === "COD" ? "COD - MENUNGGU KURIR" : "MENUNGGU PEMBAYARAN"}
+                    {isPaid
+                      ? "LUNAS (PAID)"
+                      : isAwaiting
+                        ? "MENUNGGU VERIFIKASI PENJUAL"
+                        : meta.paymentMethod === "COD"
+                          ? "COD - MENUNGGU KURIR"
+                          : "MENUNGGU PEMBAYARAN"}
                   </span>
                 </div>
 
@@ -177,8 +213,71 @@ export default function CheckoutPage() {
                     <span className="text-lg font-black text-blue-700">{formatRp(ord.totalAmount)}</span>
                   </div>
 
+                  {/* Direct Merchant Bank / QRIS Milik Pemilik Toko */}
+                  {!isPaid && !isAwaiting && isDirectMerchant && (
+                    <div className="bg-emerald-50/60 border border-emerald-200 rounded-2xl p-5 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-black text-emerald-800 uppercase">
+                          Rekening / QRIS Resmi Pemilik Toko (Terverifikasi BUMDes)
+                        </span>
+                      </div>
+                      {meta.paymentMethod === "QRIS" && meta.storeBankInfo.qrisImageUrl ? (
+                        <div className="bg-white p-3 rounded-2xl border border-emerald-200 flex flex-col items-center">
+                          <img src={meta.storeBankInfo.qrisImageUrl} alt="QRIS Toko" className="w-48 h-48 object-contain" />
+                          <p className="text-[11px] font-bold text-slate-600 mt-2">
+                            a.n. {meta.storeBankInfo.accountHolder}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="bg-white p-4 rounded-xl border border-emerald-200 space-y-1">
+                          <span className="text-xs font-black text-slate-500">{meta.storeBankInfo.bankName}</span>
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono text-lg font-black text-slate-900">{meta.storeBankInfo.accountNumber}</span>
+                            <button
+                              onClick={() => handleCopy(meta.storeBankInfo.accountNumber)}
+                              className="px-2.5 py-1 rounded-lg bg-slate-100 text-xs font-bold cursor-pointer"
+                            >
+                              Salin
+                            </button>
+                          </div>
+                          <span className="text-xs font-bold text-slate-700 block">a.n. {meta.storeBankInfo.accountHolder}</span>
+                        </div>
+                      )}
+
+                      <div className="space-y-2 pt-2 border-t border-emerald-200/70">
+                        <input
+                          type="text"
+                          placeholder="Nama Pengirim di Rekening / e-Wallet"
+                          value={senderNameMap[ord.id] ?? recipientName}
+                          onChange={(e) => setSenderNameMap((p) => ({ ...p, [ord.id]: e.target.value }))}
+                          className="w-full border border-emerald-300 bg-white rounded-xl px-3 py-2 text-xs"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Catatan / No. Referensi Transfer (Opsional)"
+                          value={proofNoteMap[ord.id] ?? ""}
+                          onChange={(e) => setProofNoteMap((p) => ({ ...p, [ord.id]: e.target.value }))}
+                          className="w-full border border-emerald-300 bg-white rounded-xl px-3 py-2 text-xs"
+                        />
+                        <button
+                          onClick={() => handleSubmitDirectProof(ord.id)}
+                          disabled={verifyingId === ord.id}
+                          className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black cursor-pointer disabled:opacity-50"
+                        >
+                          {verifyingId === ord.id ? "Mengirim..." : "Kirim Konfirmasi Transfer ke Penjual"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {isAwaiting && !isPaid && (
+                    <div className="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 text-xs text-indigo-800 font-bold">
+                      Konfirmasi transfer telah dikirim ke pemilik toko. Penjual sedang mengecek mutasi masuk untuk menerbitkan status LUNAS.
+                    </div>
+                  )}
+
                   {/* QRIS Display */}
-                  {!isPaid && meta.paymentMethod === "QRIS" && meta.qrisPayload && (
+                  {!isPaid && !isDirectMerchant && meta.paymentMethod === "QRIS" && meta.qrisPayload && (
                     <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 flex flex-col items-center text-center space-y-3">
                       <span className="text-xs font-black uppercase tracking-wider text-blue-700 bg-blue-50 px-3 py-1 rounded-full">
                         Scan QRIS Nasional ({meta.gatewayProvider})
@@ -201,7 +300,7 @@ export default function CheckoutPage() {
                   )}
 
                   {/* Virtual Account Bank Display */}
-                  {!isPaid && meta.paymentMethod === "BANK_VA" && meta.vaNumber && (
+                  {!isPaid && !isDirectMerchant && meta.paymentMethod === "BANK_VA" && meta.vaNumber && (
                     <div className="bg-blue-50/70 border border-blue-200 rounded-2xl p-5 space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-black text-blue-800 uppercase">
@@ -240,17 +339,18 @@ export default function CheckoutPage() {
                   {/* Action Buttons -> Cetak Struk / Bon Resmi */}
                   <div className="flex flex-wrap gap-3 pt-2 border-t border-slate-100">
                     <Link
+                      href={`/umkm/orders/${ord.id}/tracking`}
+                      className="py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black flex items-center justify-center gap-2"
+                    >
+                      <MapPin size={15} />
+                      <span>Lacak Barang (Live)</span>
+                    </Link>
+                    <Link
                       href={`/umkm/orders/${ord.id}/receipt`}
                       className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-black flex items-center justify-center gap-2"
                     >
                       <Printer size={15} />
-                      <span>Lihat &amp; Cetak Struk / Bon Resmi</span>
-                    </Link>
-                    <Link
-                      href="/umkm/orders"
-                      className="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold"
-                    >
-                      Pesanan Saya
+                      <span>Cetak Struk / Bon Resmi</span>
                     </Link>
                   </div>
                 </div>
