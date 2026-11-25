@@ -26,6 +26,8 @@ export async function getSekdesCommandCenterData() {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
     const curYear = today.getFullYear();
     const curMonth = today.getMonth() + 1;
     const startOfMonth = new Date(curYear, curMonth - 1, 1);
@@ -35,6 +37,7 @@ export async function getSekdesCommandCenterData() {
         suratVerifiedCount,
         suratApprovedToday,
         pendingSuratList,
+        surat7DaysRaw,
         unverifiedWargaCount,
         totalWargaAktif,
         totalAparatur,
@@ -71,6 +74,10 @@ export async function getSekdesCommandCenterData() {
                 }
             }
         }),
+        prisma.surat.findMany({
+            where: { tenantId, createdAt: { gte: sevenDaysAgo } },
+            select: { createdAt: true, status: true }
+        }),
         prisma.user.count({ where: { tenantId, role: "WARGA", isActive: false } }),
         prisma.dataKependudukan.count({
             where: { tenantId, statusKependudukan: { notIn: ["MENINGGAL", "PINDAH", "PINDAH_KELUAR"] } }
@@ -92,15 +99,53 @@ export async function getSekdesCommandCenterData() {
     let totalPendapatan = 0;
     let totalBelanjaAnggaran = 0;
     let totalBelanjaRealisasi = 0;
+    const apbdesByCat: Record<string, { kategori: string; anggaran: number; realisasi: number }> = {};
 
     apbdesItems.forEach((item: any) => {
-        const kat = (item.kategori || "").toUpperCase();
-        if (kat.includes("PENDAPATAN")) {
+        const katRaw = (item.kategori || "LAINNYA").toUpperCase();
+        const katLabel = katRaw.includes("PENDAPATAN")
+            ? "Pendapatan"
+            : katRaw.includes("BELANJA")
+                ? "Belanja"
+                : katRaw.includes("PEMBIAYAAN")
+                    ? "Pembiayaan"
+                    : item.kategori || "Lainnya";
+
+        if (!apbdesByCat[katLabel]) {
+            apbdesByCat[katLabel] = { kategori: katLabel, anggaran: 0, realisasi: 0 };
+        }
+        apbdesByCat[katLabel].anggaran += item.anggaranTotal || 0;
+        apbdesByCat[katLabel].realisasi += item.realisasi || 0;
+
+        if (katRaw.includes("PENDAPATAN")) {
             totalPendapatan += item.anggaranTotal || 0;
-        } else if (kat.includes("BELANJA")) {
+        } else if (katRaw.includes("BELANJA")) {
             totalBelanjaAnggaran += item.anggaranTotal || 0;
             totalBelanjaRealisasi += item.realisasi || 0;
         }
+    });
+
+    const dayNames = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+    const trendMap: Record<string, { label: string; masuk: number; terverifikasi: number; disetujui: number }> = {};
+    for (let i = 0; i < 7; i++) {
+        const d = new Date(sevenDaysAgo);
+        d.setDate(d.getDate() + i);
+        const key = d.toISOString().slice(0, 10);
+        trendMap[key] = {
+            label: `${dayNames[d.getDay()]} ${d.getDate()}/${d.getMonth() + 1}`,
+            masuk: 0,
+            terverifikasi: 0,
+            disetujui: 0
+        };
+    }
+
+    surat7DaysRaw.forEach((s: any) => {
+        const key = new Date(s.createdAt).toISOString().slice(0, 10);
+        const bucket = trendMap[key];
+        if (!bucket) return;
+        bucket.masuk += 1;
+        if (s.status === "TERVERIFIKASI") bucket.terverifikasi += 1;
+        if (s.status === "DISETUJUI") bucket.disetujui += 1;
     });
 
     const serapanPersen = totalBelanjaAnggaran > 0
@@ -141,6 +186,10 @@ export async function getSekdesCommandCenterData() {
                 pindah: moveMonthCount,
                 datang: incomingMonthCount
             }
+        },
+        charts: {
+            suratTrend: Object.values(trendMap),
+            apbdesBreakdown: Object.values(apbdesByCat)
         }
     };
 }

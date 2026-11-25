@@ -62,7 +62,7 @@ export default async function VillageAdminLayout({
 
         {/* Scrollable Page Content */}
         <main className={`flex-1 overflow-y-auto p-3 sm:p-5 lg:p-7 pb-24 lg:pb-8 custom-scrollbar bg-white ${isHackerTheme ? 'hacker-theme-override' : ''}`}>
-          <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-200">
             {isHackerTheme && (
               <style dangerouslySetInnerHTML={{ __html: `
                 .hacker-theme-override .bg-white {

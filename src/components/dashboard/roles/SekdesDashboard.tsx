@@ -3,15 +3,26 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
-    FileText, CheckCircle2, Clock, Users, Banknote, ShieldCheck,
-    RefreshCw, ArrowRight, Archive, QrCode, UserCheck, Building2,
-    HardHat, FileCheck2, Loader2, Sparkles, Database
+    FileText, CheckCircle2, Clock, Users, Banknote,
+    RefreshCw, ArrowRight, Archive, QrCode, UserCheck,
+    FileCheck2, Loader2, Sparkles, Database, TrendingUp, BarChart3
 } from "lucide-react";
+import {
+    ResponsiveContainer, AreaChart, Area, BarChart, Bar,
+    XAxis, YAxis, CartesianGrid, Tooltip, Legend
+} from "recharts";
 import { getSekdesCommandCenterData, verifySuratBySekdes } from "@/actions/sekdes";
 import { triggerNotificationRefresh } from "@/hooks/useNotifications";
 
 const formatRp = (val: number) =>
     new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(val || 0);
+
+const formatJuta = (val: number) => {
+    if (!val) return "Rp 0";
+    if (val >= 1_000_000_000) return `Rp ${(val / 1_000_000_000).toFixed(1)} M`;
+    if (val >= 1_000_000) return `Rp ${(val / 1_000_000).toFixed(1)} Jt`;
+    return formatRp(val);
+};
 
 export function SekdesDashboard({ session }: { session: any }) {
     const [data, setData] = useState<any | null>(null);
@@ -71,6 +82,13 @@ export function SekdesDashboard({ session }: { session: any }) {
         try {
             await verifySuratBySekdes(id);
             triggerNotificationRefresh();
+            if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+                try {
+                    const bc = new BroadcastChannel("desa_cimanggu_realtime_sync");
+                    bc.postMessage({ type: "SURAT_PARAF_SEKDES", id });
+                    bc.close();
+                } catch {}
+            }
             await loadData(false);
         } catch (err) {
             console.error("Gagal memverifikasi surat:", err);
@@ -92,6 +110,8 @@ export function SekdesDashboard({ session }: { session: any }) {
     const ppkd = data?.ppkd || { tahun: new Date().getFullYear(), totalPendapatan: 0, totalBelanjaAnggaran: 0, totalBelanjaRealisasi: 0, serapanPersen: 0, pendingProposals: 0 };
     const kepegawaian = data?.kepegawaian || { totalAparatur: 0, hadirHariIni: 0, kehadiranPersen: 0 };
     const kependudukan = data?.kependudukan || { totalWargaAktif: 0, unverifiedWargaCount: 0, totalArsipDokumen: 0, mutasiBulanIni: { lahir: 0, mati: 0, pindah: 0, datang: 0 } };
+    const suratTrend = data?.charts?.suratTrend || [];
+    const apbdesBreakdown = data?.charts?.apbdesBreakdown || [];
 
     return (
         <div className="space-y-6 pb-16 animate-in fade-in duration-300">
@@ -192,6 +212,87 @@ export function SekdesDashboard({ session }: { session: any }) {
                         <span className="text-indigo-600">{kependudukan.totalArsipDokumen} Arsip</span>
                     </div>
                 </Link>
+            </div>
+
+            {/* GRAFIK ANALITIK REAL-TIME TUPOKSI SEKDES */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white rounded-[2rem] p-6 border border-slate-200/80 shadow-xs flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                <TrendingUp size={17} className="text-blue-600" /> Tren Layanan Persuratan &amp; Paraf (7 Hari)
+                            </h3>
+                            <p className="text-[11px] text-slate-500 mt-0.5">Monitoring real-time surat masuk, paraf Sekdes, &amp; pengesahan Kades</p>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black uppercase">Live</span>
+                    </div>
+                    <div className="h-[240px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={suratTrend} margin={{ top: 10, right: 12, left: -20, bottom: 0 }}>
+                                <defs>
+                                    <linearGradient id="sekdesSuratMasuk" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.35} />
+                                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="sekdesSuratParaf" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
+                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#64748b", fontWeight: 600 }} axisLine={false} tickLine={false} />
+                                <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: "16px", border: "1px solid #e2e8f0", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.08)", fontSize: "12px", fontWeight: 600 }}
+                                />
+                                <Legend wrapperStyle={{ fontSize: "11px", fontWeight: 700, paddingTop: "8px" }} />
+                                <Area type="monotone" dataKey="masuk" name="Surat Masuk" stroke="#3b82f6" strokeWidth={2.5} fillOpacity={1} fill="url(#sekdesSuratMasuk)" />
+                                <Area type="monotone" dataKey="terverifikasi" name="Paraf Sekdes" stroke="#f59e0b" strokeWidth={2} fillOpacity={0.1} fill="#f59e0b" />
+                                <Area type="monotone" dataKey="disetujui" name="Disetujui Kades" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#sekdesSuratParaf)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-[2rem] p-6 border border-slate-200/80 shadow-xs flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 className="text-sm font-black text-slate-900 flex items-center gap-2">
+                                <BarChart3 size={17} className="text-emerald-600" /> Postur &amp; Realisasi APBDes (PPKD {ppkd.tahun})
+                            </h3>
+                            <p className="text-[11px] text-slate-500 mt-0.5">Perbandingan Pagu Anggaran vs Realisasi Keuangan Desa</p>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase">
+                            Serapan {ppkd.serapanPersen}%
+                        </span>
+                    </div>
+                    <div className="h-[240px] w-full">
+                        {apbdesBreakdown.length === 0 ? (
+                            <div className="h-full flex items-center justify-center text-xs text-slate-400 font-semibold">
+                                Belum ada data APBDes tahun {ppkd.tahun}.
+                            </div>
+                        ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={apbdesBreakdown} margin={{ top: 10, right: 12, left: 4, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                                    <XAxis dataKey="kategori" tick={{ fontSize: 11, fill: "#64748b", fontWeight: 700 }} axisLine={false} tickLine={false} />
+                                    <YAxis tickFormatter={(v) => `${Math.round(v / 1_000_000)}Jt`} tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                                    <Tooltip
+                                        formatter={(value: any) => formatRp(Number(value || 0))}
+                                        contentStyle={{ borderRadius: "16px", border: "1px solid #e2e8f0", boxShadow: "0 10px 25px -5px rgba(0,0,0,0.08)", fontSize: "12px", fontWeight: 600 }}
+                                    />
+                                    <Legend wrapperStyle={{ fontSize: "11px", fontWeight: 700, paddingTop: "8px" }} />
+                                    <Bar dataKey="anggaran" name="Pagu Anggaran" fill="#1e40af" radius={[8, 8, 0, 0]} maxBarSize={44} />
+                                    <Bar dataKey="realisasi" name="Realisasi" fill="#10b981" radius={[8, 8, 0, 0]} maxBarSize={44} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
+                    <div className="mt-2 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] font-bold text-slate-500">
+                        <span>Total Pendapatan: <strong className="text-slate-800">{formatJuta(ppkd.totalPendapatan)}</strong></span>
+                        <span>Realisasi Belanja: <strong className="text-emerald-700">{formatJuta(ppkd.totalBelanjaRealisasi)}</strong></span>
+                    </div>
+                </div>
             </div>
 
             {/* PANEL UTAMA: ANTREAN PARAF SURAT & KOORDINASI PPKD */}

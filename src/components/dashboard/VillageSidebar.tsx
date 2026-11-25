@@ -4,7 +4,7 @@ import NextLink from "next/link";
 import type { ComponentProps } from "react";
 
 function Link(props: ComponentProps<typeof NextLink>) {
-  return <NextLink prefetch={true} {...props} />;
+  return <NextLink {...props} />;
 }
 import { usePathname, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -1754,7 +1754,6 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                         <Link
                           key={item.name}
                           href={item.href}
-                          prefetch={false}
                           onClick={() => setIsOpen(false)}
                           className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all group ${
                             isActive
