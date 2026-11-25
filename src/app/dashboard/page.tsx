@@ -15,6 +15,7 @@ const RoleLoading = () => (
 
 // Dynamic Role Components (split bundle & compilation per role)
 const ExecutiveDashboard = dynamic(() => import("@/components/dashboard/roles/ExecutiveDashboard").then(m => m.ExecutiveDashboard), { loading: RoleLoading });
+const SekdesDashboard = dynamic(() => import("@/components/dashboard/roles/SekdesDashboard").then(m => m.SekdesDashboard), { loading: RoleLoading });
 const WilayahDashboard = dynamic(() => import("@/components/dashboard/roles/WilayahDashboard").then(m => m.WilayahDashboard), { loading: RoleLoading });
 const KadusDashboard = dynamic(() => import("@/components/dashboard/roles/KadusDashboard").then(m => m.KadusDashboard), { loading: RoleLoading });
 const WargaDashboard = dynamic(() => import("@/components/dashboard/roles/WargaDashboard").then(m => m.WargaDashboard), { loading: RoleLoading });
@@ -60,11 +61,12 @@ export default async function VillageDashboardPage() {
     }
   }
 
-  const isExecutive = ["ADMIN_DESA", "KADES", "SEKDES", "ADMIN_MASTER"].includes(role) && !email.includes("operator");
+  const isExecutive = ["ADMIN_DESA", "KADES", "ADMIN_MASTER"].includes(role) && !email.includes("operator");
   const isWarga = role === "WARGA";
   const needsSurat = isExecutive || isWarga;
   const isPerencanaan = role === "KAUR_PERENCANAAN";
-  const needsStats = !isPerencanaan;
+  const isSekdes = role === "SEKDES";
+  const needsStats = !isPerencanaan && !isSekdes;
 
   // Fetch only what this role needs, executing in parallel to eliminate waterfall latency
   const [stats, latestSurat, realtimeStats, villageProfile] = await Promise.all([
@@ -76,8 +78,13 @@ export default async function VillageDashboardPage() {
     isExecutive ? getVillageProfile() : Promise.resolve(null)
   ]);
 
+  // 0. SEKRETARIS DESA (Tupoksi Khusus Koordinator PPKD & Tata Usaha Pemerintahan)
+  if (isSekdes) {
+    return <SekdesDashboard session={session} />;
+  }
+
   // 1. EXECUTIVE ROLES (Pimpinan & Manajemen Umum)
-  if (["ADMIN_DESA", "KADES", "SEKDES", "ADMIN_MASTER"].includes(role)) {
+  if (["ADMIN_DESA", "KADES", "ADMIN_MASTER"].includes(role)) {
     if (email.includes("operator")) {
       return <OperatorDashboard session={session} stats={stats} />;
     }

@@ -79,6 +79,41 @@ import { GlobalNotificationPanel } from "./GlobalNotificationPanel";
 import { getVillageDashboardStats } from "@/actions/village";
 import { detectUserPosyanduUnit } from "@/lib/posyandu";
 
+const sekdesMenuGroups = [
+  {
+    category: "Sekretariat & Persuratan",
+    items: [
+      { name: "Dashboard Sekdes", icon: LayoutDashboard, href: "/dashboard" },
+      { name: "Pusat Persuratan & Paraf", icon: FileText, href: "/dashboard/surat", badgeKey: "suratPending", badgeColor: "bg-rose-500 text-white" },
+      { name: "Verifikasi Akun Warga", icon: UserCog, href: "/dashboard/verifikasi-warga", badgeKey: "unverifiedWarga", badgeColor: "bg-amber-500 text-white" },
+    ],
+  },
+  {
+    category: "Koordinator Keuangan (PPKD)",
+    items: [
+      { name: "APBDes Transparansi", icon: PieChart, href: "/dashboard/apbdes" },
+      { name: "Infrastruktur & Proyek", icon: HardHat, href: "/dashboard/infrastruktur" },
+    ],
+  },
+  {
+    category: "Kepegawaian & Kelembagaan",
+    items: [
+      { name: "Aparatur Desa", icon: Users, href: "/dashboard/aparatur" },
+      { name: "E-Absensi Aparatur", icon: QrCode, href: "/dashboard/e-absensi" },
+      { name: "Kelembagaan Desa", icon: Building2, href: "/dashboard/kelembagaan" },
+    ],
+  },
+  {
+    category: "Kependudukan & Kearsipan",
+    items: [
+      { name: "Data Kependudukan", icon: Database, href: "/dashboard/warga" },
+      { name: "Arsip Digital", icon: Archive, href: "/dashboard/arsip" },
+      { name: "Arsip Laporan", icon: Folder, href: "/dashboard/arsip-laporan" },
+      { name: "Format Dokumen", icon: FileText, href: "/dashboard/format-dokumen" },
+    ],
+  },
+];
+
 const adminDesaMenuGroups = [
   {
     category: "Pelayanan Warga",
@@ -1682,9 +1717,9 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                </Link>
              </div>
           ) : ["ADMIN_DESA", "ADMIN_MASTER", "KADES", "SEKDES"].includes(role as string) ? (
-            // === ADMIN DESA / EKSEKUTIF ORGANIZED CATEGORIZED SIDEBAR ===
+            // === ADMIN DESA / EKSEKUTIF / SEKDES ORGANIZED CATEGORIZED SIDEBAR ===
             <div className="space-y-2 pb-6">
-              {adminDesaMenuGroups.map((group, groupIdx) => (
+              {(role === "SEKDES" ? sekdesMenuGroups : adminDesaMenuGroups).map((group, groupIdx) => (
                 <div key={group.category} className="space-y-1">
                   {/* Section Header */}
                   <div className={`pb-1 ${groupIdx > 0 ? "pt-3.5" : "pt-1"} ${isCollapsed && !isOpen ? "px-1" : "px-3"}`}>
@@ -1719,7 +1754,7 @@ export const VillageSidebar = ({ session: propSession, isHackerTheme }: VillageS
                         <Link
                           key={item.name}
                           href={item.href}
-                          prefetch={true}
+                          prefetch={false}
                           onClick={() => setIsOpen(false)}
                           className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all group ${
                             isActive
