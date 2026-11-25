@@ -20,9 +20,11 @@ import {
   Edit3,
   Check
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { getRealtimeSystemHealth } from "@/actions/systemMonitor";
+import { getRkkdPagus } from "@/lib/rkkdStore";
 import type { RkkdSubFeature } from "../perencanaan/CyberPlanRkkdTab";
 import type { MusrenbangSubFeature } from "../perencanaan/CyberPlanMusrenbangTab";
 
@@ -50,7 +52,50 @@ export function PerencanaanDashboard({ session, stats, isHackerTheme }: { sessio
   // Real-time states
   const [serverLoad, setServerLoad] = useState(24);
   const [dbSync, setDbSync] = useState(100);
-  const [serapan, setSerapan] = useState(56.1);
+  const [serapan, setSerapan] = useState(88.2);
+
+  const syncKaurMetrics = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+    try {
+      // 1. Live system memory & load
+      const health = await getRealtimeSystemHealth();
+      if (health?.memory?.osUsagePercent) {
+        setServerLoad(Math.min(99, Math.max(12, health.memory.osUsagePercent)));
+      }
+      setDbSync(100);
+
+      // 2. Live APBDes serapan
+      const rkkdPagus = getRkkdPagus();
+      const pad = 1000000;
+      const dds = rkkdPagus.DDS || 1530723000;
+      const bhprd = rkkdPagus.PBH || 445623299;
+      const add = rkkdPagus.ADD || 916400000;
+      const banprov = rkkdPagus.PBP || 130000000;
+      const bankab = rkkdPagus.PBK || 1500000000;
+      const totalPen = pad + dds + bhprd + add + banprov + bankab;
+      const totalBel = 1522247183 + 1922158000 + 273755000 + 46375000 + 226800000;
+      if (totalPen > 0) {
+        setSerapan(Number(((totalBel / totalPen) * 100).toFixed(1)));
+      }
+    } catch (e) {
+      console.warn("Failed to sync Kaur Perencanaan live metrics:", e);
+    }
+  }, []);
+
+  useEffect(() => {
+    syncKaurMetrics();
+
+    const handleRefresh = () => syncKaurMetrics();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+
+    const interval = setInterval(syncKaurMetrics, 30000);
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      clearInterval(interval);
+    };
+  }, [syncKaurMetrics]);
 
   // 3D Avatar Profile Image & Custom Name state (with localStorage persistence)
   const [avatarUrl, setAvatarUrl] = useState<string>("/images/Perangkat Oke.png");

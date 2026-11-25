@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { 
   Folder, 
   FolderPlus, 
@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 import { StatusSurat } from "@prisma/client";
 import Link from "next/link";
+import { getVillageDashboardStats, getSuratList } from "@/actions/village";
+import { getDashboardRealtimeStats } from "@/actions/dashboard";
 
 interface ExecutiveDashboardProps {
   session: any;
@@ -43,11 +45,48 @@ interface ExecutiveDashboardProps {
 
 export function ExecutiveDashboard({
   session,
-  stats,
-  latestSurat,
-  realtimeStats,
+  stats: initialStats,
+  latestSurat: initialLatestSurat,
+  realtimeStats: initialRealtimeStats,
   villageProfile,
 }: ExecutiveDashboardProps) {
+  const [stats, setStats] = useState(initialStats || {});
+  const [latestSurat, setLatestSurat] = useState(initialLatestSurat || []);
+  const [realtimeStats, setRealtimeStats] = useState(initialRealtimeStats || null);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const fetchLiveExecutiveData = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+    try {
+      setIsSyncing(true);
+      const [vStats, suratList, rtStats] = await Promise.all([
+        getVillageDashboardStats(),
+        getSuratList(),
+        getDashboardRealtimeStats(),
+      ]);
+      if (vStats) setStats(vStats);
+      if (Array.isArray(suratList)) setLatestSurat(suratList);
+      if (rtStats) setRealtimeStats(rtStats);
+    } catch (err) {
+      console.warn("Failed to sync live executive stats:", err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleRefresh = () => fetchLiveExecutiveData();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+
+    const interval = setInterval(fetchLiveExecutiveData, 30000);
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      clearInterval(interval);
+    };
+  }, [fetchLiveExecutiveData]);
+
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFolderFilter, setActiveFolderFilter] = useState<string>("ALL");

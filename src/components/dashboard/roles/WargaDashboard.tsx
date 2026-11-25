@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import { 
   FileText,
   Clock,
@@ -10,10 +13,51 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { StatusSurat } from "@prisma/client";
+import { getSuratList } from "@/actions/village";
 
-export function WargaDashboard({ session, stats, latestSurat }: { session: any, stats: any, latestSurat: any[] }) {
-  // Only show the user's own letters. (Assume latestSurat is already filtered by the server action or we just show a static view for now).
-  // For proof of concept, we'll map the latestSurat if available, otherwise show empty state.
+export function WargaDashboard({ 
+  session, 
+  stats, 
+  latestSurat: initialLatestSurat 
+}: { 
+  session: any; 
+  stats: any; 
+  latestSurat: any[]; 
+}) {
+  const [latestSurat, setLatestSurat] = useState<any[]>(initialLatestSurat || []);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const fetchLiveWargaSurat = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+    try {
+      setIsSyncing(true);
+      const suratList = await getSuratList();
+      if (Array.isArray(suratList)) {
+        setLatestSurat(suratList);
+      }
+    } catch (err) {
+      console.warn("Failed to sync citizen letters:", err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleRefresh = () => fetchLiveWargaSurat();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+
+    const interval = setInterval(fetchLiveWargaSurat, 30000);
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      clearInterval(interval);
+    };
+  }, [fetchLiveWargaSurat]);
+
+  const activeCount = latestSurat.filter((s: any) => 
+    s.status !== StatusSurat.DISETUJUI && s.status !== StatusSurat.DITOLAK
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -35,16 +79,19 @@ export function WargaDashboard({ session, stats, latestSurat }: { session: any, 
                 </p>
                 
                 <div className="pt-4 flex gap-3">
-                    <button className="bg-white text-blue-600 px-6 py-3 rounded-2xl text-xs font-bold shadow-lg hover:shadow-white/20 hover:-translate-y-1 transition-all flex items-center gap-2">
+                    <Link 
+                      href="/dashboard/surat"
+                      className="bg-white text-blue-600 px-6 py-3 rounded-2xl text-xs font-bold shadow-lg hover:shadow-white/20 hover:-translate-y-1 transition-all flex items-center gap-2"
+                    >
                         <Plus size={16} /> Buat Pengajuan Baru
-                    </button>
+                    </Link>
                 </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white/10 border border-white/20 rounded-2xl p-4 min-w-[140px] backdrop-blur-md">
                     <span className="block text-[10px] font-bold text-blue-100 mb-1 uppercase">Pengajuan Aktif</span>
-                    <span className="block text-3xl font-black text-white">1</span>
+                    <span className="block text-3xl font-black text-white">{activeCount}</span>
                 </div>
             </div>
         </div>
@@ -139,9 +186,9 @@ function UserRequestCard({ jenis, tanggal, status, step }: any) {
                 </div>
             </div>
             <div>
-                <button className="w-full sm:w-auto px-4 py-2 bg-slate-50 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-100 transition-all">
+                <Link href="/dashboard/surat" className="inline-block w-full sm:w-auto px-4 py-2 bg-slate-50 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-100 transition-all text-center">
                     Lacak Detail
-                </button>
+                </Link>
             </div>
         </div>
     )

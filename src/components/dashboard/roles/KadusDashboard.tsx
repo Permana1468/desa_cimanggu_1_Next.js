@@ -20,19 +20,32 @@ export function KadusDashboard({ session, stats: initialStats }: { session: any,
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (showLoading = true) => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+    if (showLoading) setLoading(true);
     try {
       const summary = await getKadusDashboardSummary();
       setData(summary);
     } catch (e) {
       console.error(e);
+    } finally {
+      if (showLoading) setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(true);
+
+    const handleRefresh = () => fetchData(false);
+    window.addEventListener("refresh-notifications", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+
+    const interval = setInterval(() => fetchData(false), 30000);
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      clearInterval(interval);
+    };
   }, []);
 
 

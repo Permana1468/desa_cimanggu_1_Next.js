@@ -30,10 +30,37 @@ export interface NotificationItem {
 
 const STORAGE_READ_KEY = "desa_cimanggu_read_notif_ids_v2";
 const STORAGE_DELETED_KEY = "desa_cimanggu_deleted_notif_ids_v2";
+const SYNC_CHANNEL_NAME = "desa_cimanggu_realtime_sync";
+
+function getBroadcastChannel(): BroadcastChannel | null {
+  if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+    try {
+      return new BroadcastChannel(SYNC_CHANNEL_NAME);
+    } catch {
+      return null;
+    }
+  }
+  return null;
+}
 
 export function triggerNotificationRefresh() {
   if (typeof window !== "undefined") {
+    // 1. Dispatch locally in the current tab
     window.dispatchEvent(new Event("refresh-notifications"));
+
+    // 2. Broadcast to all other open tabs/windows on the machine
+    try {
+      const channel = getBroadcastChannel();
+      if (channel) {
+        channel.postMessage({ type: "SYNC_EVENT", timestamp: Date.now() });
+        channel.close();
+      }
+    } catch {
+      // Fallback: localStorage storage event
+      try {
+        localStorage.setItem("desa_cimanggu_last_sync", String(Date.now()));
+      } catch {}
+    }
   }
 }
 
@@ -103,12 +130,39 @@ export function useNotifications() {
     window.addEventListener("refresh-notifications", handleRefresh);
     window.addEventListener("focus", handleFocus);
 
+    // Cross-tab synchronization listener via BroadcastChannel
+    let channel: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        channel = new BroadcastChannel(SYNC_CHANNEL_NAME);
+        channel.onmessage = (event) => {
+          if (event.data?.type === "SYNC_EVENT") {
+            window.dispatchEvent(new Event("refresh-notifications"));
+          }
+        };
+      } catch {}
+    }
+
+    // Fallback for storage event across tabs
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "desa_cimanggu_last_sync") {
+        window.dispatchEvent(new Event("refresh-notifications"));
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+
     // Non-intrusive polling every 30 seconds for background notifications
     const interval = setInterval(fetchLive, 30000);
 
     return () => {
       window.removeEventListener("refresh-notifications", handleRefresh);
       window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("storage", handleStorage);
+      if (channel) {
+        try {
+          channel.close();
+        } catch {}
+      }
       clearInterval(interval);
     };
   }, [fetchLive]);
