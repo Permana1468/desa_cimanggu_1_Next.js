@@ -40,6 +40,22 @@ export async function buildWilayahFilterScope(role: string, userRt: string, user
     
     if (role === "RW") {
         filterScope.rw = { in: getWilayahVariants(userRw) };
+        const targetRwClean = cleanDigits(userRw);
+        const officialRts: string[] = [];
+        structure.dusun?.forEach((d: any) => {
+            d.rw?.forEach((rwObj: any) => {
+                if (cleanDigits(rwObj.name || rwObj.nomor || "") === targetRwClean) {
+                    rwObj.rt?.forEach((rtItem: any) => {
+                        const rtStr = typeof rtItem === "string" ? rtItem : String(rtItem?.name || rtItem?.nomor || "");
+                        if (rtStr) officialRts.push(rtStr);
+                    });
+                }
+            });
+        });
+        if (officialRts.length > 0) {
+            const rtVariants = Array.from(new Set(officialRts.flatMap(r => getWilayahVariants(r))));
+            filterScope.rt = { in: rtVariants };
+        }
         return { filterScope, allowedRws };
     } else if (role === "KADUS") {
         const allowedRts: string[] = [];
@@ -277,7 +293,7 @@ export async function getRtDashboardStats() {
         const inactiveNiks = [...deathRecords.map(d => d.nik?.trim()).filter(Boolean), ...moveRecords.map(m => m.nik?.trim()).filter(Boolean)];
         const activeScope = { 
             ...filterScope,
-            statusKependudukan: { notIn: ["MENINGGAL", "PINDAH"] }
+            statusKependudukan: { notIn: ["MENINGGAL", "PINDAH", "PINDAH_KELUAR"] }
         };
         if (inactiveNiks.length > 0) {
             activeScope.nik = { notIn: inactiveNiks };
@@ -1417,7 +1433,7 @@ export async function getRwDashboardStats() {
         const inactiveNiks = [...deathRecords.map(d => d.nik?.trim()).filter(Boolean), ...moveRecords.map(m => m.nik?.trim()).filter(Boolean)];
         const activeScope = { 
             ...filterScope,
-            statusKependudukan: { notIn: ["MENINGGAL", "PINDAH"] }
+            statusKependudukan: { notIn: ["MENINGGAL", "PINDAH", "PINDAH_KELUAR"] }
         };
         if (inactiveNiks.length > 0) {
             activeScope.nik = { notIn: inactiveNiks };
@@ -1488,7 +1504,15 @@ export async function getRwDashboardStats() {
             ...Object.keys(rtWargaMap),
             ...Object.keys(rtKasMap),
             ...Object.keys(rtActivitiesCount)
-        ])).sort();
+        ])).filter(key => {
+            // If filterScope.rt is locked to official RTs for RW, exclude ghost/unrecognized RT numbers from breakdown
+            if (role === "RW" && filterScope.rt?.in) {
+                const [, rtPart] = key.split("_");
+                if (!rtPart || rtPart === "000") return false;
+                return filterScope.rt.in.includes(rtPart) || filterScope.rt.in.includes(String(parseInt(rtPart, 10)));
+            }
+            return true;
+        }).sort();
 
         const rtBreakdown = keys.map(key => {
             const { rt: rtVal, rw: rwVal } = rtRwMap[key];
