@@ -100,7 +100,7 @@ export function MasterShell({
 
                 {/* SCROLLABLE MAIN CONTENT */}
                 <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-28 sm:pb-32 lg:pb-12 custom-scrollbar bg-slate-50 select-text">
-                    <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-3 duration-500">
+                    <div className="max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-150">
                         {children}
                     </div>
                 </main>

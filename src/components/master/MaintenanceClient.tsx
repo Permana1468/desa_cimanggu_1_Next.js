@@ -523,19 +523,32 @@ export function MaintenanceClient({ initialSettings }: MaintenanceClientProps) {
                   <span>Atur Pesan</span>
                 </button>
 
-                <button
-                  onClick={() => {
-                    setPreviewFeature({
-                      name: feature.name,
-                      notice: currentNotice,
-                      category: feature.categoryLabel
-                    });
-                  }}
-                  className="flex items-center gap-1 text-slate-500 hover:text-slate-900 font-bold transition-colors"
-                >
-                  <Eye size={13} />
-                  <span>Preview Layar</span>
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => {
+                      setPreviewFeature({
+                        name: feature.name,
+                        notice: currentNotice,
+                        category: feature.categoryLabel
+                      });
+                    }}
+                    className="flex items-center gap-1 text-slate-500 hover:text-slate-900 font-bold transition-colors"
+                  >
+                    <Eye size={13} />
+                    <span>Preview Layar</span>
+                  </button>
+
+                  {feature.paths[0] && (
+                    <a
+                      href={`/api/master/dev-preview?to=${encodeURIComponent(feature.paths[0])}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-black transition-colors"
+                    >
+                      <span>Buka Live (Dev) ↗</span>
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           );

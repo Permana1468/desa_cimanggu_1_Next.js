@@ -70,14 +70,15 @@ export async function getMaintenanceSettings(): Promise<MaintenanceSettings> {
 
 /**
  * Check if a specific feature is currently under maintenance.
- * Admin Master ALWAYS bypasses maintenance mode.
+ * Admin Master only bypasses maintenance when Developer Preview mode is explicitly enabled.
  */
 export async function checkFeatureMaintenance(
   featureId: string, 
-  userRole?: string
+  userRole?: string,
+  isDevBypass: boolean = false
 ): Promise<{ isMaintenance: boolean; notice: string; feature?: FeatureDefinition; isGlobal: boolean }> {
-  // Master Admin can always access everything
-  if (userRole === "ADMIN_MASTER") {
+  // Master Admin bypasses maintenance only when explicitly in Developer Preview mode
+  if (userRole === "ADMIN_MASTER" && isDevBypass) {
     return { isMaintenance: false, notice: "", isGlobal: false };
   }
 

@@ -19,6 +19,8 @@ interface MaintenanceNoticeProps {
   category?: string;
   isGlobal?: boolean;
   isMasterPreview?: boolean;
+  isMasterUser?: boolean;
+  currentPath?: string;
   homeUrl?: string;
 }
 
@@ -28,6 +30,8 @@ export function MaintenanceNotice({
   category = "Layanan Desa",
   isGlobal = false,
   isMasterPreview = false,
+  isMasterUser = false,
+  currentPath = "/umkm",
   homeUrl = "/",
 }: MaintenanceNoticeProps) {
   return (
@@ -308,6 +312,16 @@ export function MaintenanceNotice({
               <RefreshCw size={15} />
               <span>Cek Status Terbaru</span>
             </button>
+
+            {isMasterUser && (
+              <a
+                href={`/api/master/dev-preview?to=${encodeURIComponent(currentPath)}`}
+                className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-black transition-all shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2"
+              >
+                <Code2 size={15} />
+                <span>Buka Tampilan Asli (Dev)</span>
+              </a>
+            )}
           </div>
 
           {/* Footer Note + Developer Info */}
