@@ -184,6 +184,44 @@ export const authOptions: NextAuthOptions = {
   },
   providers,
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google") {
+        const email = user.email || (profile as any)?.email;
+        if (!email) return false;
+
+        // 1. Cek apakah user sudah terdaftar di database User desa
+        const dbUser = await prisma.user.findFirst({
+          where: { email },
+          include: { resident: true }
+        });
+
+        if (dbUser) {
+          // Akun Google wajib role WARGA jika ini akun warga
+          if (dbUser.role === "WARGA" && !dbUser.residentId && dbUser.nik) {
+            const citizen = await prisma.dataKependudukan.findFirst({
+              where: { nik: dbUser.nik }
+            });
+            if (citizen) {
+              await prisma.user.update({
+                where: { id: dbUser.id },
+                data: { residentId: citizen.id, tenantId: citizen.tenantId }
+              });
+            } else {
+              return "/login?error=GoogleAccountNotRegisteredInVillage";
+            }
+          }
+          if (!dbUser.isActive) return false;
+          (user as any).id = dbUser.id;
+          (user as any).role = dbUser.role;
+          (user as any).tenantId = dbUser.tenantId;
+          return true;
+        }
+
+        // 2. Bukan warga Desa Cimanggu I atau akun Google belum terdaftar/ditautkan dengan NIK desa -> DITOLAK
+        return "/login?error=GoogleAccountNotRegisteredInVillage";
+      }
+      return true;
+    },
     async redirect({ url, baseUrl }) {
       // Allow relative callback URLs
       if (url.startsWith("/")) return `${baseUrl}${url}`;

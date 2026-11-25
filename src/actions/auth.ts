@@ -26,6 +26,14 @@ export async function registerWarga(rawData: any) {
             return { error: "NIK tidak terdaftar sebagai warga. Hanya warga terdata yang dapat mendaftar. Hubungi Admin Desa." };
         }
 
+        // Validasi kecocokan Nama Lengkap dengan Data Kependudukan Resmi Desa
+        const inputNameClean = data.fullName.trim().toUpperCase().replace(/[^A-Z]/g, '');
+        const officialNameClean = (wargaData.namaLengkap || "").trim().toUpperCase().replace(/[^A-Z]/g, '');
+        
+        if (inputNameClean.length < 3 || (!officialNameClean.includes(inputNameClean) && !inputNameClean.includes(officialNameClean))) {
+            return { error: `Nama lengkap tidak sesuai dengan data kependudukan pemegang NIK ${data.nik}. Pastikan nama lengkap sesuai dengan KTP resmi.` };
+        }
+
         const tenantId = wargaData.tenantId;
 
         // 2. Cek apakah user sudah terdaftar
