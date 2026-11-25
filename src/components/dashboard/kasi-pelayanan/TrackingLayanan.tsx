@@ -46,6 +46,7 @@ export function TrackingLayanan({ session }: { session: any }) {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
   const fetchTrackingList = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
     try {
       const res = await getDocumentTrackingList();
       if (res.success) {
@@ -64,10 +65,16 @@ export function TrackingLayanan({ session }: { session: any }) {
 
   useEffect(() => {
     fetchTrackingList();
-    const interval = setInterval(() => {
-      fetchTrackingList();
-    }, 5000);
-    return () => clearInterval(interval);
+    const handleRefresh = () => fetchTrackingList();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+
+    const interval = setInterval(fetchTrackingList, 15000);
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      clearInterval(interval);
+    };
   }, [fetchTrackingList]);
 
   const handleSearch = async (e?: React.FormEvent) => {

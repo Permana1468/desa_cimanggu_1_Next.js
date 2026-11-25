@@ -55,6 +55,7 @@ export function AntrianLoket({ session }: { session: any }) {
   const [successToast, setSuccessToast] = useState<string | null>(null);
 
   const fetchQueues = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
     try {
       const res = await getPelayananQueues();
       if (res.success) {
@@ -71,11 +72,17 @@ export function AntrianLoket({ session }: { session: any }) {
 
   useEffect(() => {
     fetchQueues();
-    // Auto-refresh every 5 seconds for real-time synchronization
-    const timer = setInterval(() => {
-      fetchQueues();
-    }, 5000);
-    return () => clearInterval(timer);
+    const handleRefresh = () => fetchQueues();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+
+    // Auto-refresh every 10 seconds for real-time synchronization with visibility guard
+    const timer = setInterval(fetchQueues, 10000);
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      clearInterval(timer);
+    };
   }, [fetchQueues]);
 
   // Audio Chime Synthesizer

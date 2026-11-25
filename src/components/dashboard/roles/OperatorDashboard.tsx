@@ -84,6 +84,7 @@ function OperatorMainView({ session, initialStats }: { session: any; initialStat
   const [chartTrend, setChartTrend] = useState<any[]>([]);
 
   const fetchLiveData = async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
     setIsSyncing(true);
     try {
       const [rtStats, vStats] = await Promise.all([
@@ -133,8 +134,16 @@ function OperatorMainView({ session, initialStats }: { session: any; initialStat
 
   useEffect(() => {
     fetchLiveData();
-    const interval = setInterval(fetchLiveData, 5000); // Live sync every 5s
-    return () => clearInterval(interval);
+    const handleRefresh = () => fetchLiveData();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+
+    const interval = setInterval(fetchLiveData, 20000); // Intelligent sync every 20s
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      clearInterval(interval);
+    };
   }, []);
 
   return (

@@ -33,12 +33,17 @@ export function PosyanduKehadiranTab({ session, selectedPosyandu }: { session?: 
   useEffect(() => {
     fetchData();
 
-    const handleRefresh = () => fetchData();
+    const handleRefresh = () => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+      fetchData();
+    };
     window.addEventListener("refresh-notifications", handleRefresh);
-    const interval = setInterval(handleRefresh, 15000);
+    window.addEventListener("focus", handleRefresh);
+    const interval = setInterval(handleRefresh, 30000);
 
     return () => {
       window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
       clearInterval(interval);
     };
   }, [selectedPosyandu]);

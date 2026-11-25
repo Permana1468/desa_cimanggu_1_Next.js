@@ -191,7 +191,6 @@ export default async function VillageAdminLayout({
       
       {/* Floating Transparent Chat for Dashboard Users */}
       <FloatingChat session={session} />
-      {/* {role === "KAUR_PERENCANAAN" && <ImoRobotCompanion />} */}
 
       {/* Sentry Cyber Fraud & Security Alarm Listener */}
       <SecurityAlarmListener />

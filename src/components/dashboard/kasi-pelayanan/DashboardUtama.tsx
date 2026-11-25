@@ -42,6 +42,7 @@ export function DashboardUtama({ session, stats }: { session: any, stats: any })
   });
 
   const loadLoketData = useCallback(async () => {
+    if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
     try {
       const [queueRes, loketRes] = await Promise.all([
         getPelayananQueues(),
@@ -60,10 +61,16 @@ export function DashboardUtama({ session, stats }: { session: any, stats: any })
 
   useEffect(() => {
     loadLoketData();
-    const interval = setInterval(() => {
-      loadLoketData();
-    }, 5000);
-    return () => clearInterval(interval);
+    const handleRefresh = () => loadLoketData();
+    window.addEventListener("refresh-notifications", handleRefresh);
+    window.addEventListener("focus", handleRefresh);
+
+    const interval = setInterval(loadLoketData, 20000);
+    return () => {
+      window.removeEventListener("refresh-notifications", handleRefresh);
+      window.removeEventListener("focus", handleRefresh);
+      clearInterval(interval);
+    };
   }, [loadLoketData]);
 
   // Weekly service stats data with realistic numbers
